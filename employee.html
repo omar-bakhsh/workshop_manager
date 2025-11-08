@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>صفحة الموظف</title>
+  <style>
+    body {
+      font-family: "Cairo", sans-serif;
+      background-color: #f4f6f9;
+      margin: 0;
+      padding: 20px;
+      direction: rtl;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    h2 {
+      color: #333;
+      text-align: center;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .info-item {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    .info-item h3 {
+      margin: 0 0 10px 0;
+      color: #555;
+      font-size: 14px;
+    }
+    .info-item p {
+      margin: 0;
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+    }
+    .positive {
+      color: #28a745;
+    }
+    .negative {
+      color: #dc3545;
+    }
+    .achieved {
+      color: #007bff;
+    }
+    
+    /* نمط قسم آخر تحديث */
+    .last-update {
+      background: #e7f3ff;
+      border-right: 4px solid #007bff;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+    .last-update h3 {
+      margin: 0 0 10px 0;
+      color: #007bff;
+    }
+    .update-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+    }
+    .update-item {
+      text-align: center;
+    }
+    .update-label {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 5px;
+    }
+    .update-value {
+      font-size: 16px;
+      font-weight: bold;
+      color: #333;
+    }
+    
+    /* نمط جدول الدخل */
+    .income-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    .income-table th,
+    .income-table td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+    .income-table th {
+      background: #f8f9fa;
+      font-weight: bold;
+      color: #333;
+    }
+    .income-table tr:hover {
+      background: #f8f9fa;
+    }
+    
+    /* نمط إضافة الملاحظات */
+    .note-form {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 10px;
+      margin: 10px 0;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #333;
+    }
+    textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+      box-sizing: border-box;
+      height: 80px;
+      resize: vertical;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    button:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
+    }
+    
+    .logout {
+      color: red;
+      text-decoration: none;
+      font-weight: bold;
+      display: inline-block;
+      margin-bottom: 15px;
+    }
+    .has-note {
+      background: #e8f5e8;
+    }
+    .note-badge {
+      background: #28a745;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      margin-right: 5px;
+    }
+
+    /* نمط التعديل السريع */
+    .quick-edit-form {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 10px;
+      margin: 10px 0;
+    }
+
+    .quick-edit-form .form-group {
+      margin-bottom: 15px;
+    }
+
+    .quick-edit-form label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .quick-edit-form .form-control {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    .save-btn {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+    }
+
+    .save-btn:hover {
+      background: #218838;
+    }
+  </style>
+</head>
+<body>
+
+  <a href="login.html" class="logout">تسجيل خروج</a>
+  
+  <div class="card">
+    <h2>صفحة الموظف</h2>
+    
+    <div class="info-grid">
+      <div class="info-item">
+        <h3>الاسم</h3>
+        <p id="emp_name">-</p>
+      </div>
+      <div class="info-item">
+        <h3>القسم</h3>
+        <p id="emp_section">-</p>
+      </div>
+      <div class="info-item">
+        <h3>الهدف</h3>
+        <p id="emp_target">-</p>
+      </div>
+      <div class="info-item">
+        <h3>الدخل الحالي</h3>
+        <p id="emp_income" class="positive">-</p>
+      </div>
+      <div class="info-item">
+        <h3>المتبقي</h3>
+        <p id="emp_remaining">-</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- قسم التعديل السريع -->
+  <div class="card">
+    <h2>التعديل السريع</h2>
+    <div class="quick-edit-form">
+        <div class="form-group">
+            <label>الدخل الجديد:</label>
+            <input type="number" id="quick-salary" class="form-control" placeholder="أدخل الدخل الجديد">
+        </div>
+        <div class="form-group">
+            <label>الهدف الجديد:</label>
+            <input type="number" id="quick-target" class="form-control" placeholder="أدخل الهدف الجديد">
+        </div>
+        <div class="form-group">
+            <label>ملاحظات سريعة:</label>
+            <textarea id="quick-notes" class="form-control" rows="2" placeholder="أدخل ملاحظاتك"></textarea>
+        </div>
+        <button class="save-btn" onclick="quickUpdate()">حفظ التعديلات</button>
+    </div>
+  </div>
+
+  <!-- قسم آخر تحديث للدخل -->
+  <div class="card" id="last-update-card" style="display: none;">
+    <h2>آخر تحديث للدخل</h2>
+    <div class="last-update">
+      <h3>📊 آخر دخل مسجل</h3>
+      <div class="update-details">
+        <div class="update-item">
+          <div class="update-label">المبلغ</div>
+          <div class="update-value" id="last-amount">-</div>
+        </div>
+        <div class="update-item">
+          <div class="update-label">تاريخ الإضافة</div>
+          <div class="update-value" id="last-date">-</div>
+        </div>
+        <div class="update-item">
+          <div class="update-label">ملاحظات المدير</div>
+          <div class="update-value" id="last-note">-</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>سجل الدخل</h2>
+    <table class="income-table">
+      <thead>
+        <tr>
+          <th>التاريخ</th>
+          <th>المبلغ</th>
+          <th>ملاحظات المدير</th>
+          <th>ملاحظاتي</th>
+          <th>الإجراء</th>
+        </tr>
+      </thead>
+      <tbody id="entries_table">
+        <!-- سيتم تعبئة الجدول بالبيانات -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    // الحصول على معرف الموظف من الرابط
+    const urlParams = new URLSearchParams(window.location.search);
+    const employeeId = urlParams.get('id');
+
+    if (!employeeId) {
+      alert('خطأ: لم يتم تحديد موظف');
+      window.location.href = 'login.html';
+    }
+
+    // تحميل بيانات الموظف
+    async function loadEmployeeData() {
+      try {
+        const response = await fetch(`/api/employees/${employeeId}`);
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error('خطأ في تحميل البيانات');
+        }
+
+        console.log('بيانات الموظف:', data); // للتdebug
+
+        // تحديث معلومات الموظف
+        document.getElementById('emp_name').textContent = data.name || '-';
+        document.getElementById('emp_section').textContent = data.section_name || 'لا يوجد';
+        document.getElementById('emp_target').textContent = (data.target || 0).toLocaleString() + ' ريال';
+        document.getElementById('emp_income').textContent = (data.totalIncome || 0).toLocaleString() + ' ريال';
+        
+        const remainingElem = document.getElementById('emp_remaining');
+        const remaining = data.remaining || data.target || 0;
+        remainingElem.textContent = remaining.toLocaleString() + ' ريال';
+        
+        if (remaining <= 0) {
+          remainingElem.className = 'achieved';
+          remainingElem.textContent = '🎯 تم تحقيق الهدف';
+        } else if (remaining > 0) {
+          remainingElem.className = 'negative';
+        }
+
+        // تحديث قسم آخر تحديث
+        updateLastIncome(data.lastEntry);
+        
+        // تحديث جدول الدخل
+        updateIncomeTable(data.entries || []);
+        
+      } catch (error) {
+        console.error('Error:', error);
+        alert('خطأ في تحميل بيانات الموظف - تأكد من معرف الموظف');
+      }
+    }
+
+    // تحديث قسم آخر تحديث الدخل
+    function updateLastIncome(lastEntry) {
+      const card = document.getElementById('last-update-card');
+      
+      if (lastEntry) {
+        card.style.display = 'block';
+        document.getElementById('last-amount').textContent = lastEntry.amount.toLocaleString() + ' ريال';
+        document.getElementById('last-date').textContent = new Date(lastEntry.date).toLocaleDateString('ar-SA');
+        document.getElementById('last-note').textContent = lastEntry.note || 'لا توجد ملاحظات';
+      } else {
+        card.style.display = 'none';
+      }
+    }
+
+    // تحديث جدول الدخل
+    function updateIncomeTable(entries) {
+      const tbody = document.getElementById('entries_table');
+      tbody.innerHTML = '';
+
+      if (entries.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">لا توجد سجلات دخل</td></tr>';
+        return;
+      }
+
+      entries.forEach(entry => {
+        const date = new Date(entry.created_at).toLocaleDateString('ar-SA');
+        const tr = document.createElement('tr');
+        if (entry.has_employee_note) {
+          tr.className = 'has-note';
+        }
+        
+        tr.innerHTML = `
+          <td>${date}</td>
+          <td>${entry.amount.toLocaleString()} ريال</td>
+          <td>${entry.note || '-'}</td>
+          <td>
+            ${entry.has_employee_note ? '<span class="note-badge">✓</span>' : ''}
+            ${entry.employee_note || 'لا توجد ملاحظات'}
+          </td>
+          <td>
+            <button onclick="openNoteForm(${entry.id}, '${entry.employee_note || ''}')">
+              ${entry.has_employee_note ? 'تعديل الملاحظة' : 'إضافة ملاحظة'}
+            </button>
+          </td>
+        `;
+        
+        tbody.appendChild(tr);
+      });
+    }
+
+    // فتح نموذج إضافة/تعديل الملاحظة
+    function openNoteForm(entryId, currentNote) {
+      const note = prompt('أدخل ملاحظتك:', currentNote);
+      if (note === null) return;
+
+      saveEmployeeNote(entryId, note);
+    }
+
+    // حفظ ملاحظة الموظف
+    async function saveEmployeeNote(entryId, note) {
+      try {
+        const response = await fetch(`/api/entries/${entryId}/employee-note`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            employee_note: note
+          })
+        });
+
+        if (response.ok) {
+          loadEmployeeData();
+          alert('تم حفظ الملاحظة بنجاح');
+        } else {
+          throw new Error('خطأ في حفظ الملاحظة');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('خطأ في حفظ الملاحظة');
+      }
+    }
+
+    // دالة التحديث السريع
+    async function quickUpdate() {
+      const newSalary = document.getElementById('quick-salary').value;
+      const newTarget = document.getElementById('quick-target').value;
+      const notes = document.getElementById('quick-notes').value;
+
+      if (!newSalary && !newTarget && !notes) {
+        alert('يرجى إدخال بيانات للتعديل');
+        return;
+      }
+
+      try {
+        // إذا كان هناك دخل جديد، أضفه
+        if (newSalary) {
+          await fetch(`/api/employees/${employeeId}/income`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ 
+              amount: parseFloat(newSalary),
+              note: notes || 'تحديث سريع'
+            })
+          });
+        }
+
+        // إذا كان هناك هدف جديد، عدله
+        if (newTarget) {
+          await updateEmployeeTarget(newTarget);
+        }
+
+        // مسح الحقول
+        document.getElementById('quick-salary').value = '';
+        document.getElementById('quick-target').value = '';
+        document.getElementById('quick-notes').value = '';
+
+        // إعادة تحميل البيانات
+        loadEmployeeData();
+        alert('تم التحديث بنجاح');
+        
+      } catch (error) {
+        console.error('Error:', error);
+        alert('خطأ في التحديث');
+      }
+    }
+
+    // دالة مساعدة لتعديل الهدف
+    async function updateEmployeeTarget(newTarget) {
+      // الحصول على البيانات الحالية أولاً
+      const response = await fetch(`/api/employees/${employeeId}`);
+      const currentData = await response.json();
+      
+      // استخدام نفس endpoint تعديل الموظف
+      const updateResponse = await fetch(`/api/employees/${employeeId}`, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ 
+          target: parseFloat(newTarget),
+          name: currentData.name,
+          username: 'user_' + employeeId, // قيم افتراضية
+          password: 'pass_' + employeeId
+        })
+      });
+      return updateResponse.json();
+    }
+
+    // تحميل البيانات عند فتح الصفحة
+    document.addEventListener('DOMContentLoaded', loadEmployeeData);
+  </script>
+</body>
+</html>

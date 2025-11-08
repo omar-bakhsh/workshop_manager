@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تسجيل الدخول</title>
+  <style>
+    body {
+      font-family: "Cairo", sans-serif;
+      background-color: #f4f6f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .login-box {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      width: 320px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      outline: none;
+      text-align: right;
+    }
+
+    button {
+      width: 100%;
+      background-color: #007bff;
+      border: none;
+      color: white;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .error {
+      color: red;
+      text-align: center;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>تسجيل الدخول</h2>
+    <input type="text" id="username" placeholder="اسم المستخدم" />
+    <input type="password" id="password" placeholder="كلمة المرور" />
+    <button id="loginBtn">دخول</button>
+    <div id="error" class="error"></div>
+  </div>
+
+  <script>
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const errorDiv = document.getElementById("error");
+
+      if (!username || !password) {
+        errorDiv.textContent = "الرجاء إدخال اسم المستخدم وكلمة المرور";
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+
+        if (!res.ok) {
+          const msg = await res.json();
+          errorDiv.textContent = msg.message || "خطأ في تسجيل الدخول";
+          return;
+        }
+
+        const user = await res.json();
+
+        if (user.role === "admin") {
+          window.location.href = "/admin.html";
+        } else if (user.role === "employee") {
+          window.location.href = `/employee.html?id=${user.employee_id}`;
+        } else {
+          errorDiv.textContent = "نوع المستخدم غير معروف.";
+        }
+      } catch (err) {
+        console.error(err);
+        errorDiv.textContent = "حدث خطأ في الاتصال بالسيرفر.";
+      }
+    });
+  </script>
+</body>
+</html>
