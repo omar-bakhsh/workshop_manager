@@ -2,508 +2,1036 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>صفحة الموظف</title>
   <style>
-    body {
-      font-family: "Cairo", sans-serif;
-      background-color: #f4f6f9;
-      margin: 0;
-      padding: 20px;
-      direction: rtl;
-    }
-    .card {
-      background: white;
-      padding: 20px;
-      border-radius: 15px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-    }
-    h2 {
-      color: #333;
-      text-align: center;
-    }
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-    .info-item {
-      background: #f8f9fa;
-      padding: 15px;
-      border-radius: 10px;
-      text-align: center;
-    }
-    .info-item h3 {
-      margin: 0 0 10px 0;
-      color: #555;
-      font-size: 14px;
-    }
-    .info-item p {
-      margin: 0;
-      font-size: 18px;
-      font-weight: bold;
-      color: #333;
-    }
-    .positive {
-      color: #28a745;
-    }
-    .negative {
-      color: #dc3545;
-    }
-    .achieved {
-      color: #007bff;
+    :root {
+      --primary: #3498db;
+      --secondary: #2c3e50;
+      --success: #27ae60;
+      --warning: #f39c12;
+      --danger: #e74c3c;
+      --light: #f8f9fa;
+      --dark: #343a40;
+      --gray: #6c757d;
     }
     
-    /* نمط قسم آخر تحديث */
-    .last-update {
-      background: #e7f3ff;
-      border-right: 4px solid #007bff;
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-    }
-    .last-update h3 {
-      margin: 0 0 10px 0;
-      color: #007bff;
-    }
-    .update-details {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 10px;
-    }
-    .update-item {
-      text-align: center;
-    }
-    .update-label {
-      font-size: 12px;
-      color: #666;
-      margin-bottom: 5px;
-    }
-    .update-value {
-      font-size: 16px;
-      font-weight: bold;
-      color: #333;
-    }
-    
-    /* نمط جدول الدخل */
-    .income-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-    .income-table th,
-    .income-table td {
-      padding: 12px;
-      text-align: center;
-      border-bottom: 1px solid #ddd;
-    }
-    .income-table th {
-      background: #f8f9fa;
-      font-weight: bold;
-      color: #333;
-    }
-    .income-table tr:hover {
-      background: #f8f9fa;
-    }
-    
-    /* نمط إضافة الملاحظات */
-    .note-form {
-      background: #f8f9fa;
-      padding: 15px;
-      border-radius: 10px;
-      margin: 10px 0;
-    }
-    .form-group {
-      margin-bottom: 15px;
-    }
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-      color: #333;
-    }
-    textarea {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-size: 16px;
+    * {
       box-sizing: border-box;
-      height: 80px;
-      resize: vertical;
+      margin: 0;
+      padding: 0;
+      font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-    button {
-      background: #007bff;
+    
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #333;
+      line-height: 1.6;
+      padding: 15px;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    
+    .welcome-message {
       color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-    button:disabled {
-      background: #6c757d;
-      cursor: not-allowed;
+      font-size: 1.2rem;
+      font-weight: bold;
     }
     
     .logout {
-      color: red;
+      color: white;
       text-decoration: none;
       font-weight: bold;
-      display: inline-block;
-      margin-bottom: 15px;
-    }
-    .has-note {
-      background: #e8f5e8;
-    }
-    .note-badge {
-      background: #28a745;
-      color: white;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 12px;
-      margin-right: 5px;
-    }
-
-    /* نمط التعديل السريع */
-    .quick-edit-form {
-      background: #f8f9fa;
-      padding: 15px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 15px;
+      background: rgba(255,255,255,0.2);
       border-radius: 10px;
-      margin: 10px 0;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.3);
+      transition: all 0.3s ease;
     }
-
-    .quick-edit-form .form-group {
-      margin-bottom: 15px;
+    
+    .logout:hover {
+      background: rgba(255,255,255,0.3);
+      color: white;
+      text-decoration: none;
     }
-
-    .quick-edit-form label {
-      display: block;
-      margin-bottom: 5px;
+    
+    .card {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      overflow: hidden;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255,255,255,0.2);
+      backdrop-filter: blur(10px);
+    }
+    
+    .card h2 {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      color: white;
+      padding: 20px;
+      font-size: 1.3rem;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin: 20px;
+    }
+    
+    .info-item {
+      background: linear-gradient(135deg, var(--light), #ffffff);
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      border: 1px solid #e9ecef;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .info-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .info-item h3 {
+      margin: 0 0 10px 0;
+      color: var(--gray);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    
+    .info-item p {
+      margin: 0;
+      font-size: 1.1rem;
       font-weight: bold;
-      color: #333;
+      color: var(--dark);
     }
-
-    .quick-edit-form .form-control {
+    
+    .positive {
+      color: var(--success);
+    }
+    
+    .negative {
+      color: var(--danger);
+    }
+    
+    .achieved {
+      color: var(--primary);
+      font-weight: bold;
+    }
+    
+    .progress-container {
+      margin: 20px;
+    }
+    
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+      color: var(--gray);
+    }
+    
+    .progress-bar {
       width: 100%;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      font-size: 16px;
-      box-sizing: border-box;
+      height: 12px;
+      background: #e9ecef;
+      border-radius: 10px;
+      overflow: hidden;
     }
-
-    .save-btn {
-      background: #28a745;
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--success), #20c997);
+      transition: width 0.5s ease;
+      border-radius: 10px;
+    }
+    
+    .last-update {
+      background: linear-gradient(135deg, #e7f3ff, #f0f8ff);
+      border-right: 4px solid var(--primary);
+      padding: 20px;
+      border-radius: 12px;
+      margin: 20px;
+    }
+    
+    .last-update h3 {
+      margin: 0 0 15px 0;
+      color: var(--primary);
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .update-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+    }
+    
+    .update-item {
+      text-align: center;
+      padding: 12px;
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+    }
+    
+    .update-label {
+      font-size: 0.8rem;
+      color: var(--gray);
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+    
+    .update-value {
+      font-size: 0.95rem;
+      font-weight: bold;
+      color: var(--dark);
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--gray);
+      font-size: 1rem;
+    }
+    
+    /* تصميم الجدول للشاشات الكبيرة */
+    .income-table {
+      width: 100%;
+      border-collapse: collapse;
+      display: table;
+    }
+    
+    .income-table thead {
+      background-color: var(--light);
+    }
+    
+    .income-table th {
+      padding: 15px 12px;
+      text-align: center;
+      font-weight: 600;
+      color: var(--dark);
+      border-bottom: 2px solid #e9ecef;
+      font-size: 0.9rem;
+    }
+    
+    .income-table td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid #e9ecef;
+      vertical-align: top;
+    }
+    
+    .income-table tbody tr:hover {
+      background-color: var(--light);
+    }
+    
+    .income-table .amount {
+      font-weight: bold;
+      color: var(--success);
+    }
+    
+    .income-table button {
+      background-color: var(--primary);
       color: white;
       border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background-color 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .income-table button:hover {
+      background-color: #2980b9;
+    }
+    
+    .has-note {
+      background: #f0fff4;
+    }
+    
+    .note-badge {
+      background: var(--success);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      margin-left: 5px;
+    }
+    
+    /* تصميم الجدول للشاشات الصغيرة */
+    @media (max-width: 768px) {
+      .income-table {
+        display: block;
+        overflow-x: auto;
+      }
+      
+      .income-table thead {
+        display: none;
+      }
+      
+      .income-table tbody, 
+      .income-table tr, 
+      .income-table td {
+        display: block;
+        width: 100%;
+      }
+      
+      .income-table tr {
+        margin-bottom: 15px;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      }
+      
+      .income-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        text-align: right;
+      }
+      
+      .income-table td:before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: var(--dark);
+        margin-left: 10px;
+        flex-shrink: 0;
+      }
+      
+      .income-table td:last-child {
+        border-bottom: none;
+      }
+      
+      .income-table .amount {
+        font-size: 1.1rem;
+      }
+      
+      .income-table button {
+        width: 100%;
+        justify-content: center;
+        padding: 10px;
+      }
+    }
+    
+    /* تصميم البطاقات للجوال */
+    .mobile-cards {
+      display: none;
+    }
+    
+    @media (max-width: 576px) {
+      body {
+        padding: 10px;
+      }
+      
+      .income-table {
+        display: none;
+      }
+      
+      .mobile-cards {
+        display: block;
+      }
+      
+      .info-grid {
+        grid-template-columns: 1fr;
+        margin: 15px;
+        gap: 10px;
+      }
+      
+      .info-item {
+        padding: 15px;
+      }
+      
+      .card h2 {
+        padding: 15px;
+        font-size: 1.2rem;
+      }
+      
+      .last-update {
+        margin: 15px;
+        padding: 15px;
+      }
+      
+      .update-details {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .income-card {
+      background: white;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      border-right: 4px solid var(--primary);
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .card-date {
+      font-weight: bold;
+      color: var(--dark);
+    }
+    
+    .card-amount {
+      font-weight: bold;
+      font-size: 1.2rem;
+      color: var(--success);
+    }
+    
+    .card-details {
+      margin-bottom: 15px;
+    }
+    
+    .detail-row {
+      display: flex;
+      margin-bottom: 8px;
+    }
+    
+    .detail-label {
+      font-weight: bold;
+      color: var(--dark);
+      min-width: 120px;
+    }
+    
+    .detail-value {
+      color: #555;
+      flex: 1;
+      text-align: right;
+    }
+    
+    .card-actions {
+      text-align: left;
+    }
+    
+    .card-actions button {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    /* تصميم نموذج الملاحظات */
+    .notes-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    
+    .notes-container {
+      background: white;
+      border-radius: 15px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 80vh;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    
+    .notes-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .notes-header h3 {
+      margin: 0;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .notes-content {
+      padding: 20px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: bold;
+      color: var(--dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    textarea {
+      width: 100%;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 120px;
+      transition: all 0.3s ease;
+    }
+    
+    textarea:focus {
+      border-color: var(--primary);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+    
+    .form-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .btn {
       padding: 12px 25px;
-      border-radius: 5px;
+      border: none;
+      border-radius: 8px;
       cursor: pointer;
       font-size: 16px;
-      width: 100%;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex: 1;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: #2980b9;
+    }
+    
+    .btn-secondary {
+      background: var(--gray);
+      color: white;
+    }
+    
+    .btn-secondary:hover {
+      background: #5a6268;
     }
 
-    .save-btn:hover {
-      background: #218838;
+    .error-message {
+      background: #f8d7da;
+      color: var(--danger);
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #f5c6cb;
+      margin: 10px 0;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-
-  <a href="login.html" class="logout">تسجيل خروج</a>
-  
-  <div class="card">
-    <h2>صفحة الموظف</h2>
-    
-    <div class="info-grid">
-      <div class="info-item">
-        <h3>الاسم</h3>
-        <p id="emp_name">-</p>
-      </div>
-      <div class="info-item">
-        <h3>القسم</h3>
-        <p id="emp_section">-</p>
-      </div>
-      <div class="info-item">
-        <h3>الهدف</h3>
-        <p id="emp_target">-</p>
-      </div>
-      <div class="info-item">
-        <h3>الدخل الحالي</h3>
-        <p id="emp_income" class="positive">-</p>
-      </div>
-      <div class="info-item">
-        <h3>المتبقي</h3>
-        <p id="emp_remaining">-</p>
-      </div>
+  <div class="container">
+    <div class="header">
+      <a href="#" class="logout" id="logoutBtn">
+        <span>🚪</span>
+        تسجيل خروج
+      </a>
+      <div class="welcome-message" id="welcome-message">مرحباً بك</div>
     </div>
-  </div>
 
-  <!-- قسم التعديل السريع -->
-  <div class="card">
-    <h2>التعديل السريع</h2>
-    <div class="quick-edit-form">
-        <div class="form-group">
-            <label>الدخل الجديد:</label>
-            <input type="number" id="quick-salary" class="form-control" placeholder="أدخل الدخل الجديد">
+    <div class="card">
+      <h2>📊 صفحة الموظف</h2>
+      
+      <div class="info-grid">
+        <div class="info-item">
+          <h3>👤 الاسم</h3>
+          <p id="emp_name">-</p>
         </div>
-        <div class="form-group">
-            <label>الهدف الجديد:</label>
-            <input type="number" id="quick-target" class="form-control" placeholder="أدخل الهدف الجديد">
+        <div class="info-item">
+          <h3>🏢 القسم</h3>
+          <p id="emp_section">-</p>
         </div>
-        <div class="form-group">
-            <label>ملاحظات سريعة:</label>
-            <textarea id="quick-notes" class="form-control" rows="2" placeholder="أدخل ملاحظاتك"></textarea>
+        <div class="info-item">
+          <h3>🎯 الهدف</h3>
+          <p id="emp_target">-</p>
         </div>
-        <button class="save-btn" onclick="quickUpdate()">حفظ التعديلات</button>
-    </div>
-  </div>
+        <div class="info-item">
+          <h3>💰 الدخل الحالي</h3>
+          <p id="emp_income" class="positive">-</p>
+        </div>
+        <div class="info-item">
+          <h3>⏳ المتبقي</h3>
+          <p id="emp_remaining">-</p>
+        </div>
+      </div>
 
-  <!-- قسم آخر تحديث للدخل -->
-  <div class="card" id="last-update-card" style="display: none;">
-    <h2>آخر تحديث للدخل</h2>
-    <div class="last-update">
-      <h3>📊 آخر دخل مسجل</h3>
-      <div class="update-details">
-        <div class="update-item">
-          <div class="update-label">المبلغ</div>
-          <div class="update-value" id="last-amount">-</div>
+      <div class="progress-container" id="progress-container" style="display: none;">
+        <div class="progress-label">
+          <span>نسبة تحقيق الهدف</span>
+          <span id="progress-percent">0%</span>
         </div>
-        <div class="update-item">
-          <div class="update-label">تاريخ الإضافة</div>
-          <div class="update-value" id="last-date">-</div>
-        </div>
-        <div class="update-item">
-          <div class="update-label">ملاحظات المدير</div>
-          <div class="update-value" id="last-note">-</div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
         </div>
       </div>
     </div>
+
+    <div class="card" id="last-update-card" style="display: none;">
+      <h2>🔄 آخر تحديث للدخل</h2>
+      <div class="last-update">
+        <h3>📈 آخر دخل مسجل</h3>
+        <div class="update-details">
+          <div class="update-item">
+            <div class="update-label">💵 المبلغ</div>
+            <div class="update-value" id="last-amount">-</div>
+          </div>
+          <div class="update-item">
+            <div class="update-label">📅 تاريخ الإضافة</div>
+            <div class="update-value" id="last-date">-</div>
+          </div>
+          <div class="update-item">
+            <div class="update-label">📝 ملاحظات المدير</div>
+            <div class="update-value" id="last-note">-</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📋 سجل الدخل</h2>
+      <div id="entries-loading" class="loading">جاري تحميل سجل الدخل...</div>
+      
+      <!-- جدول للشاشات المتوسطة والكبيرة -->
+      <table class="income-table" id="entries-table" style="display: none;">
+        <thead>
+          <tr>
+            <th>📅 التاريخ</th>
+            <th>💵 المبلغ</th>
+            <th>📝 ملاحظات المدير</th>
+            <th>💬 ملاحظاتي</th>
+            <th>⚙️ الإجراء</th>
+          </tr>
+        </thead>
+        <tbody id="entries_table">
+          <!-- سيتم تعبئة البيانات هنا -->
+        </tbody>
+      </table>
+      
+      <!-- تصميم البطاقات للجوال -->
+      <div class="mobile-cards" id="mobile-entries">
+        <!-- سيتم تعبئة البطاقات هنا -->
+      </div>
+
+      <div id="entries-error" class="error-message" style="display: none;"></div>
+    </div>
   </div>
 
-  <div class="card">
-    <h2>سجل الدخل</h2>
-    <table class="income-table">
-      <thead>
-        <tr>
-          <th>التاريخ</th>
-          <th>المبلغ</th>
-          <th>ملاحظات المدير</th>
-          <th>ملاحظاتي</th>
-          <th>الإجراء</th>
-        </tr>
-      </thead>
-      <tbody id="entries_table">
-        <!-- سيتم تعبئة الجدول بالبيانات -->
-      </tbody>
-    </table>
+  <!-- نموذج إضافة/تعديل الملاحظات -->
+  <div class="notes-modal" id="notes-modal">
+    <div class="notes-container">
+      <div class="notes-header">
+        <h3>💬 إضافة ملاحظة</h3>
+      </div>
+      <div class="notes-content">
+        <div class="form-group">
+          <label for="note-text">✍️ ملاحظاتك:</label>
+          <textarea 
+            id="note-text" 
+            placeholder="اكتب ملاحظتك هنا... يمكنك إضافة ملاحظات حول الدخل، التقدم، أو أي معلومات أخرى مهمة."
+          ></textarea>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="saveNote()">
+            💾 حفظ الملاحظة
+          </button>
+          <button class="btn btn-secondary" onclick="closeNoteModal()">
+            ❌ إلغاء
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
-    // الحصول على معرف الموظف من الرابط
     const urlParams = new URLSearchParams(window.location.search);
     const employeeId = urlParams.get('id');
+    let currentEntryId = null;
+    let currentEmployeeData = null;
 
     if (!employeeId) {
       alert('خطأ: لم يتم تحديد موظف');
       window.location.href = 'login.html';
     }
 
-    // تحميل بيانات الموظف
+    // دالة التحقق من صحة التوكن
+    function checkAuth() {
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      
+      if (!token || user.role !== 'employee') {
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      // التحقق من أن الموظف يصل فقط لبياناته
+      if (user.employee_id && user.employee_id.toString() !== employeeId) {
+        alert('غير مصرح لك بالوصول إلى هذه الصفحة');
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      loadEmployeeData();
+    }
+
     async function loadEmployeeData() {
       try {
-        const response = await fetch(`/api/employees/${employeeId}`);
-        const data = await response.json();
+        showLoading('employee');
         
+        // جلب بيانات الموظف من API
+        const response = await fetch(`/api/employees/${employeeId}`);
         if (!response.ok) {
-          throw new Error('خطأ في تحميل البيانات');
+          throw new Error('خطأ في جلب بيانات الموظف');
+        }
+        
+        const employeeData = await response.json();
+        currentEmployeeData = employeeData;
+        
+        if (!employeeData) {
+          throw new Error('الموظف غير موجود');
         }
 
-        console.log('بيانات الموظف:', data); // للتdebug
-
-        // تحديث معلومات الموظف
-        document.getElementById('emp_name').textContent = data.name || '-';
-        document.getElementById('emp_section').textContent = data.section_name || 'لا يوجد';
-        document.getElementById('emp_target').textContent = (data.target || 0).toLocaleString() + ' ريال';
-        document.getElementById('emp_income').textContent = (data.totalIncome || 0).toLocaleString() + ' ريال';
+        // تحديث البيانات الأساسية
+        document.getElementById('emp_name').textContent = employeeData.name;
+        document.getElementById('welcome-message').textContent = `مرحباً ${employeeData.name}`;
+        document.getElementById('emp_section').textContent = employeeData.section_name;
+        document.getElementById('emp_target').textContent = employeeData.target.toLocaleString() + ' ريال';
+        document.getElementById('emp_income').textContent = employeeData.totalIncome.toLocaleString() + ' ريال';
         
         const remainingElem = document.getElementById('emp_remaining');
-        const remaining = data.remaining || data.target || 0;
-        remainingElem.textContent = remaining.toLocaleString() + ' ريال';
+        remainingElem.textContent = employeeData.remaining.toLocaleString() + ' ريال';
         
-        if (remaining <= 0) {
+        if (employeeData.remaining <= 0) {
           remainingElem.className = 'achieved';
           remainingElem.textContent = '🎯 تم تحقيق الهدف';
-        } else if (remaining > 0) {
+        } else if (employeeData.remaining > 0) {
           remainingElem.className = 'negative';
         }
 
-        // تحديث قسم آخر تحديث
-        updateLastIncome(data.lastEntry);
+        // تحديث شريط التقدم
+        updateProgressBar(employeeData.totalIncome, employeeData.target);
         
-        // تحديث جدول الدخل
-        updateIncomeTable(data.entries || []);
+        // تحديث آخر دخل
+        if (employeeData.lastEntry) {
+          updateLastIncome(employeeData.lastEntry);
+        }
+        
+        // جلب سجل الدخل
+        await loadIncomeEntries();
         
       } catch (error) {
         console.error('Error:', error);
-        alert('خطأ في تحميل بيانات الموظف - تأكد من معرف الموظف');
+        showError('employee', 'خطأ في تحميل بيانات الموظف: ' + error.message);
       }
     }
 
-    // تحديث قسم آخر تحديث الدخل
-    function updateLastIncome(lastEntry) {
+    async function loadIncomeEntries() {
+      try {
+        showLoading('entries');
+        
+        const response = await fetch(`/api/employees/${employeeId}/entries`);
+        if (!response.ok) {
+          throw new Error('خطأ في جلب سجل الدخل');
+        }
+        
+        const entries = await response.json();
+        updateIncomeTable(entries);
+        
+      } catch (error) {
+        console.error('Error:', error);
+        showError('entries', 'خطأ في تحميل سجل الدخل: ' + error.message);
+      }
+    }
+
+    function updateProgressBar(current, target) {
+      const progressContainer = document.getElementById('progress-container');
+      const progressFill = document.getElementById('progress-fill');
+      const progressPercent = document.getElementById('progress-percent');
+      
+      if (target > 0) {
+        const percent = Math.min((current / target) * 100, 100);
+        progressFill.style.width = percent + '%';
+        progressPercent.textContent = Math.round(percent) + '%';
+        progressContainer.style.display = 'block';
+      } else {
+        progressContainer.style.display = 'none';
+      }
+    }
+
+    function updateLastIncome(entry) {
       const card = document.getElementById('last-update-card');
       
-      if (lastEntry) {
+      if (entry) {
         card.style.display = 'block';
-        document.getElementById('last-amount').textContent = lastEntry.amount.toLocaleString() + ' ريال';
-        document.getElementById('last-date').textContent = new Date(lastEntry.date).toLocaleDateString('ar-SA');
-        document.getElementById('last-note').textContent = lastEntry.note || 'لا توجد ملاحظات';
+        document.getElementById('last-amount').textContent = entry.amount.toLocaleString() + ' ريال';
+        
+        // تحويل التاريخ إلى ميلادي
+        const date = new Date(entry.date);
+        document.getElementById('last-date').textContent = date.toLocaleDateString('en-GB');
+        
+        document.getElementById('last-note').textContent = entry.note || 'لا توجد ملاحظات';
       } else {
         card.style.display = 'none';
       }
     }
 
-    // تحديث جدول الدخل
     function updateIncomeTable(entries) {
       const tbody = document.getElementById('entries_table');
+      const mobileContainer = document.getElementById('mobile-entries');
+      const loading = document.getElementById('entries-loading');
+      const table = document.getElementById('entries-table');
+      const errorDiv = document.getElementById('entries-error');
+      
+      loading.style.display = 'none';
+      errorDiv.style.display = 'none';
+      table.style.display = 'table';
       tbody.innerHTML = '';
+      mobileContainer.innerHTML = '';
 
-      if (entries.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">لا توجد سجلات دخل</td></tr>';
+      if (!entries || entries.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: #666;">لا توجد سجلات دخل</td></tr>';
+        mobileContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">لا توجد سجلات دخل</div>';
         return;
       }
 
       entries.forEach(entry => {
-        const date = new Date(entry.created_at).toLocaleDateString('ar-SA');
+        // تحويل التاريخ إلى ميلادي
+        const date = new Date(entry.updated_at);
+        const formattedDate = date.toLocaleDateString('en-GB');
+        
+        // صف الجدول للشاشات الكبيرة
         const tr = document.createElement('tr');
-        if (entry.has_employee_note) {
+        if (entry.employee_note) {
           tr.className = 'has-note';
         }
         
         tr.innerHTML = `
-          <td>${date}</td>
-          <td>${entry.amount.toLocaleString()} ريال</td>
-          <td>${entry.note || '-'}</td>
-          <td>
-            ${entry.has_employee_note ? '<span class="note-badge">✓</span>' : ''}
+          <td data-label="📅 التاريخ">${formattedDate}</td>
+          <td data-label="💵 المبلغ" class="amount"><strong>${entry.amount.toLocaleString()}</strong> ريال</td>
+          <td data-label="📝 ملاحظات المدير">${entry.note || '-'}</td>
+          <td data-label="💬 ملاحظاتي">
+            ${entry.employee_note ? '<span class="note-badge">✓</span>' : ''}
             ${entry.employee_note || 'لا توجد ملاحظات'}
           </td>
-          <td>
-            <button onclick="openNoteForm(${entry.id}, '${entry.employee_note || ''}')">
-              ${entry.has_employee_note ? 'تعديل الملاحظة' : 'إضافة ملاحظة'}
+          <td data-label="⚙️ الإجراء">
+            <button onclick="openNoteModal(${entry.id}, '${(entry.employee_note || '').replace(/'/g, "\\'")}')">
+              ${entry.employee_note ? '✏️ تعديل' : '➕ إضافة'}
             </button>
           </td>
         `;
         
         tbody.appendChild(tr);
+
+        // بطاقة للجوال
+        const card = document.createElement('div');
+        card.className = 'income-card';
+        card.innerHTML = `
+          <div class="card-header">
+            <div class="card-date">${formattedDate}</div>
+            <div class="card-amount">${entry.amount.toLocaleString()} ريال</div>
+          </div>
+          <div class="card-details">
+            <div class="detail-row">
+              <div class="detail-label">📝 ملاحظات المدير:</div>
+              <div class="detail-value">${entry.note || '-'}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">💬 ملاحظاتي:</div>
+              <div class="detail-value">
+                ${entry.employee_note ? '<span class="note-badge">✓</span>' : ''}
+                ${entry.employee_note || 'لا توجد ملاحظات'}
+              </div>
+            </div>
+          </div>
+          <div class="card-actions">
+            <button onclick="openNoteModal(${entry.id}, '${(entry.employee_note || '').replace(/'/g, "\\'")}')">
+              ${entry.employee_note ? '✏️ تعديل الملاحظة' : '➕ إضافة ملاحظة'}
+            </button>
+          </div>
+        `;
+        mobileContainer.appendChild(card);
       });
     }
 
-    // فتح نموذج إضافة/تعديل الملاحظة
-    function openNoteForm(entryId, currentNote) {
-      const note = prompt('أدخل ملاحظتك:', currentNote);
-      if (note === null) return;
-
-      saveEmployeeNote(entryId, note);
+    function openNoteModal(entryId, currentNote) {
+      currentEntryId = entryId;
+      const noteText = document.getElementById('note-text');
+      noteText.value = currentNote || '';
+      document.getElementById('notes-modal').style.display = 'flex';
     }
 
-    // حفظ ملاحظة الموظف
-    async function saveEmployeeNote(entryId, note) {
-      try {
-        const response = await fetch(`/api/entries/${entryId}/employee-note`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            employee_note: note
-          })
-        });
-
-        if (response.ok) {
-          loadEmployeeData();
-          alert('تم حفظ الملاحظة بنجاح');
-        } else {
-          throw new Error('خطأ في حفظ الملاحظة');
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        alert('خطأ في حفظ الملاحظة');
-      }
+    function closeNoteModal() {
+      document.getElementById('notes-modal').style.display = 'none';
+      currentEntryId = null;
     }
 
-    // دالة التحديث السريع
-    async function quickUpdate() {
-      const newSalary = document.getElementById('quick-salary').value;
-      const newTarget = document.getElementById('quick-target').value;
-      const notes = document.getElementById('quick-notes').value;
-
-      if (!newSalary && !newTarget && !notes) {
-        alert('يرجى إدخال بيانات للتعديل');
+    async function saveNote() {
+      const noteText = document.getElementById('note-text');
+      const note = noteText.value.trim();
+      
+      if (!note) {
+        alert('يرجى كتابة ملاحظة قبل الحفظ');
         return;
       }
 
       try {
-        // إذا كان هناك دخل جديد، أضفه
-        if (newSalary) {
-          await fetch(`/api/employees/${employeeId}/income`, {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({ 
-              amount: parseFloat(newSalary),
-              note: notes || 'تحديث سريع'
-            })
-          });
+        const response = await fetch(`/api/entries/${currentEntryId}/employee-note`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ employee_note: note })
+        });
+
+        if (!response.ok) {
+          throw new Error('خطأ في حفظ الملاحظة');
         }
 
-        // إذا كان هناك هدف جديد، عدله
-        if (newTarget) {
-          await updateEmployeeTarget(newTarget);
+        const result = await response.json();
+        
+        if (result.success) {
+          alert('✅ تم حفظ الملاحظة بنجاح');
+          closeNoteModal();
+          // إعادة تحميل البيانات
+          await loadIncomeEntries();
+        } else {
+          throw new Error('فشل في حفظ الملاحظة');
         }
-
-        // مسح الحقول
-        document.getElementById('quick-salary').value = '';
-        document.getElementById('quick-target').value = '';
-        document.getElementById('quick-notes').value = '';
-
-        // إعادة تحميل البيانات
-        loadEmployeeData();
-        alert('تم التحديث بنجاح');
         
       } catch (error) {
         console.error('Error:', error);
-        alert('خطأ في التحديث');
+        alert('❌ خطأ في حفظ الملاحظة: ' + error.message);
       }
     }
 
-    // دالة مساعدة لتعديل الهدف
-    async function updateEmployeeTarget(newTarget) {
-      // الحصول على البيانات الحالية أولاً
-      const response = await fetch(`/api/employees/${employeeId}`);
-      const currentData = await response.json();
-      
-      // استخدام نفس endpoint تعديل الموظف
-      const updateResponse = await fetch(`/api/employees/${employeeId}`, {
-        method: "PUT",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ 
-          target: parseFloat(newTarget),
-          name: currentData.name,
-          username: 'user_' + employeeId, // قيم افتراضية
-          password: 'pass_' + employeeId
-        })
-      });
-      return updateResponse.json();
+    function showLoading(type) {
+      if (type === 'employee') {
+        document.getElementById('emp_name').textContent = 'جاري التحميل...';
+        document.getElementById('emp_section').textContent = 'جاري التحميل...';
+        document.getElementById('emp_target').textContent = 'جاري التحميل...';
+        document.getElementById('emp_income').textContent = 'جاري التحميل...';
+        document.getElementById('emp_remaining').textContent = 'جاري التحميل...';
+      } else if (type === 'entries') {
+        document.getElementById('entries-loading').style.display = 'block';
+        document.getElementById('entries-table').style.display = 'none';
+        document.getElementById('entries-error').style.display = 'none';
+      }
     }
 
-    // تحميل البيانات عند فتح الصفحة
-    document.addEventListener('DOMContentLoaded', loadEmployeeData);
+    function showError(type, message) {
+      if (type === 'employee') {
+        document.getElementById('emp_name').textContent = 'خطأ';
+        document.getElementById('emp_section').textContent = 'خطأ';
+        document.getElementById('emp_target').textContent = 'خطأ';
+        document.getElementById('emp_income').textContent = 'خطأ';
+        document.getElementById('emp_remaining').textContent = 'خطأ';
+        alert(message);
+      } else if (type === 'entries') {
+        document.getElementById('entries-loading').style.display = 'none';
+        document.getElementById('entries-table').style.display = 'none';
+        const errorDiv = document.getElementById('entries-error');
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+      }
+    }
+
+    // إغلاق النموذج عند النقر خارج المحتوى
+    document.getElementById('notes-modal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeNoteModal();
+      }
+    });
+
+    // تسجيل الخروج
+    document.getElementById('logoutBtn').addEventListener('click', function(e) {
+      e.preventDefault();
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = 'login.html';
+    });
+
+    // التحقق من المصادقة عند تحميل الصفحة
+    document.addEventListener('DOMContentLoaded', checkAuth);
+
+    // دالة لتحديث العرض بناءً على حجم الشاشة
+    function updateLayout() {
+      const table = document.getElementById('entries-table');
+      const mobileCards = document.getElementById('mobile-entries');
+      
+      if (window.innerWidth <= 576) {
+        table.style.display = 'none';
+        mobileCards.style.display = 'block';
+      } else {
+        table.style.display = 'table';
+        mobileCards.style.display = 'none';
+      }
+    }
+    
+    // تحديث العرض عند تحميل الصفحة وتغيير حجم النافذة
+    window.addEventListener('load', updateLayout);
+    window.addEventListener('resize', updateLayout);
   </script>
 </body>
 </html>
