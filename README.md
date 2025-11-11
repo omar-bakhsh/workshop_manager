@@ -2,9 +2,9 @@
 
 A comprehensive workshop management system built with Node.js, Express, SQLite, and vanilla JavaScript for managing employees, sections, and income tracking.
 
-![Workshop System](https://img.shields.io/badge/Workshop-Management%20System-blue)
-![Node.js](https://img.shields.io/badge/Node.js-18+-green)
-![SQLite](https://img.shields.io/badge/Database-SQLite-lightgrey)
+![Workshop System]
+![Node.js]
+![SQLite]
 
 ## 🌟 Features
 
@@ -38,7 +38,7 @@ A comprehensive workshop management system built with Node.js, Express, SQLite, 
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/workshop-system.git
+git clone (https://github.com/omar-bakhsh/workshop_manager)
 cd workshop-system
 ```
 
