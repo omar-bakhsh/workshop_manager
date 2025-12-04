@@ -28,6 +28,55 @@ function loadEmployees() {
       });
     });
 }
+// ===========================================
+// ===== دالة رفع ملف الرواتب (Excel) =====
+// ===========================================
+async function uploadSalariesFile() {
+  const fileInput = document.getElementById('salariesFile');
+  const messageDiv = document.getElementById('uploadMessage');
+  const file = fileInput.files[0];
+
+  if (!file) {
+    messageDiv.style.color = 'red';
+    messageDiv.textContent = 'الرجاء اختيار ملف Excel أولاً.';
+    return;
+  }
+
+  messageDiv.style.color = 'blue';
+  messageDiv.textContent = 'جاري رفع ومعالجة الملف... قد يستغرق الأمر بعض الوقت.';
+
+  const formData = new FormData();
+  formData.append('salariesFile', file);
+
+  try {
+    const response = await fetch('/api/upload-salaries', {
+      method: 'POST',
+      body: formData,
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      messageDiv.style.color = 'green';
+      messageDiv.textContent = `✅ ${result.message} (تم تحديث ${result.details.updatedEmployees} موظف وإضافة ${result.details.totalWithdrawalsAdded} سحب).`;
+      if (result.details.errors.length > 0) {
+        messageDiv.textContent += ` تنبيه: ${result.details.errors.length} موظف لم يتم العثور عليهم: ${result.details.errors.join(', ')}`;
+        console.error('Errors:', result.details.errors);
+      }
+      // إعادة تحميل بيانات الموظفين لتحديث الراتب الأساسي
+      loadEmployees();
+      loadSectionsSummary(); // للتأكد من تحديث ملخص الأقسام
+    } else {
+      messageDiv.style.color = 'red';
+      messageDiv.textContent = `❌ خطأ في المعالجة: ${result.message || 'حدث خطأ غير معروف'}`;
+      console.error('Upload Error:', result.error);
+    }
+  } catch (error) {
+    messageDiv.style.color = 'red';
+    messageDiv.textContent = '❌ فشل الاتصال بالخادم أو حدث خطأ غير متوقع.';
+    console.error('Fetch Error:', error);
+  }
+}
 
 // ===== Load sections summary =====
 function loadSectionsSummary() {
@@ -36,10 +85,14 @@ function loadSectionsSummary() {
     .then((data) => {
       const div = document.getElementById("sectionsSummary");
       div.innerHTML = `<h3>ملخص الأقسام</h3>`;
-      data.sections.forEach((s) => {
-        div.innerHTML += `<p><b>${s.name}:</b> ${s.total_income} ريال</p>`;
-      });
-      div.innerHTML += `<hr><p><b>إجمالي جميع الأقسام:</b> ${data.totalAll} ريال</p>`;
+      let totalAll = 0;
+      if (Array.isArray(data)) {
+        data.forEach((s) => {
+          div.innerHTML += `<p><b>${s.section_name}:</b> ${s.total_income} ريال</p>`;
+          totalAll += s.total_income;
+        });
+      }
+      div.innerHTML += `<hr><p><b>إجمالي جميع الأقسام:</b> ${totalAll} ريال</p>`;
     });
 }
 
@@ -59,3 +112,5 @@ function updateEmployee(id) {
     loadEmployees();
   });
 }
+
+
