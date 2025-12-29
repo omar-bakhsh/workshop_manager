@@ -52,9 +52,17 @@ self.addEventListener('fetch', (event) => {
                     });
                     return response;
                 })
-                .catch(() => {
+                .catch(async () => {
                     // Return cached version if network fails
-                    return caches.match(request);
+                    const cachedResponse = await caches.match(request);
+                    if (cachedResponse) {
+                        return cachedResponse;
+                    }
+                    // If no cache, return a proper error response
+                    return new Response(JSON.stringify({ message: "Network error and no cache available" }), {
+                        status: 503,
+                        headers: { 'Content-Type': 'application/json' }
+                    });
                 })
         );
     } else {
@@ -75,6 +83,12 @@ self.addEventListener('fetch', (event) => {
                             cache.put(request, responseToCache);
                         });
                         return response;
+                    }).catch(() => {
+                        // If both cache and network fail
+                        return new Response("Network error and no cache available", {
+                            status: 503,
+                            statusText: "Service Unavailable"
+                        });
                     });
                 })
         );

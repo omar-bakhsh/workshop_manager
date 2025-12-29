@@ -103,6 +103,32 @@
       background: #fecaca;
     }
 
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: #e0e7ff;
+      color: #4338ca;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .nav-btn:hover {
+      background: #c7d2fe;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
     /* Container */
     .container {
       max-width: 1200px;
@@ -414,10 +440,46 @@
         padding: 16px;
       }
     }
+
+    /* Ticker */
+    .ticker-container {
+      background: var(--danger);
+      color: white;
+      overflow: hidden;
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      display: none;
+    }
+
+    .ticker-text {
+      display: inline-block;
+      padding: 10px;
+      padding-left: 100%;
+      animation: ticker 20s linear infinite;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    @keyframes ticker {
+      0% {
+        transform: translate3d(-100%, 0, 0);
+      }
+
+      100% {
+        transform: translate3d(100%, 0, 0);
+      }
+    }
   </style>
 </head>
 
 <body>
+  <!-- Ticker -->
+  <div id="liftTicker" class="ticker-container">
+    <div class="ticker-text" id="liftTickerText"></div>
+  </div>
   <!-- Header -->
   <header class="page-header">
     <div class="header-container">
@@ -428,10 +490,16 @@
           <p class="user-role" id="userSection">جاري التحميل...</p>
         </div>
       </div>
-      <button class="logout-btn" id="logoutBtn">
-        <span>🚪</span>
-        <span>تسجيل الخروج</span>
-      </button>
+      <div class="header-actions">
+        <a href="lifts.html" class="nav-btn">
+          <span>🏗️</span>
+          <span>بدأ العمل</span>
+        </a>
+        <button class="logout-btn" id="logoutBtn">
+          <span>🚪</span>
+          <span>تسجيل الخروج</span>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -460,7 +528,7 @@
           <div class="stat-icon primary">💵</div>
         </div>
         <div class="stat-value" id="remainingBalance">0</div>
-        <div class="stat-label">الرصيد المتبقي</div>
+        <div class="stat-label">الراتب المتبقي</div>
       </div>
 
       <div class="stat-card">
@@ -475,56 +543,6 @@
       </div>
 
       <!-- Leave Balance Hidden as requested -->
-    </div>
-
-    <!-- Leave Request Section -->
-    <div class="section-card">
-      <div class="section-header">
-        <span class="section-icon">🏖️</span>
-        <span class="section-title">طلب إجازة</span>
-      </div>
-      <div class="section-content">
-        <form id="leaveRequestForm">
-          <div class="form-grid">
-            <div class="form-group">
-              <label>نوع الإجازة</label>
-              <select id="leaveType">
-                <option value="annual">إجازة سنوية</option>
-                <option value="sick">إجازة مرضية</option>
-                <option value="unpaid">إجازة بدون راتب</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>من تاريخ</label>
-              <input type="date" id="leaveStartDate" required>
-            </div>
-            <div class="form-group">
-              <label>إلى تاريخ</label>
-              <input type="date" id="leaveEndDate" required>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>السبب</label>
-            <textarea id="leaveReason" placeholder="اكتب سبب طلب الإجازة..."></textarea>
-          </div>
-          <button type="submit" class="btn btn-primary btn-full">
-            🚀 إرسال طلب الإجازة
-          </button>
-        </form>
-      </div>
-    </div>
-
-    <!-- Leave History -->
-    <div class="section-card">
-      <div class="section-header">
-        <span class="section-icon">📋</span>
-        <span class="section-title">سجل طلبات الإجازة</span>
-      </div>
-      <div class="section-content">
-        <div id="leaveRequestsLoading" class="loading">جاري تحميل السجل...</div>
-        <div id="leaveRequestsContainer" class="table-container" style="display: none;"></div>
-        <div id="leaveRequestsError" class="error" style="display: none;"></div>
-      </div>
     </div>
 
     <!-- Withdrawal Request Section -->
@@ -575,6 +593,56 @@
         <div id="entriesLoading" class="loading">جاري تحميل السجل...</div>
         <div id="entriesContainer" class="table-container" style="display: none;"></div>
         <div id="entriesError" class="error" style="display: none;"></div>
+      </div>
+    </div>
+
+    <!-- Leave Request Section -->
+    <div class="section-card">
+      <div class="section-header">
+        <span class="section-icon">🏖️</span>
+        <span class="section-title">طلب إجازة</span>
+      </div>
+      <div class="section-content">
+        <form id="leaveRequestForm">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>نوع الإجازة</label>
+              <select id="leaveType">
+                <option value="annual">إجازة سنوية</option>
+                <option value="sick">إجازة مرضية</option>
+                <option value="unpaid">إجازة بدون راتب</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>من تاريخ</label>
+              <input type="date" id="leaveStartDate" required>
+            </div>
+            <div class="form-group">
+              <label>إلى تاريخ</label>
+              <input type="date" id="leaveEndDate" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>السبب</label>
+            <textarea id="leaveReason" placeholder="اكتب سبب طلب الإجازة..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">
+            🚀 إرسال طلب الإجازة
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Leave History -->
+    <div class="section-card">
+      <div class="section-header">
+        <span class="section-icon">📋</span>
+        <span class="section-title">سجل طلبات الإجازة</span>
+      </div>
+      <div class="section-content">
+        <div id="leaveRequestsLoading" class="loading">جاري تحميل السجل...</div>
+        <div id="leaveRequestsContainer" class="table-container" style="display: none;"></div>
+        <div id="leaveRequestsError" class="error" style="display: none;"></div>
       </div>
     </div>
   </main>
@@ -637,14 +705,15 @@
           document.getElementById('progressFill').style.width = Math.min(achievement, 100) + '%';
 
           document.getElementById('incomeSection').style.display = 'block';
-          loadIncomeHistory();
+          renderIncomeHistory(employeeData.entries);
         }
 
         const withdrawals = employeeData.total_withdrawal || 0;
-        const balance = (employeeData.total_income || 0) - withdrawals;
+        const baseSalary = employeeData.info.base_salary || 0;
+        const remainingSalary = baseSalary - withdrawals;
 
         document.getElementById('totalWithdrawals').textContent = withdrawals.toLocaleString('en-US');
-        document.getElementById('remainingBalance').textContent = balance.toLocaleString('en-US');
+        document.getElementById('remainingBalance').textContent = remainingSalary.toLocaleString('en-US');
 
         // Load other data
         loadLeaveRequests();
@@ -701,7 +770,7 @@
                                 <td>${typeMap[r.leave_type] || r.leave_type}</td>
                                 <td>${r.days_count} يوم</td>
                                 <td>${statusBadge}</td>
-                                <td>${r.admin_note ? `<span class="admin-note">✍️ ${r.admin_note}</span>` : '-'}</td>
+                                <td>${r.admin_notes ? `<span class="admin-note">✍️ ${r.admin_notes}</span>` : '-'}</td>
                             </tr>
                         `;
           });
@@ -730,7 +799,7 @@
         loading.style.display = 'block';
         container.style.display = 'none';
 
-        const response = await fetch(`/api/withdrawals/${employeeId}`);
+        const response = await fetch(`/api/employees/${employeeId}/withdrawals`);
         if (!response.ok) throw new Error('فشل تحميل السجل');
 
         const withdrawals = await response.json();
@@ -782,22 +851,16 @@
       }
     }
 
-    // Load income history
-    async function loadIncomeHistory() {
+    // Render income history
+    function renderIncomeHistory(entries) {
       const container = document.getElementById('entriesContainer');
       const loading = document.getElementById('entriesLoading');
       const errorDiv = document.getElementById('entriesError');
 
       try {
-        loading.style.display = 'block';
-        container.style.display = 'none';
+        loading.style.display = 'none';
 
-        const response = await fetch(`/api/entries/${employeeId}`);
-        if (!response.ok) throw new Error('فشل تحميل السجل');
-
-        const entries = await response.json();
-
-        if (entries.length === 0) {
+        if (!entries || entries.length === 0) {
           container.innerHTML = '<div class="empty-state">لا توجد سجلات دخل</div>';
         } else {
           let html = `
@@ -814,7 +877,7 @@
           entries.forEach(entry => {
             html += `
                             <tr>
-                                <td>${new Date(entry.date).toLocaleDateString('en-US')}</td>
+                                <td>${new Date(entry.created_at).toLocaleDateString('en-US')}</td>
                                 <td style="color: var(--success); font-weight: bold;">${entry.income.toLocaleString('en-US')}</td>
                             </tr>
                         `;
@@ -824,7 +887,6 @@
           container.innerHTML = html;
         }
 
-        loading.style.display = 'none';
         container.style.display = 'block';
 
       } catch (error) {
@@ -833,6 +895,7 @@
         errorDiv.style.display = 'block';
       }
     }
+
 
     // Handle leave request
     document.getElementById('leaveRequestForm').addEventListener('submit', async (e) => {
@@ -911,6 +974,28 @@
 
     // Initialize
     checkAuth();
+
+    // Lift Ticker
+    function startLiftTicker() {
+      setInterval(async () => {
+        try {
+          const res = await fetch('/api/lifts');
+          if (!res.ok) return;
+          const lifts = await res.json();
+          const redLifts = lifts.filter(l => l.status === 'red');
+
+          const ticker = document.getElementById('liftTicker');
+          if (redLifts.length > 0) {
+            const names = redLifts.map(l => l.name).join('، ');
+            document.getElementById('liftTickerText').textContent = `⚠️ تنبيه هام: ${names} متوقفة حالياً للصيانة أو وجود خطر! يرجى الابتعاد عنها.`;
+            ticker.style.display = 'block';
+          } else {
+            ticker.style.display = 'none';
+          }
+        } catch (e) { console.error(e); }
+      }, 5000);
+    }
+    startLiftTicker();
   </script>
 </body>
 

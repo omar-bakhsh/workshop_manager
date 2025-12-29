@@ -81,7 +81,7 @@ function initializeDatabase() {
             employee_id INTEGER NOT NULL,
             amount INTEGER NOT NULL,
             reason TEXT,
-            status TEXT DEFAULT 'approved', -- pending, approved, rejected
+            status TEXT DEFAULT 'pending', -- pending, approved, rejected
             admin_note TEXT,
             date DATE DEFAULT CURRENT_DATE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -108,6 +108,15 @@ function initializeDatabase() {
             created_at TEXT DEFAULT CURRENT_TIMESTAMP,
             updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (employee_id) REFERENCES employees(id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS workshop_lifts (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            status TEXT DEFAULT 'idle', -- idle, green, yellow, red
+            technician_id INTEGER,
+            issue_description TEXT,
+            last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (technician_id) REFERENCES employees(id)
         )`
     ];
 
@@ -130,6 +139,14 @@ function initializeDatabase() {
         defaultSections.forEach(sectionName => {
             db.run(`INSERT OR IGNORE INTO sections (name) VALUES (?)`, [sectionName], (err) => {
                 if (err) console.error(`❌ خطأ في إضافة قسم ${sectionName}:`, err.message);
+            });
+        });
+
+        // إضافة الرافعات الافتراضية (A-E)
+        const lifts = ['A', 'B', 'C', 'D', 'E'];
+        lifts.forEach(id => {
+            db.run(`INSERT OR IGNORE INTO workshop_lifts (id, name) VALUES (?, ?)`, [id, `رافعة ${id}`], (err) => {
+                if (err) console.error(`❌ خطأ في إضافة الرافعة ${id}:`, err.message);
             });
         });
 
@@ -201,13 +218,13 @@ app.post('/api/login', async (req, res) => {
 
 // إضافة موظف جديد
 app.post('/api/employees', async (req, res) => {
-    const { name, section_id, target, username, password, hide_income } = req.body;
+    const { name, section_id, target, base_salary, username, password, hide_income } = req.body;
     if (!name || !section_id || !target || !username || !password) {
         return res.status(400).json({ message: "الرجاء إدخال جميع البيانات المطلوبة." });
     }
     try {
         // 1. إضافة الموظف
-        const empResult = await dbRun(`INSERT INTO employees (name, section_id, target, hide_income) VALUES (?, ?, ?, ?)`, [name, section_id, target, hide_income || 0]);
+        const empResult = await dbRun(`INSERT INTO employees (name, section_id, target, base_salary, hide_income) VALUES (?, ?, ?, ?, ?)`, [name, section_id, target, base_salary || 0, hide_income || 0]);
         const employee_id = empResult.lastID;
 
         // 2. إنشاء حساب المستخدم
@@ -283,15 +300,12 @@ app.get('/api/employees', async (req, res) => {
                 s.name AS section_name,
                 u.username,
                 u.password,
-                COALESCE(SUM(ent.income), 0) AS total_income,
-                COALESCE(SUM(w.amount), 0) AS total_withdrawal
+                (SELECT COALESCE(SUM(income), 0) FROM entries WHERE employee_id = e.id) AS total_income,
+                (SELECT COALESCE(SUM(amount), 0) FROM withdrawals WHERE employee_id = e.id AND status = 'approved') AS total_withdrawal
             FROM employees e
             LEFT JOIN sections s ON e.section_id = s.id
-            LEFT JOIN entries ent ON e.id = ent.employee_id
-            LEFT JOIN withdrawals w ON e.id = w.employee_id
             LEFT JOIN users u ON e.id = u.employee_id
             WHERE e.is_active = 1
-            GROUP BY e.id
             ORDER BY e.id
         `);
         res.json(employees);
@@ -485,7 +499,7 @@ app.post('/api/withdrawals', async (req, res) => {
         return res.status(400).json({ message: "الرجاء التأكد من إدخال المبلغ بشكل صحيح." });
     }
 
-    const withdrawalStatus = status || 'approved'; // Default to approved if not specified (for admin)
+    const withdrawalStatus = status || 'pending'; // Default to pending for employee requests
     const withdrawalDate = date || new Date().toISOString().split('T')[0];
 
     try {
@@ -530,6 +544,22 @@ app.get('/api/withdrawals/pending', async (req, res) => {
     } catch (error) {
         console.error("Fetch Pending Withdrawals Error:", error);
         res.status(500).json({ message: "خطأ في جلب السحوبات المعلقة" });
+    }
+});
+
+// جلب جميع السحوبات (للمدير - سجل كامل)
+app.get('/api/withdrawals', async (req, res) => {
+    try {
+        const withdrawals = await dbAll(`
+            SELECT w.*, e.name AS employee_name 
+            FROM withdrawals w
+            JOIN employees e ON w.employee_id = e.id
+            ORDER BY w.created_at DESC
+        `);
+        res.json(withdrawals);
+    } catch (error) {
+        console.error("Fetch All Withdrawals Error:", error);
+        res.status(500).json({ message: "خطأ في جلب سجل السحوبات" });
     }
 });
 
@@ -847,7 +877,91 @@ app.get('/api/leave-balances', async (req, res) => {
         res.json(balances);
     } catch (error) {
         console.error('Fetch Leave Balances Error:', error);
-        res.status(500).json({ message: 'خطأ في جلب أرصدة الإجازات' });
+    }
+});
+
+// ==========================
+// 🏗️ إدارة الرافعات (Lift Management)
+// ==========================
+
+// جلب حالة جميع الرافعات
+app.get('/api/lifts', async (req, res) => {
+    try {
+        const lifts = await dbAll(`
+            SELECT 
+                l.*,
+                e.name AS technician_name
+            FROM workshop_lifts l
+            LEFT JOIN employees e ON l.technician_id = e.id
+            ORDER BY l.id
+        `);
+        res.json(lifts);
+    } catch (error) {
+        console.error('Fetch Lifts Error:', error);
+        res.status(500).json({ message: 'خطأ في جلب بيانات الرافعات' });
+    }
+});
+
+// تحديث حالة الرافعة (للفني)
+app.put('/api/lifts/:id', async (req, res) => {
+    const { id } = req.params;
+    const { status, technician_id, issue_description } = req.body;
+
+    try {
+        // التحقق من وجود الرافعة
+        const lift = await dbGet('SELECT * FROM workshop_lifts WHERE id = ?', [id]);
+        if (!lift) {
+            return res.status(404).json({ message: 'الرافعة غير موجودة' });
+        }
+
+        // بناء جملة التحديث ديناميكياً
+        let updates = [];
+        let params = [];
+
+        if (status) {
+            updates.push('status = ?');
+            params.push(status);
+        }
+        if (technician_id !== undefined) {
+            updates.push('technician_id = ?');
+            params.push(technician_id);
+        }
+        if (issue_description !== undefined) {
+            updates.push('issue_description = ?');
+            params.push(issue_description);
+        }
+
+        updates.push('last_updated = CURRENT_TIMESTAMP');
+
+        if (updates.length === 1) { // Only last_updated
+            return res.status(400).json({ message: 'لا توجد بيانات للتحديث' });
+        }
+
+        const sql = `UPDATE workshop_lifts SET ${updates.join(', ')} WHERE id = ?`;
+        params.push(id);
+
+        await dbRun(sql, params);
+        res.json({ message: 'تم تحديث حالة الرافعة بنجاح' });
+    } catch (error) {
+        console.error('Update Lift Error:', error);
+        res.status(500).json({ message: 'خطأ في تحديث الرافعة' });
+    }
+});
+
+// تحرير الرافعة (إخلاء)
+app.post('/api/lifts/:id/release', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        await dbRun(`
+            UPDATE workshop_lifts 
+            SET status = 'idle', technician_id = NULL, issue_description = NULL, last_updated = CURRENT_TIMESTAMP 
+            WHERE id = ?
+        `, [id]);
+        res.json({ message: 'تم إخلاء الرافعة بنجاح' });
+    } catch (error) {
+        console.error('Release Lift Error:', error);
+        res.status(500).json({ message: 'خطأ في إخلاء الرافعة' });
     }
 });
 
