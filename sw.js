@@ -1,9 +1,10 @@
-const CACHE_NAME = 'workshop-manager-v1';
+const CACHE_NAME = 'workshop-manager-v2';
 const urlsToCache = [
     '/',
     '/login.html',
     '/admin.html',
-    '/employee.html'
+    '/employee.html',
+    '/income_report.html'
 ];
 
 // Install event - cache static assets
@@ -41,7 +42,13 @@ self.addEventListener('fetch', (event) => {
     const url = new URL(request.url);
 
     // Network first for API calls
-    if (url.pathname.startsWith('/api/')) {
+    if (url.pathname.startsWith('/api/') && !url.pathname.includes('/backup')) {
+        // Do not cache POST, PUT, DELETE requests
+        if (request.method !== 'GET') {
+            event.respondWith(fetch(request));
+            return;
+        }
+
         event.respondWith(
             fetch(request)
                 .then((response) => {

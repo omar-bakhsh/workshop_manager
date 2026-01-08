@@ -541,10 +541,27 @@
                 gap: 12px;
             }
         }
+
+        .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--danger);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            border: 2px solid white;
+        }
     </style>
 </head>
 
-<body onload="init()">
+<body>
     <!-- Header -->
     <header class="page-header">
         <div class="header-container">
@@ -555,10 +572,30 @@
                     <p class="user-role">إدارة الورشة</p>
                 </div>
             </div>
-            <button class="logout-btn" onclick="logout()">
-                <span>🚪</span>
-                <span>تسجيل الخروج</span>
-            </button>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <div class="notification-wrapper" style="position: relative; cursor: pointer;"
+                    onclick="scrollToPending()">
+                    <span style="font-size: 24px;">🔔</span>
+                    <span id="notificationBadge" class="badge" style="display: none;">0</span>
+                </div>
+                <button class="btn btn-secondary" onclick="backupDatabase()">
+                    <span>💾</span>
+                    <span>نسخ احتياطي</span>
+                </button>
+                <button class="btn btn-primary" onclick="window.location.href='income_report.html'">
+                    <span>📄</span>
+                    <span>تقارير الدخل</span>
+                </button>
+                <button class="btn btn-info" onclick="window.location.href='lifts.html'"
+                    style="background-color: #8b5cf6; color: white;">
+                    <span>🏗️</span>
+                    <span>الرافعات</span>
+                </button>
+                <button class="logout-btn" onclick="logout()">
+                    <span>🚪</span>
+                    <span>تسجيل الخروج</span>
+                </button>
+            </div>
         </div>
     </header>
 
@@ -588,6 +625,15 @@
                 </div>
                 <div class="stat-value" id="totalWithdrawals">0 ﷼</div>
                 <div class="stat-label">إجمالي السحوبات</div>
+            </div>
+        </div>
+
+        <!-- Pending Requests Section -->
+        <div id="pendingRequestsSection" style="display: none; margin-bottom: 32px;">
+            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 16px; color: var(--text-dark);">🔔 الطلبات
+                المعلقة</h2>
+            <div class="stats-grid" id="pendingContainer">
+                <!-- Pending items will be injected here -->
             </div>
         </div>
 
@@ -771,6 +817,35 @@
         </div>
     </div>
 
+    <!-- Admin Chat Widget -->
+    <div class="chat-toggle-btn" onclick="toggleAdminChat()"
+        style="position: fixed; bottom: 20px; left: 20px; width: 60px; height: 60px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 999;">
+        💬</div>
+    <div class="chat-widget" id="adminChatWidget"
+        style="position: fixed; bottom: 90px; left: 20px; width: 350px; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none; flex-direction: column; z-index: 1000; border: 1px solid var(--border-color); overflow: hidden; height: 500px;">
+        <div class="chat-header"
+            style="padding: 12px 16px; background: var(--primary); color: white; font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
+            <span>💬 محادثات الموظفين</span>
+            <span onclick="toggleAdminChat()" style="cursor: pointer;">▼</span>
+        </div>
+        <div style="padding: 10px; border-bottom: 1px solid var(--border-color);">
+            <select id="chatEmployeeSelect" onchange="loadAdminChat(this.value)"
+                style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border-color);">
+                <option value="">-- اختر موظفاً --</option>
+            </select>
+        </div>
+        <div class="chat-body" id="adminChatBody"
+            style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; background: #f9fafb;">
+            <!-- Messages -->
+        </div>
+        <div class="chat-footer"
+            style="padding: 12px; border-top: 1px solid var(--border-color); display: flex; gap: 8px; background: white;">
+            <input type="text" id="adminChatInput" placeholder="اكتب رسالتك..."
+                style="flex: 1; padding: 8px; border: 1px solid var(--border-color); border-radius: 8px;">
+            <button class="btn btn-primary" onclick="sendAdminMessage()">➤</button>
+        </div>
+    </div>
+
     <script>
         // Global state
         let employees = [];
@@ -782,6 +857,44 @@
             checkAuth();
             setupEventListeners();
             await loadData();
+            checkNotifications();
+            loadPendingRequests();
+            setInterval(() => {
+                checkNotifications();
+                loadPendingRequests();
+            }, 30000); // Poll every 30 seconds
+        }
+
+        async function checkNotifications() {
+            try {
+                const response = await fetch('/api/notifications');
+                const data = await response.json();
+                const badge = document.getElementById('notificationBadge');
+
+                if (data.total > 0) {
+                    badge.textContent = data.total;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error checking notifications:', error);
+            }
+        }
+
+        function scrollToPending() {
+            checkNotifications().then(() => {
+                const badge = document.getElementById('notificationBadge');
+                if (badge.style.display !== 'none') {
+                    alert(`لديك ${badge.textContent} طلبات معلقة (سحوبات أو إجازات). يرجى مراجعتها.`);
+                } else {
+                    alert('لا توجد إشعارات جديدة.');
+                }
+            });
+        }
+
+        function backupDatabase() {
+            window.location.href = '/api/backup';
         }
 
         function checkAuth() {
@@ -797,12 +910,7 @@
             window.location.href = 'login.html';
         }
 
-        function setupEventListeners() {
-            document.getElementById('addEmployeeForm').addEventListener('submit', handleAddEmployee);
-            document.getElementById('editEmployeeForm').addEventListener('submit', handleEditEmployee);
-            document.getElementById('addIncomeForm').addEventListener('submit', handleAddIncome);
-            document.getElementById('addWithdrawalForm').addEventListener('submit', handleAddWithdrawal);
-        }
+
 
         async function loadData() {
             try {
@@ -812,11 +920,20 @@
                 ]);
                 employees = await empRes.json();
                 sections = await secRes.json();
-                updateDashboard();
+
+                // Render sections first so data is visible even if charts fail
                 renderSections();
                 updateSectionSelects();
+
+                // Then try to update dashboard (charts)
+                try {
+                    updateDashboard();
+                } catch (chartErr) {
+                    console.error('Error updating charts:', chartErr);
+                }
             } catch (err) {
                 console.error('Error loading data:', err);
+                document.getElementById('sectionsContainer').innerHTML = '<div class="error">حدث خطأ أثناء تحميل البيانات. يرجى تحديث الصفحة.</div>';
             }
         }
 
@@ -907,6 +1024,110 @@
             });
         }
 
+        async function loadPendingRequests() {
+            try {
+                const [withdrawalsRes, leavesRes] = await Promise.all([
+                    fetch('/api/withdrawals/pending'),
+                    fetch('/api/leave-requests?status=pending')
+                ]);
+
+                const withdrawals = await withdrawalsRes.json();
+                const leaves = await leavesRes.json();
+
+                const container = document.getElementById('pendingContainer');
+                const section = document.getElementById('pendingRequestsSection');
+
+                if (withdrawals.length === 0 && leaves.length === 0) {
+                    section.style.display = 'none';
+                    return;
+                }
+
+                section.style.display = 'block';
+                container.innerHTML = '';
+
+                // Render Withdrawals
+                withdrawals.forEach(w => {
+                    const card = document.createElement('div');
+                    card.className = 'stat-card';
+                    card.style.borderLeft = '4px solid var(--warning)';
+                    card.innerHTML = `
+                        <div class="stat-header">
+                            <div class="stat-icon warning">💳</div>
+                            <span class="badge badge-warning">سحب معلق</span>
+                        </div>
+                        <div style="font-weight: bold; margin-bottom: 8px;">${w.employee_name}</div>
+                        <div class="stat-value" style="font-size: 20px;">${w.amount.toLocaleString('en-US')} ﷼</div>
+                        <div class="stat-label">${w.reason || 'لا يوجد سبب'}</div>
+                        <div style="margin-top: 16px; display: flex; gap: 8px;">
+                            <button class="btn btn-success" style="flex:1; font-size: 12px;" onclick="handleWithdrawalAction(${w.id}, 'approved')">قبول</button>
+                            <button class="btn btn-danger" style="flex:1; font-size: 12px;" onclick="handleWithdrawalAction(${w.id}, 'rejected')">رفض</button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+
+                // Render Leaves
+                leaves.forEach(l => {
+                    const card = document.createElement('div');
+                    card.className = 'stat-card';
+                    card.style.borderLeft = '4px solid var(--info)';
+                    const typeMap = { 'annual': 'سنوية', 'sick': 'مرضية', 'unpaid': 'بدون راتب' };
+                    card.innerHTML = `
+                        <div class="stat-header">
+                            <div class="stat-icon info">🏖️</div>
+                            <span class="badge badge-warning">إجازة معلقة</span>
+                        </div>
+                        <div style="font-weight: bold; margin-bottom: 8px;">${l.employee_name}</div>
+                        <div class="stat-value" style="font-size: 20px;">${l.days_count} يوم</div>
+                        <div class="stat-label">${typeMap[l.leave_type] || l.leave_type} (${l.start_date} إلى ${l.end_date})</div>
+                        <div class="stat-label" style="margin-top:4px; font-style:italic;">${l.reason || ''}</div>
+                        <div style="margin-top: 16px; display: flex; gap: 8px;">
+                            <button class="btn btn-success" style="flex:1; font-size: 12px;" onclick="handleLeaveAction(${l.id}, 'approved')">قبول</button>
+                            <button class="btn btn-danger" style="flex:1; font-size: 12px;" onclick="handleLeaveAction(${l.id}, 'rejected')">رفض</button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error('Error loading pending requests:', error);
+            }
+        }
+
+        async function handleWithdrawalAction(id, status) {
+            const note = status === 'rejected' ? prompt('سبب الرفض (اختياري):') : null;
+            if (status === 'rejected' && note === null) return; // Cancelled
+
+            try {
+                const res = await fetch(`/api/withdrawals/${id}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status, admin_note: note })
+                });
+                if (res.ok) { alert('تم تحديث الحالة بنجاح'); loadPendingRequests(); loadData(); }
+                else { alert('حدث خطأ'); }
+            } catch { alert('خطأ في الاتصال'); }
+        }
+
+        async function handleLeaveAction(id, status) {
+            const note = status === 'rejected' ? prompt('سبب الرفض (اختياري):') : null;
+            if (status === 'rejected' && note === null) return; // Cancelled
+
+            try {
+                const res = await fetch(`/api/leave-requests/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status, admin_notes: note })
+                });
+                if (res.ok) { alert('تم تحديث الحالة بنجاح'); loadPendingRequests(); }
+                else { alert('حدث خطأ'); }
+            } catch { alert('خطأ في الاتصال'); }
+        }
+
+        // ==========================================
+        // Missing Functions Restoration
+        // ==========================================
+
         function renderSections() {
             const container = document.getElementById('sectionsContainer');
             container.innerHTML = '';
@@ -916,72 +1137,85 @@
                 const card = document.createElement('div');
                 card.className = 'section-card';
                 card.innerHTML = `
-                    <div class="section-header" onclick="toggleSection('section-${section.id}')">
-                        <div class="section-title-area">
-                            <span class="section-icon">📁</span>
-                            <span class="section-title">قسم ${section.name}</span>
-                        </div>
-                        <div class="section-stats">
-                            <div class="stat-item">
-                                <div class="stat-value">${sectionEmployees.length}</div>
-                                <div class="stat-label">موظف</div>
-                            </div>
-                            <div class="stat-item">
-                                <div class="stat-value">${sectionIncome.toLocaleString('en-US')}</div>
-                                <div class="stat-label">دخل القسم</div>
-                            </div>
-                            <button class="collapse-btn">▼</button>
-                        </div>
+                <div class="section-header" onclick="toggleSection('section-${section.id}')">
+                    <div class="section-title-area">
+                        <span class="section-icon">📁</span>
+                        <span class="section-title">قسم ${section.name}</span>
                     </div>
-                    <div class="section-content" id="section-${section.id}">
-                        <div class="table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>الموظف</th><th>الهدف</th><th>الدخل الحالي</th><th>الراتب الأساسي</th><th>الراتب المتبقي</th><th>الإنجاز</th><th>إجراءات</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${sectionEmployees.map(emp => {
+                    <div class="section-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">${sectionEmployees.length}</div>
+                            <div class="stat-label">موظف</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${sectionIncome.toLocaleString('en-US')}</div>
+                            <div class="stat-label">دخل القسم</div>
+                        </div>
+                        <button class="collapse-btn">▼</button>
+                    </div>
+                </div>
+                <div class="section-content" id="section-${section.id}">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>الموظف</th>
+                                    <th>الهدف</th>
+                                    <th>الدخل الحالي</th>
+                                    <th>الراتب الأساسي</th>
+                                    <th>الراتب المتبقي</th>
+                                    <th>الإنجاز</th>
+                                    <th>إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${sectionEmployees.map(emp => {
                     const percent = emp.target > 0 ? Math.round((emp.total_income / emp.target) * 100) : 0;
                     const remainingSalary = (emp.base_salary || 0) - (emp.total_withdrawal || 0);
                     return `
-                                            <tr>
-                                                <td style="font-weight:700;">${emp.name}</td>
-                                                <td>${emp.target.toLocaleString('en-US')}</td>
-                                                <td style="color:var(--success);font-weight:700;">${emp.total_income.toLocaleString('en-US')}</td>
-                                                <td style="cursor:pointer;color:var(--primary);text-decoration:underline;" onclick="quickEditBaseSalary(${emp.id}, '${emp.name}', ${emp.base_salary || 0})">${(emp.base_salary || 0).toLocaleString('en-US')}</td>
-                                                <td style="cursor:pointer;color:var(--info);text-decoration:underline;" onclick="quickEditRemainingSalary(${emp.id}, '${emp.name}', ${emp.base_salary || 0}, ${emp.total_withdrawal || 0})">${remainingSalary.toLocaleString('en-US')}</td>
-                                                <td>
-                                                    <div style="display:flex;align-items:center;gap:8px;justify-content:center;">
-                                                        <div style="width:60px;height:8px;background:#eee;border-radius:4px;overflow:hidden;">
-                                                            <div style="width:${Math.min(percent, 100)}%;height:100%;background:${getPercentColor(percent)};"></div>
-                                                        </div>
-                                                        <span>${percent}%</span>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-                                                        <button class="btn btn-success" onclick="openIncomeModal(${emp.id})">💰</button>
-                                                        <button class="btn btn-warning" onclick="openWithdrawalModal(${emp.id})">💳</button>
-                                                        <button class="btn btn-primary" onclick="openEditModal(${emp.id})">✏️</button>
-                                                        <button class="btn btn-danger" onclick="deleteEmployee(${emp.id})">🗑️</button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        `;
+                                <tr>
+                                    <td style="font-weight:700;">${emp.name}</td>
+                                    <td>${emp.target.toLocaleString('en-US')}</td>
+                                    <td style="color:var(--success);font-weight:700;">${emp.total_income.toLocaleString('en-US')}</td>
+                                    <td style="cursor:pointer;color:var(--primary);text-decoration:underline;"
+                                        onclick="quickEditBaseSalary(${emp.id}, '${emp.name}', ${emp.base_salary || 0})">
+                                        ${(emp.base_salary || 0).toLocaleString('en-US')}</td>
+                                    <td style="cursor:pointer;color:var(--info);text-decoration:underline;"
+                                        onclick="quickEditRemainingSalary(${emp.id}, '${emp.name}', ${emp.base_salary || 0}, ${emp.total_withdrawal || 0})">
+                                        ${remainingSalary.toLocaleString('en-US')}</td>
+                                    <td>
+                                        <div style="display:flex;align-items:center;gap:8px;justify-content:center;">
+                                            <div style="width:60px;height:8px;background:#eee;border-radius:4px;overflow:hidden;">
+                                                <div
+                                                    style="width:${Math.min(percent, 100)}%;height:100%;background:${getPercentColor(percent)};">
+                                                </div>
+                                            </div>
+                                            <span>${percent}%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+                                            <button class="btn btn-success" onclick="openIncomeModal(${emp.id})">💰</button>
+                                            <button class="btn btn-warning" onclick="openWithdrawalModal(${emp.id})">💳</button>
+                                            <button class="btn btn-primary" onclick="openEditModal(${emp.id})">✏️</button>
+                                            <button class="btn btn-danger" onclick="deleteEmployee(${emp.id})">🗑️</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                `;
                 }).join('')}
-                                </tbody>
-                            </table>
-                        </div>
+                            </tbody>
+                        </table>
                     </div>
+                </div>
                 `;
                 container.appendChild(card);
             });
 
             const addBtn = document.createElement('div');
             addBtn.className = 'add-employee-btn';
-            addBtn.innerHTML = `<button class="btn btn-primary" onclick="openModal('addEmployeeModal')">➕ إضافة موظف جديد للنظام</button>`;
+            addBtn.innerHTML = `<button class="btn btn-primary" onclick="openModal('addEmployeeModal')">➕ إضافة موظف جديد
+                للنظام</button>`;
             container.appendChild(addBtn);
         }
 
@@ -1021,7 +1255,8 @@
 
         async function quickEditRemainingSalary(empId, empName, currentBase, currentWithdrawals) {
             const currentRemaining = currentBase - currentWithdrawals;
-            const newRemaining = prompt(`تعديل الراتب المتبقي للموظف: ${empName}\n(سيتم تعديل الراتب الأساسي تلقائياً)`, currentRemaining);
+            const newRemaining = prompt(`تعديل الراتب المتبقي للموظف: ${empName}\n(سيتم تعديل الراتب الأساسي تلقائياً)`,
+                currentRemaining);
             if (!newRemaining || isNaN(newRemaining)) return;
             const newBase = parseInt(newRemaining) + currentWithdrawals;
             try {
@@ -1038,7 +1273,10 @@
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
         function openIncomeModal(empId) { document.getElementById('incomeEmpId').value = empId; openModal('addIncomeModal'); }
-        function openWithdrawalModal(empId) { document.getElementById('withdrawalEmpId').value = empId; openModal('addWithdrawalModal'); }
+        function openWithdrawalModal(empId) {
+            document.getElementById('withdrawalEmpId').value = empId;
+            openModal('addWithdrawalModal');
+        }
         function openEditModal(empId) {
             const emp = employees.find(e => e.id === empId);
             if (!emp) return;
@@ -1131,11 +1369,13 @@
             e.preventDefault();
             const empId = document.getElementById('withdrawalEmpId').value;
             const data = {
+                employee_id: empId,
                 amount: document.getElementById('withdrawalAmount').value,
-                reason: document.getElementById('withdrawalReason').value
+                reason: document.getElementById('withdrawalReason').value,
+                status: 'approved' // Admin adds it, so it's approved immediately
             };
             try {
-                const res = await fetch(`/api/employees/${empId}/withdrawal`, {
+                const res = await fetch('/api/withdrawals', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
@@ -1144,7 +1384,85 @@
                 else { const err = await res.json(); alert(err.message || 'خطأ في الإضافة'); }
             } catch { alert('خطأ في الاتصال بالخادم'); }
         }
+
+
+        // Chat Logic
+        function toggleAdminChat() {
+            const widget = document.getElementById('adminChatWidget');
+            if (widget.style.display === 'flex') {
+                widget.style.display = 'none';
+            } else {
+                widget.style.display = 'flex';
+                updateChatEmployeeSelect();
+            }
+        }
+
+        function updateChatEmployeeSelect() {
+            const select = document.getElementById('chatEmployeeSelect');
+            const currentVal = select.value;
+            select.innerHTML = '<option value="">-- اختر موظفاً --</option>' +
+                employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+            select.value = currentVal;
+            if (currentVal) loadAdminChat(currentVal);
+        }
+
+        async function loadAdminChat(empId) {
+            if (!empId) {
+                document.getElementById('adminChatBody').innerHTML = '';
+                return;
+            }
+            try {
+                const res = await fetch(`/api/messages/${empId}`);
+                const messages = await res.json();
+                const chatBody = document.getElementById('adminChatBody');
+                chatBody.innerHTML = messages.map(msg => `
+                    <div style="max-width: 80%; padding: 8px 12px; border-radius: 12px; font-size: 14px; line-height: 1.4; margin-bottom: 4px; align-self: ${msg.sender === 'admin' ? 'flex-end' : 'flex-start'}; background: ${msg.sender === 'admin' ? 'var(--primary)' : '#e5e7eb'}; color: ${msg.sender === 'admin' ? 'white' : 'black'};">
+                        ${msg.message}
+                    </div>
+                `).join('');
+                chatBody.scrollTop = chatBody.scrollHeight;
+            } catch (e) { console.error(e); }
+        }
+
+        async function sendAdminMessage() {
+            const empId = document.getElementById('chatEmployeeSelect').value;
+            const input = document.getElementById('adminChatInput');
+            const message = input.value.trim();
+            if (!empId || !message) return;
+
+            try {
+                const res = await fetch('/api/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ employee_id: empId, sender: 'admin', message })
+                });
+                if (res.ok) {
+                    input.value = '';
+                    loadAdminChat(empId);
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function setupEventListeners() {
+            document.getElementById('addEmployeeForm').addEventListener('submit', handleAddEmployee);
+            document.getElementById('editEmployeeForm').addEventListener('submit', handleEditEmployee);
+            document.getElementById('addIncomeForm').addEventListener('submit', handleAddIncome);
+            document.getElementById('addWithdrawalForm').addEventListener('submit', handleAddWithdrawal);
+        }
+
+        // Poll for chat if open
+        setInterval(() => {
+            const widget = document.getElementById('adminChatWidget');
+            const empId = document.getElementById('chatEmployeeSelect').value;
+            if (widget.style.display === 'flex' && empId) {
+                loadAdminChat(empId);
+            }
+        }, 5000);
+
+        // Start the application
+        init();
     </script>
+
 </body>
 
 </html>

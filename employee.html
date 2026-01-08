@@ -471,7 +471,252 @@
       100% {
         transform: translate3d(100%, 0, 0);
       }
-    }
+
+      /* Dark Mode */
+      body.dark-mode {
+        background-color: #1f2937;
+        color: #f3f4f6;
+        --bg-gray: #1f2937;
+        --text-dark: #f3f4f6;
+        --text-gray: #9ca3af;
+        --border-color: #374151;
+      }
+
+      body.dark-mode .page-header,
+      body.dark-mode .stat-card,
+      body.dark-mode .section-card,
+      body.dark-mode .section-header,
+      body.dark-mode .form-group input,
+      body.dark-mode .form-group select,
+      body.dark-mode .form-group textarea,
+      body.dark-mode th,
+      body.dark-mode td {
+        background-color: #111827;
+        color: #f3f4f6;
+        border-color: #374151;
+      }
+
+      body.dark-mode .section-header {
+        background-color: #1f2937;
+      }
+
+      body.dark-mode .stat-card:hover {
+        box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.1);
+      }
+
+      /* Chat Widget */
+      .chat-widget {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        width: 350px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: none;
+        flex-direction: column;
+        z-index: 1000;
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+      }
+
+      body.dark-mode .chat-widget {
+        background: #111827;
+        border-color: #374151;
+      }
+
+      .chat-header {
+        padding: 12px 16px;
+        background: var(--primary);
+        color: white;
+        font-weight: bold;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+      }
+
+      .chat-body {
+        height: 300px;
+        overflow-y: auto;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .chat-message {
+        max-width: 80%;
+        padding: 8px 12px;
+        border-radius: 12px;
+        font-size: 14px;
+        line-height: 1.4;
+      }
+
+      .chat-message.sent {
+        align-self: flex-end;
+        background: var(--primary);
+        color: white;
+        border-bottom-left-radius: 2px;
+      }
+
+      .chat-message.received {
+        align-self: flex-start;
+        background: #f3f4f6;
+        color: var(--text-dark);
+        border-bottom-right-radius: 2px;
+      }
+
+      body.dark-mode .chat-message.received {
+        background: #374151;
+      }
+
+      .chat-footer {
+        padding: 12px;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        gap: 8px;
+      }
+
+      .chat-toggle-btn {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        width: 60px;
+        height: 60px;
+        background: var(--primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        z-index: 999;
+        transition: transform 0.2s;
+      }
+
+      .chat-toggle-btn:hover {
+        transform: scale(1.1);
+      }
+
+      /* Attendance Section */
+      .attendance-actions {
+        display: flex;
+        gap: 16px;
+        margin-top: 16px;
+      }
+
+      .attendance-status {
+        text-align: center;
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 16px;
+        padding: 12px;
+        border-radius: 8px;
+        background: #f3f4f6;
+      }
+
+      /* Fingerprint & Clock */
+      .fingerprint-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        padding: 20px;
+      }
+
+      .live-clock {
+        font-size: 36px;
+        font-weight: 700;
+        color: var(--text-dark);
+        font-family: monospace;
+        letter-spacing: 2px;
+      }
+
+      .fingerprint-btn {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        border: 4px solid var(--border-color);
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      body.dark-mode .fingerprint-btn {
+        background: #1f2937;
+        border-color: #4b5563;
+      }
+
+      .fingerprint-btn:active {
+        transform: scale(0.95);
+      }
+
+      .fingerprint-btn.scanning {
+        border-color: var(--primary);
+        box-shadow: 0 0 15px var(--primary);
+      }
+
+      .fingerprint-icon {
+        font-size: 50px;
+        color: var(--text-gray);
+        transition: color 0.3s;
+        user-select: none;
+      }
+
+      .fingerprint-btn:hover .fingerprint-icon {
+        color: var(--primary);
+      }
+
+      .fingerprint-btn.checked-in {
+        border-color: var(--success);
+        background: rgba(16, 185, 129, 0.1);
+        cursor: default;
+      }
+
+      .fingerprint-btn.checked-in .fingerprint-icon {
+        color: var(--success);
+      }
+
+      .scan-line {
+        position: absolute;
+        width: 100%;
+        height: 2px;
+        background: var(--primary);
+        top: 0;
+        left: 0;
+        animation: scan 1.5s linear infinite;
+        display: none;
+      }
+
+      .fingerprint-btn.scanning .scan-line {
+        display: block;
+      }
+
+      @keyframes scan {
+        0% {
+          top: 0;
+          opacity: 0;
+        }
+
+        50% {
+          opacity: 1;
+        }
+
+        100% {
+          top: 100%;
+          opacity: 0;
+        }
+      }
   </style>
 </head>
 
@@ -491,6 +736,9 @@
         </div>
       </div>
       <div class="header-actions">
+        <button class="nav-btn" onclick="toggleDarkMode()">
+          <span>🌓</span>
+        </button>
         <a href="lifts.html" class="nav-btn">
           <span>🏗️</span>
           <span>بدأ العمل</span>
@@ -543,6 +791,32 @@
       </div>
 
       <!-- Leave Balance Hidden as requested -->
+    </div>
+
+    <!-- Attendance Section -->
+    <div class="section-card">
+      <div class="section-header">
+        <span class="section-icon">📅</span>
+        <span class="section-title">سجل الحضور والانصراف</span>
+      </div>
+      <div class="section-content">
+        <div class="fingerprint-container">
+          <div class="live-clock" id="liveClock">00:00:00</div>
+
+          <!-- Fingerprint Button -->
+          <div class="fingerprint-btn" id="fingerprintBtn" onclick="handleFingerprintClick()">
+            <div class="scan-line"></div>
+            <div class="fingerprint-icon">👆</div>
+          </div>
+          <div id="fingerprintStatus" style="font-weight: bold; margin-top: 10px; color: var(--text-gray);">اضغط لتسجيل
+            الدخول</div>
+
+          <!-- Check Out Button (Hidden by default) -->
+          <button id="checkOutBtn" class="btn btn-danger" onclick="checkOut()" style="display: none; margin-top: 10px;">
+            تسجيل خروج 🏃
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Withdrawal Request Section -->
@@ -646,6 +920,22 @@
       </div>
     </div>
   </main>
+
+  <!-- Chat Widget -->
+  <div class="chat-toggle-btn" onclick="toggleChat()">💬</div>
+  <div class="chat-widget" id="chatWidget">
+    <div class="chat-header" onclick="toggleChat()">
+      <span>💬 المحادثة مع الإدارة</span>
+      <span>▼</span>
+    </div>
+    <div class="chat-body" id="chatBody">
+      <!-- Messages will appear here -->
+    </div>
+    <div class="chat-footer">
+      <input type="text" id="chatInput" placeholder="اكتب رسالتك..." onkeypress="handleChatKey(event)">
+      <button class="btn btn-primary" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
 
   <script>
     let employeeId = null;
@@ -972,8 +1262,189 @@
       window.location.href = 'login.html';
     });
 
+    // Ticker Logic
+    async function updateTicker() {
+      try {
+        const response = await fetch('/api/lifts');
+        if (!response.ok) return;
+
+        const lifts = await response.json();
+        const idleLifts = lifts.filter(l => l.status === 'idle');
+
+        const ticker = document.getElementById('liftTicker');
+        const tickerText = document.getElementById('liftTickerText');
+
+        if (idleLifts.length > 0) {
+          const names = idleLifts.map(l => l.name).join(' - ');
+          tickerText.textContent = `🟢 الرافعات المتاحة حالياً: ${names}`;
+          ticker.style.display = 'block';
+          ticker.style.background = 'var(--success)'; // Green for available
+        } else {
+          tickerText.textContent = '🔴 جميع الرافعات مشغولة حالياً';
+          ticker.style.display = 'block';
+          ticker.style.background = 'var(--danger)'; // Red for busy
+        }
+      } catch (error) {
+        console.error('Ticker Error:', error);
+      }
+    }
+
     // Initialize
     checkAuth();
+    setInterval(updateTicker, 30000); // Update every 30s
+    updateTicker(); // Initial call
+
+    // Load preferences
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark-mode');
+    }
+
+    // Dark Mode
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    }
+
+    // Attendance Logic
+    async function loadAttendance() {
+      try {
+        const response = await fetch(`/api/attendance/status/${employeeId}`);
+        const data = await response.json();
+        const statusDiv = document.getElementById('attendanceStatus');
+        const checkInBtn = document.getElementById('checkInBtn');
+        const checkOutBtn = document.getElementById('checkOutBtn');
+
+        if (data.status === 'not_marked') {
+          statusDiv.textContent = 'لم يتم تسجيل الحضور اليوم ❌';
+          statusDiv.style.color = 'var(--danger)';
+          checkInBtn.disabled = false;
+          checkOutBtn.disabled = true;
+        } else {
+          const checkInTime = new Date(data.check_in).toLocaleTimeString('ar-SA');
+          if (data.check_out) {
+            const checkOutTime = new Date(data.check_out).toLocaleTimeString('ar-SA');
+            statusDiv.innerHTML = `✅ تم الحضور: ${checkInTime}<br>👋 تم الانصراف: ${checkOutTime}`;
+            statusDiv.style.color = 'var(--success)';
+            checkInBtn.disabled = true;
+            checkOutBtn.disabled = true;
+          } else {
+            statusDiv.innerHTML = `✅ تم الحضور: ${checkInTime}<br>⏳ بانتظار الانصراف...`;
+            statusDiv.style.color = 'var(--primary)';
+            checkInBtn.disabled = true;
+            checkOutBtn.disabled = false;
+          }
+        }
+      } catch (error) {
+        console.error('Attendance Error:', error);
+      }
+    }
+
+    async function checkIn() {
+      try {
+        const response = await fetch('/api/attendance/check-in', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ employee_id: employeeId })
+        });
+        const data = await response.json();
+        if (response.ok) {
+          alert(data.message);
+          loadAttendance();
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        console.error('Check-in Error:', error);
+      }
+    }
+
+    async function checkOut() {
+      if (!confirm('هل أنت متأكد من تسجيل الانصراف؟')) return;
+      try {
+        const response = await fetch('/api/attendance/check-out', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ employee_id: employeeId })
+        });
+        const data = await response.json();
+        if (response.ok) {
+          alert(data.message);
+          loadAttendance();
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        console.error('Check-out Error:', error);
+      }
+    }
+
+    // Chat Logic
+    function toggleChat() {
+      const widget = document.getElementById('chatWidget');
+      if (widget.style.display === 'flex') {
+        widget.style.display = 'none';
+      } else {
+        widget.style.display = 'flex';
+        loadMessages();
+        scrollToBottom();
+      }
+    }
+
+    async function loadMessages() {
+      try {
+        const response = await fetch(`/api/messages/${employeeId}`);
+        const messages = await response.json();
+        const chatBody = document.getElementById('chatBody');
+
+        chatBody.innerHTML = messages.map(msg => `
+                <div class="chat-message ${msg.sender === 'employee' ? 'sent' : 'received'}">
+                    ${msg.message}
+                </div>
+            `).join('');
+
+        scrollToBottom();
+      } catch (error) {
+        console.error('Chat Error:', error);
+      }
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('chatInput');
+      const message = input.value.trim();
+      if (!message) return;
+
+      try {
+        const response = await fetch('/api/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            employee_id: employeeId,
+            sender: 'employee',
+            message: message
+          })
+        });
+
+        if (response.ok) {
+          input.value = '';
+          loadMessages();
+        }
+      } catch (error) {
+        console.error('Send Message Error:', error);
+      }
+    }
+
+    function handleChatKey(event) {
+      if (event.key === 'Enter') sendMessage();
+    }
+
+    function scrollToBottom() {
+      const chatBody = document.getElementById('chatBody');
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    // Initial Loads
+    loadAttendance();
+    setInterval(loadMessages, 5000); // Poll messages every 5s
 
     // Lift Ticker
     function startLiftTicker() {

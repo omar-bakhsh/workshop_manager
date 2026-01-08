@@ -117,6 +117,24 @@ function initializeDatabase() {
             issue_description TEXT,
             last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (technician_id) REFERENCES employees(id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS attendance (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            employee_id INTEGER NOT NULL,
+            date DATE DEFAULT CURRENT_DATE,
+            check_in TIMESTAMP,
+            check_out TIMESTAMP,
+            status TEXT DEFAULT 'present',
+            FOREIGN KEY (employee_id) REFERENCES employees(id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            employee_id INTEGER NOT NULL,
+            sender TEXT NOT NULL, -- 'employee' or 'admin'
+            message TEXT NOT NULL,
+            is_read INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (employee_id) REFERENCES employees(id)
         )`
     ];
 
@@ -982,6 +1000,133 @@ app.get("/employee.html", (req, res) => {
 
 app.get("/login.html", (req, res) => {
     res.sendFile(path.join(__dirname, "login.html"));
+});
+
+// ==========================
+// 📅 نظام الحضور والانصراف
+// ==========================
+
+// تسجيل دخول (Check-in)
+app.post('/api/attendance/check-in', async (req, res) => {
+    const { employee_id } = req.body;
+    const date = new Date().toISOString().split('T')[0];
+    const time = new Date().toISOString();
+
+    try {
+        // التحقق مما إذا كان قد سجل بالفعل اليوم
+        const existing = await dbGet('SELECT * FROM attendance WHERE employee_id = ? AND date = ?', [employee_id, date]);
+        if (existing) {
+            return res.status(400).json({ message: 'تم تسجيل الحضور مسبقاً لهذا اليوم' });
+        }
+
+        await dbRun(`INSERT INTO attendance (employee_id, date, check_in) VALUES (?, ?, ?)`, [employee_id, date, time]);
+        res.json({ message: 'تم تسجيل الحضور بنجاح', time });
+    } catch (error) {
+        console.error("Check-in Error:", error);
+        res.status(500).json({ message: "خطأ في تسجيل الحضور" });
+    }
+});
+
+// تسجيل خروج (Check-out)
+app.post('/api/attendance/check-out', async (req, res) => {
+    const { employee_id } = req.body;
+    const date = new Date().toISOString().split('T')[0];
+    const time = new Date().toISOString();
+
+    try {
+        const existing = await dbGet('SELECT * FROM attendance WHERE employee_id = ? AND date = ?', [employee_id, date]);
+        if (!existing) {
+            return res.status(400).json({ message: 'يجب تسجيل الحضور أولاً' });
+        }
+        if (existing.check_out) {
+            return res.status(400).json({ message: 'تم تسجيل الانصراف مسبقاً' });
+        }
+
+        await dbRun(`UPDATE attendance SET check_out = ? WHERE id = ?`, [time, existing.id]);
+        res.json({ message: 'تم تسجيل الانصراف بنجاح', time });
+    } catch (error) {
+        console.error("Check-out Error:", error);
+        res.status(500).json({ message: "خطأ في تسجيل الانصراف" });
+    }
+});
+
+// جلب حالة الحضور لليوم
+app.get('/api/attendance/status/:employee_id', async (req, res) => {
+    const { employee_id } = req.params;
+    const date = new Date().toISOString().split('T')[0];
+
+    try {
+        const status = await dbGet('SELECT * FROM attendance WHERE employee_id = ? AND date = ?', [employee_id, date]);
+        res.json(status || { status: 'not_marked' });
+    } catch (error) {
+        console.error("Attendance Status Error:", error);
+        res.status(500).json({ message: "خطأ في جلب حالة الحضور" });
+    }
+});
+
+// ==========================
+// 💬 نظام المحادثة (Chat)
+// ==========================
+
+// جلب الرسائل
+app.get('/api/messages/:employee_id', async (req, res) => {
+    const { employee_id } = req.params;
+    try {
+        const messages = await dbAll(`SELECT * FROM messages WHERE employee_id = ? ORDER BY created_at ASC`, [employee_id]);
+        res.json(messages);
+    } catch (error) {
+        console.error("Fetch Messages Error:", error);
+        res.status(500).json({ message: "خطأ في جلب الرسائل" });
+    }
+});
+
+// إرسال رسالة
+app.post('/api/messages', async (req, res) => {
+    const { employee_id, sender, message } = req.body;
+    if (!message) return res.status(400).json({ message: "الرسالة فارغة" });
+
+    try {
+        await dbRun(`INSERT INTO messages (employee_id, sender, message) VALUES (?, ?, ?)`, [employee_id, sender, message]);
+        res.json({ message: "تم الإرسال" });
+    } catch (error) {
+        console.error("Send Message Error:", error);
+        res.status(500).json({ message: "خطأ في إرسال الرسالة" });
+    }
+});
+
+// ==========================
+// 🔔 نظام الإشعارات
+// ==========================
+app.get('/api/notifications', async (req, res) => {
+    try {
+        const pendingWithdrawals = await dbGet(`SELECT COUNT(*) as count FROM withdrawals WHERE status = 'pending'`);
+        const pendingLeaves = await dbGet(`SELECT COUNT(*) as count FROM leave_requests WHERE status = 'pending'`);
+
+        res.json({
+            withdrawals: pendingWithdrawals.count,
+            leaves: pendingLeaves.count,
+            total: pendingWithdrawals.count + pendingLeaves.count
+        });
+    } catch (error) {
+        console.error("Notifications Error:", error);
+        res.status(500).json({ message: "خطأ في جلب الإشعارات" });
+    }
+});
+
+// ==========================
+// 💾 النسخ الاحتياطي
+// ==========================
+app.get('/api/backup', (req, res) => {
+    const dbPath = path.join(__dirname, 'db.sqlite');
+    const date = new Date().toISOString().split('T')[0];
+    const filename = `backup_workshop_${date}.sqlite`;
+
+    res.download(dbPath, filename, (err) => {
+        if (err) {
+            console.error("Backup Download Error:", err);
+            res.status(500).send("Could not download backup");
+        }
+    });
 });
 
 // ==========================
