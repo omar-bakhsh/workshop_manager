@@ -471,252 +471,424 @@
       100% {
         transform: translate3d(100%, 0, 0);
       }
+    }
 
-      /* Dark Mode */
-      body.dark-mode {
-        background-color: #1f2937;
-        color: #f3f4f6;
-        --bg-gray: #1f2937;
-        --text-dark: #f3f4f6;
-        --text-gray: #9ca3af;
-        --border-color: #374151;
+    /* Dark Mode */
+    body.dark-mode {
+      background-color: #1f2937;
+      color: #f3f4f6;
+      --bg-gray: #1f2937;
+      --text-dark: #f3f4f6;
+      --text-gray: #9ca3af;
+      --border-color: #374151;
+    }
+
+    body.dark-mode .page-header,
+    body.dark-mode .stat-card,
+    body.dark-mode .section-card,
+    body.dark-mode .section-header,
+    body.dark-mode .form-group input,
+    body.dark-mode .form-group select,
+    body.dark-mode .form-group textarea,
+    body.dark-mode th,
+    body.dark-mode td {
+      background-color: #111827;
+      color: #f3f4f6;
+      border-color: #374151;
+    }
+
+    body.dark-mode .section-header {
+      background-color: #1f2937;
+    }
+
+    body.dark-mode .stat-card:hover {
+      box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.1);
+    }
+
+    /* Chat Widget */
+    .chat-widget {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 350px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: none;
+      flex-direction: column;
+      z-index: 1000;
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+    }
+
+    body.dark-mode .chat-widget {
+      background: #111827;
+      border-color: #374151;
+    }
+
+    .chat-header {
+      padding: 12px 16px;
+      background: var(--primary);
+      color: white;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .chat-body {
+      height: 300px;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .chat-message {
+      max-width: 80%;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .chat-message.sent {
+      align-self: flex-end;
+      background: var(--primary);
+      color: white;
+      border-bottom-left-radius: 2px;
+    }
+
+    .chat-message.received {
+      align-self: flex-start;
+      background: #f3f4f6;
+      color: var(--text-dark);
+      border-bottom-right-radius: 2px;
+    }
+
+    body.dark-mode .chat-message.received {
+      background: #374151;
+    }
+
+    .chat-footer {
+      padding: 12px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      gap: 8px;
+    }
+
+    .chat-toggle-btn {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 60px;
+      height: 60px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      z-index: 999;
+      transition: transform 0.2s;
+    }
+
+    .chat-toggle-btn:hover {
+      transform: scale(1.1);
+    }
+
+    /* Attendance Section */
+    .attendance-actions {
+      display: flex;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .attendance-status {
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 16px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #f3f4f6;
+    }
+
+    /* Fingerprint & Clock */
+    .fingerprint-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      padding: 20px;
+    }
+
+    .live-clock {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--text-dark);
+      font-family: monospace;
+      letter-spacing: 2px;
+    }
+
+    .fingerprint-btn {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 4px solid var(--border-color);
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body.dark-mode .fingerprint-btn {
+      background: #1f2937;
+      border-color: #4b5563;
+    }
+
+    .fingerprint-btn:active {
+      transform: scale(0.95);
+    }
+
+    .fingerprint-btn.scanning {
+      border-color: var(--primary);
+      box-shadow: 0 0 15px var(--primary);
+    }
+
+    .fingerprint-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-gray);
+      transition: color 0.3s;
+      user-select: none;
+    }
+
+    .fingerprint-btn:hover .fingerprint-icon {
+      color: var(--primary);
+    }
+
+    .fingerprint-btn.checked-in {
+      border-color: var(--success);
+      background: rgba(16, 185, 129, 0.1);
+      cursor: default;
+    }
+
+    .fingerprint-btn.checked-in .fingerprint-icon {
+      color: var(--success);
+    }
+
+    .scan-line {
+      position: absolute;
+      width: 100%;
+      height: 2px;
+      background: var(--primary);
+      top: 0;
+      left: 0;
+      animation: scan 1.5s linear infinite;
+      display: none;
+    }
+
+    .fingerprint-btn.scanning .scan-line {
+      display: block;
+    }
+
+    @keyframes scan {
+      0% {
+        top: 0;
+        opacity: 0;
       }
 
-      body.dark-mode .page-header,
-      body.dark-mode .stat-card,
-      body.dark-mode .section-card,
-      body.dark-mode .section-header,
-      body.dark-mode .form-group input,
-      body.dark-mode .form-group select,
-      body.dark-mode .form-group textarea,
-      body.dark-mode th,
-      body.dark-mode td {
-        background-color: #111827;
-        color: #f3f4f6;
-        border-color: #374151;
+      50% {
+        opacity: 1;
       }
 
-      body.dark-mode .section-header {
-        background-color: #1f2937;
+      100% {
+        top: 100%;
+        opacity: 0;
+      }
+    }
+
+    /* ===================================
+       MOBILE RESPONSIVE DESIGN
+       =================================== */
+
+    /* Tablet */
+    @media (max-width: 1024px) {
+      .container {
+        padding: 0 16px;
       }
 
-      body.dark-mode .stat-card:hover {
-        box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.1);
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
       }
+    }
 
-      /* Chat Widget */
-      .chat-widget {
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
-        width: 350px;
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        display: none;
-        flex-direction: column;
-        z-index: 1000;
-        border: 1px solid var(--border-color);
-        overflow: hidden;
-      }
+    /* Mobile */
+    @media (max-width: 768px) {
 
-      body.dark-mode .chat-widget {
-        background: #111827;
-        border-color: #374151;
-      }
-
-      .chat-header {
+      /* Header */
+      .page-header {
         padding: 12px 16px;
-        background: var(--primary);
-        color: white;
-        font-weight: bold;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        cursor: pointer;
+        margin-bottom: 20px;
       }
 
-      .chat-body {
-        height: 300px;
-        overflow-y: auto;
-        padding: 16px;
-        display: flex;
+      .header-container {
         flex-direction: column;
-        gap: 10px;
+        gap: 16px;
+        align-items: flex-start;
       }
 
-      .chat-message {
-        max-width: 80%;
-        padding: 8px 12px;
-        border-radius: 12px;
-        font-size: 14px;
-        line-height: 1.4;
+      .user-info {
+        width: 100%;
       }
 
-      .chat-message.sent {
-        align-self: flex-end;
-        background: var(--primary);
-        color: white;
-        border-bottom-left-radius: 2px;
+      .avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
       }
 
-      .chat-message.received {
-        align-self: flex-start;
-        background: #f3f4f6;
-        color: var(--text-dark);
-        border-bottom-right-radius: 2px;
+      .user-details h1 {
+        font-size: 18px;
       }
 
-      body.dark-mode .chat-message.received {
-        background: #374151;
-      }
-
-      .chat-footer {
-        padding: 12px;
-        border-top: 1px solid var(--border-color);
-        display: flex;
+      .header-actions {
+        width: 100%;
+        justify-content: space-between;
         gap: 8px;
       }
 
-      .chat-toggle-btn {
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
-        width: 60px;
-        height: 60px;
-        background: var(--primary);
-        color: white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
+      .nav-btn,
+      .logout-btn {
+        padding: 8px 12px;
+        font-size: 13px;
+        flex: 1;
         justify-content: center;
+      }
+
+      /* Container */
+      .container {
+        max-width: 100%;
+        padding: 0 12px;
+      }
+
+      /* Stats Grid */
+      .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .stat-card {
+        padding: 16px;
+      }
+
+      .stat-value {
         font-size: 24px;
-        cursor: pointer;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        z-index: 999;
-        transition: transform 0.2s;
       }
 
-      .chat-toggle-btn:hover {
-        transform: scale(1.1);
-      }
-
-      /* Attendance Section */
-      .attendance-actions {
-        display: flex;
-        gap: 16px;
-        margin-top: 16px;
-      }
-
-      .attendance-status {
-        text-align: center;
-        font-size: 18px;
-        font-weight: bold;
+      /* Section Cards */
+      .section-card {
         margin-bottom: 16px;
-        padding: 12px;
-        border-radius: 8px;
-        background: #f3f4f6;
       }
 
-      /* Fingerprint & Clock */
-      .fingerprint-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 15px;
-        padding: 20px;
+      .section-header {
+        padding: 14px;
       }
 
-      .live-clock {
-        font-size: 36px;
-        font-weight: 700;
-        color: var(--text-dark);
-        font-family: monospace;
-        letter-spacing: 2px;
+      .section-title {
+        font-size: 16px;
       }
 
+      /* Fingerprint */
       .fingerprint-btn {
         width: 100px;
         height: 100px;
-        border-radius: 50%;
-        border: 4px solid var(--border-color);
-        background: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        position: relative;
-        overflow: hidden;
-        -webkit-tap-highlight-color: transparent;
-      }
-
-      body.dark-mode .fingerprint-btn {
-        background: #1f2937;
-        border-color: #4b5563;
-      }
-
-      .fingerprint-btn:active {
-        transform: scale(0.95);
-      }
-
-      .fingerprint-btn.scanning {
-        border-color: var(--primary);
-        box-shadow: 0 0 15px var(--primary);
       }
 
       .fingerprint-icon {
-        font-size: 50px;
-        color: var(--text-gray);
-        transition: color 0.3s;
-        user-select: none;
+        font-size: 40px;
       }
 
-      .fingerprint-btn:hover .fingerprint-icon {
-        color: var(--primary);
+      .live-clock {
+        font-size: 24px;
       }
 
-      .fingerprint-btn.checked-in {
-        border-color: var(--success);
-        background: rgba(16, 185, 129, 0.1);
-        cursor: default;
+      /* Forms */
+      .form-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
       }
 
-      .fingerprint-btn.checked-in .fingerprint-icon {
-        color: var(--success);
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        font-size: 15px;
+        padding: 10px;
       }
 
-      .scan-line {
-        position: absolute;
-        width: 100%;
-        height: 2px;
-        background: var(--primary);
-        top: 0;
-        left: 0;
-        animation: scan 1.5s linear infinite;
-        display: none;
+      /* Tables */
+      .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
       }
 
-      .fingerprint-btn.scanning .scan-line {
-        display: block;
+      table {
+        font-size: 13px;
+        min-width: 500px;
       }
 
-      @keyframes scan {
-        0% {
-          top: 0;
-          opacity: 0;
-        }
-
-        50% {
-          opacity: 1;
-        }
-
-        100% {
-          top: 100%;
-          opacity: 0;
-        }
+      th,
+      td {
+        padding: 10px 8px;
       }
+
+      /* Ticker */
+      .ticker-text {
+        font-size: 0.9rem;
+      }
+    }
+
+    /* Small Mobile */
+    @media (max-width: 480px) {
+      .page-header {
+        padding: 10px 12px;
+      }
+
+      .header-actions {
+        flex-wrap: wrap;
+      }
+
+      .nav-btn,
+      .logout-btn {
+        min-width: calc(50% - 4px);
+      }
+
+      .stat-value {
+        font-size: 20px;
+      }
+
+      .fingerprint-btn {
+        width: 80px;
+        height: 80px;
+      }
+
+      .fingerprint-icon {
+        font-size: 32px;
+      }
+    }
   </style>
 </head>
 
@@ -742,6 +914,11 @@
         <a href="lifts.html" class="nav-btn">
           <span>🏗️</span>
           <span>بدأ العمل</span>
+        </a>
+        <a href="inspector.html" class="nav-btn" id="inspectorBtn"
+          style="display: none; background-color: #ec4899; color: white;">
+          <span>🔍</span>
+          <span>نظام الكشف</span>
         </a>
         <button class="logout-btn" id="logoutBtn">
           <span>🚪</span>
@@ -806,7 +983,13 @@
           <!-- Fingerprint Button -->
           <div class="fingerprint-btn" id="fingerprintBtn" onclick="handleFingerprintClick()">
             <div class="scan-line"></div>
-            <div class="fingerprint-icon">👆</div>
+            <div class="fingerprint-icon">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M17.81 4.47C17.73 4.47 17.65 4.45 17.58 4.41C15.66 3.42 14 3 12 3C10 3 8.34 3.42 6.42 4.41C6.17 4.54 5.86 4.45 5.73 4.2C5.6 3.95 5.69 3.64 5.94 3.51C8.03 2.43 9.87 2 12 2C14.13 2 15.97 2.43 18.06 3.51C18.31 3.64 18.4 3.95 18.27 4.2C18.17 4.38 17.99 4.47 17.81 4.47ZM3.5 9.72C3.39 9.72 3.28 9.69 3.18 9.63C2.93 9.48 2.85 9.17 3 8.92C3.64 7.84 4.49 6.91 5.53 6.15C5.77 5.97 6.08 6.03 6.26 6.27C6.44 6.51 6.38 6.82 6.14 7C5.2 7.69 4.44 8.52 3.86 9.5C3.78 9.64 3.64 9.72 3.5 9.72ZM20.5 9.72C20.36 9.72 20.22 9.64 20.14 9.5C19.56 8.52 18.8 7.69 17.86 7C17.62 6.82 17.56 6.51 17.74 6.27C17.92 6.03 18.23 5.97 18.47 6.15C19.51 6.91 20.36 7.84 21 8.92C21.15 9.17 21.07 9.48 20.82 9.63C20.72 9.69 20.61 9.72 20.5 9.72ZM12 13.75C11.72 13.75 11.5 13.53 11.5 13.25V9C11.5 8.72 11.72 8.5 12 8.5C12.28 8.5 12.5 8.72 12.5 9V13.25C12.5 13.53 12.28 13.75 12 13.75ZM12 17.75C11.72 17.75 11.5 17.53 11.5 17.25V15.25C11.5 14.97 11.72 14.75 12 14.75C12.28 14.75 12.5 14.97 12.5 15.25V17.25C12.5 17.53 12.28 17.75 12 17.75ZM15.5 16.25C15.22 16.25 15 16.03 15 15.75V12.25C15 10.59 13.66 9.25 12 9.25C10.34 9.25 9 10.59 9 12.25V15.75C9 16.03 8.78 16.25 8.5 16.25C8.22 16.25 8 16.03 8 15.75V12.25C8 10.04 9.79 8.25 12 8.25C14.21 8.25 16 10.04 16 12.25V15.75C16 16.03 15.78 16.25 15.5 16.25ZM18.5 18.25C18.22 18.25 18 18.03 18 17.75V11.25C18 7.94 15.31 5.25 12 5.25C8.69 5.25 6 7.94 6 11.25V17.75C6 18.03 5.78 18.25 5.5 18.25C5.22 18.25 5 18.03 5 17.75V11.25C5 7.39 8.14 4.25 12 4.25C15.86 4.25 19 7.39 19 11.25V17.75C19 18.03 18.78 18.25 18.5 18.25ZM12 22C9.24 22 7 19.76 7 17V16.25C7 15.97 7.22 15.75 7.5 15.75C7.78 15.75 8 15.97 8 16.25V17C8 19.21 9.79 21 12 21C14.21 21 16 19.21 16 17V16.25C16 15.97 16.22 15.75 16.5 15.75C16.78 15.75 17 15.97 17 16.25V17C17 19.76 14.76 22 12 22Z"
+                  fill="currentColor" />
+              </svg>
+            </div>
           </div>
           <div id="fingerprintStatus" style="font-weight: bold; margin-top: 10px; color: var(--text-gray);">اضغط لتسجيل
             الدخول</div>
@@ -922,20 +1105,342 @@
   </main>
 
   <!-- Chat Widget -->
-  <div class="chat-toggle-btn" onclick="toggleChat()">💬</div>
   <div class="chat-widget" id="chatWidget">
-    <div class="chat-header" onclick="toggleChat()">
-      <span>💬 المحادثة مع الإدارة</span>
-      <span>▼</span>
+    <!-- Header -->
+    <div class="chat-header">
+      <div onclick="toggleChat()" class="chat-back-btn">❮</div>
+      <div class="chat-avatar-wrapper">
+        <div class="chat-avatar-img">👨‍💼</div>
+        <div class="chat-online-indicator"></div>
+      </div>
+      <div class="chat-header-info">
+        <div class="chat-header-name">الإدارة</div>
+        <div class="chat-header-status">متصل الآن</div>
+      </div>
     </div>
+
+    <!-- Body -->
     <div class="chat-body" id="chatBody">
-      <!-- Messages will appear here -->
+      <!-- Messages will be injected here -->
     </div>
+
+    <!-- Footer -->
     <div class="chat-footer">
-      <input type="text" id="chatInput" placeholder="اكتب رسالتك..." onkeypress="handleChatKey(event)">
-      <button class="btn btn-primary" onclick="sendMessage()">➤</button>
+      <input type="text" id="chatInput" class="chat-input" placeholder="اكتب رسالتك..."
+        onkeypress="handleChatKey(event)">
+      <button onclick="sendMessage()" class="chat-send-btn">➤</button>
     </div>
   </div>
+
+  <div class="chat-toggle-btn" onclick="toggleChat()">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="white" />
+    </svg>
+    <span id="chatBadge" class="chat-badge">0</span>
+  </div>
+
+  <style>
+    /* Chat Toggle Button */
+    .chat-toggle-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 70px;
+      height: 70px;
+      background: #5b51d8;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(91, 81, 216, 0.5);
+      z-index: 9999;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .chat-badge {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      background: #ef4444;
+      color: white;
+      border-radius: 50%;
+      min-width: 24px;
+      height: 24px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      border: 3px solid white;
+      padding: 0 6px;
+    }
+
+    /* Chat Widget */
+    .chat-widget {
+      position: fixed;
+      bottom: 110px;
+      right: 30px;
+      width: 380px;
+      max-width: calc(100vw - 40px);
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+      display: none;
+      flex-direction: column;
+      z-index: 10000;
+      overflow: hidden;
+      height: 550px;
+      max-height: calc(100vh - 140px);
+      animation: slideUp 0.3s ease-out;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    /* Chat Header */
+    .chat-header {
+      background: #5b51d8;
+      padding: 18px 20px;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .chat-back-btn {
+      cursor: pointer;
+      font-size: 24px;
+      line-height: 1;
+      padding: 4px;
+    }
+
+    .chat-avatar-wrapper {
+      position: relative;
+    }
+
+    .chat-avatar-img {
+      width: 44px;
+      height: 44px;
+      background: #e0e7ff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .chat-online-indicator {
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      width: 12px;
+      height: 12px;
+      background: #10b981;
+      border-radius: 50%;
+      border: 2px solid #5b51d8;
+    }
+
+    .chat-header-info {
+      flex: 1;
+    }
+
+    .chat-header-name {
+      font-weight: 600;
+      font-size: 17px;
+      line-height: 1.3;
+    }
+
+    .chat-header-status {
+      font-size: 13px;
+      opacity: 0.9;
+      line-height: 1.3;
+    }
+
+    /* Chat Body */
+    .chat-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background: #f9fafb;
+      min-height: 0;
+    }
+
+    /* Chat Footer */
+    .chat-footer {
+      padding: 16px;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      gap: 12px;
+      background: white;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 14px 18px;
+      border: 1px solid #e5e7eb;
+      border-radius: 24px;
+      outline: none;
+      font-size: 15px;
+      background: #f9fafb;
+      font-family: inherit;
+    }
+
+    .chat-send-btn {
+      width: 46px;
+      height: 46px;
+      background: #5b51d8;
+      border: none;
+      border-radius: 50%;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+  </style>
+
+  <style>
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .chat-toggle-btn:hover {
+      transform: scale(1.08) !important;
+      box-shadow: 0 12px 28px rgba(91, 81, 216, 0.6);
+    }
+
+    .chat-toggle-btn:active {
+      transform: scale(0.95) !important;
+    }
+
+    .chat-message-container {
+      display: flex;
+      gap: 10px;
+      max-width: 85%;
+      animation: messageIn 0.2s ease-out;
+    }
+
+    @keyframes messageIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .chat-message-container.sent {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .chat-message-container.received {
+      align-self: flex-start;
+    }
+
+    .chat-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #e0e7ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+
+    .chat-bubble {
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-size: 15px;
+      line-height: 1.5;
+      position: relative;
+      word-wrap: break-word;
+      max-width: 100%;
+    }
+
+    /* Sent Message (Purple) */
+    .chat-message-container.sent .chat-bubble {
+      background: #5b51d8;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    /* Received Message (Gray) */
+    .chat-message-container.received .chat-bubble {
+      background: white;
+      color: #1f2937;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Mobile Responsive - Full Screen */
+    @media (max-width: 768px) {
+      .chat-widget {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
+        border-radius: 0 !important;
+        z-index: 99999 !important;
+        margin: 0 !important;
+      }
+
+      /* Hide toggle button when chat is open on mobile */
+      .chat-widget[style*="display: flex"]~.chat-toggle-btn {
+        display: none !important;
+      }
+
+      .chat-header {
+        padding-top: max(18px, env(safe-area-inset-top)) !important;
+        border-radius: 0 !important;
+      }
+
+      .chat-body {
+        padding: 16px !important;
+      }
+
+      .chat-footer {
+        padding: 16px !important;
+        padding-bottom: max(16px, env(safe-area-inset-bottom)) !important;
+        border-radius: 0 !important;
+      }
+
+      .chat-toggle-btn {
+        bottom: 24px !important;
+        right: 24px !important;
+        width: 64px !important;
+        height: 64px !important;
+      }
+    }
+  </style>
 
   <script>
     let employeeId = null;
@@ -973,6 +1478,11 @@
         // Update header
         document.getElementById('userName').textContent = `مرحباً، ${employeeData.info.name}`;
         document.getElementById('userSection').textContent = `${employeeData.info.section_name || 'غير محدد'}`;
+
+        // Show inspector button if in inspection section
+        if (employeeData.info.section_name === 'كشف') {
+          document.getElementById('inspectorBtn').style.display = 'flex';
+        }
 
         // Update stats
         if (employeeData.income_hidden) {
@@ -1383,8 +1893,12 @@
       const widget = document.getElementById('chatWidget');
       if (widget.style.display === 'flex') {
         widget.style.display = 'none';
+        document.body.style.overflow = 'auto';
       } else {
         widget.style.display = 'flex';
+        if (window.innerWidth <= 768) {
+          document.body.style.overflow = 'hidden';
+        }
         loadMessages();
         scrollToBottom();
       }
@@ -1392,20 +1906,52 @@
 
     async function loadMessages() {
       try {
+        // Mark as read first
+        await fetch('/api/messages/mark-read', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ employee_id: employeeId, reader: 'employee' })
+        });
+        checkUnreadMessages(); // Update badge
+
         const response = await fetch(`/api/messages/${employeeId}`);
         const messages = await response.json();
         const chatBody = document.getElementById('chatBody');
 
-        chatBody.innerHTML = messages.map(msg => `
-                <div class="chat-message ${msg.sender === 'employee' ? 'sent' : 'received'}">
-                    ${msg.message}
+        chatBody.innerHTML = messages.map(msg => {
+          const isSent = msg.sender === 'employee';
+          const avatar = isSent ? '' : '<div class="chat-avatar">👨‍💼</div>';
+
+          return `
+                <div class="chat-message-container ${isSent ? 'sent' : 'received'}">
+                    ${avatar}
+                    <div class="chat-bubble">
+                        ${msg.message}
+                    </div>
                 </div>
-            `).join('');
+            `;
+        }).join('');
 
         scrollToBottom();
       } catch (error) {
         console.error('Chat Error:', error);
       }
+    }
+
+    async function checkUnreadMessages() {
+      if (!employeeId) return;
+      try {
+        const res = await fetch(`/api/messages/unread/employee/${employeeId}`);
+        const data = await res.json();
+        const badge = document.getElementById('chatBadge');
+
+        if (data.count > 0) {
+          badge.textContent = data.count;
+          badge.style.display = 'flex';
+        } else {
+          badge.style.display = 'none';
+        }
+      } catch (e) { console.error(e); }
     }
 
     async function sendMessage() {
@@ -1444,7 +1990,14 @@
 
     // Initial Loads
     loadAttendance();
-    setInterval(loadMessages, 5000); // Poll messages every 5s
+    setInterval(() => {
+      // Only load messages if chat is open to save bandwidth, but always check unread
+      const widget = document.getElementById('chatWidget');
+      if (widget.style.display === 'flex') {
+        loadMessages();
+      }
+      checkUnreadMessages();
+    }, 5000); // Poll every 5s
 
     // Lift Ticker
     function startLiftTicker() {

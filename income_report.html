@@ -240,7 +240,7 @@
                     <th class="rank-col">#</th>
                     <th>اسم الفني</th>
                     <th>القسم</th>
-                    <th class="target-col">الهدف</th>
+                    <th class="target-col">نسبة الانجاز</th>
                     <th class="amount-col">الدخل الحالي</th>
                 </tr>
             </thead>
@@ -291,7 +291,7 @@
                         <td class="rank-col">${rankDisplay}</td>
                         <td>${emp.name}</td>
                         <td>${emp.section_name || '-'}</td>
-                        <td class="target-col">${emp.target.toLocaleString()} ﷼</td>
+                        <td class="target-col">${emp.target > 0 ? Math.round((emp.total_income / emp.target) * 100) : 0}%</td>
                         <td class="amount-col">${emp.total_income.toLocaleString()} ﷼</td>
                     `;
                     tbody.appendChild(tr);
@@ -327,7 +327,7 @@
                 'الترتيب': index + 1,
                 'اسم الفني': emp.name,
                 'القسم': emp.section_name || '-',
-                'الهدف الشهري': emp.target,
+                'نسبة الانجاز': (emp.target > 0 ? Math.round((emp.total_income / emp.target) * 100) : 0) + '%',
                 'الدخل الحالي': emp.total_income
             }));
 

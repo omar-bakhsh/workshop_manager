@@ -135,6 +135,44 @@ function initializeDatabase() {
             is_read INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (employee_id) REFERENCES employees(id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS inspections (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            inspector_id INTEGER NOT NULL,
+            customer_name TEXT,
+            customer_phone TEXT,
+            car_type TEXT,
+            car_color TEXT,
+            car_model TEXT,
+            plate_number TEXT,
+            total_amount REAL DEFAULT 0,
+            vat_amount REAL DEFAULT 0,
+            final_amount REAL DEFAULT 0,
+            paid_amount REAL DEFAULT 0,
+            remaining_amount REAL DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (inspector_id) REFERENCES employees(id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS inspection_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            inspection_id INTEGER NOT NULL,
+            category TEXT,
+            service_description TEXT,
+            quantity INTEGER DEFAULT 1,
+            price REAL DEFAULT 0,
+            total REAL DEFAULT 0,
+            FOREIGN KEY (inspection_id) REFERENCES inspections(id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS inspection_terms (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            term TEXT UNIQUE NOT NULL
+        )`,
+        `CREATE TABLE IF NOT EXISTS services (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            category TEXT NOT NULL,
+            service_name TEXT NOT NULL,
+            price REAL DEFAULT 0,
+            UNIQUE(category, service_name)
         )`
     ];
 
@@ -166,6 +204,70 @@ function initializeDatabase() {
             db.run(`INSERT OR IGNORE INTO workshop_lifts (id, name) VALUES (?, ?)`, [id, `رافعة ${id}`], (err) => {
                 if (err) console.error(`❌ خطأ في إضافة الرافعة ${id}:`, err.message);
             });
+        });
+
+        // بذر الخدمات الافتراضية
+        const defaultServices = {
+            "نظام التعليق الامامي": [
+                { "service": "غيار أقمشة أمامية + مسح هوبات (مخرطة)", "price": 100 },
+                { "service": "غيار مساعدات أمامية + كراسي مساعدات", "price": 200 },
+                { "service": "غيار مقصات أمامية", "price": 200 }
+            ],
+            "نظام التعليق الخلفي": [
+                { "service": "غيار أقمشة خلفية + مسح هوبات (مخرطة)", "price": 100 },
+                { "service": "غيار مقصات خلفية", "price": 200 }
+            ],
+            "نظام التصفية": [
+                { "service": "غيار بواجي + فلتر الهواء + فلتر مكيف", "price": 100 },
+                { "service": "فك ثلاجة المحرك + تنظيف بخاخات بجهاز اختبار", "price": 400 },
+                { "service": "غيار فلتر البنزين + صفاية", "price": 150 },
+                { "service": "تصفية كاملة", "price": 550 },
+                { "service": "تصفية بدون بواجي", "price": 450 },
+                { "service": "تنظيف حساس m.a.f + حساس m.a.p بالمحاليل", "price": 100 },
+                { "service": "تنظيف حساس الشكمان العلوي", "price": 100 }
+            ],
+            "نظام تبريد المحرك": [
+                { "service": "غيار طرمبة ماء", "price": 300 },
+                { "service": "فك رديتر المحرك + تركيب (غيار طبة علوية خارجي)", "price": 200 },
+                { "service": "غيار بلف الحرارة + ماء رديتر عدد (2)", "price": 150 },
+                { "service": "ماء رديتر", "price": 50 }
+            ],
+            "نظام صوف": [
+                { "service": "فك جربكس + غيار صوفة المحرك الخلفية", "price": 1000 }
+            ],
+            "الزيوت": [
+                { "service": "غيار زيت المحرك + فلتر + صرة + وردة", "price": 50 },
+                { "service": "غيار زيت الفرامل + تنسيم النظام كامل", "price": 150 },
+                { "service": "زيت دبل أمامي", "price": 100 },
+                { "service": "زيت الدفرنس", "price": 50 }
+            ],
+            "كهرباء وتكييف": [
+                { "service": "تحديث المحرك PCM", "price": 300 },
+                { "service": "تحديث الجربكس TCM (بدون ضمان)", "price": 200 },
+                { "service": "تحديث FSC تحسين نظام المسارات", "price": 150 },
+                { "service": "فك جرم مراوح + غيار دينمو", "price": 300 },
+                { "service": "كشف عام + كشف كمبيوتر", "price": 100 },
+                { "service": "تعبئة فريون + زيت بالجهاز", "price": 200 },
+                { "service": "فك طبلون أمامي + غيار ثلاجة المكيف", "price": 900 },
+                { "service": "غيار بلف التنسيم + جلود ليات الكمبروسر", "price": 250 }
+            ],
+            "أخرى / قطع غيار": [
+                { "service": "محاليل التنظيف", "price": 90 },
+                { "service": "سليكون تويوتا أصلي", "price": 100 },
+                { "service": "خرط هوبات (للقطعة)", "price": 30 },
+                { "service": "غيار سيور المحرك + شداد", "price": 150 }
+            ]
+        };
+
+        db.get("SELECT COUNT(*) as count FROM services", (err, row) => {
+            if (row && row.count === 0) {
+                Object.keys(defaultServices).forEach(cat => {
+                    defaultServices[cat].forEach(s => {
+                        db.run("INSERT INTO services (category, service_name, price) VALUES (?, ?, ?)", [cat, s.service, s.price]);
+                    });
+                });
+                console.log('🌱 تم بذر الخدمات الافتراضية');
+            }
         });
 
         console.log('✅ تم الانتهاء من تهيئة قاعدة البيانات');
@@ -1064,6 +1166,34 @@ app.get('/api/attendance/status/:employee_id', async (req, res) => {
     }
 });
 
+// جلب تقرير الحضور لجميع الموظفين (Admin)
+app.get('/api/attendance/report', async (req, res) => {
+    const { date } = req.query;
+    const targetDate = date || new Date().toISOString().split('T')[0];
+
+    try {
+        const report = await dbAll(`
+            SELECT 
+                e.id AS employee_id,
+                e.name AS employee_name,
+                s.name AS section_name,
+                a.check_in,
+                a.check_out,
+                a.status,
+                a.date
+            FROM employees e
+            LEFT JOIN sections s ON e.section_id = s.id
+            LEFT JOIN attendance a ON e.id = a.employee_id AND a.date = ?
+            WHERE e.is_active = 1
+            ORDER BY s.name, e.name
+        `, [targetDate]);
+        res.json(report);
+    } catch (error) {
+        console.error("Attendance Report Error:", error);
+        res.status(500).json({ message: "خطأ في جلب تقرير الحضور" });
+    }
+});
+
 // ==========================
 // 💬 نظام المحادثة (Chat)
 // ==========================
@@ -1094,6 +1224,53 @@ app.post('/api/messages', async (req, res) => {
     }
 });
 
+// تحديث حالة القراءة
+app.put('/api/messages/mark-read', async (req, res) => {
+    const { employee_id, reader } = req.body;
+    try {
+        // If reader is admin, mark employee messages as read
+        // If reader is employee, mark admin messages as read
+        const senderToMark = reader === 'admin' ? 'employee' : 'admin';
+        await dbRun(`UPDATE messages SET is_read = 1 WHERE employee_id = ? AND sender = ?`, [employee_id, senderToMark]);
+        res.json({ success: true });
+    } catch (error) {
+        console.error("Mark Read Error:", error);
+        res.status(500).json({ message: "خطأ في تحديث حالة القراءة" });
+    }
+});
+
+// عدد الرسائل غير المقروءة للمدير (لكل موظف)
+app.get('/api/messages/unread/admin', async (req, res) => {
+    try {
+        const counts = await dbAll(`
+            SELECT employee_id, COUNT(*) as count 
+            FROM messages 
+            WHERE sender = 'employee' AND is_read = 0 
+            GROUP BY employee_id
+        `);
+        res.json(counts);
+    } catch (error) {
+        console.error("Unread Admin Error:", error);
+        res.status(500).json({ message: "خطأ" });
+    }
+});
+
+// عدد الرسائل غير المقروءة للموظف
+app.get('/api/messages/unread/employee/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await dbGet(`
+            SELECT COUNT(*) as count 
+            FROM messages 
+            WHERE employee_id = ? AND sender = 'admin' AND is_read = 0
+        `, [id]);
+        res.json(result);
+    } catch (error) {
+        console.error("Unread Employee Error:", error);
+        res.status(500).json({ message: "خطأ" });
+    }
+});
+
 // ==========================
 // 🔔 نظام الإشعارات
 // ==========================
@@ -1110,6 +1287,206 @@ app.get('/api/notifications', async (req, res) => {
     } catch (error) {
         console.error("Notifications Error:", error);
         res.status(500).json({ message: "خطأ في جلب الإشعارات" });
+    }
+});
+
+// ==========================
+// 🔍 نظام الكشف (Inspections)
+// ==========================
+
+// إضافة كشف جديد
+app.post('/api/inspections', async (req, res) => {
+    const { inspector_id, customer_name, customer_phone, car_type, car_color, car_model, plate_number, items, total_amount, vat_amount, final_amount, paid_amount, remaining_amount } = req.body;
+
+    try {
+        // البدء في المعاملة
+        await dbRun('BEGIN TRANSACTION');
+
+        const inspResult = await dbRun(`
+            INSERT INTO inspections (inspector_id, customer_name, customer_phone, car_type, car_color, car_model, plate_number, total_amount, vat_amount, final_amount, paid_amount, remaining_amount)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [inspector_id, customer_name, customer_phone, car_type, car_color, car_model, plate_number, total_amount, vat_amount, final_amount, paid_amount, remaining_amount]);
+
+        const inspection_id = inspResult.lastID;
+
+        for (const item of items) {
+            if (item.service_description) {
+                await dbRun(`
+                    INSERT INTO inspection_items (inspection_id, category, service_description, quantity, price, total)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                `, [inspection_id, item.category, item.service_description, item.quantity || 1, item.price || 0, item.total || 0]);
+
+                // إضافة المصطلح للقاعدة إذا لم يكن موجوداً
+                await dbRun(`INSERT OR IGNORE INTO inspection_terms (term) VALUES (?)`, [item.service_description]);
+            }
+        }
+
+        await dbRun('COMMIT');
+        res.status(201).json({ message: "تم حفظ الكشف بنجاح", id: inspection_id });
+    } catch (error) {
+        await dbRun('ROLLBACK');
+        console.error("Add Inspection Error:", error);
+        res.status(500).json({ message: "خطأ في حفظ الكشف" });
+    }
+});
+
+// جلب إحصائيات الكشيف (عدد السيارات هذا الشهر)
+app.get('/api/inspector-stats/:id', async (req, res) => {
+    const { id } = req.params;
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+
+    try {
+        const count = await dbGet(`
+            SELECT COUNT(*) as count 
+            FROM inspections 
+            WHERE inspector_id = ? AND created_at >= ?
+        `, [id, monthStart.toISOString()]);
+
+        res.json(count);
+    } catch (error) {
+        console.error("Inspector Stats Error:", error);
+        res.status(500).json({ message: "خطأ في جلب الإحصائيات" });
+    }
+});
+
+// جلب مصطلحات الكشف (التكملة التلقائية)
+app.get('/api/inspection-terms', async (req, res) => {
+    try {
+        const terms = await dbAll(`SELECT term FROM inspection_terms ORDER BY term ASC`);
+        res.json(terms.map(t => t.term));
+    } catch (error) {
+        console.error("Fetch Terms Error:", error);
+        res.status(500).json({ message: "خطأ في جلب المصطلحات" });
+    }
+});
+
+// جلب كشوفات موظف محدد
+app.get('/api/inspections/inspector/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const inspections = await dbAll(`SELECT * FROM inspections WHERE inspector_id = ? ORDER BY created_at DESC`, [id]);
+        res.json(inspections);
+    } catch (error) {
+        console.error("Fetch Inspector Inspections Error:", error);
+        res.status(500).json({ message: "خطأ في جلب الكشوفات" });
+    }
+});
+
+// جلب تفاصيل كشف محدد
+app.get('/api/inspections/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const inspection = await dbGet(`SELECT * FROM inspections WHERE id = ?`, [id]);
+        if (!inspection) return res.status(404).json({ message: "الكشف غير موجود" });
+
+        const items = await dbAll(`SELECT * FROM inspection_items WHERE inspection_id = ?`, [id]);
+        res.json({ ...inspection, items });
+    } catch (error) {
+        console.error("Fetch Inspection Details Error:", error);
+        res.status(500).json({ message: "خطأ في جلب تفاصيل الكشف" });
+    }
+});
+
+// البحث في الكشوفات
+app.get('/api/inspections/search', async (req, res) => {
+    const { query } = req.query;
+    if (!query) return res.json([]);
+
+    try {
+        const inspections = await dbAll(`
+            SELECT i.*, e.name as inspector_name
+            FROM inspections i
+            LEFT JOIN employees e ON i.inspector_id = e.id
+            WHERE CAST(i.id AS TEXT) LIKE ? 
+               OR i.customer_phone LIKE ? 
+               OR i.plate_number LIKE ?
+            ORDER BY i.created_at DESC
+            LIMIT 20
+        `, [`%${query}%`, `%${query}%`, `%${query}%`]);
+        res.json(inspections);
+    } catch (error) {
+        console.error("Search Inspections Error:", error);
+        res.status(500).json({ message: "خطأ في البحث" });
+    }
+});
+
+// جلب إحصائيات الكشوفات للمدير
+app.get('/api/admin/inspection-stats', async (req, res) => {
+    try {
+        const stats = await dbAll(`
+            SELECT 
+                e.name as inspector_name,
+                COUNT(i.id) as total_inspections,
+                SUM(i.final_amount) as total_value
+            FROM employees e
+            LEFT JOIN inspections i ON e.id = i.inspector_id
+            WHERE e.section_id = (SELECT id FROM sections WHERE name = 'كشف')
+            GROUP BY e.id
+        `);
+        res.json(stats);
+    } catch (error) {
+        console.error("Admin Inspection Stats Error:", error);
+        res.status(500).json({ message: "خطأ في جلب إحصائيات الكشوفات" });
+    }
+});
+
+// ==========================
+// 🛠️ إدارة الخدمات (Pricing & Services)
+// ==========================
+
+// جلب جميع الخدمات
+app.get('/api/services', async (req, res) => {
+    try {
+        const services = await dbAll(`SELECT * FROM services ORDER BY category, service_name`);
+        res.json(services);
+    } catch (error) {
+        console.error("Fetch Services Error:", error);
+        res.status(500).json({ message: "خطأ في جلب الخدمات" });
+    }
+});
+
+// إضافة خدمة جديدة
+app.post('/api/services', async (req, res) => {
+    const { category, service_name, price } = req.body;
+    if (!category || !service_name) {
+        return res.status(400).json({ message: "الفئة واسم الخدمة مطلوبان" });
+    }
+    try {
+        const result = await dbRun(`INSERT INTO services (category, service_name, price) VALUES (?, ?, ?)`, [category, service_name, price || 0]);
+        res.status(201).json({ message: "تمت إضافة الخدمة بنجاح", id: result.lastID });
+    } catch (error) {
+        if (error.code === 'SQLITE_CONSTRAINT') {
+            return res.status(409).json({ message: "هذه الخدمة موجودة بالفعل في هذه الفئة" });
+        }
+        console.error("Add Service Error:", error);
+        res.status(500).json({ message: "خطأ في إضافة الخدمة" });
+    }
+});
+
+// تحديث خدمة
+app.put('/api/services/:id', async (req, res) => {
+    const { id } = req.params;
+    const { category, service_name, price } = req.body;
+    try {
+        await dbRun(`UPDATE services SET category = ?, service_name = ?, price = ? WHERE id = ?`, [category, service_name, price, id]);
+        res.json({ message: "تم تحديث الخدمة بنجاح" });
+    } catch (error) {
+        console.error("Update Service Error:", error);
+        res.status(500).json({ message: "خطأ في تحديث الخدمة" });
+    }
+});
+
+// حذف خدمة
+app.delete('/api/services/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await dbRun(`DELETE FROM services WHERE id = ?`, [id]);
+        res.json({ message: "تم حذف الخدمة بنجاح" });
+    } catch (error) {
+        console.error("Delete Service Error:", error);
+        res.status(500).json({ message: "خطأ في حذف الخدمة" });
     }
 });
 

@@ -558,6 +558,313 @@
             font-weight: bold;
             border: 2px solid white;
         }
+
+        .badge-status {
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-status-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .badge-status-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .badge-status-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        /* ===================================
+           MOBILE RESPONSIVE DESIGN
+           =================================== */
+
+        /* Tablet */
+        @media (max-width: 1024px) {
+            .container {
+                padding: 0 16px;
+            }
+
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+
+            /* Header */
+            .page-header {
+                padding: 12px 16px;
+                margin-bottom: 20px;
+            }
+
+            .header-container {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+
+            .user-info {
+                width: 100%;
+            }
+
+            .avatar {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+
+            .user-details h1 {
+                font-size: 18px;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .logout-btn,
+            .notification-btn {
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+
+            /* Container */
+            .container {
+                max-width: 100%;
+                padding: 0 12px;
+            }
+
+            /* KPI Cards */
+            .kpi-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .kpi-card {
+                padding: 16px;
+            }
+
+            .kpi-icon {
+                width: 48px;
+                height: 48px;
+                font-size: 24px;
+            }
+
+            .kpi-value {
+                font-size: 24px;
+            }
+
+            .kpi-label {
+                font-size: 13px;
+            }
+
+            /* Charts */
+            .charts-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .chart-card {
+                padding: 16px;
+            }
+
+            .chart-card h3 {
+                font-size: 16px;
+            }
+
+            /* Section Cards */
+            .section-card {
+                margin-bottom: 16px;
+            }
+
+            .section-header {
+                padding: 14px;
+                flex-wrap: wrap;
+            }
+
+            .section-title {
+                font-size: 16px;
+            }
+
+            .stat-item {
+                min-width: 60px;
+            }
+
+            .stat-value {
+                font-size: 16px;
+            }
+
+            .stat-label {
+                font-size: 11px;
+            }
+
+            .collapse-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 16px;
+            }
+
+            /* Tables */
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            table {
+                font-size: 13px;
+                min-width: 600px;
+            }
+
+            th,
+            td {
+                padding: 10px 8px;
+            }
+
+            /* Buttons */
+            .btn {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+
+            .btn-full {
+                width: 100%;
+            }
+
+            .add-employee-btn {
+                margin-top: 16px;
+            }
+
+            /* Modals */
+            .modal-content {
+                width: 95%;
+                max-width: 95%;
+                max-height: 90vh;
+                margin: 20px;
+                padding: 20px;
+            }
+
+            .modal-header h2 {
+                font-size: 18px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .form-group label {
+                font-size: 14px;
+            }
+
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                font-size: 15px;
+                padding: 10px;
+            }
+
+            /* Pending Requests */
+            .pending-card {
+                padding: 14px;
+            }
+
+            .pending-meta {
+                font-size: 12px;
+            }
+
+            .pending-actions {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .pending-actions .btn {
+                width: 100%;
+            }
+        }
+
+        /* Small Mobile */
+        @media (max-width: 480px) {
+            .page-header {
+                padding: 10px 12px;
+            }
+
+            .user-details h1 {
+                font-size: 16px;
+            }
+
+            .user-role {
+                font-size: 12px;
+            }
+
+            .container {
+                padding: 0 8px;
+            }
+
+            .kpi-card {
+                padding: 12px;
+            }
+
+            .kpi-value {
+                font-size: 20px;
+            }
+
+            .section-stats {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .chart-card {
+                padding: 12px;
+            }
+
+            th,
+            td {
+                padding: 8px 6px;
+                font-size: 12px;
+            }
+
+            .modal-content {
+                width: 100%;
+                height: 100%;
+                max-height: 100%;
+                margin: 0;
+                border-radius: 0;
+            }
+
+            /* Admin Chat Widget - Mobile Full Screen */
+            .chat-widget {
+                position: fixed !important;
+                bottom: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                border-radius: 0 !important;
+                z-index: 99999 !important;
+            }
+
+            .chat-toggle-btn {
+                bottom: 20px !important;
+                right: 20px !important;
+                left: auto !important;
+                width: 60px !important;
+                height: 60px !important;
+            }
+        }
     </style>
 </head>
 
@@ -586,10 +893,25 @@
                     <span>📄</span>
                     <span>تقارير الدخل</span>
                 </button>
+                <button class="btn btn-success" onclick="openAttendanceModal()"
+                    style="background-color: #10b981; color: white;">
+                    <span>📅</span>
+                    <span>سجل الحضور</span>
+                </button>
                 <button class="btn btn-info" onclick="window.location.href='lifts.html'"
                     style="background-color: #8b5cf6; color: white;">
                     <span>🏗️</span>
                     <span>الرافعات</span>
+                </button>
+                <button class="btn btn-primary" onclick="window.location.href='inspector.html'"
+                    style="background-color: #ec4899; color: white;">
+                    <span>🔍</span>
+                    <span>نظام الكشف</span>
+                </button>
+                <button class="btn btn-primary" onclick="window.location.href='services_manager.html'"
+                    style="background-color: #f59e0b; color: white;">
+                    <span>🛠️</span>
+                    <span>إدارة الخدمات</span>
                 </button>
                 <button class="logout-btn" onclick="logout()">
                     <span>🚪</span>
@@ -651,6 +973,21 @@
                     <canvas id="targetAchievementChart"></canvas>
                 </div>
             </div>
+            <div class="chart-card" id="inspectionStatsCard" style="display: none;">
+                <h3 class="chart-title">إحصائيات الكشف</h3>
+                <div class="table-container">
+                    <table id="adminInspectionTable">
+                        <thead>
+                            <tr>
+                                <th>الكشيف</th>
+                                <th>عدد السيارات</th>
+                                <th>إجمالي القيمة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminInspectionBody"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <!-- Sections Container -->
@@ -705,6 +1042,41 @@
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeModal('addEmployeeModal')">إلغاء</button>
                 <button class="btn btn-primary" form="addEmployeeForm">حفظ الموظف</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Modal -->
+    <div class="modal" id="attendanceModal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 class="modal-title">📅 سجل الحضور اليومي</h3>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <label style="font-size: 14px; font-weight: 600;">التاريخ:</label>
+                    <input type="date" id="attendanceDate" onchange="loadAttendanceReport()"
+                        style="padding: 5px; border-radius: 5px; border: 1px solid var(--border-color);" />
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="table-container">
+                    <table id="attendanceTable">
+                        <thead>
+                            <tr>
+                                <th>الموظف</th>
+                                <th>القسم</th>
+                                <th>وقت الحضور</th>
+                                <th>وقت الانصراف</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceTableBody">
+                            <!-- Data will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('attendanceModal')">إغلاق</button>
             </div>
         </div>
     </div>
@@ -819,38 +1191,68 @@
 
     <!-- Admin Chat Widget -->
     <div class="chat-toggle-btn" onclick="toggleAdminChat()"
-        style="position: fixed; bottom: 20px; left: 20px; width: 60px; height: 60px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 999;">
-        💬</div>
+        style="position: fixed; bottom: 30px; left: 30px; width: 64px; height: 64px; background: linear-gradient(135deg, var(--primary), var(--primary-hover)); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4); z-index: 999; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+        💬
+        <span id="chatBadge"
+            style="position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; border-radius: 50%; width: 24px; height: 24px; display: none; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">0</span>
+    </div>
     <div class="chat-widget" id="adminChatWidget"
-        style="position: fixed; bottom: 90px; left: 20px; width: 350px; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none; flex-direction: column; z-index: 1000; border: 1px solid var(--border-color); overflow: hidden; height: 500px;">
+        style="position: fixed; bottom: 110px; left: 30px; width: 380px; background: white; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: none; flex-direction: column; z-index: 1000; border: 1px solid rgba(0,0,0,0.05); overflow: hidden; height: 550px; animation: slideUp 0.3s ease-out;">
         <div class="chat-header"
-            style="padding: 12px 16px; background: var(--primary); color: white; font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
-            <span>💬 محادثات الموظفين</span>
-            <span onclick="toggleAdminChat()" style="cursor: pointer;">▼</span>
+            style="padding: 16px 20px; background: linear-gradient(135deg, var(--primary), var(--primary-hover)); color: white; font-weight: bold; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 20px;">💬</span>
+                <span>محادثات الموظفين</span>
+            </div>
+            <span onclick="toggleAdminChat()" style="cursor: pointer; opacity: 0.8; transition: opacity 0.2s;">✕</span>
         </div>
-        <div style="padding: 10px; border-bottom: 1px solid var(--border-color);">
+        <div style="padding: 15px; border-bottom: 1px solid var(--border-color); background: #f9fafb;">
             <select id="chatEmployeeSelect" onchange="loadAdminChat(this.value)"
-                style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border-color);">
+                style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border-color); outline: none; font-family: inherit;">
                 <option value="">-- اختر موظفاً --</option>
             </select>
         </div>
         <div class="chat-body" id="adminChatBody"
-            style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; background: #f9fafb;">
+            style="flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; background: white;">
             <!-- Messages -->
+            <div style="text-align: center; color: var(--text-gray); margin-top: 50px;">
+                <div style="font-size: 40px; margin-bottom: 10px; opacity: 0.5;">📨</div>
+                <p>اختر موظفاً للبدء في المحادثة</p>
+            </div>
         </div>
         <div class="chat-footer"
-            style="padding: 12px; border-top: 1px solid var(--border-color); display: flex; gap: 8px; background: white;">
+            style="padding: 15px; border-top: 1px solid var(--border-color); display: flex; gap: 10px; background: #f9fafb;">
             <input type="text" id="adminChatInput" placeholder="اكتب رسالتك..."
-                style="flex: 1; padding: 8px; border: 1px solid var(--border-color); border-radius: 8px;">
-            <button class="btn btn-primary" onclick="sendAdminMessage()">➤</button>
+                style="flex: 1; padding: 12px; border: 1px solid var(--border-color); border-radius: 10px; outline: none; transition: border-color 0.2s;">
+            <button class="btn btn-primary" onclick="sendAdminMessage()"
+                style="border-radius: 10px; padding: 0 20px;">➤</button>
         </div>
     </div>
+
+    <style>
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chat-toggle-btn:hover {
+            transform: scale(1.1) !important;
+        }
+    </style>
 
     <script>
         // Global state
         let employees = [];
         let sections = [];
         let charts = {};
+        let unreadPollInterval;
 
         // Initialization
         async function init() {
@@ -859,11 +1261,139 @@
             await loadData();
             checkNotifications();
             loadPendingRequests();
+            loadAdminInspectionStats();
+            checkUnreadMessages(); // Initial check
+
             setInterval(() => {
                 checkNotifications();
                 loadPendingRequests();
-            }, 30000); // Poll every 30 seconds
+                loadAdminInspectionStats();
+                checkUnreadMessages();
+            }, 10000); // Poll every 10 seconds
         }
+
+        async function loadAdminInspectionStats() {
+            try {
+                const res = await fetch('/api/admin/inspection-stats');
+                const stats = await res.json();
+                if (stats.length > 0) {
+                    document.getElementById('inspectionStatsCard').style.display = 'block';
+                    const tbody = document.getElementById('adminInspectionBody');
+                    tbody.innerHTML = stats.map(s => `
+                        <tr>
+                            <td>${s.inspector_name}</td>
+                            <td>${s.total_inspections}</td>
+                            <td>${(s.total_value || 0).toLocaleString()} ﷼</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        // ... (rest of the functions remain the same until Chat Logic) ...
+
+        // Chat Logic
+        function toggleAdminChat() {
+            const widget = document.getElementById('adminChatWidget');
+            if (widget.style.display === 'flex') {
+                widget.style.display = 'none';
+            } else {
+                widget.style.display = 'flex';
+                updateChatEmployeeSelect();
+            }
+        }
+
+        function updateChatEmployeeSelect() {
+            const select = document.getElementById('chatEmployeeSelect');
+            const currentVal = select.value;
+            // We can add unread indicators to options later if needed, for now just names
+            select.innerHTML = '<option value="">-- اختر موظفاً --</option>' +
+                employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+            select.value = currentVal;
+            if (currentVal) loadAdminChat(currentVal);
+        }
+
+        async function loadAdminChat(empId) {
+            if (!empId) {
+                document.getElementById('adminChatBody').innerHTML = `
+                    <div style="text-align: center; color: var(--text-gray); margin-top: 50px;">
+                        <div style="font-size: 40px; margin-bottom: 10px; opacity: 0.5;">📨</div>
+                        <p>اختر موظفاً للبدء في المحادثة</p>
+                    </div>`;
+                return;
+            }
+            try {
+                // Mark as read first
+                await fetch('/api/messages/mark-read', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ employee_id: empId, reader: 'admin' })
+                });
+                checkUnreadMessages(); // Update badge immediately
+
+                const res = await fetch(`/api/messages/${empId}`);
+                const messages = await res.json();
+                const chatBody = document.getElementById('adminChatBody');
+                chatBody.innerHTML = messages.map(msg => `
+                    <div style="max-width: 80%; padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.5; align-self: ${msg.sender === 'admin' ? 'flex-end' : 'flex-start'}; background: ${msg.sender === 'admin' ? 'var(--primary)' : '#f3f4f6'}; color: ${msg.sender === 'admin' ? 'white' : 'var(--text-dark)'}; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                        ${msg.message}
+                    </div>
+                `).join('');
+                chatBody.scrollTop = chatBody.scrollHeight;
+            } catch (e) { console.error(e); }
+        }
+
+        async function checkUnreadMessages() {
+            try {
+                const res = await fetch('/api/messages/unread/admin');
+                const counts = await res.json();
+                const totalUnread = counts.reduce((sum, item) => sum + item.count, 0);
+                const badge = document.getElementById('chatBadge');
+
+                if (totalUnread > 0) {
+                    badge.textContent = totalUnread;
+                    badge.style.display = 'flex';
+                    // Optional: Play sound or show browser notification
+                } else {
+                    badge.style.display = 'none';
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function sendAdminMessage() {
+            const empId = document.getElementById('chatEmployeeSelect').value;
+            const input = document.getElementById('adminChatInput');
+            const message = input.value.trim();
+            if (!empId || !message) return;
+
+            try {
+                const res = await fetch('/api/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ employee_id: empId, sender: 'admin', message })
+                });
+                if (res.ok) {
+                    input.value = '';
+                    loadAdminChat(empId);
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function setupEventListeners() {
+            document.getElementById('addEmployeeForm').addEventListener('submit', handleAddEmployee);
+            document.getElementById('editEmployeeForm').addEventListener('submit', handleEditEmployee);
+            document.getElementById('addIncomeForm').addEventListener('submit', handleAddIncome);
+            document.getElementById('addWithdrawalForm').addEventListener('submit', handleAddWithdrawal);
+        }
+
+        // Poll for chat if open
+        setInterval(() => {
+            const widget = document.getElementById('adminChatWidget');
+            const empId = document.getElementById('chatEmployeeSelect').value;
+            if (widget.style.display === 'flex' && empId) {
+                loadAdminChat(empId);
+            }
+        }, 5000);
 
         async function checkNotifications() {
             try {
@@ -1272,6 +1802,56 @@
 
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function openAttendanceModal() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('attendanceDate').value = today;
+            openModal('attendanceModal');
+            loadAttendanceReport();
+        }
+
+        async function loadAttendanceReport() {
+            const date = document.getElementById('attendanceDate').value;
+            const tbody = document.getElementById('attendanceTableBody');
+            tbody.innerHTML = '<tr><td colspan="5">⏳ جاري التحميل...</td></tr>';
+
+            try {
+                const res = await fetch(`/api/attendance/report?date=${date}`);
+                const data = await res.json();
+
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5">لا توجد بيانات لهذا اليوم</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.map(row => {
+                    const checkIn = row.check_in ? new Date(row.check_in).toLocaleTimeString('ar-SA') : '---';
+                    const checkOut = row.check_out ? new Date(row.check_out).toLocaleTimeString('ar-SA') : '---';
+                    let statusBadge = '';
+
+                    if (!row.check_in) {
+                        statusBadge = '<span class="badge-status badge-status-danger">غائب</span>';
+                    } else if (!row.check_out) {
+                        statusBadge = '<span class="badge-status badge-status-warning">حاضر (لم ينصرف)</span>';
+                    } else {
+                        statusBadge = '<span class="badge-status badge-status-success">تم الانصراف</span>';
+                    }
+
+                    return `
+                        <tr>
+                            <td style="font-weight: bold;">${row.employee_name}</td>
+                            <td>${row.section_name || '---'}</td>
+                            <td dir="ltr">${checkIn}</td>
+                            <td dir="ltr">${checkOut}</td>
+                            <td>${statusBadge}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Attendance Report Error:', error);
+                tbody.innerHTML = '<tr><td colspan="5">❌ خطأ في تحميل البيانات</td></tr>';
+            }
+        }
         function openIncomeModal(empId) { document.getElementById('incomeEmpId').value = empId; openModal('addIncomeModal'); }
         function openWithdrawalModal(empId) {
             document.getElementById('withdrawalEmpId').value = empId;
@@ -1385,79 +1965,6 @@
             } catch { alert('خطأ في الاتصال بالخادم'); }
         }
 
-
-        // Chat Logic
-        function toggleAdminChat() {
-            const widget = document.getElementById('adminChatWidget');
-            if (widget.style.display === 'flex') {
-                widget.style.display = 'none';
-            } else {
-                widget.style.display = 'flex';
-                updateChatEmployeeSelect();
-            }
-        }
-
-        function updateChatEmployeeSelect() {
-            const select = document.getElementById('chatEmployeeSelect');
-            const currentVal = select.value;
-            select.innerHTML = '<option value="">-- اختر موظفاً --</option>' +
-                employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
-            select.value = currentVal;
-            if (currentVal) loadAdminChat(currentVal);
-        }
-
-        async function loadAdminChat(empId) {
-            if (!empId) {
-                document.getElementById('adminChatBody').innerHTML = '';
-                return;
-            }
-            try {
-                const res = await fetch(`/api/messages/${empId}`);
-                const messages = await res.json();
-                const chatBody = document.getElementById('adminChatBody');
-                chatBody.innerHTML = messages.map(msg => `
-                    <div style="max-width: 80%; padding: 8px 12px; border-radius: 12px; font-size: 14px; line-height: 1.4; margin-bottom: 4px; align-self: ${msg.sender === 'admin' ? 'flex-end' : 'flex-start'}; background: ${msg.sender === 'admin' ? 'var(--primary)' : '#e5e7eb'}; color: ${msg.sender === 'admin' ? 'white' : 'black'};">
-                        ${msg.message}
-                    </div>
-                `).join('');
-                chatBody.scrollTop = chatBody.scrollHeight;
-            } catch (e) { console.error(e); }
-        }
-
-        async function sendAdminMessage() {
-            const empId = document.getElementById('chatEmployeeSelect').value;
-            const input = document.getElementById('adminChatInput');
-            const message = input.value.trim();
-            if (!empId || !message) return;
-
-            try {
-                const res = await fetch('/api/messages', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ employee_id: empId, sender: 'admin', message })
-                });
-                if (res.ok) {
-                    input.value = '';
-                    loadAdminChat(empId);
-                }
-            } catch (e) { console.error(e); }
-        }
-
-        function setupEventListeners() {
-            document.getElementById('addEmployeeForm').addEventListener('submit', handleAddEmployee);
-            document.getElementById('editEmployeeForm').addEventListener('submit', handleEditEmployee);
-            document.getElementById('addIncomeForm').addEventListener('submit', handleAddIncome);
-            document.getElementById('addWithdrawalForm').addEventListener('submit', handleAddWithdrawal);
-        }
-
-        // Poll for chat if open
-        setInterval(() => {
-            const widget = document.getElementById('adminChatWidget');
-            const empId = document.getElementById('chatEmployeeSelect').value;
-            if (widget.style.display === 'flex' && empId) {
-                loadAdminChat(empId);
-            }
-        }, 5000);
 
         // Start the application
         init();

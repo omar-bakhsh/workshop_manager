@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام الكشف الفني - ورشة عبد الله عصام عيد الزين</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-gray: #f3f4f6;
+            --text-dark: #111827;
+            --text-gray: #4b5563;
+            --border-color: #d1d5db;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-gray);
+            color: var(--text-dark);
+            line-height: 1.4;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info h1 {
+            font-size: 20px;
+            color: var(--primary);
+        }
+
+        /* Printable Card */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        /* Workshop Header */
+        .workshop-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .workshop-info-text h2 {
+            font-size: 18px;
+            margin-bottom: 5px;
+            color: #000;
+        }
+
+        .workshop-info-text p {
+            font-size: 12px;
+            color: #333;
+        }
+
+        .inspection-title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: 800;
+            margin: 10px 0;
+            text-decoration: underline;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            font-size: 13px;
+            margin-bottom: 15px;
+            background: #f9fafb;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-group label {
+            font-weight: 700;
+            font-size: 12px;
+            color: var(--text-gray);
+        }
+
+        .form-group input {
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            outline: none;
+            font-size: 13px;
+        }
+
+        .plate-container {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .plate-input {
+            width: 32px;
+            height: 32px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        /* Table Styles */
+        .table-wrapper {
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        th {
+            background: #f3f4f6;
+            padding: 6px;
+            border: 1px solid #000;
+            font-weight: 700;
+        }
+
+        td {
+            padding: 2px;
+            border: 1px solid #000;
+        }
+
+        .col-sn {
+            width: 30px;
+            text-align: center;
+        }
+
+        .col-cat {
+            width: 100px;
+        }
+
+        .col-qty {
+            width: 50px;
+            text-align: center;
+        }
+
+        .col-price {
+            width: 80px;
+            text-align: center;
+        }
+
+        .col-total {
+            width: 90px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        input.table-input,
+        select.table-input {
+            width: 100%;
+            padding: 4px;
+            border: none;
+            background: transparent;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .service-container {
+            position: relative;
+        }
+
+        .autocomplete-items {
+            position: absolute;
+            border: 1px solid var(--border-color);
+            z-index: 99;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 11px;
+        }
+
+        .autocomplete-items div {
+            padding: 6px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+
+        .autocomplete-items div:hover {
+            background-color: #f3f4f6;
+        }
+
+        /* Totals */
+        .totals-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            padding: 10px;
+            border: 1px solid #000;
+            background: #f9fafb;
+            text-align: center;
+        }
+
+        .total-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .total-label {
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .total-val {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        /* Actions */
+        .actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--text-gray);
+            color: white;
+        }
+
+        .mobile-only {
+            display: none;
+        }
+
+        /* Mobile Optimization */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .meta-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            /* Transform Table to Cards */
+            .table-wrapper {
+                overflow: visible;
+            }
+
+            table,
+            thead,
+            tbody,
+            th,
+            td,
+            tr {
+                display: block;
+            }
+
+            thead {
+                display: none;
+            }
+
+            tr {
+                border: 2px solid var(--primary);
+                margin-bottom: 15px;
+                border-radius: 12px;
+                padding: 10px;
+                background: #fff;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            }
+
+            /* Hide empty rows on mobile to save space, show only if they have data or are being edited */
+            tr:has(.service-input:placeholder-shown):not(:focus-within) {
+                display: none;
+            }
+
+            td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border: none !important;
+                border-bottom: 1px solid #f0f0f0 !important;
+                padding: 10px 5px !important;
+                text-align: right;
+            }
+
+            td:last-child {
+                border-bottom: none !important;
+            }
+
+            td::before {
+                content: attr(data-label);
+                font-weight: 800;
+                color: var(--primary);
+                font-size: 12px;
+                min-width: 80px;
+            }
+
+            .table-input {
+                text-align: left !important;
+                font-weight: 600;
+                font-size: 14px !important;
+                background: #f9fafb !important;
+                border-radius: 4px;
+                padding: 5px !important;
+            }
+
+            .totals-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            .total-box:last-child {
+                grid-column: span 2;
+            }
+
+            .mobile-only {
+                display: block;
+            }
+        }
+
+        /* Print Optimization */
+        @media print {
+            @page {
+                size: A4;
+                margin: 5mm;
+            }
+
+            body {
+                background: white !important;
+                padding: 0 !important;
+                font-size: 10px !important;
+                color: #000 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .container {
+                max-width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .card {
+                box-shadow: none !important;
+                border: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            .workshop-header {
+                border-bottom: 2px solid #000 !important;
+                margin-bottom: 10px !important;
+                padding-bottom: 5px !important;
+            }
+
+            .inspection-title {
+                margin: 10px 0 !important;
+                font-size: 20px !important;
+            }
+
+            .form-grid {
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 10px !important;
+                margin-bottom: 15px !important;
+                border: 1px solid #000 !important;
+                padding: 10px !important;
+                border-radius: 8px !important;
+            }
+
+            .form-group label {
+                font-size: 10px !important;
+                color: #000 !important;
+                font-weight: bold !important;
+            }
+
+            .form-group input {
+                border: none !important;
+                padding: 0 !important;
+                font-weight: bold !important;
+                font-size: 12px !important;
+                background: transparent !important;
+                color: #000 !important;
+            }
+
+            .plate-container {
+                gap: 3px !important;
+            }
+
+            .plate-input {
+                border: 1px solid #000 !important;
+                width: 25px !important;
+                height: 25px !important;
+                font-size: 14px !important;
+                line-height: 25px !important;
+            }
+
+            /* Reset Table for Print */
+            .table-wrapper {
+                overflow: visible !important;
+            }
+
+            table {
+                display: table !important;
+                width: 100% !important;
+                border-collapse: collapse !important;
+                border: 1px solid #000 !important;
+            }
+
+            thead {
+                display: table-header-group !important;
+            }
+
+            tbody {
+                display: table-row-group !important;
+            }
+
+            tr {
+                display: table-row !important;
+                page-break-inside: avoid !important;
+            }
+
+            th,
+            td {
+                display: table-cell !important;
+                border: 1px solid #000 !important;
+                padding: 6px !important;
+                text-align: right !important;
+                vertical-align: middle !important;
+            }
+
+            th {
+                background: #f0f0f0 !important;
+                font-weight: bold !important;
+                font-size: 11px !important;
+            }
+
+            .table-input {
+                border: none !important;
+                background: none !important;
+                -webkit-appearance: none !important;
+                -moz-appearance: none !important;
+                appearance: none !important;
+                padding: 0 !important;
+                font-weight: bold !important;
+                width: 100% !important;
+                color: #000 !important;
+                font-size: 11px !important;
+            }
+
+            select.table-input {
+                background-image: none !important;
+            }
+
+            tr:has(.service-input:placeholder-shown) {
+                display: none !important;
+            }
+
+            .totals-grid {
+                display: grid !important;
+                grid-template-columns: repeat(5, 1fr) !important;
+                border: 1px solid #000 !important;
+                margin-top: 15px !important;
+                background: #f9fafb !important;
+            }
+
+            .total-box {
+                border-left: 1px solid #000 !important;
+                padding: 8px !important;
+            }
+
+            .total-box:last-child {
+                border-left: none !important;
+            }
+
+            .total-val {
+                color: #000 !important;
+                font-size: 14px !important;
+                font-weight: bold !important;
+            }
+
+            td::before {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header no-print">
+            <div class="user-info">
+                <h1 id="inspectorName">...</h1>
+                <p>نظام الكشف الفني</p>
+            </div>
+            <div class="actions">
+                <input type="text" id="searchInput" placeholder="بحث (رقم، جوال، لوحة)..."
+                    style="padding:8px; border-radius:6px; border:1px solid #ccc;">
+                <button class="btn btn-primary" onclick="searchInspections()">بحث 🔍</button>
+                <button class="btn btn-secondary" onclick="window.location.href='employee.html'">الرجوع</button>
+            </div>
+        </div>
+
+        <!-- Quick Add Section (Mobile Friendly) -->
+        <div class="card no-print mobile-only" style="background: #eef2ff; border: 2px solid var(--primary);">
+            <div class="card-title" style="margin-bottom: 15px;">⚡ إضافة سريعة للخدمات (سهل للجوال)</div>
+            <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
+                <div class="form-group">
+                    <label>الفئة</label>
+                    <select id="quickCat" class="table-input"
+                        style="background:white; border:1px solid #ccc; border-radius:8px; padding:10px;"
+                        onchange="updateQuickServices()">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>الخدمة</label>
+                    <select id="quickService" class="table-input"
+                        style="background:white; border:1px solid #ccc; border-radius:8px; padding:10px;">
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+                <div class="form-group" style="justify-content: flex-end;">
+                    <button class="btn btn-success" onclick="addQuickService()"
+                        style="width: 100%; height: 45px; font-size: 16px;">إضافة للجدول ➕</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Printable Area -->
+        <div class="card" id="printableArea">
+            <div class="workshop-header">
+                <div class="workshop-info-text">
+                    <h2>ورشة عبد الله عصام عيد الزين لصيانة السيارات</h2>
+                    <p>📍 طريق مكة القديم مجمع كيلو 14</p>
+                    <p>📞 0566522351</p>
+                    <p>📄 الرقم الضريبي: 302240502300003</p>
+                </div>
+                <div style="text-align: left;">
+                    <p>رقم الكشف: <b id="inspectionIdDisplay">جديد</b></p>
+                    <p>التاريخ: <b id="currentDate">--/--/----</b></p>
+                </div>
+            </div>
+
+            <h1 class="inspection-title">كشف فني (تسعيرة أجور)</h1>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>اسم العميل</label>
+                    <input type="text" id="custName">
+                </div>
+                <div class="form-group">
+                    <label>رقم الجوال</label>
+                    <input type="text" id="custPhone">
+                </div>
+                <div class="form-group">
+                    <label>نوع السيارة</label>
+                    <input type="text" id="carType" list="carTypes">
+                    <datalist id="carTypes">
+                        <option value="M-6">
+                        <option value="CX-9">
+                        <option value="CX-5">
+                        <option value="M-3">
+                        <option value="CX-3">
+                        <option value="cx-30">
+                    </datalist>
+                </div>
+                <div class="form-group">
+                    <label>الموديل</label>
+                    <input type="text" id="carModel" list="carModels">
+                    <datalist id="carModels"></datalist>
+                </div>
+                <div class="form-group">
+                    <label>لون السيارة</label>
+                    <input type="text" id="carColor">
+                </div>
+                <div class="form-group">
+                    <label>رقم اللوحة</label>
+                    <div class="plate-container">
+                        <input type="text" class="plate-input letter" maxlength="1" id="pL1">
+                        <input type="text" class="plate-input letter" maxlength="1" id="pL2">
+                        <input type="text" class="plate-input letter" maxlength="1" id="pL3">
+                        <span style="margin:0 2px">-</span>
+                        <input type="text" class="plate-input number" maxlength="1" id="pN1">
+                        <input type="text" class="plate-input number" maxlength="1" id="pN2">
+                        <input type="text" class="plate-input number" maxlength="1" id="pN3">
+                        <input type="text" class="plate-input number" maxlength="1" id="pN4">
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-sn">#</th>
+                            <th class="col-cat">الفئة</th>
+                            <th>الخدمات / قطع الغيار</th>
+                            <th class="col-qty">العدد</th>
+                            <th class="col-price">السعر</th>
+                            <th class="col-total">الإجمالي</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="totals-grid">
+                <div class="total-box">
+                    <span class="total-label">الإجمالي (بدون ضريبة)</span>
+                    <span class="total-val" id="subTotal">0.00</span>
+                </div>
+                <div class="total-box">
+                    <span class="total-label">الضريبة (15%)</span>
+                    <span class="total-val" id="vatTotal">0.00</span>
+                </div>
+                <div class="total-box">
+                    <span class="total-label">المبلغ الإجمالي</span>
+                    <span class="total-val" id="finalTotal" style="color:var(--success)">0.00</span>
+                </div>
+                <div class="total-box no-print">
+                    <span class="total-label">المدفوع</span>
+                    <input type="number" id="paidAmount" class="table-input"
+                        style="text-align:center; border-bottom:1px solid #000;" value="0" oninput="calculateTotals()">
+                </div>
+                <div class="total-box">
+                    <span class="total-label">المتبقي</span>
+                    <span class="total-val" id="remainingAmount">0.00</span>
+                </div>
+            </div>
+
+            <div style="margin-top:15px; font-size:10px; display:flex; justify-content:space-between;">
+                <span>توقيع الكشيف: <b id="inspectorNameDisplay">...</b></span>
+                <span>توقيع العميل: ...........................</span>
+            </div>
+        </div>
+
+        <div class="actions no-print">
+            <button class="btn btn-primary" onclick="saveInspection()">💾 حفظ الكشف</button>
+            <button class="btn btn-success" onclick="window.print()">🖨️ طباعة / PDF</button>
+            <button class="btn btn-secondary" onclick="resetForm()">🔄 جديد</button>
+        </div>
+    </div>
+
+    <script>
+        let pricingData = {};
+        let allServicesList = [];
+
+        let currentUser = JSON.parse(localStorage.getItem('user'));
+        let currentInspectionId = null;
+
+        async function init() {
+            if (!currentUser) window.location.href = 'login.html';
+            document.getElementById('inspectorName').textContent = currentUser.employee_name;
+            document.getElementById('inspectorNameDisplay').textContent = currentUser.employee_name;
+            document.getElementById('currentDate').textContent = new Date().toLocaleDateString('ar-SA');
+
+            await fetchServices();
+            populateModels();
+            setupPlateInputs();
+            updateQuickServices();
+            generateRows(30);
+            setupEnterNavigation();
+        }
+
+        async function fetchServices() {
+            try {
+                const res = await fetch('/api/services');
+                allServicesList = await res.json();
+                pricingData = {};
+                allServicesList.forEach(s => {
+                    if (!pricingData[s.category]) pricingData[s.category] = [];
+                    pricingData[s.category].push({ service: s.service_name, price: s.price });
+                });
+
+                // تحديث قائمة الفئات في الإضافة السريعة
+                const quickCat = document.getElementById('quickCat');
+                if (quickCat) {
+                    const categories = Object.keys(pricingData).sort();
+                    quickCat.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+                }
+            } catch (e) {
+                console.error('Error fetching services:', e);
+            }
+        }
+
+        function updateQuickServices() {
+            const cat = document.getElementById('quickCat').value;
+            const select = document.getElementById('quickService');
+            if (!pricingData[cat]) return;
+            select.innerHTML = pricingData[cat].map(s => `<option value="${s.service}" data-price="${s.price}">${s.service} (${s.price} ريال)</option>`).join('');
+        }
+
+        function addQuickService() {
+            const select = document.getElementById('quickService');
+            const option = select.options[select.selectedIndex];
+            if (!option) return;
+
+            const service = option.value;
+            const price = option.getAttribute('data-price');
+            const cat = document.getElementById('quickCat').value;
+
+            const rows = document.querySelectorAll('#tableBody tr');
+            for (let tr of rows) {
+                const input = tr.querySelector('.service-input');
+                if (!input.value.trim()) {
+                    tr.querySelector('.cat-select').value = cat;
+                    input.value = service;
+                    tr.querySelector('.price-input').value = price;
+                    tr.querySelector('.qty-input').value = 1;
+                    calculateRow(input);
+                    tr.style.backgroundColor = '#dcfce7';
+                    setTimeout(() => tr.style.backgroundColor = '', 1000);
+                    if (window.innerWidth < 768) alert('تمت إضافة: ' + service);
+                    return;
+                }
+            }
+            alert('الجدول ممتلئ!');
+        }
+
+        function populateModels() {
+            const list = document.getElementById('carModels');
+            for (let y = 2027; y >= 2008; y--) {
+                const opt = document.createElement('option');
+                opt.value = y;
+                list.appendChild(opt);
+            }
+        }
+
+        function setupPlateInputs() {
+            const inputs = document.querySelectorAll('.plate-input');
+            inputs.forEach((input, index) => {
+                input.addEventListener('input', () => {
+                    if (input.value.length === 1 && index < inputs.length - 1) inputs[index + 1].focus();
+                });
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && input.value.length === 0 && index > 0) inputs[index - 1].focus();
+                });
+            });
+        }
+
+        function generateRows(count) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            const categories = Object.keys(pricingData).sort();
+            for (let i = 1; i <= count; i++) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="col-sn" data-label="#">${i}</td>
+                    <td data-label="الفئة">
+                        <select class="table-input cat-select">
+                            ${categories.map(c => `<option value="${c}" ${c === 'كشف' ? 'selected' : ''}>${c}</option>`).join('')}
+                        </select>
+                    </td>
+                    <td class="service-container" data-label="الخدمة">
+                        <input type="text" class="table-input service-input" placeholder=" " oninput="handleServiceInput(this)">
+                        <div class="autocomplete-items" style="display:none"></div>
+                    </td>
+                    <td data-label="العدد"><input type="number" class="table-input qty-input" oninput="calculateRow(this)"></td>
+                    <td data-label="السعر"><input type="number" class="table-input price-input" oninput="calculateRow(this)"></td>
+                    <td class="col-total row-total" data-label="الإجمالي">0.00</td>
+                `;
+                tbody.appendChild(tr);
+            }
+        }
+
+        function handleServiceInput(input) {
+            const tr = input.closest('tr');
+            const currentCat = tr.querySelector('.cat-select').value;
+            const val = input.value.toLowerCase();
+            const container = input.nextElementSibling;
+            container.innerHTML = '';
+
+            if (!val) { container.style.display = 'none'; return; }
+
+            const currentCatMatches = (pricingData[currentCat] || [])
+                .filter(s => s.service.toLowerCase().includes(val))
+                .map(s => ({ ...s, category: currentCat, priority: 1 }));
+
+            let otherMatches = [];
+            Object.keys(pricingData).forEach(cat => {
+                if (cat !== currentCat) {
+                    const matches = pricingData[cat]
+                        .filter(s => s.service.toLowerCase().includes(val))
+                        .map(s => ({ ...s, category: cat, priority: 2 }));
+                    otherMatches = otherMatches.concat(matches);
+                }
+            });
+
+            const allMatches = [...currentCatMatches, ...otherMatches].slice(0, 10);
+            if (allMatches.length === 0) { container.style.display = 'none'; return; }
+
+            container.style.display = 'block';
+            allMatches.forEach(match => {
+                const div = document.createElement('div');
+                div.style.display = 'flex';
+                div.style.justifyContent = 'space-between';
+                div.innerHTML = `<span>${match.service}</span> <span style="font-size:9px; color:#999;">(${match.category})</span>`;
+                div.onclick = () => {
+                    input.value = match.service;
+                    tr.querySelector('.price-input').value = match.price;
+                    tr.querySelector('.qty-input').value = 1;
+                    tr.querySelector('.cat-select').value = match.category;
+                    calculateRow(input);
+                    container.style.display = 'none';
+                };
+                container.appendChild(div);
+            });
+        }
+
+        function calculateRow(el) {
+            const tr = el.closest('tr');
+            const qty = parseFloat(tr.querySelector('.qty-input').value) || 0;
+            const price = parseFloat(tr.querySelector('.price-input').value) || 0;
+            const total = qty * price;
+            tr.querySelector('.row-total').textContent = total.toFixed(2);
+            calculateTotals();
+        }
+
+        function calculateTotals() {
+            let subtotal = 0;
+            document.querySelectorAll('.row-total').forEach(td => {
+                subtotal += parseFloat(td.textContent) || 0;
+            });
+
+            const vat = subtotal * 0.15;
+            const final = subtotal + vat;
+            const paid = parseFloat(document.getElementById('paidAmount').value) || 0;
+            const remaining = final - paid;
+
+            document.getElementById('subTotal').textContent = subtotal.toFixed(2);
+            document.getElementById('vatTotal').textContent = vat.toFixed(2);
+            document.getElementById('finalTotal').textContent = final.toFixed(2);
+            document.getElementById('remainingAmount').textContent = remaining.toFixed(2);
+        }
+
+        async function saveInspection() {
+            const items = [];
+            document.querySelectorAll('#tableBody tr').forEach(tr => {
+                const service = tr.querySelector('.service-input').value.trim();
+                if (service) {
+                    items.push({
+                        category: tr.querySelector('.cat-select').value,
+                        service_description: service,
+                        quantity: parseInt(tr.querySelector('.qty-input').value) || 1,
+                        price: parseFloat(tr.querySelector('.price-input').value) || 0,
+                        total: parseFloat(tr.querySelector('.row-total').textContent) || 0
+                    });
+                }
+            });
+
+            if (items.length === 0) return alert('الرجاء إضافة خدمة واحدة على الأقل');
+
+            const data = {
+                inspector_id: currentUser.employee_id,
+                customer_name: document.getElementById('custName').value,
+                customer_phone: document.getElementById('custPhone').value,
+                car_type: document.getElementById('carType').value,
+                car_model: document.getElementById('carModel').value,
+                car_color: document.getElementById('carColor').value,
+                plate_number: `${document.getElementById('pL1').value}${document.getElementById('pL2').value}${document.getElementById('pL3').value} ${document.getElementById('pN1').value}${document.getElementById('pN2').value}${document.getElementById('pN3').value}${document.getElementById('pN4').value}`,
+                total_amount: parseFloat(document.getElementById('subTotal').textContent),
+                vat_amount: parseFloat(document.getElementById('vatTotal').textContent),
+                final_amount: parseFloat(document.getElementById('finalTotal').textContent),
+                paid_amount: parseFloat(document.getElementById('paidAmount').value) || 0,
+                remaining_amount: parseFloat(document.getElementById('remainingAmount').textContent),
+                items: items
+            };
+
+            try {
+                const res = await fetch('/api/inspections', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (res.ok) {
+                    alert('تم حفظ الكشف بنجاح، رقم الكشف: ' + result.id);
+                    document.getElementById('inspectionIdDisplay').textContent = result.id;
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        async function searchInspections() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+
+            try {
+                const res = await fetch(`/api/inspections/search?query=${encodeURIComponent(query)}`);
+                const results = await res.json();
+
+                if (!results || results.length === 0) {
+                    return alert('لا توجد نتائج لهذا البحث');
+                }
+
+                if (results.length === 1) {
+                    loadInspection(results[0].id);
+                } else {
+                    const choice = prompt(`وجدنا ${results.length} نتائج. أدخل رقم الكشف المطلوب:\n` +
+                        results.map(r => `#${r.id} - ${r.customer_name} (${r.customer_phone})`).join('\n'));
+                    if (choice) loadInspection(choice);
+                }
+            } catch (e) {
+                console.error('Search Error:', e);
+                alert('حدث خطأ أثناء البحث');
+            }
+        }
+
+        async function loadInspection(id) {
+            try {
+                const res = await fetch(`/api/inspections/${id}`);
+                const data = await res.json();
+                document.getElementById('inspectionIdDisplay').textContent = data.id;
+                document.getElementById('currentDate').textContent = new Date(data.created_at).toLocaleDateString('ar-SA');
+                document.getElementById('custName').value = data.customer_name;
+                document.getElementById('custPhone').value = data.customer_phone;
+                document.getElementById('carType').value = data.car_type;
+                document.getElementById('carModel').value = data.car_model;
+                document.getElementById('carColor').value = data.car_color;
+                document.getElementById('paidAmount').value = data.paid_amount;
+
+                // Load items
+                const rows = document.querySelectorAll('#tableBody tr');
+                data.items.forEach((item, i) => {
+                    if (rows[i]) {
+                        rows[i].querySelector('.cat-select').value = item.category;
+                        rows[i].querySelector('.service-input').value = item.service_description;
+                        rows[i].querySelector('.qty-input').value = item.quantity;
+                        rows[i].querySelector('.price-input').value = item.price;
+                        calculateRow(rows[i].querySelector('.service-input'));
+                    }
+                });
+                calculateTotals();
+            } catch (e) { console.error(e); }
+        }
+
+        function resetForm() {
+            if (confirm('بدء كشف جديد؟')) location.reload();
+        }
+
+        function setupEnterNavigation() {
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const target = e.target;
+                    if (target.tagName === 'INPUT' || target.tagName === 'SELECT') {
+                        if (target.classList.contains('service-input')) {
+                            const container = target.nextElementSibling;
+                            if (container && container.style.display === 'block') return;
+                        }
+                        if (target.id === 'searchInput') {
+                            e.preventDefault();
+                            searchInspections();
+                            return;
+                        }
+                        e.preventDefault();
+                        const focusable = Array.from(document.querySelectorAll('input:not([type="hidden"]), select, button:not(.no-print)'))
+                            .filter(el => !el.disabled && el.offsetWidth > 0 && el.offsetHeight > 0);
+                        const index = focusable.indexOf(target);
+                        if (index > -1 && index < focusable.length - 1) {
+                            focusable[index + 1].focus();
+                        }
+                    }
+                }
+            });
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
