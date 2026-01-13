@@ -150,8 +150,13 @@ function initializeDatabase() {
             final_amount REAL DEFAULT 0,
             paid_amount REAL DEFAULT 0,
             remaining_amount REAL DEFAULT 0,
+            status TEXT DEFAULT 'new',
+            assigned_technician_id INTEGER,
+            job_order_notes TEXT,
+            car_defects_diagram TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (inspector_id) REFERENCES employees(id)
+            FOREIGN KEY (inspector_id) REFERENCES employees(id),
+            FOREIGN KEY (assigned_technician_id) REFERENCES employees(id)
         )`,
         `CREATE TABLE IF NOT EXISTS inspection_items (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -173,6 +178,17 @@ function initializeDatabase() {
             service_name TEXT NOT NULL,
             price REAL DEFAULT 0,
             UNIQUE(category, service_name)
+        )`,
+        `CREATE TABLE IF NOT EXISTS inspection_technicians (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            inspection_id INTEGER NOT NULL,
+            technician_id INTEGER NOT NULL,
+            FOREIGN KEY (inspection_id) REFERENCES inspections(id),
+            FOREIGN KEY (technician_id) REFERENCES employees(id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT
         )`
     ];
 
@@ -180,6 +196,32 @@ function initializeDatabase() {
         tables.forEach(sql => {
             db.run(sql, (err) => {
                 if (err) console.error('❌ خطأ في إنشاء جدول:', err.message);
+            });
+        });
+
+        // Default Settings
+        const defaultSettings = [
+            ['workshop_name', 'مركز الورشة المتخصص'],
+            ['workshop_desc', 'صيانة سيارات - سمكرة - دهان'],
+            ['workshop_phone', '0500000000'],
+            ['vat_number', '300000000000003'],
+            ['show_logo', 'true']
+        ];
+        // We use a small delay or just run it; db.serialize ensures sequentiality
+        defaultSettings.forEach(([key, val]) => {
+             db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)`, [key, val]);
+        });
+
+        // Migration logic for existing tables
+        const migrations = [
+            "ALTER TABLE inspections ADD COLUMN status TEXT DEFAULT 'new'",
+            "ALTER TABLE inspections ADD COLUMN assigned_technician_id INTEGER",
+            "ALTER TABLE inspections ADD COLUMN job_order_notes TEXT",
+            "ALTER TABLE inspections ADD COLUMN car_defects_diagram TEXT"
+        ];
+        migrations.forEach(sql => {
+            db.run(sql, (err) => {
+                if (err && !err.message.includes('duplicate column name')) console.log(`ℹ️ Migration: ${err.message}`);
             });
         });
 
@@ -1296,28 +1338,32 @@ app.get('/api/notifications', async (req, res) => {
 
 // إضافة كشف جديد
 app.post('/api/inspections', async (req, res) => {
-    const { inspector_id, customer_name, customer_phone, car_type, car_color, car_model, plate_number, items, total_amount, vat_amount, final_amount, paid_amount, remaining_amount } = req.body;
+    const { inspector_id, customer_name, customer_phone, car_type, car_color, car_model, plate_number, items, total_amount, vat_amount, final_amount, paid_amount, remaining_amount, status, job_order_notes, car_defects_diagram } = req.body;
 
     try {
         // البدء في المعاملة
         await dbRun('BEGIN TRANSACTION');
 
         const inspResult = await dbRun(`
-            INSERT INTO inspections (inspector_id, customer_name, customer_phone, car_type, car_color, car_model, plate_number, total_amount, vat_amount, final_amount, paid_amount, remaining_amount)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `, [inspector_id, customer_name, customer_phone, car_type, car_color, car_model, plate_number, total_amount, vat_amount, final_amount, paid_amount, remaining_amount]);
+            INSERT INTO inspections (inspector_id, customer_name, customer_phone, car_type, car_color, car_model, plate_number, total_amount, vat_amount, final_amount, paid_amount, remaining_amount, status, job_order_notes, car_defects_diagram)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, 'new'), ?, ?)
+        `, [inspector_id, customer_name, customer_phone, car_type, car_color, car_model, plate_number, total_amount, vat_amount, final_amount, paid_amount, remaining_amount, status, job_order_notes, car_defects_diagram]);
 
         const inspection_id = inspResult.lastID;
 
-        for (const item of items) {
-            if (item.service_description) {
-                await dbRun(`
-                    INSERT INTO inspection_items (inspection_id, category, service_description, quantity, price, total)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                `, [inspection_id, item.category, item.service_description, item.quantity || 1, item.price || 0, item.total || 0]);
-
-                // إضافة المصطلح للقاعدة إذا لم يكن موجوداً
-                await dbRun(`INSERT OR IGNORE INTO inspection_terms (term) VALUES (?)`, [item.service_description]);
+        if (items && Array.isArray(items)) {
+            for (const item of items) {
+                if (item.service_description) {
+                    await dbRun(`
+                        INSERT INTO inspection_items (inspection_id, category, service_description, quantity, price, total)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    `, [inspection_id, item.category, item.service_description, item.quantity || 1, item.price || 0, item.total || 0]);
+                    
+                    // Add term if not exists
+                    if (item.service_description.length < 50) { // Limit length to avoid spam/errors
+                         await dbRun(`INSERT OR IGNORE INTO inspection_terms (term) VALUES (?)`, [item.service_description]);
+                    }
+                }
             }
         }
 
@@ -1325,8 +1371,10 @@ app.post('/api/inspections', async (req, res) => {
         res.status(201).json({ message: "تم حفظ الكشف بنجاح", id: inspection_id });
     } catch (error) {
         await dbRun('ROLLBACK');
-        console.error("Add Inspection Error:", error);
-        res.status(500).json({ message: "خطأ في حفظ الكشف" });
+        const msg = `[${new Date().toISOString()}] Create Inspection Error: ${error.message}\n${error.stack}\n`;
+        try { fs.appendFileSync('server_error.log', msg); } catch(ex) {}
+        console.error("Create Inspection Error:", error);
+        res.status(500).json({ message: "خطأ في حفظ الكشف: " + error.message });
     }
 });
 
@@ -1384,31 +1432,169 @@ app.get('/api/inspections/:id', async (req, res) => {
         const items = await dbAll(`SELECT * FROM inspection_items WHERE inspection_id = ?`, [id]);
         res.json({ ...inspection, items });
     } catch (error) {
+        const msg = `[${new Date().toISOString()}] Fetch Inspection Error: ${error.message}\n${error.stack}\n`;
+        fs.appendFileSync('server_error.log', msg);
         console.error("Fetch Inspection Details Error:", error);
-        res.status(500).json({ message: "خطأ في جلب تفاصيل الكشف" });
+        res.status(500).json({ message: "خطأ في جلب تفاصيل الكشف: " + error.message });
     }
 });
 
 // البحث في الكشوفات
 app.get('/api/inspections/search', async (req, res) => {
-    const { query } = req.query;
+    const { query, inspector_id } = req.query; // Added inspector_id
+    console.log(`🔍 Search Request: '${query}', Inspector: ${inspector_id || 'All'}`); 
+    
     if (!query) return res.json([]);
 
     try {
-        const inspections = await dbAll(`
+        let sql = `
             SELECT i.*, e.name as inspector_name
             FROM inspections i
             LEFT JOIN employees e ON i.inspector_id = e.id
-            WHERE CAST(i.id AS TEXT) LIKE ? 
+            WHERE (
+               CAST(i.id AS TEXT) LIKE ? 
                OR i.customer_phone LIKE ? 
                OR i.plate_number LIKE ?
-            ORDER BY i.created_at DESC
-            LIMIT 20
-        `, [`%${query}%`, `%${query}%`, `%${query}%`]);
+            )
+        `;
+        const params = [`%${query}%`, `%${query}%`, `%${query}%`];
+
+        if (inspector_id && inspector_id !== 'undefined' && inspector_id !== 'null') {
+             // Basic validation to avoid filtering by "undefined" string
+            sql += ` AND i.inspector_id = ?`;
+            params.push(inspector_id);
+        }
+
+        sql += ` ORDER BY i.created_at DESC LIMIT 20`;
+        
+        console.log("Executing SQL:", sql);
+        console.log("Params:", params);
+
+        const inspections = await dbAll(sql, params);
+        
+        console.log(`✅ Found ${inspections.length} matches`);
         res.json(inspections);
     } catch (error) {
-        console.error("Search Inspections Error:", error);
-        res.status(500).json({ message: "خطأ في البحث" });
+        console.error("❌ Search Inspections Error:", error);
+        res.status(500).json({ message: "خطأ في البحث: " + error.message });
+    }
+});
+
+// جلب جميع الكشوفات (مع الترحيل - Pagination)
+// جلب جميع الكشوفات (مع الترحيل - Pagination)
+app.get('/api/inspections', async (req, res) => {
+    const { limit, offset, inspector_id, technician_id, status } = req.query;
+    const limitVal = parseInt(limit) || 50;
+    const offsetVal = parseInt(offset) || 0;
+
+    try {
+        let sql = `
+            SELECT i.*, e.name as inspector_name,
+            (SELECT GROUP_CONCAT(t.name, ', ') 
+             FROM inspection_technicians it 
+             JOIN employees t ON it.technician_id = t.id 
+             WHERE it.inspection_id = i.id) as assigned_technicians,
+            (SELECT GROUP_CONCAT(it.technician_id, ',') 
+             FROM inspection_technicians it 
+             WHERE it.inspection_id = i.id) as assigned_technician_ids
+            FROM inspections i
+            LEFT JOIN employees e ON i.inspector_id = e.id
+            WHERE 1=1
+        `;
+        const params = [];
+
+        if (inspector_id) {
+            sql += ` AND i.inspector_id = ?`;
+            params.push(inspector_id);
+        }
+
+        if (technician_id) {
+            sql += ` AND i.id IN (SELECT inspection_id FROM inspection_technicians WHERE technician_id = ?)`;
+            params.push(technician_id);
+        }
+
+        if (status) {
+            sql += ` AND i.status = ?`;
+            params.push(status);
+        }
+
+        sql += ` ORDER BY i.created_at DESC LIMIT ? OFFSET ?`;
+        params.push(limitVal, offsetVal);
+
+        const inspections = await dbAll(sql, params);
+        res.json(inspections);
+    } catch (error) {
+        console.error("Fetch All Inspections Error:", error);
+        res.status(500).json({ message: "خطأ في جلب الكشوفات" });
+    }
+});
+
+
+
+// ... existing code ...
+
+// تحديث كشف (تعديل)
+app.put('/api/inspections/:id', async (req, res) => {
+    const { id } = req.params;
+    const { customer_name, customer_phone, car_type, car_model, car_color, plate_number, items, total_amount, vat_amount, final_amount, paid_amount, remaining_amount, status, technician_ids, job_order_notes, car_defects_diagram } = req.body;
+
+    try {
+        await dbRun('BEGIN TRANSACTION');
+
+        // 1. Update Main Inspection Details
+        await dbRun(`
+            UPDATE inspections 
+            SET customer_name = ?, customer_phone = ?, car_type = ?, car_model = ?, car_color = ?, plate_number = ?, 
+                total_amount = ?, vat_amount = ?, final_amount = ?, paid_amount = ?, remaining_amount = ?, 
+                status = COALESCE(?, status),
+                job_order_notes = COALESCE(?, job_order_notes), 
+                car_defects_diagram = COALESCE(?, car_defects_diagram)
+            WHERE id = ?
+        `, [customer_name, customer_phone, car_type, car_model, car_color, plate_number, total_amount, vat_amount, final_amount, paid_amount, remaining_amount, status, job_order_notes, car_defects_diagram, id]);
+
+        // 2. Update Items
+        if (items && Array.isArray(items)) {
+             await dbRun(`DELETE FROM inspection_items WHERE inspection_id = ?`, [id]);
+             for (const item of items) {
+                  if (item.service_description) {
+                     await dbRun(`
+                         INSERT INTO inspection_items (inspection_id, category, service_description, quantity, price, total)
+                         VALUES (?, ?, ?, ?, ?, ?)
+                     `, [id, item.category, item.service_description, item.quantity || 1, item.price || 0, item.total || 0]);
+                 }
+             }
+        }
+
+        // 3. Update Technicians (if provided)
+        if (technician_ids && Array.isArray(technician_ids)) {
+            await dbRun(`DELETE FROM inspection_technicians WHERE inspection_id = ?`, [id]);
+            for (const techId of technician_ids) {
+                await dbRun(`INSERT INTO inspection_technicians (inspection_id, technician_id) VALUES (?, ?)`, [id, techId]);
+            }
+        }
+
+        await dbRun('COMMIT');
+        res.json({ message: "تم تحديث الكشف بنجاح" });
+    } catch (error) {
+        await dbRun('ROLLBACK');
+        const msg = `[${new Date().toISOString()}] Update Inspection Error: ${error.message}\n${error.stack}\n`;
+        try { fs.appendFileSync('server_error.log', msg); } catch(ex) {}
+        console.error("Update Inspection Error:", error);
+        res.status(500).json({ message: "خطأ في تحديث الكشف: " + error.message });
+    }
+});
+
+// حذف كشف (للمدير فقط)
+app.delete('/api/inspections/:id', async (req, res) => {
+    // Note: Security checkpoint usually here
+    const { id } = req.params;
+    try {
+        await dbRun('DELETE FROM inspections WHERE id = ?', [id]);
+        await dbRun('DELETE FROM inspection_items WHERE inspection_id = ?', [id]);
+        res.json({ message: "تم الحذف بنجاح" });
+    } catch (error) {
+        console.error("Delete Inspection Error:", error);
+        res.status(500).json({ message: "خطأ في الحذف" });
     }
 });
 
@@ -1504,6 +1690,64 @@ app.get('/api/backup', (req, res) => {
             res.status(500).send("Could not download backup");
         }
     });
+});
+
+// --- Settings APIs ---
+
+// Get All Settings
+app.get('/api/settings', async (req, res) => {
+    try {
+        const rows = await dbAll('SELECT * FROM settings');
+        const settings = {};
+        rows.forEach(r => settings[r.key] = r.value);
+        res.json(settings);
+    } catch (e) {
+        res.status(500).json({ message: "Error fetching settings" });
+    }
+});
+
+// Update Settings
+app.post('/api/settings', async (req, res) => {
+    const settings = req.body; // Object { key: value }
+    try {
+        await dbRun('BEGIN TRANSACTION');
+        for (const [key, value] of Object.entries(settings)) {
+            await dbRun(`INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = ?`, [key, value, value]);
+        }
+        await dbRun('COMMIT');
+        res.json({ message: "Settings updated" });
+    } catch (e) {
+        await dbRun('ROLLBACK');
+        console.error(e);
+        res.status(500).json({ message: "Error updating settings" });
+    }
+});
+
+// Get Terms
+app.get('/api/terms', async (req, res) => {
+    try {
+        const terms = await dbAll('SELECT * FROM inspection_terms');
+        res.json(terms);
+    } catch (e) {
+        res.status(500).json({ message: "Error fetching terms" });
+    }
+});
+
+// Update Terms (Replace All)
+app.post('/api/terms', async (req, res) => {
+    const { terms } = req.body; // Array of strings
+    try {
+        await dbRun('BEGIN TRANSACTION');
+        await dbRun('DELETE FROM inspection_terms');
+        for (const term of terms) {
+             await dbRun('INSERT INTO inspection_terms (term) VALUES (?)', [term]);
+        }
+        await dbRun('COMMIT');
+        res.json({ message: "Terms updated" });
+    } catch (e) {
+        await dbRun('ROLLBACK');
+        res.status(500).json({ message: "Error updating terms" });
+    }
 });
 
 // ==========================

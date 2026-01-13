@@ -719,6 +719,7 @@
 
         <div class="actions no-print">
             <button class="btn btn-primary" onclick="saveInspection()">💾 حفظ الكشف</button>
+            <button class="btn btn-warning" onclick="saveInspection('job_order')">🛠️ تحويل لأمر عمل</button>
             <button class="btn btn-success" onclick="window.print()">🖨️ طباعة / PDF</button>
             <button class="btn btn-secondary" onclick="resetForm()">🔄 جديد</button>
         </div>
@@ -730,6 +731,7 @@
 
         let currentUser = JSON.parse(localStorage.getItem('user'));
         let currentInspectionId = null;
+        let currentInspectionData = null; // Store full data to preserve status on updates
 
         async function init() {
             if (!currentUser) window.location.href = 'login.html';
@@ -743,6 +745,14 @@
             updateQuickServices();
             generateRows(30);
             setupEnterNavigation();
+
+            // Check if we are in Edit Mode (URL has ?id=X)
+            const urlParams = new URLSearchParams(window.location.search);
+            const editId = urlParams.get('id');
+            if (editId) {
+                console.log("Edit Mode: Loading inspection", editId);
+                loadInspection(editId);
+            }
         }
 
         async function fetchServices() {
@@ -916,7 +926,7 @@
             document.getElementById('remainingAmount').textContent = remaining.toFixed(2);
         }
 
-        async function saveInspection() {
+        async function saveInspection(targetStatus) {
             const items = [];
             document.querySelectorAll('#tableBody tr').forEach(tr => {
                 const service = tr.querySelector('.service-input').value.trim();
@@ -933,6 +943,12 @@
 
             if (items.length === 0) return alert('الرجاء إضافة خدمة واحدة على الأقل');
 
+            // If update, preserve current status if no targetStatus provided
+            let finalStatus = targetStatus || 'new';
+            if (!targetStatus && currentInspectionData && currentInspectionData.status) {
+                finalStatus = currentInspectionData.status;
+            }
+
             const data = {
                 inspector_id: currentUser.employee_id,
                 customer_name: document.getElementById('custName').value,
@@ -946,52 +962,47 @@
                 final_amount: parseFloat(document.getElementById('finalTotal').textContent),
                 paid_amount: parseFloat(document.getElementById('paidAmount').value) || 0,
                 remaining_amount: parseFloat(document.getElementById('remainingAmount').textContent),
+                status: finalStatus,
                 items: items
             };
 
             try {
-                const res = await fetch('/api/inspections', {
-                    method: 'POST',
+                const method = currentInspectionId ? 'PUT' : 'POST';
+                const url = currentInspectionId ? `/api/inspections/${currentInspectionId}` : '/api/inspections';
+
+                const res = await fetch(url, {
+                    method: method,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
+
                 const result = await res.json();
+
                 if (res.ok) {
-                    alert('تم حفظ الكشف بنجاح، رقم الكشف: ' + result.id);
-                    document.getElementById('inspectionIdDisplay').textContent = result.id;
+                    const savedId = currentInspectionId || result.id;
+                    currentInspectionId = savedId;
+                    alert(targetStatus === 'job_order' ? 'تم تحويل الكشف لأمر عمل بنجاح!' : 'تم حفظ الكشف بنجاح، رقم الكشف: ' + savedId);
+                    document.getElementById('inspectionIdDisplay').textContent = savedId;
+                } else {
+                    alert('خطأ في الحفظ: ' + result.message);
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error(e);
+                alert('حدث خطأ غير متوقع');
+            }
         }
 
         async function searchInspections() {
-            const query = document.getElementById('searchInput').value.trim();
-            if (!query) return;
-
-            try {
-                const res = await fetch(`/api/inspections/search?query=${encodeURIComponent(query)}`);
-                const results = await res.json();
-
-                if (!results || results.length === 0) {
-                    return alert('لا توجد نتائج لهذا البحث');
-                }
-
-                if (results.length === 1) {
-                    loadInspection(results[0].id);
-                } else {
-                    const choice = prompt(`وجدنا ${results.length} نتائج. أدخل رقم الكشف المطلوب:\n` +
-                        results.map(r => `#${r.id} - ${r.customer_name} (${r.customer_phone})`).join('\n'));
-                    if (choice) loadInspection(choice);
-                }
-            } catch (e) {
-                console.error('Search Error:', e);
-                alert('حدث خطأ أثناء البحث');
-            }
+            window.location.href = 'inspections_list.html';
         }
+
 
         async function loadInspection(id) {
             try {
                 const res = await fetch(`/api/inspections/${id}`);
                 const data = await res.json();
+                currentInspectionData = data; // Store globally
+                currentInspectionId = data.id;
                 document.getElementById('inspectionIdDisplay').textContent = data.id;
                 document.getElementById('currentDate').textContent = new Date(data.created_at).toLocaleDateString('ar-SA');
                 document.getElementById('custName').value = data.customer_name;
