@@ -1751,6 +1751,209 @@ app.post('/api/terms', async (req, res) => {
 });
 
 // ==========================
+// 🔧 تعديل الكشف (Update Inspection)
+// ==========================
+app.put('/api/inspections/:id', async (req, res) => {
+    const { id } = req.params;
+    const { 
+        customer_name, 
+        customer_phone, 
+        car_type, 
+        car_color, 
+        car_model, 
+        plate_number, 
+        items, 
+        total_amount, 
+        vat_amount, 
+        final_amount, 
+        paid_amount, 
+        remaining_amount, 
+        status, 
+        job_order_notes,
+        car_defects_diagram 
+    } = req.body;
+
+    try {
+        // البدء في المعاملة
+        await dbRun('BEGIN TRANSACTION');
+
+        // التحقق من وجود الكشف
+        const existing = await dbGet(`SELECT * FROM inspections WHERE id = ?`, [id]);
+        if (!existing) {
+            await dbRun('ROLLBACK');
+            return res.status(404).json({ message: "الكشف غير موجود" });
+        }
+
+        // تحديث بيانات الكشف
+        await dbRun(`
+            UPDATE inspections SET
+                customer_name = ?,
+                customer_phone = ?,
+                car_type = ?,
+                car_color = ?,
+                car_model = ?,
+                plate_number = ?,
+                total_amount = ?,
+                vat_amount = ?,
+                final_amount = ?,
+                paid_amount = ?,
+                remaining_amount = ?,
+                status = ?,
+                job_order_notes = ?,
+                car_defects_diagram = ?
+            WHERE id = ?
+        `, [
+            customer_name || existing.customer_name,
+            customer_phone || existing.customer_phone,
+            car_type || existing.car_type,
+            car_color || existing.car_color,
+            car_model || existing.car_model,
+            plate_number || existing.plate_number,
+            total_amount !== undefined ? total_amount : existing.total_amount,
+            vat_amount !== undefined ? vat_amount : existing.vat_amount,
+            final_amount !== undefined ? final_amount : existing.final_amount,
+            paid_amount !== undefined ? paid_amount : existing.paid_amount,
+            remaining_amount !== undefined ? remaining_amount : existing.remaining_amount,
+            status || existing.status,
+            job_order_notes !== undefined ? job_order_notes : existing.job_order_notes,
+            car_defects_diagram !== undefined ? car_defects_diagram : existing.car_defects_diagram,
+            id
+        ]);
+
+        // تحديث العناصر إذا تم إرسالها
+        if (items && Array.isArray(items)) {
+            // حذف العناصر القديمة
+            await dbRun(`DELETE FROM inspection_items WHERE inspection_id = ?`, [id]);
+
+            // إضافة العناصر الجديدة
+            for (const item of items) {
+                if (item.service_description) {
+                    await dbRun(`
+                        INSERT INTO inspection_items (inspection_id, category, service_description, quantity, price, total)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    `, [id, item.category, item.service_description, item.quantity || 1, item.price || 0, item.total || 0]);
+
+                    // إضافة المصطلح إن لم يكن موجوداً
+                    if (item.service_description.length < 50) {
+                        await dbRun(`INSERT OR IGNORE INTO inspection_terms (term) VALUES (?)`, [item.service_description]);
+                    }
+                }
+            }
+        }
+
+        await dbRun('COMMIT');
+        res.json({ message: "تم تحديث الكشف بنجاح", id });
+    } catch (error) {
+        await dbRun('ROLLBACK');
+        const msg = `[${new Date().toISOString()}] Update Inspection Error: ${error.message}\n${error.stack}\n`;
+        try { fs.appendFileSync('server_error.log', msg); } catch(ex) {}
+        console.error("Update Inspection Error:", error);
+        res.status(500).json({ message: "خطأ في تحديث الكشف: " + error.message });
+    }
+});
+
+// ==========================
+// 🗑️ حذف الكشف (Delete Inspection)
+// ==========================
+app.delete('/api/inspections/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        // البدء في المعاملة
+        await dbRun('BEGIN TRANSACTION');
+
+        // التحقق من وجود الكشف
+        const existing = await dbGet(`SELECT * FROM inspections WHERE id = ?`, [id]);
+        if (!existing) {
+            await dbRun('ROLLBACK');
+            return res.status(404).json({ message: "الكشف غير موجود" });
+        }
+
+        // حذف العناصر المرتبطة بالكشف أولاً
+        await dbRun(`DELETE FROM inspection_items WHERE inspection_id = ?`, [id]);
+
+        // حذف الكشف نفسه
+        await dbRun(`DELETE FROM inspections WHERE id = ?`, [id]);
+
+        await dbRun('COMMIT');
+        res.json({ message: "تم حذف الكشف بنجاح" });
+    } catch (error) {
+        await dbRun('ROLLBACK');
+        const msg = `[${new Date().toISOString()}] Delete Inspection Error: ${error.message}\n${error.stack}\n`;
+        try { fs.appendFileSync('server_error.log', msg); } catch(ex) {}
+        console.error("Delete Inspection Error:", error);
+        res.status(500).json({ message: "خطأ في حذف الكشف: " + error.message });
+    }
+});
+
+// ==========================
+// 📄 تحديث حالة الكشف فقط (Quick Status Update)
+// ==========================
+app.patch('/api/inspections/:id/status', async (req, res) => {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!status || !['new', 'in_progress', 'completed', 'cancelled'].includes(status)) {
+        return res.status(400).json({ message: "حالة غير صالحة" });
+    }
+
+    try {
+        const existing = await dbGet(`SELECT * FROM inspections WHERE id = ?`, [id]);
+        if (!existing) {
+            return res.status(404).json({ message: "الكشف غير موجود" });
+        }
+
+        await dbRun(`UPDATE inspections SET status = ? WHERE id = ?`, [status, id]);
+        res.json({ message: "تم تحديث حالة الكشف بنجاح" });
+    } catch (error) {
+        console.error("Update Inspection Status Error:", error);
+        res.status(500).json({ message: "خطأ في تحديث حالة الكشف" });
+    }
+});
+
+// ==========================
+// 📊 جلب جميع الكشوفات (لصفحة الإدارة)
+// ==========================
+app.get('/api/inspections', async (req, res) => {
+    const { from, to, status, inspector_id, limit = 50 } = req.query;
+
+    try {
+        let sql = `
+            SELECT i.*, e.name as inspector_name
+            FROM inspections i
+            LEFT JOIN employees e ON i.inspector_id = e.id
+            WHERE 1=1
+        `;
+        const params = [];
+
+        if (from && to) {
+            sql += ` AND DATE(i.created_at) BETWEEN ? AND ?`;
+            params.push(from, to);
+        }
+
+        if (status) {
+            sql += ` AND i.status = ?`;
+            params.push(status);
+        }
+
+        if (inspector_id) {
+            sql += ` AND i.inspector_id = ?`;
+            params.push(inspector_id);
+        }
+
+        sql += ` ORDER BY i.created_at DESC LIMIT ?`;
+        params.push(parseInt(limit));
+
+        const inspections = await dbAll(sql, params);
+        res.json(inspections);
+    } catch (error) {
+        console.error("Fetch All Inspections Error:", error);
+        res.status(500).json({ message: "خطأ في جلب الكشوفات" });
+    }
+});
+
+
+// ==========================
 // 🧩 تشغيل السيرفر
 // ==========================
 app.listen(PORT, () => {

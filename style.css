@@ -8,7 +8,7 @@
   --primary-hover: #1d4ed8;
   --secondary-color: #64748b;     /* رمادي ثانوي */
   
-  /* Backgrounds & Text */
+  /* Backgrounds & Text - Light Mode */
   --bg-main: #f3f4f6;             /* خلفية الصفحة */
   --bg-card: #ffffff;             /* خلفية البطاقات */
   --text-main: #1e293b;           /* النص الأساسي */
@@ -17,14 +17,39 @@
 
   /* Status Colors */
   --success: #10b981;
+  --success-light: #d1fae5;
   --warning: #f59e0b;
+  --warning-light: #fef3c7;
   --danger: #ef4444;
+  --danger-light: #fee2e2;
+  --info: #3b82f6;
+  --info-light: #dbeafe;
 
   /* Spacing & Layout */
+  --radius-sm: 6px;
   --radius-md: 8px;
+  --radius-lg: 12px;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
   --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
   --header-height: 60px;
+  
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+}
+
+/* Dark Mode Variables */
+[data-theme="dark"] {
+  --bg-main: #0f172a;             /* خلفية داكنة */
+  --bg-card: #1e293b;             /* خلفية البطاقات داكنة */
+  --text-main: #f1f5f9;           /* نص فاتح */
+  --text-muted: #94a3b8;          /* نص فرعي */
+  --border-color: #334155;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.3);
 }
 
 /* =========================================
@@ -180,4 +205,273 @@ tr:hover { background-color: #f1f5f9; }
 @media (max-width: 768px) {
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
   .card { padding: 15px; }
+}
+
+/* =========================================
+   🌙 Dark Mode Toggle Button
+   ========================================= */
+.theme-toggle {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 2px solid var(--border-color);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  transition: all var(--transition-normal);
+  z-index: 1000;
+}
+
+.theme-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-lg);
+}
+
+.theme-toggle:active {
+  transform: scale(0.95);
+}
+
+/* =========================================
+   🔔 Toast Notifications
+   ========================================= */
+#toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 400px;
+}
+
+.toast {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-left: 4px solid var(--primary-color);
+  animation: slideIn 0.3s ease-out;
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.toast.toast-success {
+  border-left-color: var(--success);
+}
+
+.toast.toast-success .toast-icon {
+  color: var(--success);
+}
+
+.toast.toast-error {
+  border-left-color: var(--danger);
+}
+
+.toast.toast-error .toast-icon {
+  color: var(--danger);
+}
+
+.toast.toast-warning {
+  border-left-color: var(--warning);
+}
+
+.toast.toast-warning .toast-icon {
+  color: var(--warning);
+}
+
+.toast.toast-info {
+  border-left-color: var(--info);
+}
+
+.toast.toast-info .toast-icon {
+  color: var(--info);
+}
+
+.toast-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.toast-content {
+  flex: 1;
+}
+
+.toast-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: var(--text-main);
+}
+
+.toast-message {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all var(--transition-fast);
+}
+
+.toast-close:hover {
+  background: var(--bg-main);
+  color: var(--text-main);
+}
+
+.toast.removing {
+  animation: slideOut 0.3s ease-out forwards;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+}
+
+/* Progress bar for toast auto-close */
+.toast::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: currentColor;
+  opacity: 0.3;
+  animation: progressBar 5s linear forwards;
+}
+
+@keyframes progressBar {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+/* =========================================
+   ⏳ Loading Spinner
+   ========================================= */
+.spinner-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* =========================================
+   💫 Utility Classes
+   ========================================= */
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Smooth transitions */
+* {
+  transition: background-color var(--transition-normal),
+              color var(--transition-normal),
+              border-color var(--transition-normal);
+}
+
+/* Disable transitions during theme change for instant switch */
+.theme-transitioning * {
+  transition: none !important;
+}
+
+/* =========================================
+   📱 Mobile Responsive Improvements
+   ========================================= */
+@media (max-width: 768px) {
+  #toast-container {
+    left: 10px;
+    right: 10px;
+    top: 10px;
+    max-width: 100%;
+  }
+
+  .toast {
+    padding: 12px 16px;
+  }
+
+  .theme-toggle {
+    top: 10px;
+    left: 10px;
+    width: 45px;
+    height: 45px;
+    font-size: 20px;
+  }
 }
