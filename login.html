@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#4f46e5" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="الورشة" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icon-192.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <title>تسجيل الدخول - مدير الورشة</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .login-container {
+      background: white;
+      padding: 48px 40px;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .logo-container {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .logo {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 28px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #6b7280;
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 8px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 15px;
+      font-family: 'Cairo', sans-serif;
+      transition: all 0.2s;
+      background: #f9fafb;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #4f46e5;
+      background: white;
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+    }
+
+    input::placeholder {
+      color: #9ca3af;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      border: none;
+      color: white;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 8px;
+      font-family: 'Cairo', sans-serif;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .install-btn {
+      background: linear-gradient(135deg, #10b981, #059669);
+      margin-top: 12px;
+      display: none;
+    }
+
+    .install-btn:hover {
+      box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+    }
+
+    .error {
+      background: #fee2e2;
+      color: #dc2626;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      text-align: center;
+      margin-top: 16px;
+      border: 1px solid #fecaca;
+      display: none;
+    }
+
+    .error.show {
+      display: block;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      margin-top: 16px;
+      color: #4f46e5;
+      font-size: 14px;
+    }
+
+    .loading.show {
+      display: block;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #e5e7eb;
+      border-top-color: #4f46e5;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-left: 8px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid #e5e7eb;
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    @media (max-width: 480px) {
+      .login-container {
+        padding: 32px 24px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .logo {
+        width: 64px;
+        height: 64px;
+        font-size: 32px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="login-container">
+    <div class="logo-container">
+      <div class="logo">🔧</div>
+      <h1>مدير الورشة</h1>
+      <p class="subtitle">مرحباً بك! الرجاء تسجيل الدخول للمتابعة</p>
+    </div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="username">اسم المستخدم</label>
+        <input type="text" id="username" placeholder="أدخل اسم المستخدم" autocomplete="username" required />
+      </div>
+
+      <div class="form-group">
+        <label for="password">كلمة المرور</label>
+        <input type="password" id="password" placeholder="أدخل كلمة المرور" autocomplete="current-password" required />
+      </div>
+
+      <button type="submit" class="btn" id="loginBtn">
+        دخول
+      </button>
+
+      <button type="button" class="btn install-btn" id="installBtn">
+        📲 تحميل التطبيق
+      </button>
+
+      <div class="loading" id="loading">
+        <span>جاري تسجيل الدخول</span>
+        <span class="spinner"></span>
+      </div>
+
+      <div class="error" id="error"></div>
+    </form>
+
+    <div class="footer">
+      نظام إدارة الورشة والموظفين
+    </div>
+  </div>
+
+  <script>
+    // PWA Install Logic
+    let deferredPrompt;
+    const installBtn = document.getElementById('installBtn');
+
+    const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+    const isAndroid = () => /android/i.test(window.navigator.userAgent);
+    const isMobile = () => /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(window.navigator.userAgent.toLowerCase());
+    const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+    if (isStandalone()) {
+      console.log('App is running in standalone mode');
+    }
+
+    if (isIos() && !isStandalone()) {
+      installBtn.style.display = 'block';
+    }
+
+    if (isMobile() && !isIos() && !isStandalone()) {
+      setTimeout(() => {
+        if (!deferredPrompt && installBtn.style.display === 'none') {
+          installBtn.style.display = 'block';
+        }
+      }, 2000);
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.display = 'block';
+    });
+
+    installBtn.addEventListener('click', () => {
+      if (isIos()) {
+        alert('لتثبيت التطبيق على iPhone:\n\n1. اضغط على زر المشاركة 📤\n2. اختر "إضافة إلى الشاشة الرئيسية" ➕\n3. اضغط "إضافة" ✅');
+      } else if (deferredPrompt) {
+        installBtn.style.display = 'none';
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('User accepted install');
+          } else {
+            installBtn.style.display = 'block';
+          }
+          deferredPrompt = null;
+        });
+      } else if (isAndroid()) {
+        alert('لتثبيت التطبيق:\n\n1. تأكد من فتح الموقع عبر HTTPS\n2. استخدم Chrome أو Edge\n3. اختر "تثبيت" من قائمة المتصفح');
+      } else {
+        alert('استخدم قائمة المتصفح لتثبيت التطبيق');
+      }
+    });
+
+    // Login Form Handling
+    const loginForm = document.getElementById('loginForm');
+    const loginBtn = document.getElementById('loginBtn');
+    const loadingDiv = document.getElementById('loading');
+    const errorDiv = document.getElementById('error');
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      // Reset states
+      errorDiv.classList.remove('show');
+      errorDiv.textContent = '';
+      loginBtn.disabled = true;
+      loadingDiv.classList.add('show');
+
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || 'اسم المستخدم أو كلمة المرور غير صحيحة');
+        }
+
+        // Save auth data
+        localStorage.setItem('token', 'authenticated');
+        localStorage.setItem('user', JSON.stringify(data));
+
+        // Redirect based on role
+        if (data.role === 'admin') {
+          window.location.href = 'admin.html';
+        } else if (data.role === 'employee') {
+          window.location.href = `employee.html?id=${data.employee_id || data.id}`;
+        } else {
+          throw new Error('نوع المستخدم غير معروف');
+        }
+
+      } catch (error) {
+        console.error('Login error:', error);
+        loadingDiv.classList.remove('show');
+        loginBtn.disabled = false;
+        errorDiv.textContent = error.message || 'حدث خطأ في الاتصال بالخادم. تأكد من تشغيل السيرفر.';
+        errorDiv.classList.add('show');
+      }
+    });
+
+    // Focus username on load
+    document.getElementById('username').focus();
+
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('Service Worker registered'))
+          .catch(err => console.log('Service Worker registration failed:', err));
+      });
+    }
+  </script>
+</body>
+
+</html>
