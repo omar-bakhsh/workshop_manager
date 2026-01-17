@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2563eb">
+    <link rel="manifest" href="/manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <title>صفحة تجريبية - مدير الورشة</title>
+</head>
+
+<body>
+
+    <!-- Main Container -->
+    <div class="container">
+        <div class="card fade-in">
+            <h1>مثال على الصفحة المحسنة</h1>
+            <p class="text-muted">هذه صفحة تجريبية تعرض التحسينات الجديدة</p>
+        </div>
+
+        <!-- Example: Toast Notifications -->
+        <div class="card slide-up">
+            <h2>اختبار التنبيهات</h2>
+            <div class="grid-2">
+                <button class="btn btn-primary" onclick="Toast.success('تمت العملية بنجاح!')">
+                    نجاح ✓
+                </button>
+                <button class="btn btn-danger" onclick="Toast.error('حدث خطأ ما!')">
+                    خطأ ✗
+                </button>
+                <button class="btn btn-secondary" onclick="Toast.warning('انتبه! هذا تحذير')">
+                    تحذير ⚠
+                </button>
+                <button class="btn btn-primary" onclick="Toast.info('معلومة مفيدة')">
+                    معلومة ℹ
+                </button>
+            </div>
+        </div>
+
+        <!-- Example: Loading Spinner -->
+        <div class="card">
+            <h2>اختبار التحميل</h2>
+            <button class="btn btn-primary" onclick="testLoading()">
+                عرض شاشة التحميل
+            </button>
+        </div>
+
+        <!-- Example: API Call -->
+        <div class="card">
+            <h2>اختبار استدعاء API</h2>
+            <button class="btn btn-primary" onclick="testAPI()">
+                اختبار الاتصال بالسيرفر
+            </button>
+        </div>
+
+        <!-- Example: Table -->
+        <div class="card">
+            <h2>جدول بيانات نموذجي</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>القسم</th>
+                        <th>الدخل</th>
+                        <th>الحالة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>أحمد محمد</td>
+                        <td>الميكانيكا</td>
+                        <td>5,000 ر.س</td>
+                        <td><span style="color: var(--success)">نشط</span></td>
+                    </tr>
+                    <tr>
+                        <td>محمد علي</td>
+                        <td>الكهرباء</td>
+                        <td>4,500 ر.س</td>
+                        <td><span style="color: var(--success)">نشط</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Load utility scripts -->
+    <script src="utils.js"></script>
+    <script>
+        // Test loading spinner
+        function testLoading() {
+            Loading.show();
+            setTimeout(() => {
+                Loading.hide();
+                Toast.success('تم الانتهاء من التحميل!');
+            }, 2000);
+        }
+
+        // Test API call
+        async function testAPI() {
+            try {
+                const data = await API.get('/api/sections');
+                Toast.success(`تم جلب ${data.length} قسم بنجاح`);
+                console.log('Data:', data);
+            } catch (error) {
+                // Error already shown by API helper
+                console.error('API Error:', error);
+            }
+        }
+
+        // Show welcome message on load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                Toast.info('مرحباً! هذه الصفحة تستخدم النظام المحسن', 3000);
+            }, 500);
+        });
+    </script>
+</body>
+
+</html>
