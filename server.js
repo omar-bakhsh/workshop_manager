@@ -1338,7 +1338,7 @@ app.get('/api/notifications', async (req, res) => {
 
 // إضافة كشف جديد
 app.post('/api/inspections', async (req, res) => {
-    const { inspector_id, customer_name, customer_phone, car_type, car_color, car_model, plate_number, items, total_amount, vat_amount, final_amount, paid_amount, remaining_amount, status, job_order_notes, car_defects_diagram } = req.body;
+    const { inspector_id, customer_name, customer_phone, car_type, car_color, car_model, plate_number, odometer, vin, items, total_amount, vat_amount, final_amount, paid_amount, remaining_amount, status, job_order_notes, car_defects_diagram } = req.body;
 
     try {
         // البدء في المعاملة
@@ -1347,7 +1347,7 @@ app.post('/api/inspections', async (req, res) => {
         const inspResult = await dbRun(`
             INSERT INTO inspections (inspector_id, customer_name, customer_phone, car_type, car_color, car_model, plate_number, total_amount, vat_amount, final_amount, paid_amount, remaining_amount, status, job_order_notes, car_defects_diagram)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, 'new'), ?, ?)
-        `, [inspector_id, customer_name, customer_phone, car_type, car_color, car_model, plate_number, total_amount, vat_amount, final_amount, paid_amount, remaining_amount, status, job_order_notes, car_defects_diagram]);
+        `, [inspector_id, customer_name, customer_phone, car_type, car_color, car_model, plate_number, odometer, vin, total_amount, vat_amount, final_amount, paid_amount, remaining_amount, status, job_order_notes, car_defects_diagram]);
 
         const inspection_id = inspResult.lastID;
 
@@ -1536,7 +1536,7 @@ app.get('/api/inspections', async (req, res) => {
 // تحديث كشف (تعديل)
 app.put('/api/inspections/:id', async (req, res) => {
     const { id } = req.params;
-    const { customer_name, customer_phone, car_type, car_model, car_color, plate_number, items, total_amount, vat_amount, final_amount, paid_amount, remaining_amount, status, technician_ids, job_order_notes, car_defects_diagram } = req.body;
+    const { customer_name, customer_phone, car_type, car_model, car_color, plate_number, odometer, vin, items, total_amount, vat_amount, final_amount, paid_amount, remaining_amount, status, technician_ids, job_order_notes, car_defects_diagram } = req.body;
 
     try {
         await dbRun('BEGIN TRANSACTION');
@@ -1550,7 +1550,7 @@ app.put('/api/inspections/:id', async (req, res) => {
                 job_order_notes = COALESCE(?, job_order_notes), 
                 car_defects_diagram = COALESCE(?, car_defects_diagram)
             WHERE id = ?
-        `, [customer_name, customer_phone, car_type, car_model, car_color, plate_number, total_amount, vat_amount, final_amount, paid_amount, remaining_amount, status, job_order_notes, car_defects_diagram, id]);
+        `, [customer_name, customer_phone, car_type, car_model, car_color, plate_number, odometer, vin, total_amount, vat_amount, final_amount, paid_amount, remaining_amount, status, job_order_notes, car_defects_diagram, id]);
 
         // 2. Update Items
         if (items && Array.isArray(items)) {

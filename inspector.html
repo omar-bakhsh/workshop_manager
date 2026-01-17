@@ -609,6 +609,15 @@
             </div>
         </div>
 
+        <!-- Bundles Shortcuts -->
+        <div class="card no-print" style="background: #f0fdf4; border: 2px solid var(--success); margin-bottom: 15px;">
+            <div class="card-title" style="margin-bottom: 10px; font-weight: bold; color: #166534;">🚀 باقات سريعة (اختصارات)</div>
+            <div id="bundlesShortcutsContainer" style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <div style="color: #166534; font-size: 14px;">⏳ جاري تحميل الاختصارات...</div>
+            </div>
+        </div>
+
+
         <!-- Printable Area -->
         <div class="card" id="printableArea">
             <div class="workshop-header">
@@ -956,6 +965,8 @@
                 car_type: document.getElementById('carType').value,
                 car_model: document.getElementById('carModel').value,
                 car_color: document.getElementById('carColor').value,
+                odometer: document.getElementById('odometer').value,
+                vin: document.getElementById('vin').value,
                 plate_number: `${document.getElementById('pL1').value}${document.getElementById('pL2').value}${document.getElementById('pL3').value} ${document.getElementById('pN1').value}${document.getElementById('pN2').value}${document.getElementById('pN3').value}${document.getElementById('pN4').value}`,
                 total_amount: parseFloat(document.getElementById('subTotal').textContent),
                 vat_amount: parseFloat(document.getElementById('vatTotal').textContent),
@@ -1010,6 +1021,8 @@
                 document.getElementById('carType').value = data.car_type;
                 document.getElementById('carModel').value = data.car_model;
                 document.getElementById('carColor').value = data.car_color;
+                document.getElementById('odometer').value = data.odometer || '';
+                document.getElementById('vin').value = data.vin || '';
                 document.getElementById('paidAmount').value = data.paid_amount;
 
                 // Load items
