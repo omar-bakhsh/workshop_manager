@@ -609,16 +609,6 @@
             </div>
         </div>
 
-        <!-- Bundles Shortcuts -->
-        <div class="card no-print" style="background: #f0fdf4; border: 2px solid var(--success); margin-bottom: 15px;">
-            <div class="card-title" style="margin-bottom: 10px; font-weight: bold; color: #166534;">🚀 باقات سريعة
-                (اختصارات)</div>
-            <div id="bundlesShortcutsContainer" style="display: flex; gap: 15px; flex-wrap: wrap;">
-                <div style="color: #166534; font-size: 14px;">⏳ جاري تحميل الاختصارات...</div>
-            </div>
-        </div>
-
-
         <!-- Printable Area -->
         <div class="card" id="printableArea">
             <div class="workshop-header">
@@ -665,14 +655,6 @@
                 <div class="form-group">
                     <label>لون السيارة</label>
                     <input type="text" id="carColor">
-                </div>
-                <div class="form-group">
-                    <label>عداد السيارة الحالي</label>
-                    <input type="text" id="odometer">
-                </div>
-                <div class="form-group">
-                    <label>رقم الهيكل (VIN)</label>
-                    <input type="text" id="vin">
                 </div>
                 <div class="form-group">
                     <label>رقم اللوحة</label>
@@ -737,6 +719,7 @@
 
         <div class="actions no-print">
             <button class="btn btn-primary" onclick="saveInspection()">💾 حفظ الكشف</button>
+            <button class="btn btn-warning" onclick="saveInspection('job_order')">🛠️ تحويل لأمر عمل</button>
             <button class="btn btn-success" onclick="window.print()">🖨️ طباعة / PDF</button>
             <button class="btn btn-secondary" onclick="resetForm()">🔄 جديد</button>
         </div>
@@ -745,10 +728,10 @@
     <script>
         let pricingData = {};
         let allServicesList = [];
-        let allBundles = [];
 
         let currentUser = JSON.parse(localStorage.getItem('user'));
         let currentInspectionId = null;
+        let currentInspectionData = null; // Store full data to preserve status on updates
 
         async function init() {
             if (!currentUser) window.location.href = 'login.html';
@@ -762,7 +745,14 @@
             updateQuickServices();
             generateRows(30);
             setupEnterNavigation();
-            await loadBundles();
+
+            // Check if we are in Edit Mode (URL has ?id=X)
+            const urlParams = new URLSearchParams(window.location.search);
+            const editId = urlParams.get('id');
+            if (editId) {
+                console.log("Edit Mode: Loading inspection", editId);
+                loadInspection(editId);
+            }
         }
 
         async function fetchServices() {
@@ -818,73 +808,6 @@
                 }
             }
             alert('الجدول ممتلئ!');
-        }
-
-        async function loadBundles() {
-            try {
-                const res = await fetch('/api/inspection-bundles');
-                allBundles = await res.json();
-                renderBundleShortcuts();
-            } catch (e) { console.error(e); }
-        }
-
-        function renderBundleShortcuts() {
-            const container = document.getElementById('bundlesShortcutsContainer');
-            if (!container) return;
-            if (allBundles.length === 0) {
-                container.innerHTML = '<div style="color: #166534; font-size: 14px;">لا توجد باقات مضافة</div>';
-                return;
-            }
-            container.innerHTML = allBundles.map(b => `
-                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; background: white; padding: 10px 15px; border-radius: 12px; border: 1px solid #bbf7d0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.2s;" onmouseover="this.style.borderColor='#22c55e'" onmouseout="this.style.borderColor='#bbf7d0'">
-                    <input type="checkbox" onchange="applyBundle(${b.id}, this)" style="width: 20px; height: 20px; cursor: pointer;">
-                    <span style="font-weight: 600; color: #166534;">${b.name} ${b.icon || '✅'}</span>
-                </label>
-            `).join('');
-        }
-
-        function applyBundle(bundleId, checkbox) {
-            if (!checkbox.checked) return;
-
-            const bundle = allBundles.find(b => b.id === bundleId);
-            if (!bundle) return;
-
-            const items = bundle.items;
-            const rows = document.querySelectorAll('#tableBody tr');
-            let addedCount = 0;
-
-            items.forEach(item => {
-                for (let tr of rows) {
-                    const input = tr.querySelector('.service-input');
-                    if (!input.value.trim()) {
-                        tr.querySelector('.cat-select').value = item.category;
-                        input.value = item.service_description;
-
-                        // محاولة إيجاد السعر من البيانات المحملة
-                        let price = 0;
-                        if (pricingData[item.category]) {
-                            const found = pricingData[item.category].find(s => s.service === item.service_description);
-                            if (found) price = found.price;
-                        }
-
-                        tr.querySelector('.price-input').value = price;
-                        tr.querySelector('.qty-input').value = 1;
-                        calculateRow(input);
-
-                        tr.style.backgroundColor = '#dcfce7';
-                        setTimeout(() => tr.style.backgroundColor = '', 1500);
-                        addedCount++;
-                        break;
-                    }
-                }
-            });
-
-            if (addedCount < items.length) {
-                alert(`تم إضافة ${addedCount} من أصل ${items.length} خدمات. الجدول قد يكون ممتلئاً.`);
-            }
-
-            // إعادة ضبط الـ checkbox ليكون قابلاً للنقر مرة أخرى مستقبلاً
-            setTimeout(() => checkbox.checked = false, 500);
         }
 
         function populateModels() {
@@ -1003,8 +926,7 @@
             document.getElementById('remainingAmount').textContent = remaining.toFixed(2);
         }
 
-        async function saveInspection() {
-            if (!currentUser || !currentUser.employee_id) return alert('خطأ: لم يتم العثور على بيانات الموظف. يرجى تسجيل الدخول مرة أخرى.');
+        async function saveInspection(targetStatus) {
             const items = [];
             document.querySelectorAll('#tableBody tr').forEach(tr => {
                 const service = tr.querySelector('.service-input').value.trim();
@@ -1021,6 +943,12 @@
 
             if (items.length === 0) return alert('الرجاء إضافة خدمة واحدة على الأقل');
 
+            // If update, preserve current status if no targetStatus provided
+            let finalStatus = targetStatus || 'new';
+            if (!targetStatus && currentInspectionData && currentInspectionData.status) {
+                finalStatus = currentInspectionData.status;
+            }
+
             const data = {
                 inspector_id: currentUser.employee_id,
                 customer_name: document.getElementById('custName').value,
@@ -1028,72 +956,52 @@
                 car_type: document.getElementById('carType').value,
                 car_model: document.getElementById('carModel').value,
                 car_color: document.getElementById('carColor').value,
-                odometer: document.getElementById('odometer').value,
-                vin: document.getElementById('vin').value,
                 plate_number: `${document.getElementById('pL1').value}${document.getElementById('pL2').value}${document.getElementById('pL3').value} ${document.getElementById('pN1').value}${document.getElementById('pN2').value}${document.getElementById('pN3').value}${document.getElementById('pN4').value}`,
                 total_amount: parseFloat(document.getElementById('subTotal').textContent),
                 vat_amount: parseFloat(document.getElementById('vatTotal').textContent),
                 final_amount: parseFloat(document.getElementById('finalTotal').textContent),
                 paid_amount: parseFloat(document.getElementById('paidAmount').value) || 0,
                 remaining_amount: parseFloat(document.getElementById('remainingAmount').textContent),
+                status: finalStatus,
                 items: items
             };
 
             try {
-                const url = currentInspectionId ? `/api/inspections/${currentInspectionId}` : '/api/inspections';
                 const method = currentInspectionId ? 'PUT' : 'POST';
+                const url = currentInspectionId ? `/api/inspections/${currentInspectionId}` : '/api/inspections';
 
                 const res = await fetch(url, {
                     method: method,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
+
                 const result = await res.json();
+
                 if (res.ok) {
-                    alert(currentInspectionId ? 'تم تحديث الكشف بنجاح' : 'تم حفظ الكشف بنجاح، رقم الكشف: ' + result.id);
-                    if (!currentInspectionId) {
-                        currentInspectionId = result.id;
-                        document.getElementById('inspectionIdDisplay').textContent = result.id;
-                    }
+                    const savedId = currentInspectionId || result.id;
+                    currentInspectionId = savedId;
+                    alert(targetStatus === 'job_order' ? 'تم تحويل الكشف لأمر عمل بنجاح!' : 'تم حفظ الكشف بنجاح، رقم الكشف: ' + savedId);
+                    document.getElementById('inspectionIdDisplay').textContent = savedId;
                 } else {
-                    alert('خطأ في الحفظ: ' + (result.message || 'فشل الاتصال بالسيرفر'));
+                    alert('خطأ في الحفظ: ' + result.message);
                 }
             } catch (e) {
                 console.error(e);
-                alert('حدث خطأ: ' + e.message);
+                alert('حدث خطأ غير متوقع');
             }
         }
 
         async function searchInspections() {
-            const query = document.getElementById('searchInput').value.trim();
-            if (!query) return;
-
-            try {
-                const res = await fetch(`/api/inspections/search?query=${encodeURIComponent(query)}`);
-                if (!res.ok) throw new Error('Network response was not ok');
-                const results = await res.json();
-
-                if (!Array.isArray(results) || results.length === 0) {
-                    return alert('لا توجد نتائج لهذا البحث');
-                }
-
-                if (results.length === 1) {
-                    loadInspection(results[0].id);
-                } else {
-                    const choice = prompt(`وجدنا ${results.length} نتائج. أدخل رقم الكشف المطلوب:\n` +
-                        results.map(r => `#${r.id} - ${r.customer_name} (${r.customer_phone})`).join('\n'));
-                    if (choice) loadInspection(choice);
-                }
-            } catch (e) {
-                console.error('Search Error:', e);
-                alert('حدث خطأ أثناء البحث');
-            }
+            window.location.href = 'inspections_list.html';
         }
+
 
         async function loadInspection(id) {
             try {
                 const res = await fetch(`/api/inspections/${id}`);
                 const data = await res.json();
+                currentInspectionData = data; // Store globally
                 currentInspectionId = data.id;
                 document.getElementById('inspectionIdDisplay').textContent = data.id;
                 document.getElementById('currentDate').textContent = new Date(data.created_at).toLocaleDateString('ar-SA');
@@ -1102,28 +1010,9 @@
                 document.getElementById('carType').value = data.car_type;
                 document.getElementById('carModel').value = data.car_model;
                 document.getElementById('carColor').value = data.car_color;
-                document.getElementById('odometer').value = data.odometer || '';
-                document.getElementById('vin').value = data.vin || '';
                 document.getElementById('paidAmount').value = data.paid_amount;
 
-                // Load plate number
-                if (data.plate_number) {
-                    const parts = data.plate_number.split(' ');
-                    if (parts.length === 2) {
-                        const letters = parts[0];
-                        const numbers = parts[1];
-                        document.getElementById('pL1').value = letters[0] || '';
-                        document.getElementById('pL2').value = letters[1] || '';
-                        document.getElementById('pL3').value = letters[2] || '';
-                        document.getElementById('pN1').value = numbers[0] || '';
-                        document.getElementById('pN2').value = numbers[1] || '';
-                        document.getElementById('pN3').value = numbers[2] || '';
-                        document.getElementById('pN4').value = numbers[3] || '';
-                    }
-                }
-
                 // Load items
-                generateRows(30); // Reset rows
                 const rows = document.querySelectorAll('#tableBody tr');
                 data.items.forEach((item, i) => {
                     if (rows[i]) {

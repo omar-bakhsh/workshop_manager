@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>صفحة الموظف</title>
+  <style>
+    :root {
+      --primary: #3498db;
+      --secondary: #2c3e50;
+      --success: #27ae60;
+      --warning: #f39c12;
+      --danger: #e74c3c;
+      --light: #f8f9fa;
+      --dark: #343a40;
+      --gray: #6c757d;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #333;
+      line-height: 1.6;
+      padding: 15px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .welcome-message {
+      color: white;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    .logout {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 15px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .logout:hover {
+      background: rgba(255, 255, 255, 0.3);
+      color: white;
+      text-decoration: none;
+    }
+
+    .card {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+    }
+
+    .card h2 {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      color: white;
+      padding: 20px;
+      font-size: 1.3rem;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin: 20px;
+    }
+
+    .info-item {
+      background: linear-gradient(135deg, var(--light), #ffffff);
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      border: 1px solid #e9ecef;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .info-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .info-item h3 {
+      margin: 0 0 10px 0;
+      color: var(--gray);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .info-item p {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: var(--dark);
+    }
+
+    .positive {
+      color: var(--success);
+    }
+
+    .negative {
+      color: var(--danger);
+    }
+
+    .achieved {
+      color: var(--primary);
+      font-weight: bold;
+    }
+
+    .progress-container {
+      margin: 20px;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 0.9rem;
+      color: var(--gray);
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 12px;
+      background: #e9ecef;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--success), #20c997);
+      transition: width 0.5s ease;
+      border-radius: 10px;
+    }
+
+    .last-update {
+      background: linear-gradient(135deg, #e7f3ff, #f0f8ff);
+      border-right: 4px solid var(--primary);
+      padding: 20px;
+      border-radius: 12px;
+      margin: 20px;
+    }
+
+    .last-update h3 {
+      margin: 0 0 15px 0;
+      color: var(--primary);
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .update-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+    }
+
+    .update-item {
+      text-align: center;
+      padding: 12px;
+      background: white;
+      border-radius: 8px;
+      border: 1px solid #e9ecef;
+    }
+
+    .update-label {
+      font-size: 0.8rem;
+      color: var(--gray);
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    .update-value {
+      font-size: 0.95rem;
+      font-weight: bold;
+      color: var(--dark);
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--gray);
+      font-size: 1rem;
+    }
+
+    /* تصميم الجدول للشاشات الكبيرة */
+    .income-table {
+      width: 100%;
+      border-collapse: collapse;
+      display: table;
+    }
+
+    .income-table thead {
+      background-color: var(--light);
+    }
+
+    .income-table th {
+      padding: 15px 12px;
+      text-align: center;
+      font-weight: 600;
+      color: var(--dark);
+      border-bottom: 2px solid #e9ecef;
+      font-size: 0.9rem;
+    }
+
+    .income-table td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid #e9ecef;
+      vertical-align: top;
+    }
+
+    .income-table tbody tr:hover {
+      background-color: var(--light);
+    }
+
+    .income-table .amount {
+      font-weight: bold;
+      color: var(--success);
+    }
+
+    .income-table button {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background-color 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .income-table button:hover {
+      background-color: #2980b9;
+    }
+
+    .has-note {
+      background: #f0fff4;
+    }
+
+    .note-badge {
+      background: var(--success);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      margin-left: 5px;
+    }
+
+    /* تصميم الجدول للشاشات الصغيرة */
+    @media (max-width: 768px) {
+      .income-table {
+        display: block;
+        overflow-x: auto;
+      }
+
+      .income-table thead {
+        display: none;
+      }
+
+      .income-table tbody,
+      .income-table tr,
+      .income-table td {
+        display: block;
+        width: 100%;
+      }
+
+      .income-table tr {
+        margin-bottom: 15px;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      }
+
+      .income-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        text-align: right;
+      }
+
+      .income-table td:before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: var(--dark);
+        margin-left: 10px;
+        flex-shrink: 0;
+      }
+
+      .income-table td:last-child {
+        border-bottom: none;
+      }
+
+      .income-table .amount {
+        font-size: 1.1rem;
+      }
+
+      .income-table button {
+        width: 100%;
+        justify-content: center;
+        padding: 10px;
+      }
+    }
+
+    /* تصميم البطاقات للجوال */
+    .mobile-cards {
+      display: none;
+    }
+
+    @media (max-width: 576px) {
+      body {
+        padding: 10px;
+      }
+
+      .income-table {
+        display: none;
+      }
+
+      .mobile-cards {
+        display: block;
+      }
+
+      .info-grid {
+        grid-template-columns: 1fr;
+        margin: 15px;
+        gap: 10px;
+      }
+
+      .info-item {
+        padding: 15px;
+      }
+
+      .card h2 {
+        padding: 15px;
+        font-size: 1.2rem;
+      }
+
+      .last-update {
+        margin: 15px;
+        padding: 15px;
+      }
+
+      .update-details {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .income-card {
+      background: white;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      border-right: 4px solid var(--primary);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .card-date {
+      font-weight: bold;
+      color: var(--dark);
+    }
+
+    .card-amount {
+      font-weight: bold;
+      font-size: 1.2rem;
+      color: var(--success);
+    }
+
+    .card-details {
+      margin-bottom: 15px;
+    }
+
+    .detail-row {
+      display: flex;
+      margin-bottom: 8px;
+    }
+
+    .detail-label {
+      font-weight: bold;
+      color: var(--dark);
+      min-width: 120px;
+    }
+
+    .detail-value {
+      color: #555;
+      flex: 1;
+      text-align: right;
+    }
+
+    .card-actions {
+      text-align: left;
+    }
+
+    .card-actions button {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* تصميم نموذج الملاحظات */
+    .notes-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .notes-container {
+      background: white;
+      border-radius: 15px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 80vh;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .notes-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .notes-header h3 {
+      margin: 0;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .notes-content {
+      padding: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: bold;
+      color: var(--dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 120px;
+      transition: all 0.3s ease;
+    }
+
+    textarea:focus {
+      border-color: var(--primary);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 12px 25px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #2980b9;
+    }
+
+    .btn-secondary {
+      background: var(--gray);
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+    .error-message {
+      background: #f8d7da;
+      color: var(--danger);
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #f5c6cb;
+      margin: 10px 0;
+      text-align: center;
+    }
+
+    .badge {
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: white;
+    }
+
+    .badge-success {
+      background-color: var(--success);
+    }
+
+    .badge-danger {
+      background-color: var(--danger);
+    }
+
+    .badge-warning {
+      background-color: var(--warning);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <a href="#" class="logout" id="logoutBtn">
+        <span>🚪</span>
+        تسجيل خروج
+      </a>
+      <div class="welcome-message" id="welcome-message">مرحباً بك</div>
+    </div>
+
+    <div class="card">
+      <h2>📊 صفحة الموظف</h2>
+
+      <div class="info-grid">
+        <div class="info-item">
+          <h3>👤 الاسم</h3>
+          <p id="emp_name">-</p>
+        </div>
+        <div class="info-item">
+          <h3>🏢 القسم</h3>
+          <p id="emp_section">-</p>
+        </div>
+        <div class="info-item">
+          <h3>🎯 الهدف</h3>
+          <p id="emp_target">-</p>
+        </div>
+        <div class="info-item">
+          <h3>💰 الدخل الحالي</h3>
+          <p id="emp_income" class="positive">-</p>
+        </div>
+        <div class="info-item">
+          <h3>💸 إجمالي السحوبات</h3>
+          <p id="emp_total_withdrawal" class="negative">-</p>
+        </div>
+        <div class="info-item">
+          <h3>⏳ المتبقي من الراتب</h3>
+          <p id="emp_remaining_salary">-</p>
+        </div>
+      </div>
+
+      <div class="progress-container" id="progress-container" style="display: none;">
+        <div class="progress-label">
+          <span>نسبة تحقيق الهدف</span>
+          <span id="progress-percent">0%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="last-update-card" style="display: none;">
+      <h2>🔄 آخر تحديث للدخل</h2>
+      <div class="last-update">
+        <h3>📈 آخر دخل مسجل</h3>
+        <div class="update-details">
+          <div class="update-item">
+            <div class="update-label">💵 المبلغ</div>
+            <div class="update-value" id="last-amount">-</div>
+          </div>
+          <div class="update-item">
+            <div class="update-label">📅 تاريخ الإضافة</div>
+            <div class="update-value" id="last-date">-</div>
+          </div>
+          <div class="update-item">
+            <div class="update-label">📝 ملاحظات المدير</div>
+            <div class="update-value" id="last-note">-</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="withdrawals-card" style="display: none;">
+      <h2>💳 سجل السحوبات</h2>
+
+      <!-- نموذج طلب سحب -->
+      <div class="request-form" style="margin: 20px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+        <h3>➕ طلب سحب جديد</h3>
+        <div class="form-group">
+          <label>💵 المبلغ المطلوب</label>
+          <input type="number" id="request-amount" placeholder="أدخل المبلغ">
+        </div>
+        <div class="form-group">
+          <label>📝 السبب (اختياري)</label>
+          <input type="text" id="request-reason" placeholder="سبب السحب">
+        </div>
+        <button class="btn btn-primary" onclick="requestWithdrawal()">🚀 إرسال الطلب</button>
+      </div>
+
+      <div id="withdrawals-loading" class="loading">جاري تحميل سجل السحوبات...</div>
+
+      <!-- جدول السحوبات للشاشات المتوسطة والكبيرة -->
+      <table class="income-table" id="withdrawals-table" style="display: none;">
+        <thead>
+          <tr>
+            <th>📅 التاريخ</th>
+            <th>💵 المبلغ</th>
+            <th>📝 السبب</th>
+            <th>⚙️ الحالة</th>
+            <th>💬 ملاحظات المدير</th>
+          </tr>
+        </thead>
+        <tbody id="withdrawals_table">
+          <!-- سيتم تعبئة البيانات هنا -->
+        </tbody>
+      </table>
+
+      <!-- بطاقات السحوبات للجوال -->
+      <div class="mobile-cards" id="mobile-withdrawals">
+        <!-- سيتم تعبئة البطاقات هنا -->
+      </div>
+
+      <div id="withdrawals-error" class="error-message" style="display: none;"></div>
+    </div>
+
+    <!-- نظام الإجازات -->
+    <div class="card">
+      <h2>🏖️ نظام الإجازات</h2>
+
+      <!-- رصيد الإجازات -->
+      <div
+        style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 12px; margin-bottom: 20px;">
+        <div
+          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; text-align: center;">
+          <div>
+            <div style="font-size: 0.9rem; opacity: 0.9;">📊 إجمالي الإجازات</div>
+            <div id="leave-total" style="font-size: 2rem; font-weight: bold; margin-top: 8px;">21</div>
+            <div style="font-size: 0.85rem; opacity: 0.8;">يوم</div>
+          </div>
+          <div style="border-right: 1px solid rgba(255,255,255,0.3); border-left: 1px solid rgba(255,255,255,0.3);">
+            <div style="font-size: 0.9rem; opacity: 0.9;">✅ المستخدم</div>
+            <div id="leave-used" style="font-size: 2rem; font-weight: bold; margin-top: 8px;">0</div>
+            <div style="font-size: 0.85rem; opacity: 0.8;">يوم</div>
+          </div>
+          <div>
+            <div style="font-size: 0.9rem; opacity: 0.9;">📍 المتبقي</div>
+            <div id="leave-remaining" style="font-size: 2rem; font-weight: bold; margin-top: 8px;">21</div>
+            <div style="font-size: 0.85rem; opacity: 0.8;">يوم</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- نموذج طلب إجازة -->
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+        <h3 style="margin-bottom: 20px;">➕ طلب إجازة جديدة</h3>
+
+        <div class="form-group">
+          <label>📝 نوع الإجازة</label>
+          <select id="leave-type" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+            <option value="annual">إجازة سنوية</option>
+            <option value="sick">إجازة مرضية</option>
+            <option value="unpaid">إجازة بدون راتب</option>
+          </select>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div class="form-group">
+            <label>📅 من</label>
+            <input type="date" id="leave-start"
+              style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+          </div>
+          <div class="form-group">
+            <label>📅 إلى</label>
+            <input type="date" id="leave-end"
+              style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+          </div>
+        </div>
+
+        <div id="leave-days-display"
+          style="padding: 12px; background: white; border-radius: 8px; margin: 15px 0; text-align: center; font-weight: bold; display: none;">
+          ⏱️ عدد الأيام: <span id="leave-days-count">0</span> يوم (أيام العمل فقط)
+        </div>
+
+        <div class="form-group">
+          <label>💬 السبب</label>
+          <textarea id="leave-reason" placeholder="سبب طلب الإجازة"
+            style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; min-height: 80px;"></textarea>
+        </div>
+
+        <button class="btn btn-primary" onclick="submitLeaveRequest()" style="width: 100%;">
+          🚀 إرسال طلب الإجازة
+        </button>
+      </div>
+
+      <!-- سجل طلبات الإجازة -->
+      <h3>📋 سجل طلبات الإجازة</h3>
+      <div id="leave-requests-loading" class="loading">جاري تحميل الطلبات...</div>
+      <div id="leave-requests-list"></div>
+      <div id="leave-requests-error" class="error-message" style="display: none;"></div>
+    </div>
+
+    <div class="card">
+      <h2>📋 سجل الدخل</h2>
+      <div id="entries-loading" class="loading">جاري تحميل سجل الدخل...</div>
+
+      <!-- جدول للشاشات المتوسطة والكبيرة -->
+      <table class="income-table" id="entries-table" style="display: none;">
+        <thead>
+          <tr>
+            <th>📅 التاريخ</th>
+            <th>💵 المبلغ</th>
+            <th>📝 ملاحظات المدير</th>
+            <th>💬 ملاحظاتي</th>
+            <th>⚙️ الإجراء</th>
+          </tr>
+        </thead>
+        <tbody id="entries_table">
+          <!-- سيتم تعبئة البيانات هنا -->
+        </tbody>
+      </table>
+
+      <!-- تصميم البطاقات للجوال -->
+      <div class="mobile-cards" id="mobile-entries">
+        <!-- سيتم تعبئة البطاقات هنا -->
+      </div>
+
+      <div id="entries-error" class="error-message" style="display: none;"></div>
+    </div>
+  </div>
+
+  <!-- نموذج إضافة/تعديل الملاحظات -->
+  <div class="notes-modal" id="notes-modal">
+    <div class="notes-container">
+      <div class="notes-header">
+        <h3>💬 إضافة ملاحظة</h3>
+      </div>
+      <div class="notes-content">
+        <div class="form-group">
+          <label for="note-text">✍️ ملاحظاتك:</label>
+          <textarea id="note-text"
+            placeholder="اكتب ملاحظتك هنا... يمكنك إضافة ملاحظات حول الدخل، التقدم، أو أي معلومات أخرى مهمة."></textarea>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" onclick="saveNote()">
+            💾 حفظ الملاحظة
+          </button>
+          <button class="btn btn-secondary" onclick="closeNoteModal()">
+            ❌ إلغاء
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const employeeId = urlParams.get('id');
+    let currentEntryId = null;
+    let currentEmployeeData = null;
+
+    if (!employeeId) {
+      alert('خطأ: لم يتم تحديد موظف');
+      window.location.href = 'login.html';
+    }
+
+    // دالة التحقق من صحة التوكن
+    // ========== نظام الإجازات ==========
+
+    async function loadLeaveBalance() {
+      try {
+        const response = await fetch(`/api/leave-balance/${employeeId}`);
+        if (!response.ok) throw new Error('فشل تحميل رصيد الإجازات');
+
+        const balance = await response.json();
+
+        document.getElementById('leave-total').textContent = balance.total;
+        document.getElementById('leave-used').textContent = balance.used;
+        document.getElementById('leave-remaining').textContent = balance.remaining;
+
+        // تلوين الرصيد المتبقي
+        const remainingElem = document.getElementById('leave-remaining');
+        if (balance.remaining < 5) {
+          remainingElem.style.color = '#ff6b6b'; // أحمر فاتح
+        } else {
+          remainingElem.style.color = 'white';
+        }
+
+      } catch (error) {
+        console.error('Error loading leave balance:', error);
+      }
+    }
+
+    async function loadLeaveRequests() {
+      const list = document.getElementById('leave-requests-list');
+      const loading = document.getElementById('leave-requests-loading');
+      const errorDiv = document.getElementById('leave-requests-error');
+
+      loading.style.display = 'block';
+      list.innerHTML = '';
+      errorDiv.style.display = 'none';
+
+      try {
+        const response = await fetch(`/api/leave-requests/employee/${employeeId}`);
+        if (!response.ok) throw new Error('فشل تحميل سجل الإجازات');
+
+        const requests = await response.json();
+        loading.style.display = 'none';
+
+        if (requests.length === 0) {
+          list.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--gray);">لا توجد طلبات إجازة سابقة</div>';
+          return;
+        }
+
+        list.innerHTML = requests.map(req => `
+          <div class="income-card" style="border-right-color: ${req.status === 'pending' ? 'var(--warning)' : req.status === 'approved' ? 'var(--success)' : 'var(--danger)'}">
+            <div class="card-header">
+              <div>
+                <span class="card-date">${new Date(req.start_date).toLocaleDateString('ar-EG')} - ${new Date(req.end_date).toLocaleDateString('ar-EG')}</span>
+                <div style="font-size: 0.85rem; color: var(--gray); margin-top: 5px;">${req.days_count} يوم (${req.leave_type === 'annual' ? 'سنوية' : req.leave_type})</div>
+              </div>
+              <span class="badge badge-${req.status === 'pending' ? 'warning' : req.status === 'approved' ? 'success' : 'danger'}">
+                ${req.status === 'pending' ? 'قيد المراجعة' : req.status === 'approved' ? 'مقبولة' : 'مرفوضة'}
+              </span>
+            </div>
+            ${req.reason ? `<div style="margin-top: 10px; font-size: 0.9rem;"><strong>السبب:</strong> ${req.reason}</div>` : ''}
+            ${req.admin_notes ? `<div style="margin-top: 10px; padding: 10px; background: #fff3cd; border-radius: 5px; font-size: 0.9rem;"><strong>ملاحظات المدير:</strong> ${req.admin_notes}</div>` : ''}
+          </div>
+        `).join('');
+
+      } catch (error) {
+        loading.style.display = 'none';
+        errorDiv.textContent = error.message;
+        errorDiv.style.display = 'block';
+      }
+    }
+
+    async function submitLeaveRequest() {
+      const type = document.getElementById('leave-type').value;
+      const start = document.getElementById('leave-start').value;
+      const end = document.getElementById('leave-end').value;
+      const reason = document.getElementById('leave-reason').value;
+
+      if (!start || !end) {
+        alert('الرجاء اختيار تاريخ البداية والنهاية');
+        return;
+      }
+
+      if (new Date(start) > new Date(end)) {
+        alert('تاريخ البداية يجب أن يكون قبل تاريخ النهاية');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/leave-requests', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            employee_id: employeeId,
+            leave_type: type,
+            start_date: start,
+            end_date: end,
+            reason: reason
+          })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.message || 'فشل إرسال الطلب');
+        }
+
+        alert('✅ تم إرسال طلب الإجازة بنجاح');
+
+        // تصفير النموذج
+        document.getElementById('leave-start').value = '';
+        document.getElementById('leave-end').value = '';
+        document.getElementById('leave-reason').value = '';
+        document.getElementById('leave-days-display').style.display = 'none';
+
+        // تحديث البيانات
+        loadLeaveRequests();
+        loadLeaveBalance();
+
+      } catch (error) {
+        alert('❌ خطأ: ' + error.message);
+      }
+    }
+
+    // حساب عدد الأيام عند تغيير التواريخ
+    function calculateLeaveDays() {
+      const start = document.getElementById('leave-start').value;
+      const end = document.getElementById('leave-end').value;
+      const display = document.getElementById('leave-days-display');
+      const countSpan = document.getElementById('leave-days-count');
+
+      if (start && end) {
+        const startDate = new Date(start);
+        const endDate = new Date(end);
+
+        if (startDate <= endDate) {
+          // حساب أيام العمل (استثناء الجمعة والسبت)
+          let count = 0;
+          let current = new Date(startDate);
+
+          while (current <= endDate) {
+            const day = current.getDay();
+            if (day !== 5 && day !== 6) { // 5 = Friday, 6 = Saturday
+              count++;
+            }
+            current.setDate(current.getDate() + 1);
+          }
+
+          countSpan.textContent = count;
+          display.style.display = 'block';
+        } else {
+          display.style.display = 'none';
+        }
+      } else {
+        display.style.display = 'none';
+      }
+    }
+
+    // إضافة مستمعي الأحداث للتواريخ
+    document.getElementById('leave-start').addEventListener('change', calculateLeaveDays);
+    document.getElementById('leave-end').addEventListener('change', calculateLeaveDays);
+
+    function checkAuth() {
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+      if (!token || user.role !== 'employee') {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // التحقق من أن الموظف يصل فقط لبياناته
+      if (user.employee_id && user.employee_id.toString() !== employeeId) {
+        alert('غير مصرح لك بالوصول إلى هذه الصفحة');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      loadEmployeeData();
+      loadLeaveRequests();
+      loadLeaveBalance();
+    }
+
+    async function loadEmployeeData() {
+      try {
+        showLoading('employee');
+
+        // جلب بيانات الموظف من API
+        const response = await fetch(`/api/employee-stats/${employeeId}`);
+        if (!response.ok) {
+          throw new Error('خطأ في جلب بيانات الموظف');
+        }
+
+        const employeeData = await response.json();
+        console.log('Employee Data:', employeeData);
+        currentEmployeeData = employeeData;
+
+        if (!employeeData) {
+          throw new Error('الموظف غير موجود');
+        }
+
+        // تحديث البيانات الأساسية
+        document.getElementById('emp_name').textContent = (employeeData.info && employeeData.info.name) || '-';
+        document.getElementById('welcome-message').textContent = `مرحباً ${(employeeData.info && employeeData.info.name) || 'ضيف'}`;
+        document.getElementById('emp_section').textContent = (employeeData.info && employeeData.info.section_name) || '-';
+        document.getElementById('emp_target').textContent = ((employeeData.info && employeeData.info.target) || 0).toLocaleString() + ' ريال';
+        if (employeeData.income_hidden) {
+          document.getElementById('emp_income').textContent = 'دخل مخفي من المدير';
+          document.getElementById('emp_income').className = ''; // Remove positive class
+
+          // Show withdrawals
+          const totalWithdrawal = employeeData.total_withdrawal || 0;
+          const withdrawalElem = document.getElementById('emp_total_withdrawal');
+          withdrawalElem.textContent = totalWithdrawal.toLocaleString() + ' ريال';
+          withdrawalElem.className = 'negative';
+
+          // Hide remaining salary or show specific message? User said "hide income". 
+          // Remaining salary calculation in this code (baseSalary - withdrawal) doesn't reveal income, so we can keep it or hide it.
+          // Let's keep it if it's just base salary.
+          const baseSalary = (employeeData.info && employeeData.info.base_salary) || 0;
+          const remainingSalary = baseSalary - totalWithdrawal;
+          const remainingSalaryElem = document.getElementById('emp_remaining_salary');
+          remainingSalaryElem.textContent = remainingSalary.toLocaleString() + ' ريال';
+          if (remainingSalary <= 0) remainingSalaryElem.className = 'negative';
+          else remainingSalaryElem.className = 'positive';
+
+          // Hide progress bar
+          document.getElementById('progress-container').style.display = 'none';
+
+          // Hide last update
+          document.getElementById('last-update-card').style.display = 'none';
+
+          // Hide entries table
+          document.getElementById('entries-loading').style.display = 'none';
+          document.getElementById('entries-error').style.display = 'block';
+          document.getElementById('entries-error').textContent = 'تم إخفاء سجل الدخل من قبل المدير';
+          document.getElementById('entries-table').style.display = 'none';
+          document.getElementById('mobile-entries').style.display = 'none';
+
+        } else {
+          document.getElementById('emp_income').textContent = (employeeData.total_income || 0).toLocaleString() + ' ريال';
+          document.getElementById('emp_income').className = 'positive';
+
+          // عرض إجمالي السحوبات والمتبقي من الراتب
+          const totalWithdrawal = employeeData.total_withdrawal || 0;
+          const baseSalary = (employeeData.info && employeeData.info.base_salary) || 0;
+          const remainingSalary = baseSalary - totalWithdrawal;
+
+          const withdrawalElem = document.getElementById('emp_total_withdrawal');
+          withdrawalElem.textContent = totalWithdrawal.toLocaleString() + ' ريال';
+          withdrawalElem.className = 'negative';
+
+          const remainingSalaryElem = document.getElementById('emp_remaining_salary');
+          remainingSalaryElem.textContent = remainingSalary.toLocaleString() + ' ريال';
+
+          if (remainingSalary <= 0) {
+            remainingSalaryElem.className = 'negative';
+          } else {
+            remainingSalaryElem.className = 'positive';
+          }
+
+          // تحديث شريط التقدم
+          updateProgressBar(employeeData.total_income || 0, (employeeData.info && employeeData.info.target) || 0);
+
+          // تحديث آخر دخل
+          if (employeeData.lastEntry) {
+            updateLastIncome(employeeData.lastEntry);
+          }
+
+          // عرض سجل الدخل
+          if (employeeData.entries && employeeData.entries.length > 0) {
+            updateIncomeTable(employeeData.entries);
+          } else {
+            document.getElementById('entries-loading').style.display = 'none';
+            document.getElementById('entries-error').style.display = 'block';
+            document.getElementById('entries-error').textContent = 'لا يوجد سجل دخل';
+          }
+        }
+
+        // جلب سجل السحوبات إذا كانت هناك سحوبات
+        // عرض السحوبات
+        if (employeeData.withdrawals && employeeData.withdrawals.length > 0) {
+          renderWithdrawals(employeeData.withdrawals);
+        } else {
+          document.getElementById('withdrawals-loading').style.display = 'none';
+          document.getElementById('withdrawals-error').style.display = 'block';
+          document.getElementById('withdrawals-error').textContent = 'لا توجد سحوبات مسجلة';
+          document.getElementById('withdrawals-card').style.display = 'block';
+        }
+
+      } catch (error) {
+        console.error('Error:', error);
+        showError('employee', 'خطأ في تحميل بيانات الموظف: ' + error.message);
+      }
+    }
+
+    function renderWithdrawals(withdrawals) {
+      const tableBody = document.getElementById('withdrawals_table');
+      const mobileContainer = document.getElementById('mobile-withdrawals');
+
+      tableBody.innerHTML = '';
+      mobileContainer.innerHTML = '';
+
+      withdrawals.forEach(w => {
+        const date = new Date(w.created_at).toLocaleDateString('ar-SA');
+        const statusClass = w.status === 'approved' ? 'success' : (w.status === 'rejected' ? 'danger' : 'warning');
+        const statusText = w.status === 'approved' ? 'مقبول' : (w.status === 'rejected' ? 'مرفوض' : 'قيد المراجعة');
+
+        // Desktop Row
+        const row = `
+                <tr>
+                    <td>${date}</td>
+                    <td class="amount negative">${w.amount.toLocaleString()} ريال</td>
+                    <td>${w.reason || '-'}</td>
+                    <td><span class="badge badge-${statusClass}">${statusText}</span></td>
+                    <td>${w.admin_note || '-'}</td>
+                </tr>
+            `;
+        tableBody.innerHTML += row;
+
+        // Mobile Card
+        const card = `
+                <div class="income-card">
+                    <div class="card-header">
+                        <span class="card-date">${date}</span>
+                        <span class="badge badge-${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="card-amount negative">${w.amount.toLocaleString()} ريال</div>
+                    <div class="card-details">
+                        <div class="detail-row">
+                            <span class="detail-label">السبب:</span>
+                            <span class="detail-value">${w.reason || '-'}</span>
+                        </div>
+                         <div class="detail-row">
+                            <span class="detail-label">ملاحظات:</span>
+                            <span class="detail-value">${w.admin_note || '-'}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        mobileContainer.innerHTML += card;
+      });
+
+      document.getElementById('withdrawals-loading').style.display = 'none';
+      document.getElementById('withdrawals-table').style.display = 'table';
+      // mobile display handled by CSS media queries
+      document.getElementById('withdrawals-card').style.display = 'block';
+    }
+
+    async function requestWithdrawal() {
+      const amount = parseFloat(document.getElementById('request-amount').value);
+      const reason = document.getElementById('request-reason').value.trim();
+
+      if (!amount || amount <= 0) {
+        alert("الرجاء إدخال مبلغ صحيح.");
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/withdrawals', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            employee_id: employeeId,
+            amount,
+            reason,
+            status: 'pending' // Employee requests are pending by default
+          })
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          alert("✅ تم إرسال طلب السحب بنجاح");
+          document.getElementById('request-amount').value = '';
+          document.getElementById('request-reason').value = '';
+          loadEmployeeData(); // Reload to show pending request
+        } else {
+          alert("❌ خطأ: " + result.message);
+        }
+      } catch (error) {
+        alert("❌ خطأ في الاتصال بالخادم");
+      }
+    }
+
+    async function loadIncomeEntries() {
+      try {
+        showLoading('entries');
+
+        const response = await fetch(`/api/employees/${employeeId}/entries`);
+        if (!response.ok) {
+          throw new Error('خطأ في جلب سجل الدخل');
+        }
+
+        const entries = await response.json();
+        updateIncomeTable(entries);
+
+      } catch (error) {
+        console.error('Error:', error);
+        showError('entries', 'خطأ في تحميل سجل الدخل: ' + error.message);
+      }
+    }
+
+    async function loadWithdrawals() {
+      try {
+        showLoading('withdrawals');
+
+        const response = await fetch(`/api/employees/${employeeId}/withdrawals`);
+        if (!response.ok) {
+          throw new Error('خطأ في جلب سجل السحوبات');
+        }
+
+        const withdrawals = await response.json();
+        updateWithdrawalsTable(withdrawals);
+
+      } catch (error) {
+        console.error('Error:', error);
+        showError('withdrawals', 'خطأ في تحميل سجل السحوبات: ' + error.message);
+      }
+    }
+
+    function updateProgressBar(current, target) {
+      const progressContainer = document.getElementById('progress-container');
+      const progressFill = document.getElementById('progress-fill');
+      const progressPercent = document.getElementById('progress-percent');
+
+      if (target > 0) {
+        const percent = Math.min((current / target) * 100, 100);
+        progressFill.style.width = percent + '%';
+        progressPercent.textContent = Math.round(percent) + '%';
+        progressContainer.style.display = 'block';
+      } else {
+        progressContainer.style.display = 'none';
+      }
+    }
+
+    function updateLastIncome(entry) {
+      const card = document.getElementById('last-update-card');
+
+      if (entry) {
+        card.style.display = 'block';
+        document.getElementById('last-amount').textContent = (entry.income || 0).toLocaleString() + ' ريال';
+
+        // تحويل التاريخ إلى ميلادي
+        const date = new Date(entry.date);
+        document.getElementById('last-date').textContent = date.toLocaleDateString('en-GB');
+
+        document.getElementById('last-note').textContent = entry.details || 'لا توجد ملاحظات';
+      } else {
+        card.style.display = 'none';
+      }
+    }
+
+    function updateWithdrawalsTable(withdrawals) {
+      const tbody = document.getElementById('withdrawals_table');
+      const mobileContainer = document.getElementById('mobile-withdrawals');
+      const loading = document.getElementById('withdrawals-loading');
+      const table = document.getElementById('withdrawals-table');
+      const card = document.getElementById('withdrawals-card');
+      const errorDiv = document.getElementById('withdrawals-error');
+
+      if (!withdrawals || withdrawals.length === 0) {
+        card.style.display = 'none';
+        return;
+      }
+
+      card.style.display = 'block';
+      loading.style.display = 'none';
+      errorDiv.style.display = 'none';
+      table.style.display = 'table';
+      tbody.innerHTML = '';
+      mobileContainer.innerHTML = '';
+
+      withdrawals.forEach(withdrawal => {
+        // تحويل التاريخ
+        let formattedDate = withdrawal.withdrawal_date;
+        try {
+          const date = new Date(withdrawal.withdrawal_date);
+          formattedDate = date.toLocaleDateString('en-GB');
+        } catch (e) {
+          // إذا كان التاريخ بصيغة مختلفة، استخدم القيمة الأصلية
+        }
+
+        // صف الجدول للشاشات الكبيرة
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td data-label="📅 التاريخ">${formattedDate}</td>
+          <td data-label="💵 المبلغ" class="amount"><strong>${withdrawal.amount.toLocaleString()}</strong> ريال</td>
+        `;
+        tbody.appendChild(tr);
+
+        // بطاقة للجوال
+        const card = document.createElement('div');
+        card.className = 'income-card';
+        card.innerHTML = `
+          <div class="card-header">
+            <div class="card-date">${formattedDate}</div>
+            <div class="card-amount">${withdrawal.amount.toLocaleString()} ريال</div>
+          </div>
+        `;
+        mobileContainer.appendChild(card);
+      });
+    }
+
+    function updateIncomeTable(entries) {
+      const tbody = document.getElementById('entries_table');
+      const mobileContainer = document.getElementById('mobile-entries');
+      const loading = document.getElementById('entries-loading');
+      const table = document.getElementById('entries-table');
+      const errorDiv = document.getElementById('entries-error');
+
+      loading.style.display = 'none';
+      errorDiv.style.display = 'none';
+      table.style.display = 'table';
+      tbody.innerHTML = '';
+      mobileContainer.innerHTML = '';
+
+      if (!entries || entries.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: #666;">لا توجد سجلات دخل</td></tr>';
+        mobileContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">لا توجد سجلات دخل</div>';
+        return;
+      }
+
+      entries.forEach(entry => {
+        // تحويل التاريخ إلى ميلادي
+        const date = new Date(entry.updated_at);
+        const formattedDate = date.toLocaleDateString('en-GB');
+
+        // صف الجدول للشاشات الكبيرة
+        const tr = document.createElement('tr');
+        if (entry.employee_note) {
+          tr.className = 'has-note';
+        }
+
+        tr.innerHTML = `
+          <td data-label="📅 التاريخ">${formattedDate}</td>
+          <td data-label="💵 المبلغ" class="amount"><strong>${(entry.income || 0).toLocaleString()}</strong> ريال</td>
+          <td data-label="📝 ملاحظات المدير">${entry.details || '-'}</td>
+          <td data-label="💬 ملاحظاتي">
+            ${entry.employee_note ? '<span class="note-badge">✓</span>' : ''}
+            ${entry.employee_note || 'لا توجد ملاحظات'}
+          </td>
+          <td data-label="⚙️ الإجراء">
+            <button onclick="openNoteModal(${entry.id}, '${(entry.employee_note || '').replace(/'/g, "\\'")}')">
+              ${entry.employee_note ? '✏️ تعديل' : '➕ إضافة'}
+            </button>
+          </td>
+        `;
+
+        tbody.appendChild(tr);
+
+        // بطاقة للجوال
+        const card = document.createElement('div');
+        card.className = 'income-card';
+        card.innerHTML = `
+          <div class="card-header">
+            <div class="card-date">${formattedDate}</div>
+            <div class="card-amount">${(entry.income || 0).toLocaleString()} ريال</div>
+          </div>
+          <div class="card-details">
+            <div class="detail-row">
+              <div class="detail-label">📝 ملاحظات المدير:</div>
+              <div class="detail-value">${entry.details || '-'}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">💬 ملاحظاتي:</div>
+              <div class="detail-value">
+                ${entry.employee_note ? '<span class="note-badge">✓</span>' : ''}
+                ${entry.employee_note || 'لا توجد ملاحظات'}
+              </div>
+            </div>
+          </div>
+          <div class="card-actions">
+            <button onclick="openNoteModal(${entry.id}, '${(entry.employee_note || '').replace(/'/g, "\\'")}')">
+              ${entry.employee_note ? '✏️ تعديل الملاحظة' : '➕ إضافة ملاحظة'}
+            </button>
+          </div>
+        `;
+        mobileContainer.appendChild(card);
+      });
+    }
+
+    function openNoteModal(entryId, currentNote) {
+      currentEntryId = entryId;
+      const noteText = document.getElementById('note-text');
+      noteText.value = currentNote || '';
+      document.getElementById('notes-modal').style.display = 'flex';
+    }
+
+    function closeNoteModal() {
+      document.getElementById('notes-modal').style.display = 'none';
+      currentEntryId = null;
+    }
+
+    async function saveNote() {
+      const noteText = document.getElementById('note-text');
+      const note = noteText.value.trim();
+
+      if (!note) {
+        alert('يرجى كتابة ملاحظة قبل الحفظ');
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/entries/${currentEntryId}/employee-note`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ employee_note: note })
+        });
+
+        if (!response.ok) {
+          throw new Error('خطأ في حفظ الملاحظة');
+        }
+
+        const result = await response.json();
+
+        if (result.success) {
+          alert('✅ تم حفظ الملاحظة بنجاح');
+          closeNoteModal();
+          // إعادة تحميل البيانات
+          await loadEmployeeData();
+        } else {
+          throw new Error('فشل في حفظ الملاحظة');
+        }
+
+      } catch (error) {
+        console.error('Error:', error);
+        alert('❌ خطأ في حفظ الملاحظة: ' + error.message);
+      }
+    }
+
+    function showLoading(type) {
+      if (type === 'employee') {
+        document.getElementById('emp_name').textContent = 'جاري التحميل...';
+        document.getElementById('emp_section').textContent = 'جاري التحميل...';
+        document.getElementById('emp_target').textContent = 'جاري التحميل...';
+        document.getElementById('emp_income').textContent = 'جاري التحميل...';
+        document.getElementById('emp_total_withdrawal').textContent = 'جاري التحميل...';
+        document.getElementById('emp_remaining_salary').textContent = 'جاري التحميل...';
+      } else if (type === 'entries') {
+        document.getElementById('entries-loading').style.display = 'block';
+        document.getElementById('entries-table').style.display = 'none';
+        document.getElementById('entries-error').style.display = 'none';
+      } else if (type === 'withdrawals') {
+        document.getElementById('withdrawals-loading').style.display = 'block';
+        document.getElementById('withdrawals-table').style.display = 'none';
+        document.getElementById('withdrawals-error').style.display = 'none';
+      }
+    }
+
+    function showError(type, message) {
+      if (type === 'employee') {
+        document.getElementById('emp_name').textContent = 'خطأ';
+        document.getElementById('emp_section').textContent = 'خطأ';
+        document.getElementById('emp_target').textContent = 'خطأ';
+        document.getElementById('emp_income').textContent = 'خطأ';
+        document.getElementById('emp_total_withdrawal').textContent = 'خطأ';
+        document.getElementById('emp_remaining_salary').textContent = 'خطأ';
+        alert(message);
+      } else if (type === 'entries') {
+        document.getElementById('entries-loading').style.display = 'none';
+        document.getElementById('entries-table').style.display = 'none';
+        const errorDiv = document.getElementById('entries-error');
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+      } else if (type === 'withdrawals') {
+        document.getElementById('withdrawals-loading').style.display = 'none';
+        document.getElementById('withdrawals-table').style.display = 'none';
+        const errorDiv = document.getElementById('withdrawals-error');
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+      }
+    }
+
+    // إغلاق النموذج عند النقر خارج المحتوى
+    document.getElementById('notes-modal').addEventListener('click', function (e) {
+      if (e.target === this) {
+        closeNoteModal();
+      }
+    });
+
+    // تسجيل الخروج
+    document.getElementById('logoutBtn').addEventListener('click', function (e) {
+      e.preventDefault();
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = 'login.html';
+    });
+
+    // التحقق من المصادقة عند تحميل الصفحة
+    document.addEventListener('DOMContentLoaded', checkAuth);
+
+    // دالة لتحديث العرض بناءً على حجم الشاشة
+    function updateLayout() {
+      const table = document.getElementById('entries-table');
+      const mobileCards = document.getElementById('mobile-entries');
+      const withdrawalsTable = document.getElementById('withdrawals-table');
+      const mobileWithdrawals = document.getElementById('mobile-withdrawals');
+
+      if (window.innerWidth <= 576) {
+        table.style.display = 'none';
+        mobileCards.style.display = 'block';
+        if (withdrawalsTable) withdrawalsTable.style.display = 'none';
+        if (mobileWithdrawals) mobileWithdrawals.style.display = 'block';
+      } else {
+        table.style.display = 'table';
+        mobileCards.style.display = 'none';
+        if (withdrawalsTable) withdrawalsTable.style.display = 'table';
+        if (mobileWithdrawals) mobileWithdrawals.style.display = 'none';
+      }
+    }
+
+    // تحديث العرض عند تحميل الصفحة وتغيير حجم النافذة
+    window.addEventListener('load', updateLayout);
+    window.addEventListener('resize', updateLayout);
+  </script>
+</body>
+
+</html>
