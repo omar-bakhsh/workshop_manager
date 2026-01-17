@@ -145,6 +145,8 @@ function initializeDatabase() {
             car_color TEXT,
             car_model TEXT,
             plate_number TEXT,
+            odometer TEXT,
+            vin TEXT,
             total_amount REAL DEFAULT 0,
             vat_amount REAL DEFAULT 0,
             final_amount REAL DEFAULT 0,
@@ -173,6 +175,18 @@ function initializeDatabase() {
             service_name TEXT NOT NULL,
             price REAL DEFAULT 0,
             UNIQUE(category, service_name)
+        )`,
+        `CREATE TABLE IF NOT EXISTS inspection_bundles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL,
+            icon TEXT
+        )`,
+        `CREATE TABLE IF NOT EXISTS inspection_bundle_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            bundle_id INTEGER NOT NULL,
+            service_description TEXT NOT NULL,
+            category TEXT,
+            FOREIGN KEY (bundle_id) REFERENCES inspection_bundles(id) ON DELETE CASCADE
         )`
     ];
 
@@ -267,6 +281,63 @@ function initializeDatabase() {
                     });
                 });
                 console.log('🌱 تم بذر الخدمات الافتراضية');
+            }
+        });
+
+        // بذر باقات الكشف الافتراضية
+        db.get("SELECT COUNT(*) as count FROM inspection_bundles", (err, row) => {
+            if (row && row.count === 0) {
+                const defaultBundles = [
+                    {
+                        name: "نظام الصوف",
+                        icon: "🛠️",
+                        items: [
+                            { service: "فك جربكس غيار صوفة المحرك الخلفية", category: "نظام صوف" },
+                            { service: "غيار صوفة الجربكس امامية", category: "نظام صوف" },
+                            { service: "غيار صوف العكوس يمين + يسار", category: "نظام صوف" },
+                            { service: "فك كرتير المحرك + غيار سليكون", category: "نظام صوف" },
+                            { service: "غيار زيت المحرك + فلتر + صرة +وردة", category: "الزيوت" }
+                        ]
+                    },
+                    {
+                        name: "نظام الكمبروسر",
+                        icon: "❄️",
+                        items: [
+                            { service: "غيار كمبروسر", category: "كهرباء وتكييف" },
+                            { service: "غيار رديتر المكيف", category: "كهرباء وتكييف" },
+                            { service: "تنظيف دائرة بفريون 11", category: "كهرباء وتكييف" },
+                            { service: "غيار بلف المكيف الامامي", category: "كهرباء وتكييف" },
+                            { service: "تعبئة فريون + زيت الكمبروسر بالجهاز", category: "كهرباء وتكييف" },
+                            { service: "غيار بلف التنسيم + جلود ليات الكمبروسر", category: "كهرباء وتكييف" },
+                            { service: "قطع بلف التنسيم + جلود ليات الكمبروسر", category: "كهرباء وتكييف" }
+                        ]
+                    },
+                    {
+                        name: "نظام التصفية",
+                        icon: "✅",
+                        items: [
+                            { service: "غيار بواجي , فلتر هواء ,فلتر مكيف", category: "نظام التصفية" },
+                            { service: "غيار فلتر بنزين + صفاية صغيرة", category: "نظام التصفية" },
+                            { service: "تنظيف بخاخات خارجي", category: "نظام التصفية" },
+                            { service: "تنظيف حساس ماب + ماف", category: "نظام التصفية" },
+                            { service: "غيار بلف البخار , قاعدة بلف البخار كاملة", category: "نظام التصفية" },
+                            { service: "تنظيف ثلاجة المحرك", category: "نظام التصفية" }
+                        ]
+                    }
+                ];
+
+                defaultBundles.forEach(b => {
+                    db.run("INSERT INTO inspection_bundles (name, icon) VALUES (?, ?)", [b.name, b.icon], function (err) {
+                        if (!err) {
+                            const bundleId = this.lastID;
+                            b.items.forEach(item => {
+                                db.run("INSERT INTO inspection_bundle_items (bundle_id, service_description, category) VALUES (?, ?, ?)",
+                                    [bundleId, item.service, item.category]);
+                            });
+                        }
+                    });
+                });
+                console.log('🌱 تم بذر باقات الكشف الافتراضية');
             }
         });
 
@@ -1296,44 +1367,78 @@ app.get('/api/notifications', async (req, res) => {
 
 // إضافة كشف جديد
 app.post('/api/inspections', async (req, res) => {
-    const { inspector_id, customer_name, customer_phone, car_type, car_color, car_model, plate_number, items, total_amount, vat_amount, final_amount, paid_amount, remaining_amount } = req.body;
+    console.log("Received Inspection Data:", JSON.stringify(req.body, null, 2));
+    const {
+        inspector_id, customer_name, customer_phone, car_type, car_color, car_model,
+        plate_number, odometer, vin, items, total_amount, vat_amount, final_amount,
+        paid_amount, remaining_amount
+    } = req.body;
 
     try {
         // البدء في المعاملة
         await dbRun('BEGIN TRANSACTION');
 
+        if (!inspector_id) {
+            throw new Error("لم يتم تحديد معرف الموظف (inspector_id)");
+        }
+
         const inspResult = await dbRun(`
-            INSERT INTO inspections (inspector_id, customer_name, customer_phone, car_type, car_color, car_model, plate_number, total_amount, vat_amount, final_amount, paid_amount, remaining_amount)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `, [inspector_id, customer_name, customer_phone, car_type, car_color, car_model, plate_number, total_amount, vat_amount, final_amount, paid_amount, remaining_amount]);
+            INSERT INTO inspections (
+                inspector_id, customer_name, customer_phone, car_type, car_color, car_model,
+                plate_number, odometer, vin, total_amount, vat_amount, final_amount,
+                paid_amount, remaining_amount
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+            inspector_id,
+            customer_name || '',
+            customer_phone || '',
+            car_type || '',
+            car_color || '',
+            car_model || '',
+            plate_number || '',
+            odometer || '', // Added odometer
+            vin || '',      // Added vin
+            total_amount || 0,
+            vat_amount || 0,
+            final_amount || 0,
+            paid_amount || 0,
+            remaining_amount || 0
+        ]);
 
         const inspection_id = inspResult.lastID;
 
-        for (const item of items) {
-            if (item.service_description) {
-                await dbRun(`
+        if (items && Array.isArray(items)) {
+            for (const item of items) {
+                if (item.service_description) {
+                    await dbRun(`
                     INSERT INTO inspection_items (inspection_id, category, service_description, quantity, price, total)
                     VALUES (?, ?, ?, ?, ?, ?)
                 `, [inspection_id, item.category, item.service_description, item.quantity || 1, item.price || 0, item.total || 0]);
 
-                // إضافة المصطلح للقاعدة إذا لم يكن موجوداً
-                await dbRun(`INSERT OR IGNORE INTO inspection_terms (term) VALUES (?)`, [item.service_description]);
+                    // إضافة المصطلح للقاعدة إذا لم يكن موجوداً
+                    await dbRun(`INSERT OR IGNORE INTO inspection_terms (term) VALUES (?)`, [item.service_description]);
+                }
             }
         }
 
         await dbRun('COMMIT');
         res.status(201).json({ message: "تم حفظ الكشف بنجاح", id: inspection_id });
     } catch (error) {
-        await dbRun('ROLLBACK');
+        try { await dbRun('ROLLBACK'); } catch (e) { console.error("Rollback failed:", e); }
         console.error("Add Inspection Error:", error);
-        res.status(500).json({ message: "خطأ في حفظ الكشف" });
+        res.status(500).json({ message: "خطأ في حفظ الكشف: " + error.message });
     }
 });
 
 // تحديث كشف موجود
 app.put('/api/inspections/:id', async (req, res) => {
     const { id } = req.params;
-    const { customer_name, customer_phone, car_type, car_color, car_model, plate_number, items, total_amount, vat_amount, final_amount, paid_amount, remaining_amount } = req.body;
+    const {
+        customer_name, customer_phone, car_type, car_color, car_model,
+        plate_number, odometer, vin, items, total_amount, vat_amount, final_amount,
+        paid_amount, remaining_amount
+    } = req.body;
 
     try {
         await dbRun('BEGIN TRANSACTION');
@@ -1341,33 +1446,50 @@ app.put('/api/inspections/:id', async (req, res) => {
         // تحديث بيانات الكشف الأساسية
         await dbRun(`
             UPDATE inspections 
-            SET customer_name = ?, customer_phone = ?, car_type = ?, car_color = ?, car_model = ?, plate_number = ?, 
-                total_amount = ?, vat_amount = ?, final_amount = ?, paid_amount = ?, remaining_amount = ?
+            SET customer_name = ?, customer_phone = ?, car_type = ?, car_color = ?, car_model = ?, 
+                plate_number = ?, odometer = ?, vin = ?, total_amount = ?, vat_amount = ?, final_amount = ?, paid_amount = ?, remaining_amount = ?
             WHERE id = ?
-        `, [customer_name, customer_phone, car_type, car_color, car_model, plate_number, total_amount, vat_amount, final_amount, paid_amount, remaining_amount, id]);
+        `, [
+            customer_name || '',
+            customer_phone || '',
+            car_type || '',
+            car_color || '',
+            car_model || '',
+            plate_number || '',
+            odometer || '', // Added odometer
+            vin || '',      // Added vin
+            total_amount || 0,
+            vat_amount || 0,
+            final_amount || 0,
+            paid_amount || 0,
+            remaining_amount || 0,
+            id
+        ]);
 
         // حذف العناصر القديمة
         await dbRun(`DELETE FROM inspection_items WHERE inspection_id = ?`, [id]);
 
         // إضافة العناصر الجديدة
-        for (const item of items) {
-            if (item.service_description) {
-                await dbRun(`
+        if (items && Array.isArray(items)) {
+            for (const item of items) {
+                if (item.service_description) {
+                    await dbRun(`
                     INSERT INTO inspection_items (inspection_id, category, service_description, quantity, price, total)
                     VALUES (?, ?, ?, ?, ?, ?)
                 `, [id, item.category, item.service_description, item.quantity || 1, item.price || 0, item.total || 0]);
 
-                // إضافة المصطلح للقاعدة إذا لم يكن موجوداً
-                await dbRun(`INSERT OR IGNORE INTO inspection_terms (term) VALUES (?)`, [item.service_description]);
+                    // إضافة المصطلح للقاعدة إذا لم يكن موجوداً
+                    await dbRun(`INSERT OR IGNORE INTO inspection_terms (term) VALUES (?)`, [item.service_description]);
+                }
             }
         }
 
         await dbRun('COMMIT');
         res.json({ message: "تم تحديث الكشف بنجاح", id: id });
     } catch (error) {
-        await dbRun('ROLLBACK');
+        try { await dbRun('ROLLBACK'); } catch (e) { console.error("Rollback failed:", e); }
         console.error("Update Inspection Error:", error);
-        res.status(500).json({ message: "خطأ في تحديث الكشف" });
+        res.status(500).json({ message: "خطأ في تحديث الكشف: " + error.message });
     }
 });
 
@@ -1400,6 +1522,79 @@ app.get('/api/inspection-terms', async (req, res) => {
     } catch (error) {
         console.error("Fetch Terms Error:", error);
         res.status(500).json({ message: "خطأ في جلب المصطلحات" });
+    }
+});
+
+// ==========================
+// 🧩 إدارة اختصارات الكشف (Bundles)
+// ==========================
+
+// جلب جميع الاختصارات مع عناصرها
+app.get('/api/inspection-bundles', async (req, res) => {
+    try {
+        const bundles = await dbAll(`SELECT * FROM inspection_bundles`);
+        for (let bundle of bundles) {
+            bundle.items = await dbAll(`SELECT service_description, category FROM inspection_bundle_items WHERE bundle_id = ?`, [bundle.id]);
+        }
+        res.json(bundles);
+    } catch (error) {
+        console.error("Fetch Bundles Error:", error);
+        res.status(500).json({ message: "خطأ في جلب الاختصارات" });
+    }
+});
+
+// إضافة اختصار جديد
+app.post('/api/inspection-bundles', async (req, res) => {
+    const { name, icon, items } = req.body;
+    try {
+        await dbRun('BEGIN TRANSACTION');
+        const result = await dbRun(`INSERT INTO inspection_bundles (name, icon) VALUES (?, ?)`, [name, icon]);
+        const bundle_id = result.lastID;
+
+        for (const item of items) {
+            await dbRun(`INSERT INTO inspection_bundle_items (bundle_id, service_description, category) VALUES (?, ?, ?)`,
+                [bundle_id, item.service_description, item.category]);
+        }
+        await dbRun('COMMIT');
+        res.status(201).json({ message: "تم إضافة الاختصار بنجاح", id: bundle_id });
+    } catch (error) {
+        try { await dbRun('ROLLBACK'); } catch (e) { }
+        console.error("Add Bundle Error:", error);
+        res.status(500).json({ message: "خطأ في إضافة الاختصار: " + error.message });
+    }
+});
+
+// تحديث اختصار
+app.put('/api/inspection-bundles/:id', async (req, res) => {
+    const { id } = req.params;
+    const { name, icon, items } = req.body;
+    try {
+        await dbRun('BEGIN TRANSACTION');
+        await dbRun(`UPDATE inspection_bundles SET name = ?, icon = ? WHERE id = ?`, [name, icon, id]);
+        await dbRun(`DELETE FROM inspection_bundle_items WHERE bundle_id = ?`, [id]);
+
+        for (const item of items) {
+            await dbRun(`INSERT INTO inspection_bundle_items (bundle_id, service_description, category) VALUES (?, ?, ?)`,
+                [id, item.service_description, item.category]);
+        }
+        await dbRun('COMMIT');
+        res.json({ message: "تم تحديث الاختصار بنجاح" });
+    } catch (error) {
+        try { await dbRun('ROLLBACK'); } catch (e) { }
+        console.error("Update Bundle Error:", error);
+        res.status(500).json({ message: "خطأ في تحديث الاختصار" });
+    }
+});
+
+// حذف اختصار
+app.delete('/api/inspection-bundles/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await dbRun(`DELETE FROM inspection_bundles WHERE id = ?`, [id]);
+        res.json({ message: "تم حذف الاختصار بنجاح" });
+    } catch (error) {
+        console.error("Delete Bundle Error:", error);
+        res.status(500).json({ message: "خطأ في حذف الاختصار" });
     }
 });
 
