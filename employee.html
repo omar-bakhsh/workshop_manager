@@ -1803,7 +1803,7 @@
     checkAuth();
     setInterval(updateTicker, 30000); // Update every 30s
     updateTicker(); // Initial call
-
+    
     // Load preferences
     if (localStorage.getItem('darkMode') === 'true') {
       document.body.classList.add('dark-mode');
@@ -1820,33 +1820,49 @@
       try {
         const response = await fetch(`/api/attendance/status/${employeeId}`);
         const data = await response.json();
-        const statusDiv = document.getElementById('attendanceStatus');
-        const checkInBtn = document.getElementById('checkInBtn');
+        
+        const statusDiv = document.getElementById('fingerprintStatus'); 
         const checkOutBtn = document.getElementById('checkOutBtn');
+        const fingerprintBtn = document.getElementById('fingerprintBtn');
 
         if (data.status === 'not_marked') {
-          statusDiv.textContent = 'لم يتم تسجيل الحضور اليوم ❌';
-          statusDiv.style.color = 'var(--danger)';
-          checkInBtn.disabled = false;
-          checkOutBtn.disabled = true;
+          statusDiv.textContent = 'اضغط لتسجيل الدخول';
+          statusDiv.style.color = 'var(--text-gray)';
+          fingerprintBtn.style.opacity = '1';
+          fingerprintBtn.style.pointerEvents = 'auto';
+          checkOutBtn.style.display = 'none';
         } else {
           const checkInTime = new Date(data.check_in).toLocaleTimeString('ar-SA');
           if (data.check_out) {
             const checkOutTime = new Date(data.check_out).toLocaleTimeString('ar-SA');
             statusDiv.innerHTML = `✅ تم الحضور: ${checkInTime}<br>👋 تم الانصراف: ${checkOutTime}`;
             statusDiv.style.color = 'var(--success)';
-            checkInBtn.disabled = true;
-            checkOutBtn.disabled = true;
+            fingerprintBtn.style.opacity = '0.5';
+            fingerprintBtn.style.pointerEvents = 'none';
+            checkOutBtn.style.display = 'none';
           } else {
             statusDiv.innerHTML = `✅ تم الحضور: ${checkInTime}<br>⏳ بانتظار الانصراف...`;
             statusDiv.style.color = 'var(--primary)';
-            checkInBtn.disabled = true;
-            checkOutBtn.disabled = false;
+            fingerprintBtn.style.opacity = '0.5';
+            fingerprintBtn.style.pointerEvents = 'none';
+            checkOutBtn.style.display = 'block';
           }
         }
       } catch (error) {
         console.error('Attendance Error:', error);
       }
+    }
+
+    function handleFingerprintClick() {
+      const btn = document.getElementById('fingerprintBtn');
+      if (btn.style.pointerEvents === 'none' || btn.classList.contains('scanning')) return;
+
+      btn.classList.add('scanning');
+      
+      setTimeout(() => {
+        btn.classList.remove('scanning');
+        checkIn();
+      }, 2000);
     }
 
     async function checkIn() {
@@ -2022,5 +2038,4 @@
     startLiftTicker();
   </script>
 </body>
-
 </html>

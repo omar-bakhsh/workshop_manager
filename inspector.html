@@ -609,6 +609,16 @@
             </div>
         </div>
 
+        <!-- Bundles Shortcuts -->
+        <div class="card no-print" style="background: #f0fdf4; border: 2px solid var(--success); margin-bottom: 15px;">
+            <div class="card-title" style="margin-bottom: 10px; font-weight: bold; color: #166534;">🚀 باقات سريعة
+                (اختصارات)</div>
+            <div id="bundlesShortcutsContainer" style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <div style="color: #166534; font-size: 14px;">⏳ جاري تحميل الاختصارات...</div>
+            </div>
+        </div>
+
+
         <!-- Printable Area -->
         <div class="card" id="printableArea">
             <div class="workshop-header">
@@ -655,6 +665,14 @@
                 <div class="form-group">
                     <label>لون السيارة</label>
                     <input type="text" id="carColor">
+                </div>
+                <div class="form-group">
+                    <label>عداد السيارة الحالي</label>
+                    <input type="text" id="odometer">
+                </div>
+                <div class="form-group">
+                    <label>رقم الهيكل (VIN)</label>
+                    <input type="text" id="vin">
                 </div>
                 <div class="form-group">
                     <label>رقم اللوحة</label>
@@ -719,335 +737,679 @@
 
         <div class="actions no-print">
             <button class="btn btn-primary" onclick="saveInspection()">💾 حفظ الكشف</button>
-            <button class="btn btn-success" onclick="window.print()">🖨️ طباعة / PDF</button>
-            <button class="btn btn-secondary" onclick="resetForm()">🔄 جديد</button>
-        </div>
-    </div>
-
-    <script>
-        let pricingData = {};
-        let allServicesList = [];
-
-        let currentUser = JSON.parse(localStorage.getItem('user'));
-        let currentInspectionId = null;
-
-        async function init() {
-            if (!currentUser) window.location.href = 'login.html';
-            document.getElementById('inspectorName').textContent = currentUser.employee_name;
-            document.getElementById('inspectorNameDisplay').textContent = currentUser.employee_name;
-            document.getElementById('currentDate').textContent = new Date().toLocaleDateString('ar-SA');
-
-            await fetchServices();
-            populateModels();
-            setupPlateInputs();
-            updateQuickServices();
-            generateRows(30);
-            setupEnterNavigation();
-        }
-
-        async function fetchServices() {
-            try {
-                const res = await fetch('/api/services');
-                allServicesList = await res.json();
-                pricingData = {};
-                allServicesList.forEach(s => {
-                    if (!pricingData[s.category]) pricingData[s.category] = [];
-                    pricingData[s.category].push({ service: s.service_name, price: s.price });
-                });
-
-                // تحديث قائمة الفئات في الإضافة السريعة
-                const quickCat = document.getElementById('quickCat');
-                if (quickCat) {
-                    const categories = Object.keys(pricingData).sort();
-                    quickCat.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
-                }
-            } catch (e) {
-                console.error('Error fetching services:', e);
+            background: #f9fafb !important;
             }
-        }
 
-        function updateQuickServices() {
-            const cat = document.getElementById('quickCat').value;
-            const select = document.getElementById('quickService');
-            if (!pricingData[cat]) return;
-            select.innerHTML = pricingData[cat].map(s => `<option value="${s.service}" data-price="${s.price}">${s.service} (${s.price} ريال)</option>`).join('');
-        }
-
-        function addQuickService() {
-            const select = document.getElementById('quickService');
-            const option = select.options[select.selectedIndex];
-            if (!option) return;
-
-            const service = option.value;
-            const price = option.getAttribute('data-price');
-            const cat = document.getElementById('quickCat').value;
-
-            const rows = document.querySelectorAll('#tableBody tr');
-            for (let tr of rows) {
-                const input = tr.querySelector('.service-input');
-                if (!input.value.trim()) {
-                    tr.querySelector('.cat-select').value = cat;
-                    input.value = service;
-                    tr.querySelector('.price-input').value = price;
-                    tr.querySelector('.qty-input').value = 1;
-                    calculateRow(input);
-                    tr.style.backgroundColor = '#dcfce7';
-                    setTimeout(() => tr.style.backgroundColor = '', 1000);
-                    if (window.innerWidth < 768) alert('تمت إضافة: ' + service);
-                    return;
-                }
+            .total-box {
+            border-left: 1px solid #000 !important;
+            padding: 8px !important;
             }
-            alert('الجدول ممتلئ!');
-        }
 
-        function populateModels() {
-            const list = document.getElementById('carModels');
-            for (let y = 2027; y >= 2008; y--) {
-                const opt = document.createElement('option');
-                opt.value = y;
-                list.appendChild(opt);
+            .total-box:last-child {
+            border-left: none !important;
             }
-        }
 
-        function setupPlateInputs() {
-            const inputs = document.querySelectorAll('.plate-input');
-            inputs.forEach((input, index) => {
-                input.addEventListener('input', () => {
-                    if (input.value.length === 1 && index < inputs.length - 1) inputs[index + 1].focus();
-                });
-                input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Backspace' && input.value.length === 0 && index > 0) inputs[index - 1].focus();
-                });
-            });
-        }
-
-        function generateRows(count) {
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
-            const categories = Object.keys(pricingData).sort();
-            for (let i = 1; i <= count; i++) {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="col-sn" data-label="#">${i}</td>
-                    <td data-label="الفئة">
-                        <select class="table-input cat-select">
-                            ${categories.map(c => `<option value="${c}" ${c === 'كشف' ? 'selected' : ''}>${c}</option>`).join('')}
-                        </select>
-                    </td>
-                    <td class="service-container" data-label="الخدمة">
-                        <input type="text" class="table-input service-input" placeholder=" " oninput="handleServiceInput(this)">
-                        <div class="autocomplete-items" style="display:none"></div>
-                    </td>
-                    <td data-label="العدد"><input type="number" class="table-input qty-input" oninput="calculateRow(this)"></td>
-                    <td data-label="السعر"><input type="number" class="table-input price-input" oninput="calculateRow(this)"></td>
-                    <td class="col-total row-total" data-label="الإجمالي">0.00</td>
-                `;
-                tbody.appendChild(tr);
+            .total-val {
+            color: #000 !important;
+            font-size: 14px !important;
+            font-weight: bold !important;
             }
-        }
 
-        function handleServiceInput(input) {
-            const tr = input.closest('tr');
-            const currentCat = tr.querySelector('.cat-select').value;
-            const val = input.value.toLowerCase();
-            const container = input.nextElementSibling;
-            container.innerHTML = '';
-
-            if (!val) { container.style.display = 'none'; return; }
-
-            const currentCatMatches = (pricingData[currentCat] || [])
-                .filter(s => s.service.toLowerCase().includes(val))
-                .map(s => ({ ...s, category: currentCat, priority: 1 }));
-
-            let otherMatches = [];
-            Object.keys(pricingData).forEach(cat => {
-                if (cat !== currentCat) {
-                    const matches = pricingData[cat]
-                        .filter(s => s.service.toLowerCase().includes(val))
-                        .map(s => ({ ...s, category: cat, priority: 2 }));
-                    otherMatches = otherMatches.concat(matches);
-                }
-            });
-
-            const allMatches = [...currentCatMatches, ...otherMatches].slice(0, 10);
-            if (allMatches.length === 0) { container.style.display = 'none'; return; }
-
-            container.style.display = 'block';
-            allMatches.forEach(match => {
-                const div = document.createElement('div');
-                div.style.display = 'flex';
-                div.style.justifyContent = 'space-between';
-                div.innerHTML = `<span>${match.service}</span> <span style="font-size:9px; color:#999;">(${match.category})</span>`;
-                div.onclick = () => {
-                    input.value = match.service;
-                    tr.querySelector('.price-input').value = match.price;
-                    tr.querySelector('.qty-input').value = 1;
-                    tr.querySelector('.cat-select').value = match.category;
-                    calculateRow(input);
-                    container.style.display = 'none';
-                };
-                container.appendChild(div);
-            });
-        }
-
-        function calculateRow(el) {
-            const tr = el.closest('tr');
-            const qty = parseFloat(tr.querySelector('.qty-input').value) || 0;
-            const price = parseFloat(tr.querySelector('.price-input').value) || 0;
-            const total = qty * price;
-            tr.querySelector('.row-total').textContent = total.toFixed(2);
-            calculateTotals();
-        }
-
-        function calculateTotals() {
-            let subtotal = 0;
-            document.querySelectorAll('.row-total').forEach(td => {
-                subtotal += parseFloat(td.textContent) || 0;
-            });
-
-            const vat = subtotal * 0.15;
-            const final = subtotal + vat;
-            const paid = parseFloat(document.getElementById('paidAmount').value) || 0;
-            const remaining = final - paid;
-
-            document.getElementById('subTotal').textContent = subtotal.toFixed(2);
-            document.getElementById('vatTotal').textContent = vat.toFixed(2);
-            document.getElementById('finalTotal').textContent = final.toFixed(2);
-            document.getElementById('remainingAmount').textContent = remaining.toFixed(2);
-        }
-
-        async function saveInspection() {
-            const items = [];
-            document.querySelectorAll('#tableBody tr').forEach(tr => {
-                const service = tr.querySelector('.service-input').value.trim();
-                if (service) {
-                    items.push({
-                        category: tr.querySelector('.cat-select').value,
-                        service_description: service,
-                        quantity: parseInt(tr.querySelector('.qty-input').value) || 1,
-                        price: parseFloat(tr.querySelector('.price-input').value) || 0,
-                        total: parseFloat(tr.querySelector('.row-total').textContent) || 0
-                    });
-                }
-            });
-
-            if (items.length === 0) return alert('الرجاء إضافة خدمة واحدة على الأقل');
-
-            const data = {
-                inspector_id: currentUser.employee_id,
-                customer_name: document.getElementById('custName').value,
-                customer_phone: document.getElementById('custPhone').value,
-                car_type: document.getElementById('carType').value,
-                car_model: document.getElementById('carModel').value,
-                car_color: document.getElementById('carColor').value,
-                plate_number: `${document.getElementById('pL1').value}${document.getElementById('pL2').value}${document.getElementById('pL3').value} ${document.getElementById('pN1').value}${document.getElementById('pN2').value}${document.getElementById('pN3').value}${document.getElementById('pN4').value}`,
-                total_amount: parseFloat(document.getElementById('subTotal').textContent),
-                vat_amount: parseFloat(document.getElementById('vatTotal').textContent),
-                final_amount: parseFloat(document.getElementById('finalTotal').textContent),
-                paid_amount: parseFloat(document.getElementById('paidAmount').value) || 0,
-                remaining_amount: parseFloat(document.getElementById('remainingAmount').textContent),
-                items: items
-            };
-
-            try {
-                const res = await fetch('/api/inspections', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                const result = await res.json();
-                if (res.ok) {
-                    alert('تم حفظ الكشف بنجاح، رقم الكشف: ' + result.id);
-                    document.getElementById('inspectionIdDisplay').textContent = result.id;
-                }
-            } catch (e) { console.error(e); }
-        }
-
-        async function searchInspections() {
-            const query = document.getElementById('searchInput').value.trim();
-            if (!query) return;
-
-            try {
-                const res = await fetch(`/api/inspections/search?query=${encodeURIComponent(query)}`);
-                const results = await res.json();
-
-                if (!results || results.length === 0) {
-                    return alert('لا توجد نتائج لهذا البحث');
-                }
-
-                if (results.length === 1) {
-                    loadInspection(results[0].id);
-                } else {
-                    const choice = prompt(`وجدنا ${results.length} نتائج. أدخل رقم الكشف المطلوب:\n` +
-                        results.map(r => `#${r.id} - ${r.customer_name} (${r.customer_phone})`).join('\n'));
-                    if (choice) loadInspection(choice);
-                }
-            } catch (e) {
-                console.error('Search Error:', e);
-                alert('حدث خطأ أثناء البحث');
+            td::before {
+            display: none !important;
             }
-        }
+            }
+            </style>
+            </head>
 
-        async function loadInspection(id) {
-            try {
-                const res = await fetch(`/api/inspections/${id}`);
-                const data = await res.json();
-                document.getElementById('inspectionIdDisplay').textContent = data.id;
-                document.getElementById('currentDate').textContent = new Date(data.created_at).toLocaleDateString('ar-SA');
-                document.getElementById('custName').value = data.customer_name;
-                document.getElementById('custPhone').value = data.customer_phone;
-                document.getElementById('carType').value = data.car_type;
-                document.getElementById('carModel').value = data.car_model;
-                document.getElementById('carColor').value = data.car_color;
-                document.getElementById('paidAmount').value = data.paid_amount;
+            <body>
+                <div class="container">
+                    <!-- Header -->
+                    <div class="header no-print">
+                        <div class="user-info">
+                            <h1 id="inspectorName">...</h1>
+                            <p>نظام الكشف الفني</p>
+                        </div>
+                        <div class="actions">
+                            <input type="text" id="searchInput" placeholder="بحث (رقم، جوال، لوحة)..."
+                                style="padding:8px; border-radius:6px; border:1px solid #ccc;">
+                            <button class="btn btn-primary" onclick="searchInspections()">بحث 🔍</button>
+                            <button class="btn btn-secondary"
+                                onclick="window.location.href='employee.html'">الرجوع</button>
+                        </div>
+                    </div>
 
-                // Load items
-                const rows = document.querySelectorAll('#tableBody tr');
-                data.items.forEach((item, i) => {
-                    if (rows[i]) {
-                        rows[i].querySelector('.cat-select').value = item.category;
-                        rows[i].querySelector('.service-input').value = item.service_description;
-                        rows[i].querySelector('.qty-input').value = item.quantity;
-                        rows[i].querySelector('.price-input').value = item.price;
-                        calculateRow(rows[i].querySelector('.service-input'));
+                    <!-- Quick Add Section (Mobile Friendly) -->
+                    <div class="card no-print mobile-only"
+                        style="background: #eef2ff; border: 2px solid var(--primary);">
+                        <div class="card-title" style="margin-bottom: 15px;">⚡ إضافة سريعة للخدمات (سهل للجوال)</div>
+                        <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
+                            <div class="form-group">
+                                <label>الفئة</label>
+                                <select id="quickCat" class="table-input"
+                                    style="background:white; border:1px solid #ccc; border-radius:8px; padding:10px;"
+                                    onchange="updateQuickServices()">
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>الخدمة</label>
+                                <select id="quickService" class="table-input"
+                                    style="background:white; border:1px solid #ccc; border-radius:8px; padding:10px;">
+                                    <!-- Populated by JS -->
+                                </select>
+                            </div>
+                            <div class="form-group" style="justify-content: flex-end;">
+                                <button class="btn btn-success" onclick="addQuickService()"
+                                    style="width: 100%; height: 45px; font-size: 16px;">إضافة للجدول ➕</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bundles Shortcuts -->
+                    <div class="card no-print"
+                        style="background: #f0fdf4; border: 2px solid var(--success); margin-bottom: 15px;">
+                        <div class="card-title" style="margin-bottom: 10px; font-weight: bold; color: #166534;">🚀 باقات
+                            سريعة
+                            (اختصارات)</div>
+                        <div id="bundlesShortcutsContainer" style="display: flex; gap: 15px; flex-wrap: wrap;">
+                            <div style="color: #166534; font-size: 14px;">⏳ جاري تحميل الاختصارات...</div>
+                        </div>
+                    </div>
+
+
+                    <!-- Printable Area -->
+                    <div class="card" id="printableArea">
+                        <div class="workshop-header">
+                            <div class="workshop-info-text">
+                                <h2>ورشة عبد الله عصام عيد الزين لصيانة السيارات</h2>
+                                <p>📍 طريق مكة القديم مجمع كيلو 14</p>
+                                <p>📞 0566522351</p>
+                                <p>📄 الرقم الضريبي: 302240502300003</p>
+                            </div>
+                            <div style="text-align: left;">
+                                <p>رقم الكشف: <b id="inspectionIdDisplay">جديد</b></p>
+                                <p>التاريخ: <b id="currentDate">--/--/----</b></p>
+                            </div>
+                        </div>
+
+                        <h1 class="inspection-title">كشف فني (تسعيرة أجور)</h1>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>اسم العميل</label>
+                                <input type="text" id="custName">
+                            </div>
+                            <div class="form-group">
+                                <label>رقم الجوال</label>
+                                <input type="text" id="custPhone">
+                            </div>
+                            <div class="form-group">
+                                <label>نوع السيارة</label>
+                                <input type="text" id="carType" list="carTypes">
+                                <datalist id="carTypes">
+                                    <option value="M-6">
+                                    <option value="CX-9">
+                                    <option value="CX-5">
+                                    <option value="M-3">
+                                    <option value="CX-3">
+                                    <option value="cx-30">
+                                </datalist>
+                            </div>
+                            <div class="form-group">
+                                <label>الموديل</label>
+                                <input type="text" id="carModel" list="carModels">
+                                <datalist id="carModels"></datalist>
+                            </div>
+                            <div class="form-group">
+                                <label>لون السيارة</label>
+                                <input type="text" id="carColor">
+                            </div>
+                            <div class="form-group">
+                                <label>عداد السيارة الحالي</label>
+                                <input type="text" id="odometer">
+                            </div>
+                            <div class="form-group">
+                                <label>رقم الهيكل (VIN)</label>
+                                <input type="text" id="vin">
+                            </div>
+                            <div class="form-group">
+                                <label>رقم اللوحة</label>
+                                <div class="plate-container">
+                                    <input type="text" class="plate-input letter" maxlength="1" id="pL1">
+                                    <input type="text" class="plate-input letter" maxlength="1" id="pL2">
+                                    <input type="text" class="plate-input letter" maxlength="1" id="pL3">
+                                    <span style="margin:0 2px">-</span>
+                                    <input type="text" class="plate-input number" maxlength="1" id="pN1">
+                                    <input type="text" class="plate-input number" maxlength="1" id="pN2">
+                                    <input type="text" class="plate-input number" maxlength="1" id="pN3">
+                                    <input type="text" class="plate-input number" maxlength="1" id="pN4">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th class="col-sn">#</th>
+                                        <th class="col-cat">الفئة</th>
+                                        <th>الخدمات / قطع الغيار</th>
+                                        <th class="col-qty">العدد</th>
+                                        <th class="col-price">السعر</th>
+                                        <th class="col-total">الإجمالي</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableBody"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="totals-grid">
+                            <div class="total-box">
+                                <span class="total-label">الإجمالي (بدون ضريبة)</span>
+                                <span class="total-val" id="subTotal">0.00</span>
+                            </div>
+                            <div class="total-box">
+                                <span class="total-label">الضريبة (15%)</span>
+                                <span class="total-val" id="vatTotal">0.00</span>
+                            </div>
+                            <div class="total-box">
+                                <span class="total-label">المبلغ الإجمالي</span>
+                                <span class="total-val" id="finalTotal" style="color:var(--success)">0.00</span>
+                            </div>
+                            <div class="total-box no-print">
+                                <span class="total-label">المدفوع</span>
+                                <input type="number" id="paidAmount" class="table-input"
+                                    style="text-align:center; border-bottom:1px solid #000;" value="0"
+                                    oninput="calculateTotals()">
+                            </div>
+                            <div class="total-box">
+                                <span class="total-label">المتبقي</span>
+                                <span class="total-val" id="remainingAmount">0.00</span>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:15px; font-size:10px; display:flex; justify-content:space-between;">
+                            <span>توقيع الكشيف: <b id="inspectorNameDisplay">...</b></span>
+                            <span>توقيع العميل: ...........................</span>
+                        </div>
+                    </div>
+
+                    <div class="actions no-print">
+                        <button class="btn btn-primary" onclick="saveInspection()">💾 حفظ الكشف</button>
+                        <button class="btn btn-success" onclick="window.print()">🖨️ طباعة / PDF</button>
+                        <button class="btn btn-secondary" onclick="resetForm()">🔄 جديد</button>
+                    </div>
+                </div>
+
+                <script>
+                    let pricingData = {};
+                    let allServicesList = [];
+                    let allBundles = [];
+
+                    let currentUser = JSON.parse(localStorage.getItem('user'));
+                    let currentInspectionId = null;
+
+                    async function init() {
+                        if (!currentUser) window.location.href = 'login.html';
+                        document.getElementById('inspectorName').textContent = currentUser.employee_name;
+                        document.getElementById('inspectorNameDisplay').textContent = currentUser.employee_name;
+                        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('ar-SA');
+
+                        await fetchServices();
+                        populateModels();
+                        setupPlateInputs();
+                        updateQuickServices();
+                        generateRows(60); // Default to 60 rows for 2 pages
+                        setupEnterNavigation();
+                        await loadBundles();
                     }
-                });
-                calculateTotals();
-            } catch (e) { console.error(e); }
-        }
 
-        function resetForm() {
-            if (confirm('بدء كشف جديد؟')) location.reload();
-        }
+                    async function fetchServices() {
+                        try {
+                            const res = await fetch('/api/services');
+                            allServicesList = await res.json();
+                            pricingData = {};
+                            allServicesList.forEach(s => {
+                                if (!pricingData[s.category]) pricingData[s.category] = [];
+                                pricingData[s.category].push({ service: s.service_name, price: s.price });
+                            });
 
-        function setupEnterNavigation() {
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    const target = e.target;
-                    if (target.tagName === 'INPUT' || target.tagName === 'SELECT') {
-                        if (target.classList.contains('service-input')) {
-                            const container = target.nextElementSibling;
-                            if (container && container.style.display === 'block') return;
+                            // Update quick add categories
+                            const quickCat = document.getElementById('quickCat');
+                            if (quickCat) {
+                                const categories = Object.keys(pricingData).sort();
+                                quickCat.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+                            }
+                        } catch (e) {
+                            console.error('Error fetching services:', e);
                         }
-                        if (target.id === 'searchInput') {
-                            e.preventDefault();
-                            searchInspections();
+                    }
+
+                    function updateQuickServices() {
+                        const cat = document.getElementById('quickCat').value;
+                        const select = document.getElementById('quickService');
+                        if (!pricingData[cat]) return;
+                        select.innerHTML = pricingData[cat].map(s => `<option value="${s.service}" data-price="${s.price}">${s.service} (${s.price} ريال)</option>`).join('');
+                    }
+
+                    function addQuickService() {
+                        const select = document.getElementById('quickService');
+                        const option = select.options[select.selectedIndex];
+                        if (!option) return;
+
+                        const service = option.value;
+                        const price = option.getAttribute('data-price');
+                        const cat = document.getElementById('quickCat').value;
+
+                        // Try to find empty row
+                        const rows = document.querySelectorAll('#tableBody tr');
+                        for (let tr of rows) {
+                            const input = tr.querySelector('.service-input');
+                            if (!input.value.trim()) {
+                                tr.querySelector('.cat-select').value = cat;
+                                input.value = service;
+                                tr.querySelector('.price-input').value = price;
+                                tr.querySelector('.qty-input').value = 1;
+                                calculateRow(input);
+                                tr.style.backgroundColor = '#dcfce7';
+                                setTimeout(() => tr.style.backgroundColor = '', 1000);
+                                if (window.innerWidth < 768) alert('تمت إضافة: ' + service);
+                                return;
+                            }
+                        }
+
+                        // If full, add new row
+                        const newTr = addNewRow();
+                        newTr.querySelector('.cat-select').value = cat;
+                        newTr.querySelector('.service-input').value = service;
+                        newTr.querySelector('.price-input').value = price;
+                        newTr.querySelector('.qty-input').value = 1;
+                        calculateRow(newTr.querySelector('.service-input'));
+                        newTr.style.backgroundColor = '#dcfce7';
+                        setTimeout(() => newTr.style.backgroundColor = '', 1000);
+                        if (window.innerWidth < 768) alert('تمت إضافة: ' + service);
+                    }
+
+                    async function loadBundles() {
+                        try {
+                            const res = await fetch('/api/inspection-bundles');
+                            allBundles = await res.json();
+                            renderBundleShortcuts();
+                        } catch (e) { console.error(e); }
+                    }
+
+                    function renderBundleShortcuts() {
+                        const container = document.getElementById('bundlesShortcutsContainer');
+                        if (!container) return;
+                        if (allBundles.length === 0) {
+                            container.innerHTML = '<div style="color: #166534; font-size: 14px;">لا توجد باقات مضافة</div>';
                             return;
                         }
-                        e.preventDefault();
-                        const focusable = Array.from(document.querySelectorAll('input:not([type="hidden"]), select, button:not(.no-print)'))
-                            .filter(el => !el.disabled && el.offsetWidth > 0 && el.offsetHeight > 0);
-                        const index = focusable.indexOf(target);
-                        if (index > -1 && index < focusable.length - 1) {
-                            focusable[index + 1].focus();
+                        container.innerHTML = allBundles.map(b => `
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; background: white; padding: 10px 15px; border-radius: 12px; border: 1px solid #bbf7d0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.2s;" onmouseover="this.style.borderColor='#22c55e'" onmouseout="this.style.borderColor='#bbf7d0'">
+                    <input type="checkbox" onchange="applyBundle(${b.id}, this)" style="width: 20px; height: 20px; cursor: pointer;">
+                    <span style="font-weight: 600; color: #166534;">${b.name} ${b.icon || '✅'}</span>
+                </label>
+            `).join('');
+                    }
+
+                    function applyBundle(bundleId, checkbox) {
+                        if (!checkbox.checked) return;
+
+                        const bundle = allBundles.find(b => b.id === bundleId);
+                        if (!bundle) return;
+
+                        const items = bundle.items;
+
+                        items.forEach(item => {
+                            let targetRow = null;
+
+                            // Try to find an empty row
+                            const rows = document.querySelectorAll('#tableBody tr');
+                            for (let tr of rows) {
+                                const input = tr.querySelector('.service-input');
+                                if (!input.value.trim()) {
+                                    targetRow = tr;
+                                    break;
+                                }
+                            }
+
+                            // If no empty row, create one
+                            if (!targetRow) {
+                                targetRow = addNewRow();
+                            }
+
+                            if (targetRow) {
+                                const input = targetRow.querySelector('.service-input');
+                                targetRow.querySelector('.cat-select').value = item.category;
+                                input.value = item.service_description;
+
+                                let price = 0;
+                                if (pricingData[item.category]) {
+                                    const found = pricingData[item.category].find(s => s.service === item.service_description);
+                                    if (found) price = found.price;
+                                }
+
+                                targetRow.querySelector('.price-input').value = price;
+                                targetRow.querySelector('.qty-input').value = 1;
+                                calculateRow(input);
+
+                                targetRow.style.backgroundColor = '#dcfce7';
+                                setTimeout(() => targetRow.style.backgroundColor = '', 1500);
+                            }
+                        });
+
+                        // Reset checkbox
+                        setTimeout(() => checkbox.checked = false, 500);
+                    }
+
+                    function populateModels() {
+                        const list = document.getElementById('carModels');
+                        for (let y = 2027; y >= 2008; y--) {
+                            const opt = document.createElement('option');
+                            opt.value = y;
+                            list.appendChild(opt);
                         }
                     }
-                }
-            });
-        }
 
-        init();
-    </script>
-</body>
+                    function setupPlateInputs() {
+                        const inputs = document.querySelectorAll('.plate-input');
+                        inputs.forEach((input, index) => {
+                            input.addEventListener('input', () => {
+                                if (input.value.length === 1 && index < inputs.length - 1) inputs[index + 1].focus();
+                            });
+                            input.addEventListener('keydown', (e) => {
+                                if (e.key === 'Backspace' && input.value.length === 0 && index > 0) inputs[index - 1].focus();
+                            });
+                        });
+                    }
+
+                    function addNewRow() {
+                        const tbody = document.getElementById('tableBody');
+                        const rowCount = tbody.rows.length + 1;
+                        const categories = Object.keys(pricingData).sort();
+
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                <td class="col-sn" data-label="#">${rowCount}</td>
+                <td data-label="الفئة">
+                    <select class="table-input cat-select">
+                        ${categories.map(c => `<option value="${c}" ${c === 'كشف' ? 'selected' : ''}>${c}</option>`).join('')}
+                    </select>
+                </td>
+                <td class="service-container" data-label="الخدمة">
+                    <input type="text" class="table-input service-input" placeholder=" " oninput="handleServiceInput(this)">
+                    <div class="autocomplete-items" style="display:none"></div>
+                </td>
+                <td data-label="العدد"><input type="number" class="table-input qty-input" oninput="calculateRow(this)"></td>
+                <td data-label="السعر"><input type="number" class="table-input price-input" oninput="calculateRow(this)"></td>
+                <td class="col-total row-total" data-label="الإجمالي">0.00</td>
+            `;
+                        tbody.appendChild(tr);
+                        return tr;
+                    }
+
+                    function generateRows(count) {
+                        const tbody = document.getElementById('tableBody');
+                        if (tbody.rows.length === 0) {
+                            for (let i = 0; i < count; i++) {
+                                addNewRow();
+                            }
+                        } else {
+                            tbody.innerHTML = '';
+                            for (let i = 0; i < count; i++) {
+                                addNewRow();
+                            }
+                        }
+                    }
+
+                    function handleServiceInput(input) {
+                        const tr = input.closest('tr');
+                        const currentCat = tr.querySelector('.cat-select').value;
+                        const val = input.value.toLowerCase();
+                        const container = input.nextElementSibling;
+                        container.innerHTML = '';
+
+                        if (!val) { container.style.display = 'none'; return; }
+
+                        const currentCatMatches = (pricingData[currentCat] || [])
+                            .filter(s => s.service.toLowerCase().includes(val))
+                            .map(s => ({ ...s, category: currentCat, priority: 1 }));
+
+                        let otherMatches = [];
+                        Object.keys(pricingData).forEach(cat => {
+                            if (cat !== currentCat) {
+                                const matches = pricingData[cat]
+                                    .filter(s => s.service.toLowerCase().includes(val))
+                                    .map(s => ({ ...s, category: cat, priority: 2 }));
+                                otherMatches = otherMatches.concat(matches);
+                            }
+                        });
+
+                        const allMatches = [...currentCatMatches, ...otherMatches].slice(0, 10);
+                        if (allMatches.length === 0) { container.style.display = 'none'; return; }
+
+                        container.style.display = 'block';
+                        allMatches.forEach(match => {
+                            const div = document.createElement('div');
+                            div.style.display = 'flex';
+                            div.style.justifyContent = 'space-between';
+                            div.innerHTML = `<span>${match.service}</span> <span style="font-size:9px; color:#999;">(${match.category})</span>`;
+                            div.onclick = () => {
+                                input.value = match.service;
+                                tr.querySelector('.price-input').value = match.price;
+                                tr.querySelector('.qty-input').value = 1;
+                                tr.querySelector('.cat-select').value = match.category;
+                                calculateRow(input);
+                                container.style.display = 'none';
+                            };
+                            container.appendChild(div);
+                        });
+                    }
+
+                    function calculateRow(el) {
+                        const tr = el.closest('tr');
+                        const qty = parseFloat(tr.querySelector('.qty-input').value) || 0;
+                        const price = parseFloat(tr.querySelector('.price-input').value) || 0;
+                        const total = qty * price;
+                        tr.querySelector('.row-total').textContent = total.toFixed(2);
+                        calculateTotals();
+                    }
+
+                    function calculateTotals() {
+                        let subtotal = 0;
+                        document.querySelectorAll('.row-total').forEach(td => {
+                            subtotal += parseFloat(td.textContent) || 0;
+                        });
+
+                        const vat = subtotal * 0.15;
+                        const final = subtotal + vat;
+                        const paid = parseFloat(document.getElementById('paidAmount').value) || 0;
+                        const remaining = final - paid;
+
+                        document.getElementById('subTotal').textContent = subtotal.toFixed(2);
+                        document.getElementById('vatTotal').textContent = vat.toFixed(2);
+                        document.getElementById('finalTotal').textContent = final.toFixed(2);
+                        document.getElementById('remainingAmount').textContent = remaining.toFixed(2);
+                    }
+
+                    async function saveInspection() {
+                        if (!currentUser || !currentUser.employee_id) return alert('خطأ: لم يتم العثور على بيانات الموظف. يرجى تسجيل الدخول مرة أخرى.');
+                        const items = [];
+                        document.querySelectorAll('#tableBody tr').forEach(tr => {
+                            const service = tr.querySelector('.service-input').value.trim();
+                            if (service) {
+                                items.push({
+                                    category: tr.querySelector('.cat-select').value,
+                                    service_description: service,
+                                    quantity: parseInt(tr.querySelector('.qty-input').value) || 1,
+                                    price: parseFloat(tr.querySelector('.price-input').value) || 0,
+                                    total: parseFloat(tr.querySelector('.row-total').textContent) || 0
+                                });
+                            }
+                        });
+
+                        if (items.length === 0) return alert('الرجاء إضافة خدمة واحدة على الأقل');
+
+                        const data = {
+                            inspector_id: currentUser.employee_id,
+                            customer_name: document.getElementById('custName').value,
+                            customer_phone: document.getElementById('custPhone').value,
+                            car_type: document.getElementById('carType').value,
+                            car_model: document.getElementById('carModel').value,
+                            car_color: document.getElementById('carColor').value,
+                            odometer: document.getElementById('odometer').value,
+                            vin: document.getElementById('vin').value,
+                            plate_number: `${document.getElementById('pL1').value}${document.getElementById('pL2').value}${document.getElementById('pL3').value} ${document.getElementById('pN1').value}${document.getElementById('pN2').value}${document.getElementById('pN3').value}${document.getElementById('pN4').value}`,
+                            total_amount: parseFloat(document.getElementById('subTotal').textContent),
+                            vat_amount: parseFloat(document.getElementById('vatTotal').textContent),
+                            final_amount: parseFloat(document.getElementById('finalTotal').textContent),
+                            paid_amount: parseFloat(document.getElementById('paidAmount').value) || 0,
+                            remaining_amount: parseFloat(document.getElementById('remainingAmount').textContent),
+                            items: items
+                        };
+
+                        try {
+                            const url = currentInspectionId ? `/api/inspections/${currentInspectionId}` : '/api/inspections';
+                            const method = currentInspectionId ? 'PUT' : 'POST';
+
+                            const res = await fetch(url, {
+                                method: method,
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(data)
+                            });
+                            const result = await res.json();
+                            if (res.ok) {
+                                alert(currentInspectionId ? 'تم تحديث الكشف بنجاح' : 'تم حفظ الكشف بنجاح، رقم الكشف: ' + result.id);
+                                if (!currentInspectionId) {
+                                    currentInspectionId = result.id;
+                                    document.getElementById('inspectionIdDisplay').textContent = result.id;
+                                }
+                            } else {
+                                alert('خطأ في الحفظ: ' + (result.message || 'فشل الاتصال بالسيرفر'));
+                            }
+                        } catch (e) {
+                            console.error(e);
+                            alert('حدث خطأ: ' + e.message);
+                        }
+                    }
+
+                    async function searchInspections() {
+                        const query = document.getElementById('searchInput').value.trim();
+                        if (!query) return;
+
+                        try {
+                            const res = await fetch(`/api/inspections/search?query=${encodeURIComponent(query)}`);
+                            if (!res.ok) throw new Error('Network response was not ok');
+                            const results = await res.json();
+
+                            if (!Array.isArray(results) || results.length === 0) {
+                                return alert('لا توجد نتائج لهذا البحث');
+                            }
+
+                            if (results.length === 1) {
+                                loadInspection(results[0].id);
+                            } else {
+                                const choice = prompt(`وجدنا ${results.length} نتائج. أدخل رقم الكشف المطلوب:\n` +
+                                    results.map(r => `#${r.id} - ${r.customer_name} (${r.customer_phone})`).join('\n'));
+                                if (choice) loadInspection(choice);
+                            }
+                        } catch (e) {
+                            console.error('Search Error:', e);
+                            alert('حدث خطأ أثناء البحث');
+                        }
+                    }
+
+                    async function loadInspection(id) {
+                        try {
+                            const res = await fetch(`/api/inspections/${id}`);
+                            const data = await res.json();
+                            currentInspectionId = data.id;
+                            document.getElementById('inspectionIdDisplay').textContent = data.id;
+                            document.getElementById('currentDate').textContent = new Date(data.created_at).toLocaleDateString('ar-SA');
+                            document.getElementById('custName').value = data.customer_name;
+                            document.getElementById('custPhone').value = data.customer_phone;
+                            document.getElementById('carType').value = data.car_type;
+                            document.getElementById('carModel').value = data.car_model;
+                            document.getElementById('carColor').value = data.car_color;
+                            document.getElementById('odometer').value = data.odometer || '';
+                            document.getElementById('vin').value = data.vin || '';
+                            document.getElementById('paidAmount').value = data.paid_amount;
+
+                            // Load plate number
+                            if (data.plate_number) {
+                                const parts = data.plate_number.split(' ');
+                                if (parts.length === 2) {
+                                    const letters = parts[0];
+                                    const numbers = parts[1];
+                                    document.getElementById('pL1').value = letters[0] || '';
+                                    document.getElementById('pL2').value = letters[1] || '';
+                                    document.getElementById('pL3').value = letters[2] || '';
+                                    document.getElementById('pN1').value = numbers[0] || '';
+                                    document.getElementById('pN2').value = numbers[1] || '';
+                                    document.getElementById('pN3').value = numbers[2] || '';
+                                    document.getElementById('pN4').value = numbers[3] || '';
+                                }
+                            }
+
+                            // Load items
+                            generateRows(60); // Reset rows to 60
+                            const rows = document.querySelectorAll('#tableBody tr');
+                            data.items.forEach((item, i) => {
+                                if (rows[i]) {
+                                    rows[i].querySelector('.cat-select').value = item.category;
+                                    rows[i].querySelector('.service-input').value = item.service_description;
+                                    rows[i].querySelector('.qty-input').value = item.quantity;
+                                    rows[i].querySelector('.price-input').value = item.price;
+                                    calculateRow(rows[i].querySelector('.service-input'));
+                                } else {
+                                    // If more items than rows, add new row
+                                    const newTr = addNewRow();
+                                    newTr.querySelector('.cat-select').value = item.category;
+                                    newTr.querySelector('.service-input').value = item.service_description;
+                                    newTr.querySelector('.qty-input').value = item.quantity;
+                                    newTr.querySelector('.price-input').value = item.price;
+                                    calculateRow(newTr.querySelector('.service-input'));
+                                }
+                            });
+                            calculateTotals();
+                        } catch (e) { console.error(e); }
+                    }
+
+                    function resetForm() {
+                        if (confirm('بدء كشف جديد؟')) location.reload();
+                    }
+
+                    function setupEnterNavigation() {
+                        document.addEventListener('keydown', (e) => {
+                            if (e.key === 'Enter') {
+                                const target = e.target;
+                                if (target.tagName === 'INPUT' || target.tagName === 'SELECT') {
+                                    if (target.classList.contains('service-input')) {
+                                        const container = target.nextElementSibling;
+                                        if (container && container.style.display === 'block') return;
+                                    }
+                                    if (target.id === 'searchInput') {
+                                        e.preventDefault();
+                                        searchInspections();
+                                        return;
+                                    }
+                                    e.preventDefault();
+                                    const focusable = Array.from(document.querySelectorAll('input:not([type="hidden"]), select, button:not(.no-print)'))
+                                        .filter(el => !el.disabled && el.offsetWidth > 0 && el.offsetHeight > 0);
+                                    const index = focusable.indexOf(target);
+                                    if (index > -1 && index < focusable.length - 1) {
+                                        focusable[index + 1].focus();
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    init();
+                </script>
+            </body>
+
 
 </html>
