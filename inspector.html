@@ -1238,7 +1238,24 @@
                     }
 
                     async function saveInspection() {
-                        if (!currentUser || !currentUser.employee_id) return alert('خطأ: لم يتم العثور على بيانات الموظف. يرجى تسجيل الدخول مرة أخرى.');
+                        // إعادة تحميل بيانات المستخدم من localStorage
+                        currentUser = JSON.parse(localStorage.getItem('user'));
+
+                        // التحقق من وجود بيانات المستخدم
+                        if (!currentUser) {
+                            alert('خطأ: لم يتم العثور على بيانات المستخدم. يرجى تسجيل الدخول مرة أخرى.');
+                            window.location.href = 'login.html';
+                            return;
+                        }
+
+                        // التحقق من وجود معرف الموظف (يمكن أن يكون employee_id أو id)
+                        const inspectorId = currentUser.employee_id || currentUser.id;
+                        if (!inspectorId) {
+                            alert('خطأ: لم يتم العثور على معرف الموظف. يرجى تسجيل الدخول مرة أخرى.');
+                            console.error('User data:', currentUser);
+                            window.location.href = 'login.html';
+                            return;
+                        }
                         const items = [];
                         document.querySelectorAll('#tableBody tr').forEach(tr => {
                             const service = tr.querySelector('.service-input').value.trim();
@@ -1253,10 +1270,17 @@
                             }
                         });
 
-                        if (items.length === 0) return alert('الرجاء إضافة خدمة واحدة على الأقل');
+                        if (items.length === 0) {
+                            if (typeof showWarning === 'function') {
+                                showWarning('الرجاء إضافة خدمة واحدة على الأقل');
+                            } else {
+                                alert('الرجاء إضافة خدمة واحدة على الأقل');
+                            }
+                            return;
+                        }
 
                         const data = {
-                            inspector_id: currentUser.employee_id,
+                            inspector_id: inspectorId,
                             customer_name: document.getElementById('custName').value,
                             customer_phone: document.getElementById('custPhone').value,
                             car_type: document.getElementById('carType').value,
@@ -1284,17 +1308,32 @@
                             });
                             const result = await res.json();
                             if (res.ok) {
-                                alert(currentInspectionId ? 'تم تحديث الكشف بنجاح' : 'تم حفظ الكشف بنجاح، رقم الكشف: ' + result.id);
+                                const message = currentInspectionId ? 'تم تحديث الكشف بنجاح' : 'تم حفظ الكشف بنجاح، رقم الكشف: ' + result.id;
+                                if (typeof showSuccess === 'function') {
+                                    showSuccess(message);
+                                } else {
+                                    alert(message);
+                                }
                                 if (!currentInspectionId) {
                                     currentInspectionId = result.id;
                                     document.getElementById('inspectionIdDisplay').textContent = result.id;
                                 }
                             } else {
-                                alert('خطأ في الحفظ: ' + (result.message || 'فشل الاتصال بالسيرفر'));
+                                const errorMsg = 'خطأ في الحفظ: ' + (result.message || 'فشل الاتصال بالسيرفر');
+                                if (typeof showError === 'function') {
+                                    showError(errorMsg);
+                                } else {
+                                    alert(errorMsg);
+                                }
                             }
                         } catch (e) {
                             console.error(e);
-                            alert('حدث خطأ: ' + e.message);
+                            const errorMsg = 'حدث خطأ: ' + e.message;
+                            if (typeof showError === 'function') {
+                                showError(errorMsg);
+                            } else {
+                                alert(errorMsg);
+                            }
                         }
                     }
 

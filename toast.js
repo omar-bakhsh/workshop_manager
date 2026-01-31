@@ -93,25 +93,55 @@ class ToastNotification {
 }
 
 // إنشاء instance عام
-const toast = new ToastNotification();
+let toast = null;
+
+// تهيئة Toast بعد تحميل الصفحة
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        toast = new ToastNotification();
+    });
+} else {
+    // DOM already loaded
+    toast = new ToastNotification();
+}
 
 // دوال مساعدة عامة
 function showToast(message, type = 'info', duration = 3000) {
+    if (!toast) {
+        console.warn('Toast not initialized yet. Initializing now...');
+        toast = new ToastNotification();
+    }
     return toast.show(message, type, duration);
 }
 
 function showSuccess(message) {
+    if (!toast) {
+        console.warn('Toast not initialized yet. Initializing now...');
+        toast = new ToastNotification();
+    }
     return toast.success(message);
 }
 
 function showError(message) {
+    if (!toast) {
+        console.warn('Toast not initialized yet. Initializing now...');
+        toast = new ToastNotification();
+    }
     return toast.error(message);
 }
 
 function showWarning(message) {
+    if (!toast) {
+        console.warn('Toast not initialized yet. Initializing now...');
+        toast = new ToastNotification();
+    }
     return toast.warning(message);
 }
 
 function showInfo(message) {
+    if (!toast) {
+        console.warn('Toast not initialized yet. Initializing now...');
+        toast = new ToastNotification();
+    }
     return toast.info(message);
 }
