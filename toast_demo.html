@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام الإشعارات - Toast Notifications</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="toast.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .demo-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1f2937;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        p {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .demo-btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .demo-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .demo-btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .btn-error {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+
+        .code-section {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .code-section h3 {
+            color: #374151;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        pre {
+            background: #1f2937;
+            color: #10b981;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+        }
+
+        @media (max-width: 768px) {
+            .button-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .demo-container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="demo-container">
+        <h1>🔔 نظام الإشعارات</h1>
+        <p>اضغط على الأزرار لتجربة أنواع مختلفة من الإشعارات</p>
+
+        <div class="button-grid">
+            <button class="demo-btn btn-success" onclick="showSuccess('تم حفظ البيانات بنجاح!')">
+                ✓ نجاح
+            </button>
+            <button class="demo-btn btn-error" onclick="showError('حدث خطأ أثناء العملية!')">
+                ✕ خطأ
+            </button>
+            <button class="demo-btn btn-warning" onclick="showWarning('تحذير: يرجى التحقق من البيانات')">
+                ⚠ تحذير
+            </button>
+            <button class="demo-btn btn-info" onclick="showInfo('معلومة: تم تحديث النظام')">
+                ℹ معلومة
+            </button>
+        </div>
+
+        <div class="code-section">
+            <h3>📝 كيفية الاستخدام:</h3>
+            <pre><code>// إشعار نجاح
+showSuccess('تم الحفظ بنجاح');
+
+// إشعار خطأ
+showError('فشلت العملية');
+
+// إشعار تحذير
+showWarning('يرجى الانتباه');
+
+// إشعار معلومة
+showInfo('معلومة مفيدة');
+
+// أو استخدام الدالة العامة
+showToast('رسالة مخصصة', 'success', 3000);</code></pre>
+        </div>
+    </div>
+
+    <script src="toast.js"></script>
+</body>
+
+</html>

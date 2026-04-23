@@ -1,4 +1,6 @@
+uploads/
 node_modules/
+
 db.sqlite
 *.log
 backup_*.sqlite
@@ -15,3 +17,10 @@ fix_db_users.js
 migrate_db.js
 test_post.js
 verify_*.js
+
+scratch/
+*.zip
+*.xlsx
+*.pdf
+public/js/*.js.map
+public/css/*.css.map

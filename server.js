@@ -8,10 +8,11 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
 const xlsx = require('xlsx');
 
 const app = express();
-const PORT = 3000;
+const PORT = 8080;
 
 // ==========================
 // 🧩 الإعدادات العامة
@@ -54,7 +55,9 @@ function initializeDatabase() {
         )`,
         `CREATE TABLE IF NOT EXISTS sections (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE NOT NULL
+            name TEXT UNIQUE NOT NULL,
+            shift_start TEXT DEFAULT '08:00',
+            shift_end TEXT DEFAULT '18:00'
         )`,
         `CREATE TABLE IF NOT EXISTS employees (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -62,9 +65,20 @@ function initializeDatabase() {
             section_id INTEGER,
             target INTEGER NOT NULL DEFAULT 0,
             base_salary INTEGER DEFAULT 0,
+            target_amount REAL DEFAULT 0,
+            deposit_amount REAL DEFAULT 0,
+            total_withdrawals REAL DEFAULT 0,
+            remaining_salary REAL DEFAULT 0,
+            net_remaining REAL DEFAULT 0,
+            bank_name TEXT DEFAULT 'كاش',
+            last_sync_at TIMESTAMP,
             is_active INTEGER DEFAULT 1,
             hide_income INTEGER DEFAULT 0,
             FOREIGN KEY (section_id) REFERENCES sections(id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT
         )`,
         `CREATE TABLE IF NOT EXISTS entries (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -109,14 +123,11 @@ function initializeDatabase() {
             updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (employee_id) REFERENCES employees(id)
         )`,
-        `CREATE TABLE IF NOT EXISTS workshop_lifts (
-            id TEXT PRIMARY KEY,
-            name TEXT NOT NULL,
-            status TEXT DEFAULT 'idle', -- idle, green, yellow, red
-            technician_id INTEGER,
-            issue_description TEXT,
-            last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (technician_id) REFERENCES employees(id)
+        `CREATE TABLE IF NOT EXISTS branch_shifts (
+            day_of_week INTEGER PRIMARY KEY, -- 0-6 (Sunday-Saturday)
+            shift_start TEXT DEFAULT '08:00',
+            shift_end TEXT DEFAULT '18:00',
+            is_closed INTEGER DEFAULT 0
         )`,
         `CREATE TABLE IF NOT EXISTS attendance (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -125,6 +136,11 @@ function initializeDatabase() {
             check_in TIMESTAMP,
             check_out TIMESTAMP,
             status TEXT DEFAULT 'present',
+            delay_minutes INTEGER DEFAULT 0,
+            early_departure_minutes INTEGER DEFAULT 0,
+            overtime_minutes INTEGER DEFAULT 0,
+            shift_start TEXT,
+            shift_end TEXT,
             FOREIGN KEY (employee_id) REFERENCES employees(id)
         )`,
         `CREATE TABLE IF NOT EXISTS messages (
@@ -191,11 +207,19 @@ function initializeDatabase() {
     ];
 
     db.serialize(() => {
-        tables.forEach(sql => {
-            db.run(sql, (err) => {
-                if (err) console.error('❌ خطأ في إنشاء جدول:', err.message);
+        tables.forEach(table => {
+            db.run(table, (err) => {
+                if (err) console.error('❌ خطأ في إنشاء الجدول:', err.message);
             });
         });
+
+        // إضافة الأعمدة المفقودة للموظفين (Migration)
+        db.run(`ALTER TABLE employees ADD COLUMN bank_name TEXT DEFAULT 'كاش'`, (err) => {
+            if (!err) console.log('✅ تم إضافة عمود bank_name');
+        });
+
+        // تهيئة الإعدادات الافتراضية
+        db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES ('max_withdrawal_limit', '500')`);
 
         // التأكد من وجود مستخدم المدير الافتراضي والأقسام الافتراضية
         db.run(`INSERT OR IGNORE INTO users (username, password, role) VALUES (?, ?, ?)`,
@@ -212,12 +236,37 @@ function initializeDatabase() {
             });
         });
 
-        // إضافة الرافعات الافتراضية (A-E)
-        const lifts = ['A', 'B', 'C', 'D', 'E'];
-        lifts.forEach(id => {
-            db.run(`INSERT OR IGNORE INTO workshop_lifts (id, name) VALUES (?, ?)`, [id, `رافعة ${id}`], (err) => {
-                if (err) console.error(`❌ خطأ في إضافة الرافعة ${id}:`, err.message);
-            });
+        // تحديث هيكلية الحضور للمناوبات المتقدمة
+        db.run(`ALTER TABLE attendance ADD COLUMN early_departure_minutes INTEGER DEFAULT 0`, (err) => {});
+        db.run(`ALTER TABLE attendance ADD COLUMN overtime_minutes INTEGER DEFAULT 0`, (err) => {});
+        db.run(`ALTER TABLE attendance ADD COLUMN shift_start TEXT`, (err) => {});
+        db.run(`ALTER TABLE attendance ADD COLUMN shift_end TEXT`, (err) => {});
+        
+        // إنشاء جدول مواعيد الفرع إذا لم يوجد وبذره
+        const defaultShifts = [
+            { day: 0, start: '08:00', end: '18:00', closed: 1 }, // Sunday (Assuming Friday is 5)
+            { day: 1, start: '08:00', end: '18:00', closed: 0 },
+            { day: 2, start: '08:00', end: '18:00', closed: 0 },
+            { day: 3, start: '08:00', end: '18:00', closed: 0 },
+            { day: 4, start: '08:00', end: '18:00', closed: 0 },
+            { day: 5, start: '08:00', end: '18:00', closed: 0 },
+            { day: 6, start: '08:30', end: '17:30', closed: 0 }  // Saturday
+        ];
+        // Note: JavaScript Date.getDay() is 0=Sunday, 1=Monday, ..., 5=Friday, 6=Saturday
+        // Middle east context: Friday (5) usually closed.
+        const meShifts = [
+            { day: 0, start: '08:00', end: '18:00', closed: 0 }, // Sun
+            { day: 1, start: '08:00', end: '18:00', closed: 0 }, // Mon
+            { day: 2, start: '08:00', end: '18:00', closed: 0 }, // Tue
+            { day: 3, start: '08:00', end: '18:00', closed: 0 }, // Wed
+            { day: 4, start: '08:00', end: '18:00', closed: 0 }, // Thu
+            { day: 5, start: '08:00', end: '18:00', closed: 1 }, // Fri (Closed)
+            { day: 6, start: '08:30', end: '17:30', closed: 0 }  // Sat
+        ];
+
+        meShifts.forEach(s => {
+            db.run(`INSERT OR IGNORE INTO branch_shifts (day_of_week, shift_start, shift_end, is_closed) VALUES (?, ?, ?, ?)`,
+                [s.day, s.start, s.end, s.closed]);
         });
 
         // بذر الخدمات الافتراضية
@@ -409,13 +458,14 @@ app.post('/api/login', async (req, res) => {
 
 // إضافة موظف جديد
 app.post('/api/employees', async (req, res) => {
-    const { name, section_id, target, base_salary, username, password, hide_income } = req.body;
+    const { name, section_id, target, base_salary, target_amount, deposit_amount, total_withdrawals, username, password, hide_income, bank_name } = req.body;
     if (!name || !section_id || !target || !username || !password) {
-        return res.status(400).json({ message: "الرجاء إدخال جميع البيانات المطلوبة." });
+        return res.status(400).json({ message: "البيانات ناقصة." });
     }
     try {
         // 1. إضافة الموظف
-        const empResult = await dbRun(`INSERT INTO employees (name, section_id, target, base_salary, hide_income) VALUES (?, ?, ?, ?, ?)`, [name, section_id, target, base_salary || 0, hide_income || 0]);
+        const empResult = await dbRun(`INSERT INTO employees (name, section_id, target, base_salary, hide_income, bank_name) VALUES (?, ?, ?, ?, ?, ?)`, 
+            [name, section_id, target, base_salary || 0, hide_income || 0, bank_name || 'كاش']);
         const employee_id = empResult.lastID;
 
         // 2. إنشاء حساب المستخدم
@@ -434,11 +484,12 @@ app.post('/api/employees', async (req, res) => {
 // تحديث بيانات موظف
 app.put('/api/employees/:id', async (req, res) => {
     const { id } = req.params;
-    const { name, section_id, target, base_salary, username, password, hide_income } = req.body;
+    const { name, section_id, target, base_salary, username, password, hide_income, bank_name } = req.body;
 
     try {
         // 1. تحديث بيانات الموظف (الاسم، القسم، الهدف، الراتب الأساسي، إخفاء الدخل)
-        await dbRun(`UPDATE employees SET name = ?, section_id = ?, target = ?, base_salary = ?, hide_income = ? WHERE id = ?`, [name, section_id, target, base_salary, hide_income || 0, id]);
+        await dbRun(`UPDATE employees SET name = ?, section_id = ?, target = ?, base_salary = ?, hide_income = ?, bank_name = ? WHERE id = ?`, 
+            [name, section_id, target, base_salary, hide_income || 0, bank_name || 'كاش', id]);
 
         // 2. تحديث بيانات المستخدم (اسم المستخدم وكلمة المرور)
         // التحقق مما إذا كان هناك مستخدم مرتبط لتجنب تحديث المدير
@@ -485,7 +536,7 @@ app.get('/api/employees', async (req, res) => {
                 e.id,
                 e.name,
                 e.target,
-                e.base_salary,
+                e.base_salary, e.target_amount, e.deposit_amount, e.total_withdrawals, e.remaining_salary, e.net_remaining, e.last_sync_at,
                 e.hide_income,
                 e.section_id,
                 s.name AS section_name,
@@ -550,7 +601,7 @@ app.get('/api/employee-stats/:id', async (req, res) => {
     try {
         // جلب اسم الموظف والهدف والقسم
         const info = await dbGet(`
-            SELECT e.name, e.target, e.base_salary, e.hide_income, e.section_id, s.name AS section_name 
+            SELECT e.*, s.name AS section_name 
             FROM employees e 
             LEFT JOIN sections s ON e.section_id = s.id 
             WHERE e.id = ? AND e.is_active = 1
@@ -577,9 +628,12 @@ app.get('/api/employee-stats/:id', async (req, res) => {
 
         if (info.hide_income == 1) {
             res.json({
+                ...info,
                 info,
                 total_income: -1, // Flag for hidden
                 total_withdrawal: totalWithdrawalRow.total_withdrawal,
+                last_income_at: entries.length > 0 ? entries[0].created_at : null,
+                last_withdrawal_at: withdrawals.length > 0 ? withdrawals[0].created_at : null,
                 entries: [], // Hide entries
                 withdrawals,
                 absences,
@@ -587,6 +641,7 @@ app.get('/api/employee-stats/:id', async (req, res) => {
             });
         } else {
             res.json({
+                ...info,
                 info,
                 total_income: totalIncomeRow.total_income,
                 total_withdrawal: totalWithdrawalRow.total_withdrawal,
@@ -794,79 +849,19 @@ app.get('/api/absences', async (req, res) => {
     }
 });
 
-// جلب الغيابات (مع إمكانية التصفية حسب الفترة الزمنية والموظف)
-app.get('/api/absences', async (req, res) => {
-    const { from, to, employee_id } = req.query;
 
-    try {
-        let query = `
-            SELECT a.*, e.name as employee_name 
-            FROM absences a
-            LEFT JOIN employees e ON a.employee_id = e.id
-            WHERE 1=1
-        `;
-        let params = [];
-
-        // إذا تم تحديد فترة زمنية
-        if (from && to) {
-            query += ` AND a.date BETWEEN ? AND ?`;
-            params.push(from, to);
-        }
-
-        // إذا تم تحديد موظف
-        if (employee_id) {
-            query += ` AND a.employee_id = ?`;
-            params.push(employee_id);
-        }
-
-        query += ` ORDER BY a.date DESC`;
-
-        const absences = await dbAll(query, params);
-        res.json(absences);
-    } catch (error) {
-        console.error("Fetch Absences Error:", error);
-        res.status(500).json({ message: "خطأ في جلب الغيابات" });
-    }
-});
-
-// جلب سحوبات موظف محدد
-app.get('/api/employees/:id/withdrawals', async (req, res) => {
-    const { id } = req.params;
-    try {
-        const withdrawals = await dbAll(`SELECT * FROM withdrawals WHERE employee_id = ? ORDER BY date DESC`, [id]);
-        res.json(withdrawals);
-    } catch (error) {
-        console.error("Fetch Employee Withdrawals Error:", error);
-        res.status(500).json({ message: "خطأ في جلب سحوبات الموظف" });
-    }
-});
-
-// جلب دخل موظف محدد
-app.get('/api/employees/:id/entries', async (req, res) => {
-    const { id } = req.params;
-    try {
-        const entries = await dbAll(`SELECT * FROM entries WHERE employee_id = ? ORDER BY date DESC`, [id]);
-        res.json(entries);
-    } catch (error) {
-        console.error("Fetch Employee Entries Error:", error);
-        res.status(500).json({ message: "خطأ في جلب دخل الموظف" });
-    }
-});
-
-
-// إضافة سحب جماعي (Batch)
+// جلب السحوبات الجماعية
 app.post('/api/withdrawals/batch', async (req, res) => {
     const { employee_ids, amount, reason, date } = req.body;
-
-    if (!employee_ids || !Array.isArray(employee_ids) || employee_ids.length === 0 || !amount) {
-        return res.status(400).json({ message: "بيانات غير صالحة." });
+    if (!employee_ids || !Array.isArray(employee_ids) || !amount) {
+        return res.status(400).json({ message: "بيانات غير مكتملة" });
     }
 
     const withdrawalDate = date || new Date().toISOString().split('T')[0];
 
     try {
-        const promises = employee_ids.map(id =>
-            dbRun(`INSERT INTO withdrawals (employee_id, amount, reason, date, status) VALUES (?, ?, ?, ?, 'approved')`,
+        const promises = employee_ids.map(id => 
+            dbRun(`INSERT INTO withdrawals (employee_id, amount, reason, date, status) VALUES (?, ?, ?, ?, 'approved')`, 
                 [id, amount, reason, withdrawalDate])
         );
 
@@ -1017,7 +1012,7 @@ app.put('/api/leave-requests/:id', async (req, res) => {
     const { status, admin_notes } = req.body;
 
     if (!status || !['approved', 'rejected'].includes(status)) {
-        return res.status(400).json({ message: 'حالة غير صحيحة' });
+        return res.status(400).json({ message: 'حالة غير صالحة' });
     }
 
     try {
@@ -1068,91 +1063,33 @@ app.get('/api/leave-balances', async (req, res) => {
         res.json(balances);
     } catch (error) {
         console.error('Fetch Leave Balances Error:', error);
+        res.status(500).json({ message: 'خطأ' });
     }
 });
 
 // ==========================
-// 🏗️ إدارة الرافعات (Lift Management)
+// 🏗️ إدارة الدوام (Shift Management)
 // ==========================
 
-// جلب حالة جميع الرافعات
-app.get('/api/lifts', async (req, res) => {
+// تحديث أوقات الدوام للفرع (الأسبوعي)
+app.get('/api/branch-shifts', async (req, res) => {
     try {
-        const lifts = await dbAll(`
-            SELECT 
-                l.*,
-                e.name AS technician_name
-            FROM workshop_lifts l
-            LEFT JOIN employees e ON l.technician_id = e.id
-            ORDER BY l.id
-        `);
-        res.json(lifts);
+        const shifts = await dbAll(`SELECT * FROM branch_shifts ORDER BY day_of_week`);
+        res.json(shifts);
     } catch (error) {
-        console.error('Fetch Lifts Error:', error);
-        res.status(500).json({ message: 'خطأ في جلب بيانات الرافعات' });
+        res.status(500).json({ message: 'خطأ في جلب المواعيد' });
     }
 });
 
-// تحديث حالة الرافعة (للفني)
-app.put('/api/lifts/:id', async (req, res) => {
-    const { id } = req.params;
-    const { status, technician_id, issue_description } = req.body;
-
+app.put('/api/branch-shifts/:day', async (req, res) => {
+    const { day } = req.params;
+    const { shift_start, shift_end, is_closed } = req.body;
     try {
-        // التحقق من وجود الرافعة
-        const lift = await dbGet('SELECT * FROM workshop_lifts WHERE id = ?', [id]);
-        if (!lift) {
-            return res.status(404).json({ message: 'الرافعة غير موجودة' });
-        }
-
-        // بناء جملة التحديث ديناميكياً
-        let updates = [];
-        let params = [];
-
-        if (status) {
-            updates.push('status = ?');
-            params.push(status);
-        }
-        if (technician_id !== undefined) {
-            updates.push('technician_id = ?');
-            params.push(technician_id);
-        }
-        if (issue_description !== undefined) {
-            updates.push('issue_description = ?');
-            params.push(issue_description);
-        }
-
-        updates.push('last_updated = CURRENT_TIMESTAMP');
-
-        if (updates.length === 1) { // Only last_updated
-            return res.status(400).json({ message: 'لا توجد بيانات للتحديث' });
-        }
-
-        const sql = `UPDATE workshop_lifts SET ${updates.join(', ')} WHERE id = ?`;
-        params.push(id);
-
-        await dbRun(sql, params);
-        res.json({ message: 'تم تحديث حالة الرافعة بنجاح' });
+        await dbRun(`UPDATE branch_shifts SET shift_start = ?, shift_end = ?, is_closed = ? WHERE day_of_week = ?`,
+            [shift_start, shift_end, is_closed ? 1 : 0, day]);
+        res.json({ message: 'تم تحديث الموعد بنجاح' });
     } catch (error) {
-        console.error('Update Lift Error:', error);
-        res.status(500).json({ message: 'خطأ في تحديث الرافعة' });
-    }
-});
-
-// تحرير الرافعة (إخلاء)
-app.post('/api/lifts/:id/release', async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        await dbRun(`
-            UPDATE workshop_lifts 
-            SET status = 'idle', technician_id = NULL, issue_description = NULL, last_updated = CURRENT_TIMESTAMP 
-            WHERE id = ?
-        `, [id]);
-        res.json({ message: 'تم إخلاء الرافعة بنجاح' });
-    } catch (error) {
-        console.error('Release Lift Error:', error);
-        res.status(500).json({ message: 'خطأ في إخلاء الرافعة' });
+        res.status(500).json({ message: 'خطأ في تحديث الموعد' });
     }
 });
 
@@ -1182,43 +1119,73 @@ app.get("/login.html", (req, res) => {
 // تسجيل دخول (Check-in)
 app.post('/api/attendance/check-in', async (req, res) => {
     const { employee_id } = req.body;
-    const date = new Date().toISOString().split('T')[0];
-    const time = new Date().toISOString();
+    const now = new Date();
+    const date = now.toISOString().split('T')[0];
+    const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon...
 
     try {
-        // التحقق مما إذا كان قد سجل بالفعل اليوم
         const existing = await dbGet('SELECT * FROM attendance WHERE employee_id = ? AND date = ?', [employee_id, date]);
-        if (existing) {
-            return res.status(400).json({ message: 'تم تسجيل الحضور مسبقاً لهذا اليوم' });
+        if (existing) return res.status(400).json({ message: 'تم تسجيل الحضور مسبقاً' });
+
+        // جلب وقت الدوام لليوم من مواعيد الفرع
+        const shift = await dbGet(`SELECT * FROM branch_shifts WHERE day_of_week = ?`, [dayOfWeek]);
+        
+        let delayMinutes = 0;
+        let sStart = '08:00', sEnd = '18:00';
+
+        if (shift) {
+            if (shift.is_closed) return res.status(400).json({ message: 'المحل مغلق اليوم' });
+            sStart = shift.shift_start;
+            sEnd = shift.shift_end;
+            
+            const [sh, sm] = sStart.split(':').map(Number);
+            const shiftTime = new Date(now);
+            shiftTime.setHours(sh, sm, 0, 0);
+
+            if (now > shiftTime) {
+                delayMinutes = Math.floor((now - shiftTime) / 60000);
+            }
         }
 
-        await dbRun(`INSERT INTO attendance (employee_id, date, check_in) VALUES (?, ?, ?)`, [employee_id, date, time]);
-        res.json({ message: 'تم تسجيل الحضور بنجاح', time });
+        await dbRun(`INSERT INTO attendance (employee_id, date, check_in, delay_minutes, shift_start, shift_end) VALUES (?, ?, ?, ?, ?, ?)`, 
+            [employee_id, date, now.toISOString(), delayMinutes, sStart, sEnd]);
+        
+        res.json({ message: delayMinutes > 0 ? `تم تسجيل الحضور (تأخير: ${delayMinutes} دقيقة)` : 'تم تسجيل الحضور في الوقت المحدد', delay_minutes: delayMinutes });
     } catch (error) {
-        console.error("Check-in Error:", error);
         res.status(500).json({ message: "خطأ في تسجيل الحضور" });
     }
 });
 
-// تسجيل خروج (Check-out)
 app.post('/api/attendance/check-out', async (req, res) => {
     const { employee_id } = req.body;
-    const date = new Date().toISOString().split('T')[0];
-    const time = new Date().toISOString();
+    const now = new Date();
+    const date = now.toISOString().split('T')[0];
 
     try {
         const existing = await dbGet('SELECT * FROM attendance WHERE employee_id = ? AND date = ?', [employee_id, date]);
-        if (!existing) {
-            return res.status(400).json({ message: 'يجب تسجيل الحضور أولاً' });
-        }
-        if (existing.check_out) {
-            return res.status(400).json({ message: 'تم تسجيل الانصراف مسبقاً' });
+        if (!existing) return res.status(400).json({ message: 'يجب تسجيل الحضور أولاً' });
+        if (existing.check_out) return res.status(400).json({ message: 'تم تسجيل الانصراف مسبقاً' });
+
+        let earlyMinutes = 0;
+        let overtimeMinutes = 0;
+
+        if (existing.shift_end) {
+            const [eh, em] = existing.shift_end.split(':').map(Number);
+            const shiftEndTime = new Date(now);
+            shiftEndTime.setHours(eh, em, 0, 0);
+
+            if (now < shiftEndTime) {
+                earlyMinutes = Math.floor((shiftEndTime - now) / 60000);
+            } else {
+                overtimeMinutes = Math.floor((now - shiftEndTime) / 60000);
+            }
         }
 
-        await dbRun(`UPDATE attendance SET check_out = ? WHERE id = ?`, [time, existing.id]);
-        res.json({ message: 'تم تسجيل الانصراف بنجاح', time });
+        await dbRun(`UPDATE attendance SET check_out = ?, early_departure_minutes = ?, overtime_minutes = ? WHERE id = ?`, 
+            [now.toISOString(), earlyMinutes, overtimeMinutes, existing.id]);
+        
+        res.json({ message: 'تم تسجيل الانصراف بنجاح', early_minutes: earlyMinutes, overtime_minutes: overtimeMinutes });
     } catch (error) {
-        console.error("Check-out Error:", error);
         res.status(500).json({ message: "خطأ في تسجيل الانصراف" });
     }
 });
@@ -1229,35 +1196,138 @@ app.get('/api/attendance/status/:employee_id', async (req, res) => {
     const date = new Date().toISOString().split('T')[0];
 
     try {
-        const status = await dbGet('SELECT * FROM attendance WHERE employee_id = ? AND date = ?', [employee_id, date]);
-        res.json(status || { status: 'not_marked' });
+        const data = await dbGet(`
+            SELECT a.*, s.shift_start, s.shift_end
+            FROM employees e
+            JOIN sections s ON e.section_id = s.id
+            LEFT JOIN attendance a ON e.id = a.employee_id AND a.date = ?
+            WHERE e.id = ?
+        `, [date, employee_id]);
+
+        if (!data) return res.status(404).json({ message: "الموظف غير موجود" });
+
+        res.json({
+            status: data.check_in ? 'marked' : 'not_marked',
+            check_in: data.check_in,
+            check_out: data.check_out,
+            delay_minutes: data.delay_minutes || 0,
+            early_minutes: data.early_departure_minutes || 0,
+            overtime_minutes: data.overtime_minutes || 0,
+            shift_start: data.shift_start,
+            shift_end: data.shift_end
+        });
     } catch (error) {
         console.error("Attendance Status Error:", error);
         res.status(500).json({ message: "خطأ في جلب حالة الحضور" });
     }
 });
 
-// جلب تقرير الحضور لجميع الموظفين (Admin)
-app.get('/api/attendance/report', async (req, res) => {
-    const { date } = req.query;
-    const targetDate = date || new Date().toISOString().split('T')[0];
-
+// consolidated history for employee
+app.get('/api/employee/:id/requests', async (req, res) => {
+    const { id } = req.params;
     try {
-        const report = await dbAll(`
+        const withdrawals = await dbAll(`SELECT 'withdrawal' as type, amount, status, date as created_at FROM withdrawals WHERE employee_id = ? ORDER BY date DESC`, [id]);
+        const leaves = await dbAll(`SELECT 'leave' as type, leave_type as amount, status, created_at FROM leave_requests WHERE employee_id = ? ORDER BY created_at DESC`, [id]);
+        
+        // combine and sort
+        const all = [...withdrawals, ...leaves].sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+        res.json(all);
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
+// ==========================
+// 🧩 إعدادات النظام
+// ==========================
+app.get('/api/settings', async (req, res) => {
+    try {
+        const settings = await dbAll(`SELECT * FROM settings`);
+        const settingsObj = {};
+        settings.forEach(s => settingsObj[s.key] = s.value);
+        res.json(settingsObj);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching settings' });
+    }
+});
+
+app.post('/api/settings', async (req, res) => {
+    const { key, value } = req.body;
+    try {
+        await dbRun(`INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`, [key, value]);
+        res.json({ message: 'Settings updated' });
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating settings' });
+    }
+});
+
+// ==========================
+// 🧩 تقرير السحبيات (للطباعة)
+// ==========================
+app.get('/api/reports/withdrawal-list', async (req, res) => {
+    try {
+        const employees = await dbAll(`
             SELECT 
-                e.id AS employee_id,
-                e.name AS employee_name,
-                s.name AS section_name,
-                a.check_in,
-                a.check_out,
-                a.status,
-                a.date
+                e.name, 
+                e.bank_name, 
+                ((e.base_salary + e.target_amount) - (e.total_withdrawals + e.deposit_amount)) AS remaining_salary, 
+                e.net_remaining
+            FROM employees e
+            WHERE e.is_active = 1
+            ORDER BY e.bank_name, e.name
+        `);
+        
+        const settings = await dbAll(`SELECT * FROM settings WHERE key = 'max_withdrawal_limit'`);
+        const maxLimit = settings.length > 0 ? settings[0].value : '500';
+
+        res.json({
+            employees,
+            maxWithdrawalLimit: maxLimit
+        });
+    } catch (error) {
+        console.error("Fetch Withdrawal List Error:", error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+app.get('/api/attendance/report', async (req, res) => {
+    const { date, month, employee_id } = req.query;
+    try {
+        let sql = `
+            SELECT 
+                e.id AS employee_id, e.name AS employee_name, s.name AS section_name,
+                a.check_in, a.check_out, a.status, a.date,
+                a.delay_minutes, a.early_departure_minutes, a.overtime_minutes,
+                a.shift_start, a.shift_end
             FROM employees e
             LEFT JOIN sections s ON e.section_id = s.id
-            LEFT JOIN attendance a ON e.id = a.employee_id AND a.date = ?
-            WHERE e.is_active = 1
-            ORDER BY s.name, e.name
-        `, [targetDate]);
+            LEFT JOIN attendance a ON e.id = a.employee_id
+        `;
+        let params = [];
+        let conditions = ["e.is_active = 1"];
+
+        if (employee_id) {
+            conditions.push("e.id = ?");
+            params.push(employee_id);
+        }
+
+        if (date) {
+            conditions.push("a.date = ?");
+            params.push(date);
+        } else if (month) {
+            conditions.push("strftime('%Y-%m', a.date) = ?");
+            params.push(month);
+        } else {
+            // Default to today if no date or month or employee filter is provided for date context
+            if (!employee_id) {
+                conditions.push("a.date = CURRENT_DATE");
+            }
+        }
+
+        sql += " WHERE " + conditions.join(" AND ");
+        sql += " ORDER BY a.date DESC, s.id, e.name";
+
+        const report = await dbAll(sql, params);
         res.json(report);
     } catch (error) {
         console.error("Attendance Report Error:", error);
@@ -1345,6 +1415,21 @@ app.get('/api/messages/unread/employee/:id', async (req, res) => {
 // ==========================
 // 🔔 نظام الإشعارات
 // ==========================
+// جلب إشعارات وسجل طلبات الموظف
+app.get('/api/employee/:id/requests', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const withdrawals = await dbAll(`SELECT 'withdrawal' as type, amount, reason, status, admin_note, created_at FROM withdrawals WHERE employee_id = ? ORDER BY created_at DESC LIMIT 10`, [id]);
+        const leaves = await dbAll(`SELECT 'leave' as type, leave_type as amount, reason, status, admin_notes as admin_note, created_at FROM leave_requests WHERE employee_id = ? ORDER BY created_at DESC LIMIT 10`, [id]);
+        
+        let all = [...withdrawals, ...leaves].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        res.json(all);
+    } catch (error) {
+        console.error("Fetch Employee Requests Error:", error);
+        res.status(500).json([]);
+    }
+});
+
 app.get('/api/notifications', async (req, res) => {
     try {
         const pendingWithdrawals = await dbGet(`SELECT COUNT(*) as count FROM withdrawals WHERE status = 'pending'`);
@@ -1751,4 +1836,95 @@ app.listen(PORT, () => {
     console.log(`📍 العنوان: http://localhost:${PORT}`);
     console.log('📋 الأقسام المتاحة: مكانيكا, كهرباء, كشف, ادارة');
     console.log('====================================\n');
+});
+
+// ==========================
+// 📊 استيراد الرواتب من Excel
+// ==========================
+app.post('/api/employees/import-salaries', upload.single('file'), async (req, res) => {
+    if (!req.file) return res.status(400).json({ message: "الرجاء اختيار ملف Excel." });
+    const filePath = req.file.path;
+    const ExcelJS = require('exceljs');
+    try {
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.readFile(filePath);
+        const worksheet = workbook.worksheets[0];
+        
+        const allEmployees = await dbAll("SELECT id, name FROM employees WHERE is_active = 1");
+        const clean = (s) => String(s || '').toLowerCase()
+            .replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي')
+            .replace(/[^a-z0-9\u0600-\u06FF]/g, '');
+        const dbNamesClean = allEmployees.map(e => ({ id: e.id, name: e.name, cleanName: clean(e.name) }));
+
+        let ind = { n: -1, b: -1, t: -1, d: -1, w: -1, r: -1, nr: -1 };
+        worksheet.eachRow((row, rowNumber) => {
+            let rowText = String(row.getCell(1).value || '').trim();
+            // Also check first few cells if column 1 is empty or has a number
+            for(let i=2; i<=3; i++) {
+                if(!rowText) rowText = String(row.getCell(i).value || '').trim();
+            }
+
+            const has = (txt) => rowText.includes(txt);
+
+            if (has('إجمالي السحوبات') || has('اجمالي السحوبات') || (has('سحوبات') && (has('إجمالي') || has('اجمالي'))) || (rowText === 'السحوبات')) ind.w = rowNumber - 1;
+            if (has('الراتب المتبقي') || has('اجمالي المتبقي')) ind.r = rowNumber - 1;
+            if (has('الراتب الأساسي') || has('الراتب الاساسي') || has('الراتب الاستحقاق')) ind.b = rowNumber - 1;
+            if (has('ايداع مؤسسة') || has('إيداع مؤسسة') || has('إيداع المؤسسة') || has('ايداع كاش')) ind.d = rowNumber - 1;
+            if (has('المتبقي الصافي') || has('الصافي') || has('صافي المتبقي')) ind.nr = rowNumber - 1;
+            if (has('مكافأة التارقت') || has('بونص التارقت') || (has('التارقت') && rowNumber > 25)) ind.t = rowNumber - 1;
+
+            if (ind.n === -1 && rowNumber < 15) {
+                let m = 0;
+                row.eachCell(c => { if(clean(c.value) && dbNamesClean.some(db => db.cleanName === clean(c.value))) m++; });
+                if (m >= 3) ind.n = rowNumber - 1;
+            }
+        });
+
+        const getV = (rIdx, cIdx) => {
+            if (rIdx === -1) return 0;
+            const cell = worksheet.getRow(rIdx + 1).getCell(cIdx + 1);
+            let val = 0;
+            if (cell.value && typeof cell.value === 'object') val = cell.value.result !== undefined ? cell.value.result : (cell.value.value || 0);
+            else val = cell.value;
+            return isNaN(parseFloat(val)) ? 0 : parseFloat(val);
+        };
+
+        let updated = 0;
+        let notFound = [];
+        const namesRowIdx = ind.n + 1;
+        const namesRow = worksheet.getRow(namesRowIdx);
+        
+        for (let i = 1; i <= 250; i++) { 
+            const cell = namesRow.getCell(i);
+            const rawVal = cell.value;
+            if (!rawVal) continue;
+            
+            const cEx = clean(rawVal);
+            if (!cEx || cEx.includes('تاريخ')) continue;
+            
+            const m = dbNamesClean.find(db => 
+                db.cleanName === cEx || 
+                (cEx.length > 3 && db.cleanName.includes(cEx)) || 
+                (db.cleanName.length > 3 && cEx.includes(db.cleanName))
+            );
+
+            if (m) {
+                await dbRun(`UPDATE employees SET base_salary=?, target_amount=?, deposit_amount=?, total_withdrawals=?, remaining_salary=?, net_remaining=?, last_sync_at=CURRENT_TIMESTAMP WHERE id=?`, 
+                    [getV(ind.b, i-1), getV(ind.t, i-1), getV(ind.d, i-1), getV(ind.w, i-1), getV(ind.r, i-1), getV(ind.nr, i-1), m.id]);
+                updated++;
+            } else {
+                if (cEx.length > 1) notFound.push(String(rawVal));
+            }
+        }
+        
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        res.json({ 
+            message: `تمت مزامنة ${updated} موظف بنجاح.`, 
+            notFound: [...new Set(notFound)],
+            debug: { namesRow: namesRowIdx, headers: ind }
+        });
+    } catch (error) {
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        res.status(500).json({ message: "خطأ: " + error.message });
+    }
 });
