@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 350">
+    <style>
+        .car-line { fill: none; stroke: #444; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+        .car-fill { fill: #fff; stroke: #444; stroke-width: 1.5; }
+        .label { font-family: sans-serif; font-size: 12px; fill: #666; text-anchor: middle; font-weight: bold; }
+        .wheel { fill: none; stroke: #444; stroke-width: 1.5; }
+        .detail { stroke-width: 1; }
+    </style>
+    
+    <!-- Title -->
+    <text x="500" y="20" class="label" style="font-size: 14px; fill: #333;">كشف المعاينة Detection preview</text>
+
+    <!-- Left Column: Side Views -->
+    <g transform="translate(20, 50)">
+        <!-- Top Side View (Right Side) -->
+        <g transform="translate(0, 0)">
+            <path class="car-fill" d="M260,40 L90,40 L30,80 L30,120 L50,120 A22,22 0 0,0 94,120 L216,120 A22,22 0 0,0 260,120 L290,120 L290,90 L285,60 Z" />
+             <!-- Windows -->
+            <path class="car-line detail" d="M100,45 L200,45 L200,75 L95,75 Z M210,45 L250,50 L250,75 L210,75 Z" />
+            <line x1="150" y1="45" x2="150" y2="120" class="car-line detail" /> <!-- Door separation -->
+             <!-- Wheels -->
+            <circle cx="72" cy="120" r="18" class="wheel" />
+            <circle cx="238" cy="120" r="18" class="wheel" />
+             <!-- Spokes -->
+            <path class="car-line detail" d="M72,105 L72,135 M57,120 L87,120 M62,110 L82,130 M62,130 L82,110" />
+            <path class="car-line detail" d="M238,105 L238,135 M223,120 L253,120 M228,110 L248,130 M228,130 L248,110" />
+            
+            <text x="145" y="155" class="label">يمين / Right</text>
+        </g>
+
+        <!-- Bottom Side View (Left Side) -->
+        <g transform="translate(0, 160)">
+             <path class="car-fill" d="M30,40 L200,40 L260,80 L260,120 L240,120 A22,22 0 0,0 196,120 L74,120 A22,22 0 0,0 30,120 L0,120 L0,90 L5,60 Z" />
+             <!-- Windows -->
+            <path class="car-line detail" d="M190,45 L90,45 L90,75 L195,75 Z M80,45 L40,50 L40,75 L80,75 Z" />
+            <line x1="140" y1="45" x2="140" y2="120" class="car-line detail" />
+             <!-- Wheels -->
+            <circle cx="52" cy="120" r="18" class="wheel" />
+            <circle cx="218" cy="120" r="18" class="wheel" />
+             <!-- Spokes -->
+            <path class="car-line detail" d="M52,105 L52,135 M37,120 L67,120 M42,110 L62,130 M42,130 L62,110" />
+            <path class="car-line detail" d="M218,105 L218,135 M203,120 L233,120 M208,110 L228,130 M208,130 L228,110" />
+
+            <text x="145" y="155" class="label">يسار / Left</text>
+        </g>
+    </g>
+
+    <!-- Middle: Front & Back -->
+    <g transform="translate(350, 100)">
+        <!-- Front -->
+        <g transform="translate(0, 0)">
+            <!-- Body -->
+            <rect x="10" y="50" width="100" height="60" rx="5" class="car-fill" />
+            <!-- Windshield -->
+            <path class="car-fill" d="M20,50 L100,50 L90,20 L30,20 Z" />
+            <!-- Grille -->
+            <rect x="30" y="65" width="60" height="15" class="car-line detail" />
+            <line x1="30" y1="70" x2="90" y2="70" class="car-line detail" />
+            <line x1="30" y1="75" x2="90" y2="75" class="car-line detail" />
+            <!-- Headlights -->
+            <rect x="12" y="65" width="15" height="10" rx="2" class="car-line" />
+            <rect x="93" y="65" width="15" height="10" rx="2" class="car-line" />
+            <!-- Bumper -->
+            <rect x="10" y="90" width="100" height="15" rx="2" class="car-line" />
+            <!-- Mirrors -->
+            <rect x="0" y="45" width="10" height="8" rx="2" class="car-fill" />
+            <rect x="110" y="45" width="10" height="8" rx="2" class="car-fill" />
+            <!-- Tires -->
+            <rect x="10" y="110" width="15" height="20" class="car-fill" />
+            <rect x="95" y="110" width="15" height="20" class="car-fill" />
+
+            <text x="60" y="150" class="label">أمام / Front</text>
+        </g>
+
+        <!-- Back -->
+        <g transform="translate(150, 0)">
+            <!-- Body -->
+            <rect x="10" y="50" width="100" height="60" rx="5" class="car-fill" />
+             <!-- Rear Window -->
+             <path class="car-fill" d="M20,50 L100,50 L95,25 L25,25 Z" />
+             <!-- Tail Lights -->
+             <rect x="12" y="60" width="10" height="20" class="car-line" style="fill:#eee;" />
+             <rect x="98" y="60" width="10" height="20" class="car-line" style="fill:#eee;" />
+             <line x1="12" y1="70" x2="22" y2="70" class="car-line detail" />
+             <line x1="98" y1="70" x2="108" y2="70" class="car-line detail" />
+             <!-- License Plate -->
+             <rect x="35" y="70" width="50" height="15" class="car-line" />
+             <!-- Bumper -->
+             <rect x="10" y="95" width="100" height="10" rx="2" class="car-line" />
+             <!-- Tires -->
+            <rect x="12" y="110" width="15" height="20" class="car-fill" />
+            <rect x="93" y="110" width="15" height="20" class="car-fill" />
+
+            <text x="60" y="150" class="label">خلف / Back</text>
+        </g>
+    </g>
+
+    <!-- Right: Top View -->
+    <g transform="translate(700, 30)">
+        <path class="car-fill" d="M50,10 C90,10 180,10 220,10 C240,10 250,30 250,75 C250,120 240,140 220,140 C180,140 90,140 50,140 C30,140 20,120 20,75 C20,30 30,10 50,10 Z" />
+        <!-- Windshield -->
+        <path class="car-line" d="M60,15 L60,135" />
+        <path class="car-line" d="M210,20 L210,130" />
+        <!-- Roof Features -->
+        <rect x="90" y="30" width="80" height="90" rx="5" class="car-line" style="stroke-dasharray: 4,4;" />
+        <!-- Hood Vents -->
+        <rect x="35" y="30" width="10" height="30" class="car-line detail" />
+        <rect x="35" y="90" width="10" height="30" class="car-line detail" />
+        <!-- Mirrors -->
+        <rect x="65" y="0" width="15" height="10" class="car-fill" />
+        <rect x="65" y="140" width="15" height="10" class="car-fill" />
+
+        <text x="135" y="170" class="label">سقف / Top</text>
+    </g>
+
+</svg>

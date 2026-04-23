@@ -1,0 +1,16 @@
+Checking Schema...
+Columns in 'inspections':
+- id (INTEGER)
+- inspector_id (INTEGER)
+- customer_name (TEXT)
+- customer_phone (TEXT)
+- car_type (TEXT)
+- car_color (TEXT)
+- car_model (TEXT)
+- plate_number (TEXT)
+- total_amount (REAL)
+- vat_amount (REAL)
+- final_amount (REAL)
+- paid_amount (REAL)
+- remaining_amount (REAL)
+- created_at (TIMESTAMP)

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة أوامر العمل - الورشة</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            flex-grow: 1;
+            max-width: 600px;
+        }
+
+        .inspections-table {
+            width: 100%;
+            background: white;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .inspections-table th,
+        .inspections-table td {
+            padding: 15px;
+            text-align: right;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .inspections-table th {
+            background: #f8fafc;
+            font-weight: 700;
+        }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .status-badge.job-order {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            padding: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.open {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-icon {
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+
+        .tech-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 15px 0;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .tech-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .tech-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 id="pageTitle">🛠️ أوامر العمل</h1>
+            <button class="btn btn-secondary" onclick="window.location.href='employee.html'">🔙 الرجوع للوحة
+                التحكم</button>
+        </div>
+
+        <div class="card">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="بحث برقم الأمر، الجوال، أو اللوحة..."
+                    onkeypress="handleEnter(event)">
+                <button class="btn btn-primary" onclick="searchOrders()">بحث 🔍</button>
+                <button class="btn btn-secondary" onclick="loadOrders()">عرض الكل 🔄</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table class="inspections-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>التاريخ</th>
+                        <th>العميل</th>
+                        <th>السيارة</th>
+                        <th>الفنيين المعينين</th>
+                        <th>الحالة</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr>
+                        <td colspan="7" style="text-align:center;">جاري التحميل...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Assign Technician Modal -->
+    <div id="assignModal" class="modal">
+        <div class="modal-content">
+            <h2>تعيين الفنيين لأمر العمل #<span id="assignOrderId"></span></h2>
+            <p>اختر الفنيين المسؤولين عن هذا العمل:</p>
+
+            <div class="tech-list" id="techList">
+                <div style="text-align:center;">جاري تحميل الفنيين...</div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button class="btn btn-secondary" onclick="closeAssignModal()">إلغاء</button>
+                <button class="btn btn-primary" onclick="saveAssignment()">حفظ التعيين</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auth Check
+        const currentUser = JSON.parse(localStorage.getItem('user'));
+        if (!currentUser) window.location.href = 'login.html';
+
+        let currentOrderIdToAssign = null;
+        let allEmployees = [];
+
+        // Title logic
+        if (currentUser.role === 'admin') {
+            document.getElementById('pageTitle').textContent = '🛠️ جميع أوامر العمل';
+        } else if (currentUser.section_name && (currentUser.section_name.includes('فني') || currentUser.section_name.includes('مكانيك') || currentUser.section_name.includes('كهربا'))) {
+            document.getElementById('pageTitle').textContent = '🛠️ أوامر العمل الخاصة بي';
+        }
+
+        async function loadOrders() {
+            try {
+                let url = '/api/inspections?status=job_order&limit=50';
+
+                // If technician, filter by their ID logic (unless admin/manager/inspector)
+                const isTech = currentUser.role === 'employee' &&
+                    currentUser.section_name &&
+                    !currentUser.section_name.includes('كشف') &&
+                    !currentUser.section_name.includes('إدارة');
+
+                if (isTech) {
+                    url += `&technician_id=${currentUser.employee_id || currentUser.id}`;
+                }
+
+                const res = await fetch(url);
+                const data = await res.json();
+                renderTable(data);
+            } catch (error) {
+                console.error("Error:", error);
+                alert("حدث خطأ في تحميل البيانات");
+            }
+        }
+
+        async function searchOrders() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return loadOrders();
+
+            // Note: Search API currently searches ALL inspections. We might filter client-side or update API.
+            // For now, simpler to use existing search and locally filter for status='job_order'
+            try {
+                const res = await fetch(`/api/inspections/search?query=${encodeURIComponent(query)}`);
+                let data = await res.json();
+                data = data.filter(item => item.status === 'job_order'); // Client-side filtering
+                renderTable(data);
+            } catch (error) {
+                console.error("Error:", error);
+                alert("حدث خطأ في البحث");
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">لا توجد أوامر عمل</td></tr>';
+                return;
+            }
+
+            const canAssign = currentUser.role === 'admin' || (currentUser.section_name && currentUser.section_name.includes('كشف'));
+
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                const date = new Date(item.created_at).toLocaleDateString('ar-SA');
+
+                let assignBtn = '';
+                if (canAssign) {
+                    assignBtn = `<button class="btn btn-secondary btn-icon" onclick="openAssignModal(${item.id}, '${item.assigned_technician_ids || ''}')">👥 تعيين فني</button>`;
+                }
+
+                let deleteBtn = '';
+                if (currentUser.role === 'admin') {
+                    deleteBtn = `<button class="btn btn-danger btn-icon" onclick="deleteOrder(${item.id})">🗑️ حذف</button>`;
+                }
+
+                tr.innerHTML = `
+                    <td>${item.id}</td>
+                    <td>${date}</td>
+                    <td>${item.customer_name || '-'}</td>
+                    <td>${item.car_type || ''} ${item.plate_number || ''}</td>
+                    <td>${item.assigned_technicians || '<span style="color:#aaa">غير محدد</span>'}</td>
+                    <td><span class="status-badge job-order">أمر عمل</span></td>
+                    <td class="action-btns">
+                        <button class="btn btn-primary btn-icon" onclick="openJobOrder(${item.id})">📋 فتح الكرت</button>
+                        ${assignBtn}
+                        ${deleteBtn}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openJobOrder(id) {
+            window.location.href = `job_order.html?id=${id}`;
+        }
+
+        function deleteOrder(id) {
+            if (!confirm('هل أنت متأكد من حذف أمر العمل هذا؟ سيتم حذف الكشف بالكامل.')) return;
+            fetch(`/api/inspections/${id}`, { method: 'DELETE' })
+                .then(res => {
+                    if (res.ok) { alert('تم الحذف'); loadOrders(); }
+                    else alert('فشل الحذف');
+                });
+        }
+
+        // --- Assignment Modal Logic ---
+
+        async function openAssignModal(orderId, currentIdsStr) {
+            currentOrderIdToAssign = orderId;
+            document.getElementById('assignOrderId').textContent = orderId;
+            document.getElementById('assignModal').classList.add('open');
+
+            // Convert "1,2,3" to [1, 2, 3]
+            const currentIds = currentIdsStr ? currentIdsStr.split(',').map(Number) : [];
+
+            if (allEmployees.length === 0) {
+                // Fetch employees only once
+                try {
+                    const res = await fetch('/api/employees');
+                    allEmployees = await res.json();
+                } catch (e) { console.error(e); }
+            }
+
+            const techListEl = document.getElementById('techList');
+            techListEl.innerHTML = '';
+
+            // Filter out admins generally, but allow anyone to be assigned if needed. 
+            // Better to show everyone but highlight technicians?
+            // User request: "Assign technician, mechanic, electrician..."
+            // We just list all employees for flexibility.
+
+            allEmployees.forEach(emp => {
+                const isChecked = currentIds.includes(emp.id) ? 'checked' : '';
+                const roleLabel = emp.section_name || 'موظف';
+
+                const item = document.createElement('div');
+                item.className = 'tech-item';
+                item.innerHTML = `
+                    <input type="checkbox" id="tech_${emp.id}" value="${emp.id}" ${isChecked}>
+                    <label for="tech_${emp.id}" style="cursor:pointer; flex-grow:1;">
+                        <strong>${emp.name}</strong> 
+                        <span style="font-size:0.8em; color:#666;">(${roleLabel})</span>
+                    </label>
+                `;
+                techListEl.appendChild(item);
+            });
+        }
+
+        function closeAssignModal() {
+            document.getElementById('assignModal').classList.remove('open');
+            currentOrderIdToAssign = null;
+        }
+
+        async function saveAssignment() {
+            if (!currentOrderIdToAssign) return;
+
+            const checkboxes = document.querySelectorAll('#techList input[type="checkbox"]:checked');
+            const selectedIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+            // We need to fetch the existing simplified order data to update just the technicians
+            // OR we can make a dedicated API endpoint for assignment.
+            // Since I updated PUT /api/inspections/:id to handle technician_ids, I can use that.
+            // But PUT expects the full object generally, or at least doesn't partial update easily without clearing others if not careful in some designs.
+            // Let's check server.js PUT logic... 
+            // It does `COALESCE(?, status)` etc, but arrays like `items` are deleted and recreated.
+            // `technician_ids` is optional. 
+            // IMPORTANT: If I send ONLY technician_ids, will it break other fields?
+            // The SQL UPDATE sets fields to NULL if I send undefined?
+            // "SET customer_name = ? ..." -> if req.body.customer_name is undefined, it sets it to NULL.
+            // This is BAD for partial updates.
+            // My server code is NOT set up for partial updates (PATCH).
+            // Quick fix: fetch the inspection first, merge, then PUT.
+
+            try {
+                // 1. Fetch current details
+                const getRes = await fetch(`/api/inspections/${currentOrderIdToAssign}`);
+                const currentData = await getRes.json();
+
+                // 2. Prepare payload
+                const payload = {
+                    ...currentData,
+                    technician_ids: selectedIds
+                };
+
+                // 3. Send PUT
+                const putRes = await fetch(`/api/inspections/${currentOrderIdToAssign}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (putRes.ok) {
+                    alert('تم تعيين الفنيين بنجاح ✅');
+                    closeAssignModal();
+                    loadOrders();
+                } else {
+                    const err = await putRes.json();
+                    alert('خطأ: ' + err.message);
+                }
+
+            } catch (e) {
+                console.error(e);
+                alert('حدث خطأ أثناء الحفظ');
+            }
+        }
+
+        function handleEnter(e) {
+            if (e.key === 'Enter') searchOrders();
+        }
+
+        // Init
+        loadOrders();
+    </script>
+</body>
+
+</html>

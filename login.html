@@ -13,6 +13,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
   <title>تسجيل الدخول - مدير الورشة</title>
   <style>
     * {
@@ -259,6 +260,7 @@
     </div>
   </div>
 
+  <script src="utils.js"></script>
   <script>
     // PWA Install Logic
     let deferredPrompt;
@@ -360,8 +362,7 @@
         console.error('Login error:', error);
         loadingDiv.classList.remove('show');
         loginBtn.disabled = false;
-        errorDiv.textContent = error.message || 'حدث خطأ في الاتصال بالخادم. تأكد من تشغيل السيرفر.';
-        errorDiv.classList.add('show');
+        Toast.error(error.message || 'حدث خطأ في الاتصال بالخادم. تأكد من تشغيل السيرفر.');
       }
     });
 
