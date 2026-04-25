@@ -911,19 +911,11 @@
         <button class="nav-btn" onclick="toggleDarkMode()">
           <span>🌓</span>
         </button>
-        <a href="lifts.html" class="nav-btn">
-          <span>🏗️</span>
-          <span>بدأ العمل</span>
-        </a>
-        <a href="inspections_list.html" class="nav-btn" id="inspectorBtn"
+        <!-- Lifts Hidden -->
+        <a href="inspector.html" class="nav-btn" id="inspectorBtn"
           style="display: none; background-color: #ec4899; color: white;">
           <span>🔍</span>
           <span>نظام الكشف</span>
-        </a>
-        <a href="job_orders_list.html" class="nav-btn" id="jobOrdersBtn"
-          style="background-color: #16a34a; color: white;">
-          <span>🛠️</span>
-          <span>أوامر العمل</span>
         </a>
         <button class="logout-btn" id="logoutBtn">
           <span>🚪</span>
@@ -1515,10 +1507,10 @@
 
         const withdrawals = employeeData.total_withdrawal || 0;
         const baseSalary = employeeData.info.base_salary || 0;
-        const remainingSalary = baseSalary - withdrawals;
+        const officialNet = employeeData.info.net_remaining || (baseSalary - withdrawals);
 
         document.getElementById('totalWithdrawals').textContent = withdrawals.toLocaleString('en-US');
-        document.getElementById('remainingBalance').textContent = remainingSalary.toLocaleString('en-US');
+        document.getElementById('remainingBalance').textContent = officialNet.toLocaleString('en-US');
 
         // Load other data
         loadLeaveRequests();

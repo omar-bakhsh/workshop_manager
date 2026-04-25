@@ -885,6 +885,10 @@
                     <span style="font-size: 24px;">🔔</span>
                     <span id="notificationBadge" class="badge" style="display: none;">0</span>
                 </div>
+                <button class="btn btn-info" onclick="toggleAdminChat()" style="background-color: #8b5cf6; color: white;">
+                    <span>💬</span>
+                    <span>المحادثة</span>
+                </button>
                 <button class="btn btn-secondary" onclick="backupDatabase()">
                     <span>💾</span>
                     <span>نسخ احتياطي</span>
@@ -893,41 +897,34 @@
                     <span>📄</span>
                     <span>تقارير الدخل</span>
                 </button>
-                <button class="btn btn-info" onclick="window.location.href='shortcuts_manager.html'" style="background-color: #3b82f6; color: white;">
-                    <span>🚀</span>
-                    <span>إدارة الاختصارات</span>
-                </button>
                 <button class="btn btn-success" onclick="openAttendanceModal()"
                     style="background-color: #10b981; color: white;">
                     <span>📅</span>
                     <span>سجل الحضور</span>
                 </button>
-                <button class="btn btn-info" onclick="window.location.href='lifts.html'"
-                    style="background-color: #8b5cf6; color: white;">
-                    <span>🏗️</span>
-                    <span>الرافعات</span>
-                </button>
-                <button class="btn btn-primary" onclick="window.location.href='inspections_list.html'"
+                <!-- Lifts Hidden -->
+                <button class="btn btn-primary" onclick="window.location.href='inspector.html'"
                     style="background-color: #ec4899; color: white;">
                     <span>🔍</span>
                     <span>نظام الكشف</span>
-                </button>
-                <button class="btn btn-warning" onclick="window.location.href='job_orders_list.html'"
-                    style="background-color: #f59e0b; color: white;">
-                    <span>🛠️</span>
-                    <span>أوامر العمل</span>
                 </button>
                 <button class="btn btn-primary" onclick="window.location.href='services_manager.html'"
                     style="background-color: #f59e0b; color: white;">
                     <span>🛠️</span>
                     <span>إدارة الخدمات</span>
                 </button>
-                <button class="btn btn-secondary" onclick="window.location.href='settings.html'"
-                    style="background-color: #4b5563; color: white;">
-                    <span>⚙️</span>
-                    <span>الإعدادات</span>
+                <button class="btn btn-primary" onclick="window.location.href='shortcuts_manager.html'"
+                    style="background-color: #6366f1; color: white;">
+                    <span>🚀</span>
+                    <span>إدارة الاختصارات</span>
                 </button>
-                <button class="logout-btn" onclick="logout()">
+                
+                <button class="btn btn-secondary" onclick="document.getElementById('excelInput').click()" style="background-color: #059669; color: white;">
+                    <span>📊</span>
+                    <span>رفع الرواتب</span>
+                </button>
+                <input type="file" id="excelInput" style="display: none" accept=".xlsx, .xls" onchange="handleExcelUpload(event)">
+        <button class="logout-btn" onclick="logout()">
                     <span>🚪</span>
                     <span>تسجيل الخروج</span>
                 </button>
@@ -1984,6 +1981,39 @@
         init();
     </script>
 
-</body>
+
+    <script>
+        async function handleExcelUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const res = await fetch('/api/employees/import-salaries', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await res.json();
+                
+                if (res.ok) {
+                    let msg = result.message;
+                    if (result.notFound && result.notFound.length > 0) {
+                        msg += "\n\nلم يتم العثور على: " + result.notFound.join(', ');
+                    }
+                    alert(msg);
+                    loadData(); // Re-load table
+                } else {
+                    alert('خطأ: ' + (result.message || 'فشل الرفع'));
+                }
+            } catch (error) {
+                console.error(error);
+                alert('خطأ في الاتصال بالسيرفر');
+            }
+            event.target.value = ''; // Reset input
+        }
+    </script>
+        </body>
 
 </html>
