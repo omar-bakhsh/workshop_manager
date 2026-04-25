@@ -1266,6 +1266,84 @@ app.get('/api/attendance/report', async (req, res) => {
     }
 });
 
+
+// ============================================================
+// 📊 تقرير الحضور المتقدم (فلاتر: موظف، نطاق تاريخ)
+// ============================================================
+app.get('/api/attendance/advanced-report', async (req, res) => {
+    const { employee_id, date_from, date_to } = req.query;
+    const today = new Date().toISOString().split('T')[0];
+    const from = date_from || today;
+    const to   = date_to   || today;
+    try {
+        let query = `
+            SELECT
+                e.id AS employee_id, e.name AS employee_name, s.name AS section_name,
+                a.date, a.check_in, a.check_out, a.status,
+                COALESCE(a.late_minutes, 0)          AS late_minutes,
+                COALESCE(a.overtime_minutes, 0)      AS overtime_minutes,
+                COALESCE(a.total_hours, 0)           AS total_hours,
+                COALESCE(a.early_leaving_minutes, 0) AS early_leaving_minutes
+            FROM employees e
+            LEFT JOIN sections s ON e.section_id = s.id
+            LEFT JOIN attendance a ON e.id = a.employee_id AND a.date BETWEEN ? AND ?
+            WHERE e.is_active = 1`;
+        const params = [from, to];
+        if (employee_id) { query += ' AND e.id = ?'; params.push(employee_id); }
+        query += ' ORDER BY a.date DESC, e.name';
+
+        const records = await dbAll(query, params);
+
+        // إجماليات لكل موظف
+        const summaryMap = {};
+        records.forEach(r => {
+            if (!summaryMap[r.employee_id]) {
+                summaryMap[r.employee_id] = {
+                    employee_id: r.employee_id,
+                    employee_name: r.employee_name,
+                    section_name: r.section_name,
+                    present_days: 0, absent_days: 0,
+                    total_late_minutes: 0, total_overtime_minutes: 0,
+                    total_hours: 0
+                };
+            }
+            const s = summaryMap[r.employee_id];
+            if (r.date) {
+                if (r.check_in) { s.present_days++; } else { s.absent_days++; }
+                s.total_late_minutes    += r.late_minutes || 0;
+                s.total_overtime_minutes += r.overtime_minutes || 0;
+                s.total_hours           += parseFloat(r.total_hours) || 0;
+            }
+        });
+
+        res.json({ records, summary: Object.values(summaryMap), period: { from, to } });
+    } catch (error) {
+        console.error('Advanced Attendance Report Error:', error);
+        res.status(500).json({ message: 'خطأ في التقرير المتقدم' });
+    }
+});
+
+// ============================================================
+// ⚙️ حفظ إعدادات أوقات الدوام (ثابت على السبت-الخميس)
+// ============================================================
+app.post('/api/settings/work-schedule', async (req, res) => {
+    const { work_start_time, work_end_time, work_days } = req.body;
+    try {
+        const upsert = async (key, val) => {
+            const exists = await dbGet('SELECT key FROM settings WHERE key = ?', [key]);
+            if (exists) await dbRun('UPDATE settings SET value = ? WHERE key = ?', [val, key]);
+            else        await dbRun('INSERT INTO settings (key, value) VALUES (?, ?)', [key, val]);
+        };
+        if (work_start_time) await upsert('work_start_time', work_start_time);
+        if (work_end_time)   await upsert('work_end_time',   work_end_time);
+        if (work_days)       await upsert('work_days',       work_days);
+        res.json({ message: 'تم حفظ إعدادات الدوام بنجاح' });
+    } catch (error) {
+        console.error('Work Schedule Settings Error:', error);
+        res.status(500).json({ message: 'خطأ في حفظ إعدادات الدوام' });
+    }
+});
+
 // ==========================
 // 💬 نظام المحادثة (Chat)
 // ==========================
@@ -1730,6 +1808,63 @@ app.delete('/api/services/:id', async (req, res) => {
 // ==========================
 // 💾 النسخ الاحتياطي
 // ==========================
+
+// ==================================================
+// 📅 جدول الدوام الأسبوعي (GET + POST)
+// ==================================================
+app.get('/api/work-schedule', async (req, res) => {
+    try {
+        const schedule = await dbAll(`SELECT * FROM work_schedule ORDER BY 
+            CASE day_of_week 
+                WHEN 'Saturday' THEN 1 WHEN 'Sunday' THEN 2 WHEN 'Monday' THEN 3
+                WHEN 'Tuesday' THEN 4 WHEN 'Wednesday' THEN 5 WHEN 'Thursday' THEN 6
+                WHEN 'Friday' THEN 7 ELSE 8 END`);
+        res.json(schedule);
+    } catch (error) {
+        // إذا لم يوجد الجدول بعد، أرجع افتراضياً
+        const defaultSchedule = [
+            { day_of_week: 'Saturday', start_time: '08:00', end_time: '17:00', is_closed: 0 },
+            { day_of_week: 'Sunday',   start_time: '08:00', end_time: '17:00', is_closed: 0 },
+            { day_of_week: 'Monday',   start_time: '08:00', end_time: '17:00', is_closed: 0 },
+            { day_of_week: 'Tuesday',  start_time: '08:00', end_time: '17:00', is_closed: 0 },
+            { day_of_week: 'Wednesday',start_time: '08:00', end_time: '17:00', is_closed: 0 },
+            { day_of_week: 'Thursday', start_time: '08:00', end_time: '17:00', is_closed: 0 },
+            { day_of_week: 'Friday',   start_time: '00:00', end_time: '00:00', is_closed: 1 }
+        ];
+        res.json(defaultSchedule);
+    }
+});
+
+app.post('/api/work-schedule', async (req, res) => {
+    const { schedule } = req.body;
+    if (!schedule || !Array.isArray(schedule)) {
+        return res.status(400).json({ message: 'بيانات غير صحيحة' });
+    }
+    try {
+        for (const day of schedule) {
+            await dbRun(`INSERT INTO work_schedule (day_of_week, start_time, end_time, is_closed)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(day_of_week) DO UPDATE SET
+                    start_time = excluded.start_time,
+                    end_time = excluded.end_time,
+                    is_closed = excluded.is_closed`,
+                [day.day_of_week, day.start_time || '08:00', day.end_time || '17:00', day.is_closed ? 1 : 0]);
+        }
+
+        // تحديث أوقات الدوام العامة في settings أيضاً (للتوافق)
+        const satDay = schedule.find(d => d.day_of_week === 'Saturday' && !d.is_closed);
+        if (satDay) {
+            await dbRun("UPDATE settings SET value = ? WHERE key = 'work_start_time'", [satDay.start_time]);
+            await dbRun("UPDATE settings SET value = ? WHERE key = 'work_end_time'",   [satDay.end_time]);
+        }
+
+        res.json({ message: 'تم حفظ جدول الدوام بنجاح ✅' });
+    } catch (error) {
+        console.error('Work Schedule Save Error:', error);
+        res.status(500).json({ message: 'خطأ في حفظ جدول الدوام: ' + error.message });
+    }
+});
+
 app.get('/api/backup', (req, res) => {
     const dbPath = path.join(__dirname, 'db.sqlite');
     const date = new Date().toISOString().split('T')[0];

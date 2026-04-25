@@ -1059,29 +1059,86 @@
 
     <!-- Attendance Modal -->
     <div class="modal" id="attendanceModal">
-        <div class="modal-content" style="max-width: 900px;">
-            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <h3 class="modal-title">📅 سجل الحضور اليومي</h3>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <label style="font-size: 14px; font-weight: 600;">التاريخ:</label>
-                    <input type="date" id="attendanceDate" onchange="loadAttendanceReport()"
-                        style="padding: 5px; border-radius: 5px; border: 1px solid var(--border-color);" />
+        <div class="modal-content" style="max-width: 1100px;">
+            <div class="modal-header" style="flex-direction: column; gap: 12px; align-items: flex-start;">
+                <div style="display:flex; justify-content:space-between; width:100%; align-items:center;">
+                    <h3 class="modal-title">📅 سجل الحضور والانصراف المتقدم</h3>
                 </div>
+                <!-- فلاتر البحث -->
+                <div style="display:flex; gap:10px; flex-wrap:wrap; width:100%; align-items:flex-end;">
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                        <label style="font-size:13px; font-weight:600; color:var(--text-light);">من تاريخ</label>
+                        <input type="date" id="attFromDate" style="padding:6px 10px; border-radius:6px; border:1px solid var(--border-color); font-size:14px;" />
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                        <label style="font-size:13px; font-weight:600; color:var(--text-light);">إلى تاريخ</label>
+                        <input type="date" id="attToDate" style="padding:6px 10px; border-radius:6px; border:1px solid var(--border-color); font-size:14px;" />
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                        <label style="font-size:13px; font-weight:600; color:var(--text-light);">الموظف</label>
+                        <select id="attEmployeeFilter" style="padding:6px 10px; border-radius:6px; border:1px solid var(--border-color); font-size:14px; min-width:160px;">
+                            <option value="">جميع الموظفين</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="loadAdvancedAttendance()" style="height:36px; padding:0 18px;">
+                        🔍 بحث
+                    </button>
+                    <button class="btn btn-secondary" onclick="resetAttendanceFilters()" style="height:36px; padding:0 14px;">
+                        ↺ إعادة
+                    </button>
+                </div>
+                <!-- بطاقات الإجمالي -->
+                <div id="attendanceSummaryCards" style="display:flex; gap:10px; flex-wrap:wrap; width:100%;"></div>
             </div>
-            <div class="modal-body">
-                <div class="table-container">
+            <div class="modal-body" style="padding-top:0;">
+                <!-- تبويبات -->
+                <div style="display:flex; gap:0; margin-bottom:12px; border-bottom:2px solid var(--border-color);">
+                    <button id="tabDetails" onclick="switchAttTab('details')" style="padding:8px 20px; border:none; background:var(--primary); color:white; border-radius:6px 6px 0 0; font-weight:600; cursor:pointer;">
+                        📋 التفاصيل
+                    </button>
+                    <button id="tabSummary" onclick="switchAttTab('summary')" style="padding:8px 20px; border:none; background:transparent; color:var(--text-light); border-radius:6px 6px 0 0; font-weight:600; cursor:pointer;">
+                        📊 الملخص الإجمالي
+                    </button>
+                </div>
+
+                <!-- جدول التفاصيل -->
+                <div id="attDetailsView" class="table-container">
                     <table id="attendanceTable">
                         <thead>
                             <tr>
                                 <th>الموظف</th>
                                 <th>القسم</th>
+                                <th>التاريخ</th>
                                 <th>وقت الحضور</th>
                                 <th>وقت الانصراف</th>
+                                <th>التأخير</th>
+                                <th>الأوفرتايم</th>
+                                <th>إجمالي الساعات</th>
                                 <th>الحالة</th>
                             </tr>
                         </thead>
                         <tbody id="attendanceTableBody">
-                            <!-- Data will be injected here -->
+                            <tr><td colspan="9">⏳ اختر نطاق التاريخ واضغط بحث</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- جدول الملخص -->
+                <div id="attSummaryView" class="table-container" style="display:none;">
+                    <table id="attendanceSummaryTable">
+                        <thead>
+                            <tr>
+                                <th>الموظف</th>
+                                <th>القسم</th>
+                                <th>أيام الحضور</th>
+                                <th>أيام الغياب</th>
+                                <th>إجمالي ساعات التأخير</th>
+                                <th>إجمالي ساعات الأوفرتايم</th>
+                                <th>إجمالي ساعات العمل</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceSummaryBody">
+                            <tr><td colspan="7">⏳ اختر نطاق التاريخ واضغط بحث</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -1092,7 +1149,7 @@
         </div>
     </div>
 
-    <!-- Edit Employee Modal -->
+        <!-- Edit Employee Modal -->
     <div class="modal" id="editEmployeeModal">
         <div class="modal-content">
             <div class="modal-header">
