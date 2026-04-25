@@ -1889,55 +1889,118 @@ app.post('/api/employees/import-salaries', upload.single('file'), async (req, re
         const workbook = xlsx.readFile(filePath);
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const data = xlsx.utils.sheet_to_json(sheet, { header: 1 });
+
+        if (data.length < 2) throw new Error("الملف فارغ أو غير صحيح.");
+
+        // --- جلب أسماء الموظفين من DB ---
+        const allEmployees = await dbAll("SELECT id, name FROM employees WHERE is_active = 1");
         
-        if (data.length < 5) {
-             throw new Error("الملف فارغ أو غير صحيح.");
+        // دالة تنظيف الأسماء للمقارنة
+        const cleanName = (s) => String(s || '').trim()
+            .replace(/\s+/g, ' ')
+            .replace(/[\u200b-\u200f\ufeff]/g, '') // إزالة المحارف الخاصة
+            .toLowerCase();
+
+        const dbNames = allEmployees.map(e => ({ id: e.id, name: e.name, clean: cleanName(e.name) }));
+
+        // --- البحث التلقائي عن صف الأسماء (في أول 10 صفوف) ---
+        let namesRowIndex = -1;
+        let maxMatches = 0;
+
+        for (let rowIdx = 0; rowIdx < Math.min(10, data.length); rowIdx++) {
+            const row = data[rowIdx];
+            if (!row) continue;
+            let matches = 0;
+            for (const cell of row) {
+                if (!cell) continue;
+                const cellClean = cleanName(cell);
+                if (cellClean.length < 2) continue;
+                const found = dbNames.some(db =>
+                    db.clean === cellClean ||
+                    db.clean.includes(cellClean) ||
+                    cellClean.includes(db.clean) ||
+                    db.clean.split(' ').some(part => part.length > 2 && cellClean.includes(part)) ||
+                    cellClean.split(' ').some(part => part.length > 2 && db.clean.includes(part))
+                );
+                if (found) matches++;
+            }
+            if (matches > maxMatches) {
+                maxMatches = matches;
+                namesRowIndex = rowIdx;
+            }
         }
 
-        const headerRow = data[0]; // الأسماء في الصف الأول
+        // احتياطي: إذا لم يُعثر على تطابق، جرّب الصف الأول
+        if (namesRowIndex === -1) namesRowIndex = 0;
+
+        const namesRow = data[namesRowIndex];
+        const sampleCells = namesRow.slice(0, 7).map(c => c ?? '(فارغ)').join(' | ');
+
+        // --- البحث التلقائي عن الأعمدة التي تحتوي أرقاماً (رواتب) ---
+        // نبحث عن أي صف صريح يحتوي كلمة "راتب" أو "المتبقي" أو "صافي"
+        let salaryRowIndex = -1;
+        let netRowIndex = -1;
+
+        for (let rowIdx = namesRowIndex + 1; rowIdx < data.length; rowIdx++) {
+            const row = data[rowIdx];
+            if (!row) continue;
+            const rowText = row.map(c => String(c || '')).join(' ');
+            if (salaryRowIndex === -1 && (rowText.includes('الراتب الأساسي') || rowText.includes('الراتب') && !rowText.includes('المتبقي'))) {
+                salaryRowIndex = rowIdx;
+            }
+            if (netRowIndex === -1 && (rowText.includes('المتبقي') || rowText.includes('صافي') || rowText.includes('الصافي'))) {
+                netRowIndex = rowIdx;
+            }
+        }
+
         let updatedCount = 0;
         let notFound = [];
         let importLog = [];
 
-        // المطابقة تتم بناءً على الأسماء في الصف الأول
-        // البيانات موجودة في الصفوف 33 وما بعدها (وفقاً لطلب المستخدم السابق)
-        for (let col = 1; col < headerRow.length; col++) {
-            let name = headerRow[col];
-            if (!name) continue;
-            
-            const nameStr = name.toString().trim();
-            if (nameStr.length < 2 || nameStr.includes('التاريخ')) continue;
+        // --- المطابقة والتحديث ---
+        for (let col = 0; col < namesRow.length; col++) {
+            const cell = namesRow[col];
+            if (!cell) continue;
 
-            // استخراج القيم (الصف 33، 34، 35، 36، 37) - الاندكس يبدأ من 0
-            const totalWithdrawals = parseFloat(data[32]?.[col]) || 0;
-            const netRemaining = parseFloat(data[33]?.[col]) || 0;
-            const baseSalary = parseFloat(data[34]?.[col]) || 0;
-            const depositAmount = parseFloat(data[35]?.[col]) || 0;
-            const bankInfo = data[36]?.[col] ? data[36][col].toString().trim() : '-';
+            const nameStr = cleanName(cell);
+            if (nameStr.length < 2) continue;
+            // تخطي الخلايا التي تبدو وصفية وليست أسماء
+            if (['التاريخ','date','رقم','م','ت','المسمى','القسم','ملاحظة'].some(k => nameStr.includes(k))) continue;
 
-            // البحث عن الموظف
-            const emp = await dbGet("SELECT id, name FROM employees WHERE name LIKE ? AND is_active = 1", [`%${nameStr}%`]);
-            
-            if (emp) {
-                await dbRun(`UPDATE employees SET 
-                    base_salary = ?, bank_type = ?, net_remaining = ?, remaining_salary = ?,
-                    total_withdrawals = ?, deposit_amount = ? 
-                    WHERE id = ?`, 
-                    [baseSalary, bankInfo, netRemaining, netRemaining, totalWithdrawals, depositAmount, emp.id]);
-                
+            const match = dbNames.find(db =>
+                db.clean === nameStr ||
+                db.clean.includes(nameStr) ||
+                nameStr.includes(db.clean) ||
+                db.clean.split(' ').some(part => part.length > 2 && nameStr.includes(part)) ||
+                nameStr.split(' ').some(part => part.length > 2 && db.clean.includes(part))
+            );
+
+            if (match) {
+                const baseSalary    = salaryRowIndex > -1 ? (parseFloat(data[salaryRowIndex]?.[col]) || 0) : 0;
+                const netRemaining  = netRowIndex    > -1 ? (parseFloat(data[netRowIndex]?.[col])    || 0) : 0;
+                const totalWithdrawals = parseFloat(data[salaryRowIndex > -1 ? salaryRowIndex - 1 : 0]?.[col]) || 0;
+
+                await dbRun(`UPDATE employees SET
+                    base_salary = CASE WHEN ? > 0 THEN ? ELSE base_salary END,
+                    net_remaining = CASE WHEN ? > 0 THEN ? ELSE net_remaining END,
+                    remaining_salary = CASE WHEN ? > 0 THEN ? ELSE remaining_salary END
+                    WHERE id = ?`,
+                    [baseSalary, baseSalary, netRemaining, netRemaining, netRemaining, netRemaining, match.id]);
+
                 updatedCount++;
-                importLog.push({ name: emp.name, excelName: nameStr, net: netRemaining });
+                importLog.push({ name: match.name, excelName: String(cell).trim(), baseSalary, netRemaining });
             } else {
-                notFound.push(nameStr);
+                notFound.push(String(cell).trim());
             }
         }
 
         if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-        res.json({ 
-            message: `تم تحديث ${updatedCount} موظف بنجاح`, 
-            updatedCount,
-            notFound 
-        });
+
+        const msg = updatedCount > 0
+            ? `تم تحديث ${updatedCount} موظف بنجاح`
+            : `تم تحديث 0 موظف - صف الأسماء المكتشف: ${namesRowIndex + 1} - عينة: ${sampleCells}`;
+
+        res.json({ message: msg, updatedCount, notFound, debug: { namesRowIndex, salaryRowIndex, netRowIndex, maxMatches } });
     } catch (error) {
         console.error("Import Salaries Error:", error);
         if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
