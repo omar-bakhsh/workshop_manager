@@ -1,0 +1,27 @@
+body {
+  background: #f2f4f8;
+  font-family: "Segoe UI", sans-serif;
+  direction: rtl;
+}
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 400px;
+  margin: 50px auto;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+input, button {
+  width: 100%;
+  margin: 6px 0;
+  padding: 8px;
+}
+button {
+  background: #0078d4;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+h2 { text-align: center; }
+.center { text-align: center; }

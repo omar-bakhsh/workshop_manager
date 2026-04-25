@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة اختصارات الكشف - ورشة عبد الله عصام عيد الزين</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg-gray: #f3f4f6;
+            --text-dark: #111827;
+            --text-gray: #4b5563;
+            --border-color: #d1d5db;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-gray);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: var(--primary);
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--text-gray);
+            color: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f9fafb;
+            color: var(--text-gray);
+            font-weight: 700;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 95%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .item-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .item-row input,
+        .item-row select {
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .item-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .item-row select {
+                width: 100% !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 إدارة اختصارات الكشف (الباقات)</h1>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary" onclick="window.location.href='admin.html'">لوحة التحكم</button>
+                <button class="btn btn-primary" onclick="showAddModal()">إضافة باقة جديدة ➕</button>
+            </div>
+        </div>
+
+        <div id="bundlesList">
+            <div style="text-align: center; padding: 40px; color: var(--text-gray);">⏳ جاري تحميل الباقات...</div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="bundleModal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle" style="margin-bottom: 20px;">إضافة باقة جديدة</h2>
+            <form id="bundleForm">
+                <input type="hidden" id="bundleId">
+                <div style="display: grid; grid-template-columns: 1fr 100px; gap: 15px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label style="display:block; margin-bottom:5px; font-weight:700;">اسم الباقة</label>
+                        <input type="text" id="bundleName" required
+                            style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
+                    </div>
+                    <div class="form-group">
+                        <label style="display:block; margin-bottom:5px; font-weight:700;">أيقونة</label>
+                        <input type="text" id="bundleIcon" placeholder="🚀"
+                            style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <label style="display:block; margin-bottom:10px; font-weight:700;">خدمات الباقة</label>
+                    <div id="bundleItemsContainer">
+                        <!-- Item rows will be added here -->
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="addItemRow()"
+                        style="margin-top:10px; width:100%; background:#eef2ff; color:var(--primary); border:1px dashed var(--primary);">إضافة
+                        خدمة للباقة ➕</button>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 30px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">إلغاء</button>
+                    <button type="submit" class="btn btn-success">حفظ الباقة 💾</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let categories = [];
+
+        async function loadCategories() {
+            try {
+                const res = await fetch('/api/services');
+                const services = await res.json();
+                categories = [...new Set(services.map(s => s.category))].sort();
+                if (categories.length === 0) categories = ['كشف', 'مكانيكا', 'كهرباء'];
+            } catch (e) {
+                console.error(e);
+                categories = ['كشف', 'مكانيكا', 'كهرباء'];
+            }
+        }
+
+        async function loadBundles() {
+            try {
+                const res = await fetch('/api/inspection-bundles');
+                const bundles = await res.json();
+                renderBundles(bundles);
+            } catch (e) {
+                console.error(e);
+                document.getElementById('bundlesList').innerHTML = '<div class="card" style="text-align:center; color:var(--danger);">خطأ في تحميل البيانات</div>';
+            }
+        }
+
+        function renderBundles(bundles) {
+            const container = document.getElementById('bundlesList');
+            if (bundles.length === 0) {
+                container.innerHTML = '<div class="card" style="text-align:center; color:var(--text-gray);">لا توجد باقات مضافة حالياً</div>';
+                return;
+            }
+
+            container.innerHTML = bundles.map(b => `
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:10px;">
+                        <h3 style="font-size:18px;">${b.icon || '📦'} ${b.name}</h3>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn btn-primary" style="padding:5px 15px; font-size:12px;" onclick="editBundle(${b.id})">تعديل ✏️</button>
+                            <button class="btn btn-danger" style="padding:5px 15px; font-size:12px;" onclick="deleteBundle(${b.id})">حذف 🗑️</button>
+                        </div>
+                    </div>
+                    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:10px;">
+                        ${b.items.map(item => `
+                            <div style="background:#f8fafc; padding:8px 12px; border-radius:8px; border:1px solid #e2e8f0; font-size:13px;">
+                                <span style="color:var(--primary); font-weight:700;">[${item.category}]</span> ${item.service_description}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addItemRow(data = { service_description: '', category: '' }) {
+            const container = document.getElementById('bundleItemsContainer');
+            const div = document.createElement('div');
+            div.className = 'item-row';
+            div.innerHTML = `
+                <select class="item-cat" style="width:150px;">
+                    ${categories.map(c => `<option value="${c}" ${c === data.category ? 'selected' : ''}>${c}</option>`).join('')}
+                </select>
+                <input type="text" class="item-desc" placeholder="وصف الخدمة" value="${data.service_description}" style="flex:1;">
+                <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()" style="padding:5px 10px;">✕</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function showAddModal() {
+            document.getElementById('modalTitle').textContent = 'إضافة باقة جديدة';
+            document.getElementById('bundleId').value = '';
+            document.getElementById('bundleForm').reset();
+            document.getElementById('bundleItemsContainer').innerHTML = '';
+            addItemRow();
+            document.getElementById('bundleModal').style.display = 'flex';
+        }
+
+        async function editBundle(id) {
+            try {
+                const res = await fetch('/api/inspection-bundles');
+                const bundles = await res.json();
+                const bundle = bundles.find(b => b.id === id);
+                if (!bundle) return;
+
+                document.getElementById('modalTitle').textContent = 'تعديل الباقة';
+                document.getElementById('bundleId').value = bundle.id;
+                document.getElementById('bundleName').value = bundle.name;
+                document.getElementById('bundleIcon').value = bundle.icon || '';
+
+                const container = document.getElementById('bundleItemsContainer');
+                container.innerHTML = '';
+                if (bundle.items && bundle.items.length > 0) {
+                    bundle.items.forEach(item => addItemRow(item));
+                } else {
+                    addItemRow();
+                }
+
+                document.getElementById('bundleModal').style.display = 'flex';
+            } catch (e) { console.error(e); }
+        }
+
+        function closeModal() {
+            document.getElementById('bundleModal').style.display = 'none';
+        }
+
+        document.getElementById('bundleForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('bundleId').value;
+            const items = [];
+            document.querySelectorAll('.item-row').forEach(row => {
+                const desc = row.querySelector('.item-desc').value.trim();
+                const cat = row.querySelector('.item-cat').value;
+                if (desc) items.push({ service_description: desc, category: cat });
+            });
+
+            if (items.length === 0) return alert('الرجاء إضافة خدمة واحدة على الأقل');
+
+            const data = {
+                name: document.getElementById('bundleName').value,
+                icon: document.getElementById('bundleIcon').value || '📦',
+                items: items
+            };
+
+            try {
+                const url = id ? `/api/inspection-bundles/${id}` : '/api/inspection-bundles';
+                const method = id ? 'PUT' : 'POST';
+                const res = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (res.ok) {
+                    closeModal();
+                    loadBundles();
+                } else {
+                    const err = await res.json();
+                    alert(err.message || 'خطأ في حفظ الباقة');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('حدث خطأ أثناء الاتصال بالسيرفر');
+            }
+        };
+
+        async function deleteBundle(id) {
+            if (!confirm('هل أنت متأكد من حذف هذه الباقة؟')) return;
+            try {
+                const res = await fetch(`/api/inspection-bundles/${id}`, { method: 'DELETE' });
+                if (res.ok) loadBundles();
+            } catch (e) { console.error(e); }
+        }
+
+        (async () => {
+            await loadCategories();
+            await loadBundles();
+        })();
+    </script>
+</body>
+
+</html>

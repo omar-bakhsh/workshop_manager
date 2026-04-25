@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>تقرير دخل الفنيين - إدارة الورشة</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --text-dark: #111827;
+            --text-gray: #6b7280;
+            --border-color: #e5e7eb;
+            --bg-gray: #f3f4f6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--bg-gray);
+            color: var(--text-dark);
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .controls {
+            max-width: 210mm;
+            margin: 20px auto;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            padding: 0 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            font-size: 14px;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-print {
+            background: var(--primary);
+        }
+
+        .btn-print:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-image {
+            background: #10b981;
+        }
+
+        .btn-image:hover {
+            background: #059669;
+        }
+
+        .btn-excel {
+            background: #217346;
+        }
+
+        .btn-excel:hover {
+            background: #154c2f;
+        }
+
+        .btn-back {
+            background: #6b7280;
+        }
+
+        .btn-back:hover {
+            background: #4b5563;
+        }
+
+        /* A4 Page Styling */
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm;
+            margin: 0 auto 40px;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: var(--text-gray);
+            font-size: 14px;
+        }
+
+        .report-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            font-size: 14px;
+            color: var(--text-gray);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        th {
+            background: #f8fafc;
+            color: var(--text-dark);
+            font-weight: 700;
+            padding: 12px;
+            text-align: right;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-dark);
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+
+        .rank-col {
+            width: 60px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .amount-col {
+            text-align: left;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .target-col {
+            text-align: center;
+            color: var(--text-gray);
+            font-size: 13px;
+        }
+
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-gray);
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white;
+            }
+
+            .controls {
+                display: none;
+            }
+
+            .page {
+                margin: 0;
+                box-shadow: none;
+                width: 100%;
+                height: auto;
+                padding: 0;
+            }
+
+            @page {
+                size: A4;
+                margin: 20mm;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="controls no-print">
+        <button class="btn btn-back" onclick="window.location.href='admin.html'">
+            <span>🔙</span> عودة
+        </button>
+        <button class="btn btn-image" onclick="saveAsImage()">
+            <span>🖼️</span> حفظ كصورة
+        </button>
+        <button class="btn btn-excel" onclick="exportToExcel()">
+            <span>📊</span> Excel
+        </button>
+        <button class="btn btn-print" onclick="window.print()">
+            <span>🖨️</span> طباعة
+        </button>
+    </div>
+
+    <div class="page" id="reportContent">
+        <div class="header">
+            <h1>تقارير دخل الفنيين</h1>
+            <p>تقرير شامل لترتيب الفنيين حسب الدخل</p>
+        </div>
+
+        <div class="report-meta">
+            <span id="reportDate">التاريخ: </span>
+            <span id="employeeCount">عدد الفنيين: 0</span>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th class="rank-col">#</th>
+                    <th>اسم الفني</th>
+                    <th>القسم</th>
+                    <th class="target-col">نسبة الانجاز</th>
+                    <th class="amount-col">الدخل الحالي</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Data will be populated here -->
+            </tbody>
+        </table>
+
+        <div class="footer">
+            <p>تم استخراج هذا التقرير من نظام إدارة الورشة</p>
+        </div>
+    </div>
+
+    <script>
+        let currentEmployees = [];
+
+        async function loadReport() {
+            try {
+                // Set Date
+                const now = new Date();
+                document.getElementById('reportDate').textContent = 'التاريخ: ' + now.toLocaleDateString('ar-SA');
+
+                // Fetch Data
+                const response = await fetch('/api/employees');
+                const employees = await response.json();
+
+                // Sort by Income (Descending)
+                employees.sort((a, b) => b.total_income - a.total_income);
+                currentEmployees = employees;
+
+                // Update Count
+                document.getElementById('employeeCount').textContent = `عدد الفنيين: ${employees.length}`;
+
+                // Render Table
+                const tbody = document.getElementById('tableBody');
+                tbody.innerHTML = '';
+
+                employees.forEach((emp, index) => {
+                    const tr = document.createElement('tr');
+
+                    // Rank styling (Top 3)
+                    let rankDisplay = index + 1;
+                    if (index === 0) rankDisplay = '🥇 ' + rankDisplay;
+                    else if (index === 1) rankDisplay = '🥈 ' + rankDisplay;
+                    else if (index === 2) rankDisplay = '🥉 ' + rankDisplay;
+
+                    tr.innerHTML = `
+                        <td class="rank-col">${rankDisplay}</td>
+                        <td>${emp.name}</td>
+                        <td>${emp.section_name || '-'}</td>
+                        <td class="target-col">${emp.target > 0 ? Math.round((emp.total_income / emp.target) * 100) : 0}%</td>
+                        <td class="amount-col">${emp.total_income.toLocaleString()} ﷼</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } catch (error) {
+                console.error('Error loading report:', error);
+                alert('حدث خطأ أثناء تحميل التقرير');
+            }
+        }
+
+        function saveAsImage() {
+            const element = document.getElementById('reportContent');
+            html2canvas(element, {
+                scale: 2, // Higher quality
+                useCORS: true
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `income-report-${new Date().toISOString().split('T')[0]}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+
+        function exportToExcel() {
+            if (!currentEmployees || currentEmployees.length === 0) {
+                alert('لا توجد بيانات للتصدير');
+                return;
+            }
+
+            // Prepare data for Excel
+            const data = currentEmployees.map((emp, index) => ({
+                'الترتيب': index + 1,
+                'اسم الفني': emp.name,
+                'القسم': emp.section_name || '-',
+                'نسبة الانجاز': (emp.target > 0 ? Math.round((emp.total_income / emp.target) * 100) : 0) + '%',
+                'الدخل الحالي': emp.total_income
+            }));
+
+            // Create worksheet
+            const ws = XLSX.utils.json_to_sheet(data);
+
+            // Adjust column widths
+            const wscols = [
+                { wch: 10 }, // Rank
+                { wch: 20 }, // Name
+                { wch: 15 }, // Section
+                { wch: 15 }, // Target
+                { wch: 15 }  // Income
+            ];
+            ws['!cols'] = wscols;
+
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "تقرير الدخل");
+
+            // Save file
+            XLSX.writeFile(wb, `income-report-${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+
+        // Initialize
+        loadReport();
+    </script>
+</body>
+
+</html>

@@ -119,6 +119,25 @@
             <!-- Future: Logo Upload -->
         </div>
 
+        <!-- Work Schedule Settings -->
+        <div class="section-box">
+            <div class="section-title">⏱️ مواعيد الدوام الإسبوعية</div>
+            <p style="font-size:12px; color:#666; margin-bottom:15px;">حدد أوقات العمل اليومية أو اختر "مغلق" للإجازة.</p>
+            <table style="width:100%; border-collapse: collapse; font-size: 14px;">
+                <thead style="background: #f1f5f9;">
+                    <tr>
+                        <th style="padding:10px; text-align:right;">اليوم</th>
+                        <th style="padding:10px; text-align:center;">من</th>
+                        <th style="padding:10px; text-align:center;">إلى</th>
+                        <th style="padding:10px; text-align:center;">مغلق</th>
+                    </tr>
+                </thead>
+                <tbody id="scheduleTableBody">
+                    <!-- Schedule rows inserted here -->
+                </tbody>
+            </table>
+        </div>
+
         <div class="section-box">
             <div class="section-title">📜 الشروط والأحكام</div>
             <p style="font-size:12px; color:#666; margin-bottom:10px;">أضف الشروط التي ستظهر في أسفل ورقة الكشف وأمر
@@ -138,24 +157,58 @@
     </div>
 
     <script>
+        // Work Schedule Handling
+        const daysMap = {
+            'Sunday': 'الأحد', 'Monday': 'الاثنين', 'Tuesday': 'الثلاثاء', 
+            'Wednesday': 'الأربعاء', 'Thursday': 'الخميس', 'Friday': 'الجمعة', 'Saturday': 'السبت'
+        };
+        let currentSchedule = [];
+
+        function renderSchedule(schedule) {
+            currentSchedule = schedule;
+            const tbody = document.getElementById('scheduleTableBody');
+            tbody.innerHTML = schedule.map(day => `
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding:10px; font-weight:600;">${daysMap[day.day_of_week]}</td>
+                    <td style="padding:10px; text-align:center;">
+                        <input type="time" value="${day.start_time || ''}" ${day.is_closed ? 'disabled' : ''} 
+                            onchange="updateScheduleDay('${day.day_of_week}', 'start_time', this.value)">
+                    </td>
+                    <td style="padding:10px; text-align:center;">
+                        <input type="time" value="${day.end_time || ''}" ${day.is_closed ? 'disabled' : ''} 
+                            onchange="updateScheduleDay('${day.day_of_week}', 'end_time', this.value)">
+                    </td>
+                    <td style="padding:10px; text-align:center;">
+                        <input type="checkbox" ${day.is_closed ? 'checked' : ''} 
+                            onchange="updateScheduleDay('${day.day_of_week}', 'is_closed', this.checked); loadSettings();">
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateScheduleDay(dayName, field, value) {
+            const day = currentSchedule.find(d => d.day_of_week === dayName);
+            if (day) day[field] = value;
+        }
+
         // Load Settings
         async function loadSettings() {
             try {
-                // 1. General Settings
                 const res = await fetch('/api/settings');
                 const settings = await res.json();
-
                 if (settings.workshop_name) document.getElementById('workshopName').value = settings.workshop_name;
                 if (settings.workshop_desc) document.getElementById('workshopDesc').value = settings.workshop_desc;
                 if (settings.workshop_phone) document.getElementById('workshopPhone').value = settings.workshop_phone;
                 if (settings.vat_number) document.getElementById('vatNumber').value = settings.vat_number;
 
-                // 2. Terms
                 const res2 = await fetch('/api/terms');
                 const terms = await res2.json();
                 renderTerms(terms.map(t => t.term));
 
-            } catch (e) { console.error(e); alert('فشل تحميل الإعدادات'); }
+                const res3 = await fetch('/api/work-schedule');
+                const schedule = await res3.json();
+                renderSchedule(schedule);
+            } catch (e) { console.error(e); }
         }
 
         // Terms Management
@@ -205,33 +258,32 @@
 
         async function saveAllSettings() {
             try {
-                // 1. Save Settings
                 const settingsPayload = {
                     workshop_name: document.getElementById('workshopName').value,
                     workshop_desc: document.getElementById('workshopDesc').value,
                     workshop_phone: document.getElementById('workshopPhone').value,
                     vat_number: document.getElementById('vatNumber').value
                 };
-
                 await fetch('/api/settings', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(settingsPayload)
                 });
 
-                // 2. Save Terms
                 await fetch('/api/terms', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ terms: currentTerms })
                 });
 
-                alert('✅ تم حفظ الإعدادات بنجاح');
+                await fetch('/api/work-schedule', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ schedule: currentSchedule })
+                });
 
-            } catch (e) {
-                console.error(e);
-                alert('❌ حدث خطأ أثناء الحفظ');
-            }
+                alert('✅ تم حفظ كافة الإعدادات بنجاح');
+            } catch (e) { console.error(e); alert('❌ خطأ في الحفظ'); }
         }
 
         loadSettings();

@@ -1,0 +1,17 @@
+node_modules/
+db.sqlite
+*.log
+backup_*.sqlite
+.DS_Store
+.env
+debug_*.js
+*.backup
+project_with_withdrawals.zip
+pasted_file_*.png
+workshop_manager/
+add_hide_income_col.js
+check_*.js
+fix_db_users.js
+migrate_db.js
+test_post.js
+verify_*.js

@@ -1,0 +1,2026 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>صفحة الموظف - مدير الورشة</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Modern CSS Variables */
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info: #3b82f6;
+      --bg-gray: #f9fafb;
+      --text-dark: #111827;
+      --text-gray: #6b7280;
+      --border-color: #e5e7eb;
+      --card-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+      --card-shadow-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      background-color: var(--bg-gray);
+      color: var(--text-dark);
+      line-height: 1.6;
+    }
+
+    /* Header */
+    .page-header {
+      background: white;
+      padding: 16px 24px;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      margin-bottom: 32px;
+    }
+
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .avatar {
+      width: 48px;
+      height: 48px;
+      background: var(--primary);
+      color: white;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .user-details h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    .user-role {
+      font-size: 14px;
+      color: var(--text-gray);
+    }
+
+    .logout-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: #fee2e2;
+      color: #dc2626;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .logout-btn:hover {
+      background: #fecaca;
+    }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: #e0e7ff;
+      color: #4338ca;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .nav-btn:hover {
+      background: #c7d2fe;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px 40px;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: var(--card-shadow);
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: 1px solid var(--border-color);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--card-shadow-hover);
+    }
+
+    .stat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .stat-icon.success {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+    }
+
+    .stat-icon.warning {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--warning);
+    }
+
+    .stat-icon.danger {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+    }
+
+    .stat-icon.primary {
+      background: rgba(79, 70, 229, 0.1);
+      color: var(--primary);
+    }
+
+    .stat-icon.info {
+      background: rgba(59, 130, 246, 0.1);
+      color: var(--info);
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-gray);
+    }
+
+    /* Forms & Sections */
+    .section-card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: var(--card-shadow);
+      border: 1px solid var(--border-color);
+      margin-bottom: 32px;
+      overflow: hidden;
+    }
+
+    .section-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #f8fafc;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    .section-content {
+      padding: 24px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--text-dark);
+      font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
+      transition: all 0.2s;
+      background: #fff;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #059669;
+    }
+
+    .btn-full {
+      width: 100%;
+    }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      white-space: nowrap;
+    }
+
+    th {
+      background: #f8fafc;
+      padding: 16px;
+      text-align: center;
+      font-weight: 600;
+      color: var(--text-dark);
+      font-size: 14px;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    td {
+      padding: 16px;
+      text-align: center;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 14px;
+    }
+
+    tbody tr:hover {
+      background: var(--bg-gray);
+    }
+
+    /* Badge */
+    .badge {
+      padding: 5px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    .badge-success {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+    }
+
+    .badge-warning {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--warning);
+    }
+
+    .badge-danger {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+    }
+
+    /* Notes */
+    .admin-note {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e40af;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-top: 4px;
+      display: block;
+      text-align: right;
+    }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-gray);
+    }
+
+    /* Error */
+    .error {
+      background: #fee2e2;
+      color: var(--danger);
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid #fecaca;
+      margin: 16px 0;
+      text-align: center;
+    }
+
+    /* Progress Bar */
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-gray);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--success), #20c997);
+      transition: width 0.5s ease;
+      border-radius: 4px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header-container {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .container {
+        padding: 16px;
+      }
+    }
+
+    /* Ticker */
+    .ticker-container {
+      background: var(--danger);
+      color: white;
+      overflow: hidden;
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      display: none;
+    }
+
+    .ticker-text {
+      display: inline-block;
+      padding: 10px;
+      padding-left: 100%;
+      animation: ticker 20s linear infinite;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    @keyframes ticker {
+      0% {
+        transform: translate3d(-100%, 0, 0);
+      }
+
+      100% {
+        transform: translate3d(100%, 0, 0);
+      }
+    }
+
+    /* Dark Mode */
+    body.dark-mode {
+      background-color: #1f2937;
+      color: #f3f4f6;
+      --bg-gray: #1f2937;
+      --text-dark: #f3f4f6;
+      --text-gray: #9ca3af;
+      --border-color: #374151;
+    }
+
+    body.dark-mode .page-header,
+    body.dark-mode .stat-card,
+    body.dark-mode .section-card,
+    body.dark-mode .section-header,
+    body.dark-mode .form-group input,
+    body.dark-mode .form-group select,
+    body.dark-mode .form-group textarea,
+    body.dark-mode th,
+    body.dark-mode td {
+      background-color: #111827;
+      color: #f3f4f6;
+      border-color: #374151;
+    }
+
+    body.dark-mode .section-header {
+      background-color: #1f2937;
+    }
+
+    body.dark-mode .stat-card:hover {
+      box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.1);
+    }
+
+    /* Chat Widget */
+    .chat-widget {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 350px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: none;
+      flex-direction: column;
+      z-index: 1000;
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+    }
+
+    body.dark-mode .chat-widget {
+      background: #111827;
+      border-color: #374151;
+    }
+
+    .chat-header {
+      padding: 12px 16px;
+      background: var(--primary);
+      color: white;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .chat-body {
+      height: 300px;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .chat-message {
+      max-width: 80%;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .chat-message.sent {
+      align-self: flex-end;
+      background: var(--primary);
+      color: white;
+      border-bottom-left-radius: 2px;
+    }
+
+    .chat-message.received {
+      align-self: flex-start;
+      background: #f3f4f6;
+      color: var(--text-dark);
+      border-bottom-right-radius: 2px;
+    }
+
+    body.dark-mode .chat-message.received {
+      background: #374151;
+    }
+
+    .chat-footer {
+      padding: 12px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      gap: 8px;
+    }
+
+    .chat-toggle-btn {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      width: 60px;
+      height: 60px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      z-index: 999;
+      transition: transform 0.2s;
+    }
+
+    .chat-toggle-btn:hover {
+      transform: scale(1.1);
+    }
+
+    /* Attendance Section */
+    .attendance-actions {
+      display: flex;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .attendance-status {
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 16px;
+      padding: 12px;
+      border-radius: 8px;
+      background: #f3f4f6;
+    }
+
+    /* Fingerprint & Clock */
+    .fingerprint-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      padding: 20px;
+    }
+
+    .live-clock {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--text-dark);
+      font-family: monospace;
+      letter-spacing: 2px;
+    }
+
+    .fingerprint-btn {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 4px solid var(--border-color);
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body.dark-mode .fingerprint-btn {
+      background: #1f2937;
+      border-color: #4b5563;
+    }
+
+    .fingerprint-btn:active {
+      transform: scale(0.95);
+    }
+
+    .fingerprint-btn.scanning {
+      border-color: var(--primary);
+      box-shadow: 0 0 15px var(--primary);
+    }
+
+    .fingerprint-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-gray);
+      transition: color 0.3s;
+      user-select: none;
+    }
+
+    .fingerprint-btn:hover .fingerprint-icon {
+      color: var(--primary);
+    }
+
+    .fingerprint-btn.checked-in {
+      border-color: var(--success);
+      background: rgba(16, 185, 129, 0.1);
+      cursor: default;
+    }
+
+    .fingerprint-btn.checked-in .fingerprint-icon {
+      color: var(--success);
+    }
+
+    .scan-line {
+      position: absolute;
+      width: 100%;
+      height: 2px;
+      background: var(--primary);
+      top: 0;
+      left: 0;
+      animation: scan 1.5s linear infinite;
+      display: none;
+    }
+
+    .fingerprint-btn.scanning .scan-line {
+      display: block;
+    }
+
+    @keyframes scan {
+      0% {
+        top: 0;
+        opacity: 0;
+      }
+
+      50% {
+        opacity: 1;
+      }
+
+      100% {
+        top: 100%;
+        opacity: 0;
+      }
+    }
+
+    /* ===================================
+       MOBILE RESPONSIVE DESIGN
+       =================================== */
+
+    /* Tablet */
+    @media (max-width: 1024px) {
+      .container {
+        padding: 0 16px;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+
+      /* Header */
+      .page-header {
+        padding: 12px 16px;
+        margin-bottom: 20px;
+      }
+
+      .header-container {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+      }
+
+      .user-info {
+        width: 100%;
+      }
+
+      .avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+      }
+
+      .user-details h1 {
+        font-size: 18px;
+      }
+
+      .header-actions {
+        width: 100%;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .nav-btn,
+      .logout-btn {
+        padding: 8px 12px;
+        font-size: 13px;
+        flex: 1;
+        justify-content: center;
+      }
+
+      /* Container */
+      .container {
+        max-width: 100%;
+        padding: 0 12px;
+      }
+
+      /* Stats Grid */
+      .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .stat-card {
+        padding: 16px;
+      }
+
+      .stat-value {
+        font-size: 24px;
+      }
+
+      /* Section Cards */
+      .section-card {
+        margin-bottom: 16px;
+      }
+
+      .section-header {
+        padding: 14px;
+      }
+
+      .section-title {
+        font-size: 16px;
+      }
+
+      /* Fingerprint */
+      .fingerprint-btn {
+        width: 100px;
+        height: 100px;
+      }
+
+      .fingerprint-icon {
+        font-size: 40px;
+      }
+
+      .live-clock {
+        font-size: 24px;
+      }
+
+      /* Forms */
+      .form-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        font-size: 15px;
+        padding: 10px;
+      }
+
+      /* Tables */
+      .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      table {
+        font-size: 13px;
+        min-width: 500px;
+      }
+
+      th,
+      td {
+        padding: 10px 8px;
+      }
+
+      /* Ticker */
+      .ticker-text {
+        font-size: 0.9rem;
+      }
+    }
+
+    /* Small Mobile */
+    @media (max-width: 480px) {
+      .page-header {
+        padding: 10px 12px;
+      }
+
+      .header-actions {
+        flex-wrap: wrap;
+      }
+
+      .nav-btn,
+      .logout-btn {
+        min-width: calc(50% - 4px);
+      }
+
+      .stat-value {
+        font-size: 20px;
+      }
+
+      .fingerprint-btn {
+        width: 80px;
+        height: 80px;
+      }
+
+      .fingerprint-icon {
+        font-size: 32px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Ticker -->
+  <div id="liftTicker" class="ticker-container">
+    <div class="ticker-text" id="liftTickerText"></div>
+  </div>
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-container">
+      <div class="user-info">
+        <div class="avatar">👤</div>
+        <div class="user-details">
+          <h1 id="userName">مرحباً</h1>
+          <p class="user-role" id="userSection">جاري التحميل...</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="nav-btn" onclick="toggleDarkMode()">
+          <span>🌓</span>
+        </button>
+        <a href="lifts.html" class="nav-btn">
+          <span>🏗️</span>
+          <span>بدأ العمل</span>
+        </a>
+        <a href="inspector.html" class="nav-btn" id="inspectorBtn"
+          style="display: none; background-color: #ec4899; color: white;">
+          <span>🔍</span>
+          <span>نظام الكشف</span>
+        </a>
+        <button class="logout-btn" id="logoutBtn">
+          <span>🚪</span>
+          <span>تسجيل الخروج</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container">
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card" id="incomeCard">
+        <div class="stat-header">
+          <div class="stat-icon success">💰</div>
+        </div>
+        <div class="stat-value" id="totalIncome">0</div>
+        <div class="stat-label">الدخل الحالي</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon danger">💳</div>
+        </div>
+        <div class="stat-value" id="totalWithdrawals">0</div>
+        <div class="stat-label">إجمالي السحوبات</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon primary">💵</div>
+        </div>
+        <div class="stat-value" id="remainingBalance">0</div>
+        <div class="stat-label">الراتب المتبقي</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <div class="stat-icon warning">🎯</div>
+        </div>
+        <div class="stat-value" id="targetAchievement">0%</div>
+        <div class="stat-label">نسبة تحقيق الهدف</div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Leave Balance Hidden as requested -->
+    </div>
+
+    <!-- Attendance Section -->
+    <div class="section-card">
+      <div class="section-header">
+        <span class="section-icon">📅</span>
+        <span class="section-title">سجل الحضور والانصراف</span>
+      </div>
+      <div class="section-content">
+        <div class="fingerprint-container">
+          <div class="live-clock" id="liveClock">00:00:00</div>
+
+          <!-- Fingerprint Button -->
+          <div class="fingerprint-btn" id="fingerprintBtn" onclick="handleFingerprintClick()">
+            <div class="scan-line"></div>
+            <div class="fingerprint-icon">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M17.81 4.47C17.73 4.47 17.65 4.45 17.58 4.41C15.66 3.42 14 3 12 3C10 3 8.34 3.42 6.42 4.41C6.17 4.54 5.86 4.45 5.73 4.2C5.6 3.95 5.69 3.64 5.94 3.51C8.03 2.43 9.87 2 12 2C14.13 2 15.97 2.43 18.06 3.51C18.31 3.64 18.4 3.95 18.27 4.2C18.17 4.38 17.99 4.47 17.81 4.47ZM3.5 9.72C3.39 9.72 3.28 9.69 3.18 9.63C2.93 9.48 2.85 9.17 3 8.92C3.64 7.84 4.49 6.91 5.53 6.15C5.77 5.97 6.08 6.03 6.26 6.27C6.44 6.51 6.38 6.82 6.14 7C5.2 7.69 4.44 8.52 3.86 9.5C3.78 9.64 3.64 9.72 3.5 9.72ZM20.5 9.72C20.36 9.72 20.22 9.64 20.14 9.5C19.56 8.52 18.8 7.69 17.86 7C17.62 6.82 17.56 6.51 17.74 6.27C17.92 6.03 18.23 5.97 18.47 6.15C19.51 6.91 20.36 7.84 21 8.92C21.15 9.17 21.07 9.48 20.82 9.63C20.72 9.69 20.61 9.72 20.5 9.72ZM12 13.75C11.72 13.75 11.5 13.53 11.5 13.25V9C11.5 8.72 11.72 8.5 12 8.5C12.28 8.5 12.5 8.72 12.5 9V13.25C12.5 13.53 12.28 13.75 12 13.75ZM12 17.75C11.72 17.75 11.5 17.53 11.5 17.25V15.25C11.5 14.97 11.72 14.75 12 14.75C12.28 14.75 12.5 14.97 12.5 15.25V17.25C12.5 17.53 12.28 17.75 12 17.75ZM15.5 16.25C15.22 16.25 15 16.03 15 15.75V12.25C15 10.59 13.66 9.25 12 9.25C10.34 9.25 9 10.59 9 12.25V15.75C9 16.03 8.78 16.25 8.5 16.25C8.22 16.25 8 16.03 8 15.75V12.25C8 10.04 9.79 8.25 12 8.25C14.21 8.25 16 10.04 16 12.25V15.75C16 16.03 15.78 16.25 15.5 16.25ZM18.5 18.25C18.22 18.25 18 18.03 18 17.75V11.25C18 7.94 15.31 5.25 12 5.25C8.69 5.25 6 7.94 6 11.25V17.75C6 18.03 5.78 18.25 5.5 18.25C5.22 18.25 5 18.03 5 17.75V11.25C5 7.39 8.14 4.25 12 4.25C15.86 4.25 19 7.39 19 11.25V17.75C19 18.03 18.78 18.25 18.5 18.25ZM12 22C9.24 22 7 19.76 7 17V16.25C7 15.97 7.22 15.75 7.5 15.75C7.78 15.75 8 15.97 8 16.25V17C8 19.21 9.79 21 12 21C14.21 21 16 19.21 16 17V16.25C16 15.97 16.22 15.75 16.5 15.75C16.78 15.75 17 15.97 17 16.25V17C17 19.76 14.76 22 12 22Z"
+                  fill="currentColor" />
+              </svg>
+            </div>
+          </div>
+          <div id="fingerprintStatus" style="font-weight: bold; margin-top: 10px; color: var(--text-gray);">اضغط لتسجيل
+            الدخول</div>
+
+          <!-- Check Out Button (Hidden by default) -->
+          <button id="checkOutBtn" class="btn btn-danger" onclick="checkOut()" style="display: none; margin-top: 10px;">
+            تسجيل خروج 🏃
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Withdrawal Request Section -->
+    <div class="section-card">
+      <div class="section-header">
+        <span class="section-icon">💰</span>
+        <span class="section-title">طلب سحب</span>
+      </div>
+      <div class="section-content">
+        <form id="withdrawalRequestForm">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>المبلغ (ريال)</label>
+              <input type="number" id="withdrawalAmount" placeholder="0" required>
+            </div>
+            <div class="form-group">
+              <label>السبب (اختياري)</label>
+              <input type="text" id="withdrawalReason" placeholder="سبب السحب...">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-success btn-full">
+            💳 إرسال طلب السحب
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Withdrawal History -->
+    <div class="section-card">
+      <div class="section-header">
+        <span class="section-icon">💳</span>
+        <span class="section-title">سجل السحوبات</span>
+      </div>
+      <div class="section-content">
+        <div id="withdrawalsLoading" class="loading">جاري تحميل السجل...</div>
+        <div id="withdrawalsContainer" class="table-container" style="display: none;"></div>
+        <div id="withdrawalsError" class="error" style="display: none;"></div>
+      </div>
+    </div>
+
+    <!-- Income History -->
+    <div class="section-card" id="incomeSection" style="display: none;">
+      <div class="section-header">
+        <span class="section-icon">📊</span>
+        <span class="section-title">سجل الدخل</span>
+      </div>
+      <div class="section-content">
+        <div id="entriesLoading" class="loading">جاري تحميل السجل...</div>
+        <div id="entriesContainer" class="table-container" style="display: none;"></div>
+        <div id="entriesError" class="error" style="display: none;"></div>
+      </div>
+    </div>
+
+    <!-- Leave Request Section -->
+    <div class="section-card">
+      <div class="section-header">
+        <span class="section-icon">🏖️</span>
+        <span class="section-title">طلب إجازة</span>
+      </div>
+      <div class="section-content">
+        <form id="leaveRequestForm">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>نوع الإجازة</label>
+              <select id="leaveType">
+                <option value="annual">إجازة سنوية</option>
+                <option value="sick">إجازة مرضية</option>
+                <option value="unpaid">إجازة بدون راتب</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>من تاريخ</label>
+              <input type="date" id="leaveStartDate" required>
+            </div>
+            <div class="form-group">
+              <label>إلى تاريخ</label>
+              <input type="date" id="leaveEndDate" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>السبب</label>
+            <textarea id="leaveReason" placeholder="اكتب سبب طلب الإجازة..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">
+            🚀 إرسال طلب الإجازة
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Leave History -->
+    <div class="section-card">
+      <div class="section-header">
+        <span class="section-icon">📋</span>
+        <span class="section-title">سجل طلبات الإجازة</span>
+      </div>
+      <div class="section-content">
+        <div id="leaveRequestsLoading" class="loading">جاري تحميل السجل...</div>
+        <div id="leaveRequestsContainer" class="table-container" style="display: none;"></div>
+        <div id="leaveRequestsError" class="error" style="display: none;"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Chat Widget -->
+  <div class="chat-widget" id="chatWidget">
+    <!-- Header -->
+    <div class="chat-header">
+      <div onclick="toggleChat()" class="chat-back-btn">❮</div>
+      <div class="chat-avatar-wrapper">
+        <div class="chat-avatar-img">👨‍💼</div>
+        <div class="chat-online-indicator"></div>
+      </div>
+      <div class="chat-header-info">
+        <div class="chat-header-name">الإدارة</div>
+        <div class="chat-header-status">متصل الآن</div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="chat-body" id="chatBody">
+      <!-- Messages will be injected here -->
+    </div>
+
+    <!-- Footer -->
+    <div class="chat-footer">
+      <input type="text" id="chatInput" class="chat-input" placeholder="اكتب رسالتك..."
+        onkeypress="handleChatKey(event)">
+      <button onclick="sendMessage()" class="chat-send-btn">➤</button>
+    </div>
+  </div>
+
+  <div class="chat-toggle-btn" onclick="toggleChat()">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="white" />
+    </svg>
+    <span id="chatBadge" class="chat-badge">0</span>
+  </div>
+
+  <style>
+    /* Chat Toggle Button */
+    .chat-toggle-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 70px;
+      height: 70px;
+      background: #5b51d8;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(91, 81, 216, 0.5);
+      z-index: 9999;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .chat-badge {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      background: #ef4444;
+      color: white;
+      border-radius: 50%;
+      min-width: 24px;
+      height: 24px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+      border: 3px solid white;
+      padding: 0 6px;
+    }
+
+    /* Chat Widget */
+    .chat-widget {
+      position: fixed;
+      bottom: 110px;
+      right: 30px;
+      width: 380px;
+      max-width: calc(100vw - 40px);
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+      display: none;
+      flex-direction: column;
+      z-index: 10000;
+      overflow: hidden;
+      height: 550px;
+      max-height: calc(100vh - 140px);
+      animation: slideUp 0.3s ease-out;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    /* Chat Header */
+    .chat-header {
+      background: #5b51d8;
+      padding: 18px 20px;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .chat-back-btn {
+      cursor: pointer;
+      font-size: 24px;
+      line-height: 1;
+      padding: 4px;
+    }
+
+    .chat-avatar-wrapper {
+      position: relative;
+    }
+
+    .chat-avatar-img {
+      width: 44px;
+      height: 44px;
+      background: #e0e7ff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .chat-online-indicator {
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      width: 12px;
+      height: 12px;
+      background: #10b981;
+      border-radius: 50%;
+      border: 2px solid #5b51d8;
+    }
+
+    .chat-header-info {
+      flex: 1;
+    }
+
+    .chat-header-name {
+      font-weight: 600;
+      font-size: 17px;
+      line-height: 1.3;
+    }
+
+    .chat-header-status {
+      font-size: 13px;
+      opacity: 0.9;
+      line-height: 1.3;
+    }
+
+    /* Chat Body */
+    .chat-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background: #f9fafb;
+      min-height: 0;
+    }
+
+    /* Chat Footer */
+    .chat-footer {
+      padding: 16px;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      gap: 12px;
+      background: white;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 14px 18px;
+      border: 1px solid #e5e7eb;
+      border-radius: 24px;
+      outline: none;
+      font-size: 15px;
+      background: #f9fafb;
+      font-family: inherit;
+    }
+
+    .chat-send-btn {
+      width: 46px;
+      height: 46px;
+      background: #5b51d8;
+      border: none;
+      border-radius: 50%;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+  </style>
+
+  <style>
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .chat-toggle-btn:hover {
+      transform: scale(1.08) !important;
+      box-shadow: 0 12px 28px rgba(91, 81, 216, 0.6);
+    }
+
+    .chat-toggle-btn:active {
+      transform: scale(0.95) !important;
+    }
+
+    .chat-message-container {
+      display: flex;
+      gap: 10px;
+      max-width: 85%;
+      animation: messageIn 0.2s ease-out;
+    }
+
+    @keyframes messageIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .chat-message-container.sent {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .chat-message-container.received {
+      align-self: flex-start;
+    }
+
+    .chat-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #e0e7ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+
+    .chat-bubble {
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-size: 15px;
+      line-height: 1.5;
+      position: relative;
+      word-wrap: break-word;
+      max-width: 100%;
+    }
+
+    /* Sent Message (Purple) */
+    .chat-message-container.sent .chat-bubble {
+      background: #5b51d8;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    /* Received Message (Gray) */
+    .chat-message-container.received .chat-bubble {
+      background: white;
+      color: #1f2937;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Mobile Responsive - Full Screen */
+    @media (max-width: 768px) {
+      .chat-widget {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
+        border-radius: 0 !important;
+        z-index: 99999 !important;
+        margin: 0 !important;
+      }
+
+      /* Hide toggle button when chat is open on mobile */
+      .chat-widget[style*="display: flex"]~.chat-toggle-btn {
+        display: none !important;
+      }
+
+      .chat-header {
+        padding-top: max(18px, env(safe-area-inset-top)) !important;
+        border-radius: 0 !important;
+      }
+
+      .chat-body {
+        padding: 16px !important;
+      }
+
+      .chat-footer {
+        padding: 16px !important;
+        padding-bottom: max(16px, env(safe-area-inset-bottom)) !important;
+        border-radius: 0 !important;
+      }
+
+      .chat-toggle-btn {
+        bottom: 24px !important;
+        right: 24px !important;
+        width: 64px !important;
+        height: 64px !important;
+      }
+    }
+  </style>
+
+  <script>
+    let employeeId = null;
+    let employeeData = null;
+
+    // Check authentication
+    function checkAuth() {
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+      if (!token || user.role !== 'employee') {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      employeeId = user.employee_id || user.id;
+
+      if (!employeeId) {
+        alert('خطأ: لم يتم العثور على معرف الموظف');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      loadEmployeeData();
+    }
+
+    // Load employee data
+    async function loadEmployeeData() {
+      try {
+        const response = await fetch(`/api/employee-stats/${employeeId}`);
+        if (!response.ok) throw new Error('فشل تحميل بيانات الموظف');
+
+        employeeData = await response.json();
+
+        // Update header
+        document.getElementById('userName').textContent = `مرحباً، ${employeeData.info.name}`;
+        document.getElementById('userSection').textContent = `${employeeData.info.section_name || 'غير محدد'}`;
+
+        // Show inspector button if in inspection section
+        if (employeeData.info.section_name === 'كشف') {
+          document.getElementById('inspectorBtn').style.display = 'flex';
+        }
+
+        // Update stats
+        if (employeeData.income_hidden) {
+          document.getElementById('incomeCard').innerHTML = `
+                        <div class="stat-header">
+                            <div class="stat-icon success">💰</div>
+                        </div>
+                        <div class="stat-value">🔒</div>
+                        <div class="stat-label">الدخل مخفي</div>
+                    `;
+          document.getElementById('targetAchievement').textContent = '🔒';
+          document.getElementById('incomeSection').style.display = 'none';
+        } else {
+          const income = employeeData.total_income || 0;
+          const target = employeeData.info.target || 1;
+          const achievement = ((income / target) * 100).toFixed(1);
+
+          document.getElementById('totalIncome').textContent = income.toLocaleString('en-US');
+          document.getElementById('targetAchievement').textContent = achievement + '%';
+          document.getElementById('progressFill').style.width = Math.min(achievement, 100) + '%';
+
+          document.getElementById('incomeSection').style.display = 'block';
+          renderIncomeHistory(employeeData.entries);
+        }
+
+        const withdrawals = employeeData.total_withdrawal || 0;
+        const baseSalary = employeeData.info.base_salary || 0;
+        const remainingSalary = baseSalary - withdrawals;
+
+        document.getElementById('totalWithdrawals').textContent = withdrawals.toLocaleString('en-US');
+        document.getElementById('remainingBalance').textContent = remainingSalary.toLocaleString('en-US');
+
+        // Load other data
+        loadLeaveRequests();
+        loadWithdrawals();
+
+      } catch (error) {
+        console.error('Error:', error);
+        alert(`❌ ${error.message}`);
+      }
+    }
+
+    // Load leave requests
+    async function loadLeaveRequests() {
+      const container = document.getElementById('leaveRequestsContainer');
+      const loading = document.getElementById('leaveRequestsLoading');
+      const errorDiv = document.getElementById('leaveRequestsError');
+
+      try {
+        loading.style.display = 'block';
+        container.style.display = 'none';
+
+        const response = await fetch(`/api/leave-requests/employee/${employeeId}`);
+        if (!response.ok) throw new Error('فشل تحميل السجل');
+
+        const requests = await response.json();
+
+        if (requests.length === 0) {
+          container.innerHTML = '<div class="empty-state">لا توجد طلبات إجازة سابقة</div>';
+        } else {
+          let html = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>التاريخ</th>
+                                    <th>النوع</th>
+                                    <th>المدة</th>
+                                    <th>الحالة</th>
+                                    <th>ملاحظات المدير</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+
+          requests.forEach(r => {
+            const statusBadge = r.status === 'approved' ? '<span class="badge badge-success">مقبول</span>' :
+              r.status === 'rejected' ? '<span class="badge badge-danger">مرفوض</span>' :
+                '<span class="badge badge-warning">قيد الانتظار</span>';
+
+            const typeMap = { 'annual': 'سنوية', 'sick': 'مرضية', 'unpaid': 'بدون راتب' };
+
+            html += `
+                            <tr>
+                                <td>${new Date(r.start_date).toLocaleDateString('en-US')}</td>
+                                <td>${typeMap[r.leave_type] || r.leave_type}</td>
+                                <td>${r.days_count} يوم</td>
+                                <td>${statusBadge}</td>
+                                <td>${r.admin_notes ? `<span class="admin-note">✍️ ${r.admin_notes}</span>` : '-'}</td>
+                            </tr>
+                        `;
+          });
+
+          html += '</tbody></table>';
+          container.innerHTML = html;
+        }
+
+        loading.style.display = 'none';
+        container.style.display = 'block';
+
+      } catch (error) {
+        loading.style.display = 'none';
+        errorDiv.textContent = error.message;
+        errorDiv.style.display = 'block';
+      }
+    }
+
+    // Load withdrawals
+    async function loadWithdrawals() {
+      const container = document.getElementById('withdrawalsContainer');
+      const loading = document.getElementById('withdrawalsLoading');
+      const errorDiv = document.getElementById('withdrawalsError');
+
+      try {
+        loading.style.display = 'block';
+        container.style.display = 'none';
+
+        const response = await fetch(`/api/employees/${employeeId}/withdrawals`);
+        if (!response.ok) throw new Error('فشل تحميل السجل');
+
+        const withdrawals = await response.json();
+
+        if (withdrawals.length === 0) {
+          container.innerHTML = '<div class="empty-state">لا توجد سحوبات سابقة</div>';
+        } else {
+          let html = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>التاريخ</th>
+                                    <th>المبلغ</th>
+                                    <th>السبب</th>
+                                    <th>الحالة</th>
+                                    <th>ملاحظات المدير</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+
+          withdrawals.forEach(w => {
+            const statusBadge = w.status === 'approved' ? '<span class="badge badge-success">مقبول</span>' :
+              w.status === 'rejected' ? '<span class="badge badge-danger">مرفوض</span>' :
+                '<span class="badge badge-warning">قيد الانتظار</span>';
+
+            html += `
+                            <tr>
+                                <td>${new Date(w.created_at).toLocaleDateString('en-US')}</td>
+                                <td style="color: var(--danger); font-weight: bold;">${w.amount.toLocaleString('en-US')}</td>
+                                <td>${w.reason || '-'}</td>
+                                <td>${statusBadge}</td>
+                                <td>${w.admin_note ? `<span class="admin-note">✍️ ${w.admin_note}</span>` : '-'}</td>
+                            </tr>
+                        `;
+          });
+
+          html += '</tbody></table>';
+          container.innerHTML = html;
+        }
+
+        loading.style.display = 'none';
+        container.style.display = 'block';
+
+      } catch (error) {
+        loading.style.display = 'none';
+        errorDiv.textContent = error.message;
+        errorDiv.style.display = 'block';
+      }
+    }
+
+    // Render income history
+    function renderIncomeHistory(entries) {
+      const container = document.getElementById('entriesContainer');
+      const loading = document.getElementById('entriesLoading');
+      const errorDiv = document.getElementById('entriesError');
+
+      try {
+        loading.style.display = 'none';
+
+        if (!entries || entries.length === 0) {
+          container.innerHTML = '<div class="empty-state">لا توجد سجلات دخل</div>';
+        } else {
+          let html = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>التاريخ</th>
+                                    <th>الدخل</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+
+          entries.forEach(entry => {
+            html += `
+                            <tr>
+                                <td>${new Date(entry.created_at).toLocaleDateString('en-US')}</td>
+                                <td style="color: var(--success); font-weight: bold;">${entry.income.toLocaleString('en-US')}</td>
+                            </tr>
+                        `;
+          });
+
+          html += '</tbody></table>';
+          container.innerHTML = html;
+        }
+
+        container.style.display = 'block';
+
+      } catch (error) {
+        loading.style.display = 'none';
+        errorDiv.textContent = error.message;
+        errorDiv.style.display = 'block';
+      }
+    }
+
+
+    // Handle leave request
+    document.getElementById('leaveRequestForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const type = document.getElementById('leaveType').value;
+      const startDate = document.getElementById('leaveStartDate').value;
+      const endDate = document.getElementById('leaveEndDate').value;
+      const reason = document.getElementById('leaveReason').value;
+
+      try {
+        const response = await fetch('/api/leave-requests', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            employee_id: employeeId,
+            leave_type: type,
+            start_date: startDate,
+            end_date: endDate,
+            reason: reason
+          })
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.message || 'فشل إرسال الطلب');
+        }
+
+        alert('✅ تم إرسال طلب الإجازة بنجاح');
+        e.target.reset();
+        loadLeaveRequests();
+
+      } catch (error) {
+        alert(`❌ ${error.message}`);
+      }
+    });
+
+    // Handle withdrawal request
+    document.getElementById('withdrawalRequestForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const amount = document.getElementById('withdrawalAmount').value;
+      const reason = document.getElementById('withdrawalReason').value;
+
+      try {
+        const response = await fetch('/api/withdrawals', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            employee_id: employeeId,
+            amount: parseFloat(amount),
+            reason: reason
+          })
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.message || 'فشل إرسال الطلب');
+        }
+
+        alert('✅ تم إرسال طلب السحب بنجاح');
+        e.target.reset();
+        loadWithdrawals();
+
+      } catch (error) {
+        alert(`❌ ${error.message}`);
+      }
+    });
+
+    // Logout
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = 'login.html';
+    });
+
+    // Ticker Logic
+    async function updateTicker() {
+      try {
+        const response = await fetch('/api/lifts');
+        if (!response.ok) return;
+
+        const lifts = await response.json();
+        const idleLifts = lifts.filter(l => l.status === 'idle');
+
+        const ticker = document.getElementById('liftTicker');
+        const tickerText = document.getElementById('liftTickerText');
+
+        if (idleLifts.length > 0) {
+          const names = idleLifts.map(l => l.name).join(' - ');
+          tickerText.textContent = `🟢 الرافعات المتاحة حالياً: ${names}`;
+          ticker.style.display = 'block';
+          ticker.style.background = 'var(--success)'; // Green for available
+        } else {
+          tickerText.textContent = '🔴 جميع الرافعات مشغولة حالياً';
+          ticker.style.display = 'block';
+          ticker.style.background = 'var(--danger)'; // Red for busy
+        }
+      } catch (error) {
+        console.error('Ticker Error:', error);
+      }
+    }
+
+    // Initialize
+    checkAuth();
+    setInterval(updateTicker, 30000); // Update every 30s
+    updateTicker(); // Initial call
+
+    // Load preferences
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark-mode');
+    }
+
+    // Dark Mode
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    }
+
+    // Attendance Logic
+    async function loadAttendance() {
+      try {
+        const response = await fetch(`/api/attendance/status/${employeeId}`);
+        const data = await response.json();
+        const statusDiv = document.getElementById('attendanceStatus');
+        const checkInBtn = document.getElementById('checkInBtn');
+        const checkOutBtn = document.getElementById('checkOutBtn');
+
+        if (data.status === 'not_marked') {
+          statusDiv.textContent = 'لم يتم تسجيل الحضور اليوم ❌';
+          statusDiv.style.color = 'var(--danger)';
+          checkInBtn.disabled = false;
+          checkOutBtn.disabled = true;
+        } else {
+          const checkInTime = new Date(data.check_in).toLocaleTimeString('ar-SA');
+          if (data.check_out) {
+            const checkOutTime = new Date(data.check_out).toLocaleTimeString('ar-SA');
+            statusDiv.innerHTML = `✅ تم الحضور: ${checkInTime}<br>👋 تم الانصراف: ${checkOutTime}`;
+            statusDiv.style.color = 'var(--success)';
+            checkInBtn.disabled = true;
+            checkOutBtn.disabled = true;
+          } else {
+            statusDiv.innerHTML = `✅ تم الحضور: ${checkInTime}<br>⏳ بانتظار الانصراف...`;
+            statusDiv.style.color = 'var(--primary)';
+            checkInBtn.disabled = true;
+            checkOutBtn.disabled = false;
+          }
+        }
+      } catch (error) {
+        console.error('Attendance Error:', error);
+      }
+    }
+
+    async function checkIn() {
+      try {
+        const response = await fetch('/api/attendance/check-in', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ employee_id: employeeId })
+        });
+        const data = await response.json();
+        if (response.ok) {
+          alert(data.message);
+          loadAttendance();
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        console.error('Check-in Error:', error);
+      }
+    }
+
+    async function checkOut() {
+      if (!confirm('هل أنت متأكد من تسجيل الانصراف؟')) return;
+      try {
+        const response = await fetch('/api/attendance/check-out', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ employee_id: employeeId })
+        });
+        const data = await response.json();
+        if (response.ok) {
+          alert(data.message);
+          loadAttendance();
+        } else {
+          alert(data.message);
+        }
+      } catch (error) {
+        console.error('Check-out Error:', error);
+      }
+    }
+
+    // Chat Logic
+    function toggleChat() {
+      const widget = document.getElementById('chatWidget');
+      if (widget.style.display === 'flex') {
+        widget.style.display = 'none';
+        document.body.style.overflow = 'auto';
+      } else {
+        widget.style.display = 'flex';
+        if (window.innerWidth <= 768) {
+          document.body.style.overflow = 'hidden';
+        }
+        loadMessages();
+        scrollToBottom();
+      }
+    }
+
+    async function loadMessages() {
+      try {
+        // Mark as read first
+        await fetch('/api/messages/mark-read', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ employee_id: employeeId, reader: 'employee' })
+        });
+        checkUnreadMessages(); // Update badge
+
+        const response = await fetch(`/api/messages/${employeeId}`);
+        const messages = await response.json();
+        const chatBody = document.getElementById('chatBody');
+
+        chatBody.innerHTML = messages.map(msg => {
+          const isSent = msg.sender === 'employee';
+          const avatar = isSent ? '' : '<div class="chat-avatar">👨‍💼</div>';
+
+          return `
+                <div class="chat-message-container ${isSent ? 'sent' : 'received'}">
+                    ${avatar}
+                    <div class="chat-bubble">
+                        ${msg.message}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        scrollToBottom();
+      } catch (error) {
+        console.error('Chat Error:', error);
+      }
+    }
+
+    async function checkUnreadMessages() {
+      if (!employeeId) return;
+      try {
+        const res = await fetch(`/api/messages/unread/employee/${employeeId}`);
+        const data = await res.json();
+        const badge = document.getElementById('chatBadge');
+
+        if (data.count > 0) {
+          badge.textContent = data.count;
+          badge.style.display = 'flex';
+        } else {
+          badge.style.display = 'none';
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('chatInput');
+      const message = input.value.trim();
+      if (!message) return;
+
+      try {
+        const response = await fetch('/api/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            employee_id: employeeId,
+            sender: 'employee',
+            message: message
+          })
+        });
+
+        if (response.ok) {
+          input.value = '';
+          loadMessages();
+        }
+      } catch (error) {
+        console.error('Send Message Error:', error);
+      }
+    }
+
+    function handleChatKey(event) {
+      if (event.key === 'Enter') sendMessage();
+    }
+
+    function scrollToBottom() {
+      const chatBody = document.getElementById('chatBody');
+      chatBody.scrollTop = chatBody.scrollHeight;
+    }
+
+    // Initial Loads
+    loadAttendance();
+    setInterval(() => {
+      // Only load messages if chat is open to save bandwidth, but always check unread
+      const widget = document.getElementById('chatWidget');
+      if (widget.style.display === 'flex') {
+        loadMessages();
+      }
+      checkUnreadMessages();
+    }, 5000); // Poll every 5s
+
+    // Lift Ticker
+    function startLiftTicker() {
+      setInterval(async () => {
+        try {
+          const res = await fetch('/api/lifts');
+          if (!res.ok) return;
+          const lifts = await res.json();
+          const redLifts = lifts.filter(l => l.status === 'red');
+
+          const ticker = document.getElementById('liftTicker');
+          if (redLifts.length > 0) {
+            const names = redLifts.map(l => l.name).join('، ');
+            document.getElementById('liftTickerText').textContent = `⚠️ تنبيه هام: ${names} متوقفة حالياً للصيانة أو وجود خطر! يرجى الابتعاد عنها.`;
+            ticker.style.display = 'block';
+          } else {
+            ticker.style.display = 'none';
+          }
+        } catch (e) { console.error(e); }
+      }, 5000);
+    }
+    startLiftTicker();
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الخدمات والأسعار - ورشة عبد الله عصام عيد الزين</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg-gray: #f3f4f6;
+            --text-dark: #111827;
+            --text-gray: #4b5563;
+            --border-color: #d1d5db;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-gray);
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: var(--primary);
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            outline: none;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--text-gray);
+            color: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: right;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f9fafb;
+            color: var(--text-gray);
+            font-weight: 700;
+        }
+
+        .category-badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            background: #eef2ff;
+            color: var(--primary);
+        }
+
+        .actions-cell {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛠️ إدارة الخدمات والأسعار</h1>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary" onclick="window.location.href='admin.html'">لوحة التحكم</button>
+                <button class="btn btn-primary" onclick="showAddModal()">إضافة خدمة جديدة ➕</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div class="form-group" style="flex: 1; max-width: 300px;">
+                    <input type="text" id="searchService" placeholder="بحث عن خدمة..." oninput="renderServices()">
+                </div>
+                <div class="form-group" style="flex: 1; max-width: 200px; margin-right: 15px;">
+                    <select id="filterCategory" onchange="renderServices()">
+                        <option value="">جميع الفئات</option>
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الفئة</th>
+                            <th>اسم الخدمة</th>
+                            <th>السعر (ريال)</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="servicesTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="serviceModal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle" style="margin-bottom: 20px;">إضافة خدمة جديدة</h2>
+            <form id="serviceForm">
+                <input type="hidden" id="serviceId">
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label>الفئة</label>
+                    <select id="modalCategory" required onchange="toggleNewCategoryInput()">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+
+                <!-- New Category Input (Hidden by default) -->
+                <div id="newCategoryGroup" class="form-group" style="margin-bottom: 15px; display: none;">
+                    <label>اسم الفئة الجديدة (النظام)</label>
+                    <input type="text" id="newCategoryName" placeholder="مثال: نظام الفرامل">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label>اسم الخدمة</label>
+                    <input type="text" id="modalServiceName" required placeholder="مثال: غيار أقمشة أمامية">
+                </div>
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label>السعر (ريال)</label>
+                    <input type="number" id="modalPrice" required value="0">
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">إلغاء</button>
+                    <button type="submit" class="btn btn-success">حفظ الخدمة 💾</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let allServices = [];
+
+        async function loadServices() {
+            try {
+                const res = await fetch('/api/services');
+                allServices = await res.json();
+                updateCategoryDropdowns();
+                renderServices();
+            } catch (e) {
+                console.error('Error loading services:', e);
+            }
+        }
+
+        function updateCategoryDropdowns() {
+            const categories = [...new Set(allServices.map(s => s.category))].sort();
+
+            // Update filter dropdown
+            const filterSelect = document.getElementById('filterCategory');
+            const currentFilter = filterSelect.value;
+            filterSelect.innerHTML = '<option value="">جميع الفئات</option>' +
+                categories.map(c => `<option value="${c}" ${c === currentFilter ? 'selected' : ''}>${c}</option>`).join('');
+
+            // Update modal dropdown
+            const modalSelect = document.getElementById('modalCategory');
+            const currentModalVal = modalSelect.value;
+            modalSelect.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('') +
+                '<option value="__NEW__">➕ إضافة فئة جديدة...</option>';
+
+            if (currentModalVal && currentModalVal !== '__NEW__') {
+                modalSelect.value = currentModalVal;
+            }
+        }
+
+        function toggleNewCategoryInput() {
+            const select = document.getElementById('modalCategory');
+            const newCatGroup = document.getElementById('newCategoryGroup');
+            if (select.value === '__NEW__') {
+                newCatGroup.style.display = 'flex';
+                document.getElementById('newCategoryName').focus();
+                document.getElementById('newCategoryName').required = true;
+            } else {
+                newCatGroup.style.display = 'none';
+                document.getElementById('newCategoryName').required = false;
+            }
+        }
+
+        function renderServices() {
+            const tbody = document.getElementById('servicesTableBody');
+            const searchTerm = document.getElementById('searchService').value.toLowerCase();
+            const filterCat = document.getElementById('filterCategory').value;
+
+            const filtered = allServices.filter(s => {
+                const matchesSearch = s.service_name.toLowerCase().includes(searchTerm);
+                const matchesCat = !filterCat || s.category === filterCat;
+                return matchesSearch && matchesCat;
+            });
+
+            tbody.innerHTML = filtered.map(s => `
+                <tr>
+                    <td><span class="category-badge">${s.category}</span></td>
+                    <td>${s.service_name}</td>
+                    <td><b>${s.price}</b></td>
+                    <td class="actions-cell">
+                        <button class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;" onclick="editService(${s.id})">تعديل ✏️</button>
+                        <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="deleteService(${s.id})">حذف 🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function showAddModal() {
+            document.getElementById('modalTitle').textContent = 'إضافة خدمة جديدة';
+            document.getElementById('serviceId').value = '';
+            document.getElementById('serviceForm').reset();
+            document.getElementById('newCategoryGroup').style.display = 'none';
+            updateCategoryDropdowns();
+            document.getElementById('serviceModal').style.display = 'flex';
+        }
+
+        function editService(id) {
+            const service = allServices.find(s => s.id === id);
+            if (!service) return;
+
+            document.getElementById('modalTitle').textContent = 'تعديل الخدمة';
+            document.getElementById('serviceId').value = service.id;
+            updateCategoryDropdowns();
+            document.getElementById('modalCategory').value = service.category;
+            document.getElementById('modalServiceName').value = service.service_name;
+            document.getElementById('modalPrice').value = service.price;
+            document.getElementById('newCategoryGroup').style.display = 'none';
+            document.getElementById('serviceModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('serviceModal').style.display = 'none';
+        }
+
+        document.getElementById('serviceForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('serviceId').value;
+            let category = document.getElementById('modalCategory').value;
+
+            if (category === '__NEW__') {
+                category = document.getElementById('newCategoryName').value.trim();
+                if (!category) return alert('الرجاء إدخال اسم الفئة الجديدة');
+            }
+
+            const data = {
+                category: category,
+                service_name: document.getElementById('modalServiceName').value,
+                price: parseFloat(document.getElementById('modalPrice').value) || 0
+            };
+
+            try {
+                const url = id ? `/api/services/${id}` : '/api/services';
+                const method = id ? 'PUT' : 'POST';
+                const res = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (res.ok) {
+                    closeModal();
+                    loadServices();
+                } else {
+                    const err = await res.json();
+                    alert(err.message || 'خطأ في حفظ الخدمة');
+                }
+            } catch (e) {
+                console.error('Error saving service:', e);
+            }
+        };
+
+        async function deleteService(id) {
+            if (!confirm('هل أنت متأكد من حذف هذه الخدمة؟')) return;
+            try {
+                const res = await fetch(`/api/services/${id}`, { method: 'DELETE' });
+                if (res.ok) loadServices();
+            } catch (e) {
+                console.error('Error deleting service:', e);
+            }
+        }
+
+        loadServices();
+    </script>
+</body>
+
+</html>

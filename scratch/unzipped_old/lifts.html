@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة العمل - ورشة الصيانة</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --status-idle: #9ca3af;
+            --status-working: #10b981;
+            --status-parts: #f59e0b;
+            --status-lathe: #8b5cf6;
+            --status-supervisor: #ef4444;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --primary: #4f46e5;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .lifts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .lift-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+            border-top: 6px solid var(--status-idle);
+        }
+
+        .lift-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .lift-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .lift-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .lift-icon {
+            font-size: 2.5rem;
+            color: var(--text-secondary);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: white;
+            background-color: var(--status-idle);
+            margin-bottom: 16px;
+        }
+
+        .technician-info {
+            margin-bottom: 24px;
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .technician-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-success {
+            background-color: var(--status-working);
+            color: white;
+        }
+
+        .btn-warning {
+            background-color: var(--status-parts);
+            color: white;
+        }
+
+        .btn-purple {
+            background-color: var(--status-lathe);
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: var(--status-supervisor);
+            color: white;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid #e5e7eb;
+            color: var(--text-secondary);
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .btn.active {
+            outline: 3px solid var(--primary);
+            outline-offset: 2px;
+            transform: scale(0.98);
+        }
+
+        .admin-controls {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            font-family: inherit;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #ffffff;
+            color: var(--primary);
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .back-btn:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        /* Status Styles */
+        .lift-card.status-working {
+            border-top-color: var(--status-working);
+        }
+
+        .lift-card.status-parts {
+            border-top-color: var(--status-parts);
+            background-color: #fffbeb;
+        }
+
+        .lift-card.status-lathe {
+            border-top-color: var(--status-lathe);
+            background-color: #f5f3ff;
+        }
+
+        .lift-card.status-supervisor {
+            border-top-color: var(--status-supervisor);
+            background-color: #fef2f2;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loading">جاري التحميل...</div>
+
+    <header>
+        <h1>🏗️ نظام إدارة العمل</h1>
+        <p class="subtitle">متابعة سير العمل واحتياجات الفنيين</p>
+        <div class="header-actions">
+            <button onclick="goBack()" class="back-btn">
+                <span>🔙</span>
+                <span>الرجوع</span>
+            </button>
+            <span id="currentUserDisplay" style="font-weight: 600; color: var(--primary);"></span>
+            <a href="login.html" onclick="logout()"
+                style="color: var(--danger); text-decoration: none; font-size: 0.9rem;">تسجيل الخروج</a>
+        </div>
+    </header>
+
+    <div class="lifts-grid" id="liftsContainer">
+        <!-- Lifts will be rendered here -->
+    </div>
+
+    <script>
+        let lifts = [];
+        let employees = [];
+        let currentUser = JSON.parse(localStorage.getItem('user'));
+
+        if (!currentUser) {
+            window.location.href = 'login.html';
+        } else {
+            document.getElementById('currentUserDisplay').textContent = `مرحباً، ${currentUser.employee_name || currentUser.username}`;
+        }
+
+        async function init() {
+            await fetchEmployees();
+            await fetchLifts();
+            document.getElementById('loading').style.display = 'none';
+            setInterval(fetchLifts, 3000);
+        }
+
+        async function fetchEmployees() {
+            if (currentUser.role !== 'admin') return;
+            try {
+                const response = await fetch('/api/employees');
+                if (response.ok) employees = await response.json();
+            } catch (e) { console.error(e); }
+        }
+
+        async function fetchLifts() {
+            try {
+                const response = await fetch('/api/lifts');
+                if (!response.ok) throw new Error('Failed to fetch lifts');
+                const newLifts = await response.json();
+                if (JSON.stringify(newLifts) !== JSON.stringify(lifts)) {
+                    lifts = newLifts;
+                    renderLifts();
+                }
+            } catch (error) { console.error(error); }
+        }
+
+        function renderLifts() {
+            const container = document.getElementById('liftsContainer');
+            container.innerHTML = lifts.map(lift => {
+                const isAssignedToMe = lift.technician_id === currentUser.employee_id;
+                const isAdmin = currentUser.role === 'admin';
+
+                let statusClass = '';
+                let statusText = 'متاح';
+                let icon = '🏗️';
+
+                switch (lift.status) {
+                    case 'working':
+                        statusClass = 'status-working';
+                        statusText = 'يعمل';
+                        icon = '⚙️';
+                        break;
+                    case 'parts':
+                        statusClass = 'status-parts';
+                        statusText = 'نقص قطع';
+                        icon = '📦';
+                        break;
+                    case 'lathe':
+                        statusClass = 'status-lathe';
+                        statusText = 'مخرطة';
+                        icon = '🌀';
+                        break;
+                    case 'supervisor':
+                        statusClass = 'status-supervisor';
+                        statusText = 'طلب مشرف';
+                        icon = '👷';
+                        break;
+                    case 'red':
+                        statusClass = 'status-supervisor';
+                        statusText = 'خطر / توقف';
+                        icon = '🚨';
+                        break;
+                    case 'idle':
+                    default:
+                        statusClass = '';
+                        statusText = 'متاح';
+                        icon = '🏗️';
+                }
+
+                return `
+                    <div class="lift-card ${statusClass}">
+                        <div class="lift-header">
+                            <span class="lift-name">${lift.name}</span>
+                            <span class="lift-icon">${icon}</span>
+                        </div>
+                        
+                        <div style="text-align: center;">
+                            <span class="status-badge" style="background-color: var(--status-${lift.status === 'idle' ? 'idle' : (lift.status === 'red' ? 'supervisor' : lift.status)})">
+                                ${statusText}
+                            </span>
+                        </div>
+
+                        <div class="technician-info">
+                            <div>الفني المسؤول:</div>
+                            <div class="technician-name">${lift.technician_name || '---'}</div>
+                        </div>
+
+                        <div class="actions">
+                            ${renderActions(lift, isAssignedToMe, isAdmin)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderActions(lift, isAssignedToMe, isAdmin) {
+            let html = '';
+
+            if (isAdmin) {
+                html += `
+                    <div class="admin-controls">
+                        ${lift.status === 'supervisor' ? `
+                            <button class="btn btn-success" style="margin-bottom: 10px;" onclick="updateStatus('${lift.id}', 'working')">
+                                ✅ تم المراجعة (وضع سليم)
+                            </button>
+                        ` : ''}
+                        
+                        <div style="margin-bottom: 5px; font-size: 0.8rem; color: var(--text-secondary);">تغيير الحالة:</div>
+                        <div class="btn-group" style="margin-bottom: 10px;">
+                            <button class="btn btn-success ${lift.status === 'working' ? 'active' : ''}" onclick="updateStatus('${lift.id}', 'working')">⚙️ يعمل</button>
+                            <button class="btn btn-warning ${lift.status === 'parts' ? 'active' : ''}" onclick="updateStatus('${lift.id}', 'parts')">📦 قطع</button>
+                            <button class="btn btn-purple ${lift.status === 'lathe' ? 'active' : ''}" onclick="updateStatus('${lift.id}', 'lathe')">🌀 مخرطة</button>
+                            <button class="btn btn-danger ${lift.status === 'supervisor' ? 'active' : ''}" onclick="updateStatus('${lift.id}', 'supervisor')">👷 مشرف</button>
+                            <button class="btn btn-danger ${lift.status === 'red' ? 'active' : ''}" style="grid-column: span 2; background-color: #000;" onclick="updateStatus('${lift.id}', 'red')">🚨 خطر / توقف</button>
+                        </div>
+
+                        <select onchange="assignTechnician('${lift.id}', this.value)" style="margin-bottom: 10px;">
+                            <option value="">-- تعيين فني --</option>
+                            ${employees.map(e => `<option value="${e.id}" ${lift.technician_id === e.id ? 'selected' : ''}>${e.name}</option>`).join('')}
+                        </select>
+                        
+                        <button class="btn btn-outline" onclick="releaseLift('${lift.id}')">🔄 تصفير كامل</button>
+                    </div>
+                `;
+                return html;
+            }
+
+            if (lift.status === 'idle') {
+                return `<button class="btn btn-primary" onclick="assignSelf('${lift.id}')">✋ بدأ العمل</button>`;
+            }
+
+            if (isAssignedToMe) {
+                return `
+                    <div class="btn-group">
+                        <button class="btn btn-success ${lift.status === 'working' ? 'active' : ''}" onclick="updateStatus('${lift.id}', 'working')">⚙️ يعمل</button>
+                        <button class="btn btn-warning ${lift.status === 'parts' ? 'active' : ''}" onclick="updateStatus('${lift.id}', 'parts')">📦 قطع</button>
+                        <button class="btn btn-purple ${lift.status === 'lathe' ? 'active' : ''}" onclick="updateStatus('${lift.id}', 'lathe')">🌀 مخرطة</button>
+                        <button class="btn btn-danger ${lift.status === 'supervisor' ? 'active' : ''}" onclick="updateStatus('${lift.id}', 'supervisor')">👷 مشرف</button>
+                    </div>
+                    <button class="btn btn-outline" style="margin-top:10px" onclick="releaseLift('${lift.id}')">🏁 إنهاء العمل</button>
+                `;
+            }
+
+            return `<button class="btn btn-outline" disabled>محجوز لـ ${lift.technician_name}</button>`;
+        }
+
+        async function assignSelf(liftId) {
+            updateLift(liftId, { status: 'working', technician_id: currentUser.employee_id });
+        }
+
+        async function assignTechnician(liftId, empId) {
+            updateLift(liftId, { technician_id: empId || null });
+        }
+
+        async function updateStatus(liftId, status) {
+            updateLift(liftId, { status });
+        }
+
+        async function updateLift(liftId, data) {
+            try {
+                const res = await fetch(`/api/lifts/${liftId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) fetchLifts();
+            } catch (e) { alert('خطأ في التحديث'); }
+        }
+
+        async function releaseLift(liftId) {
+            if (!confirm('هل أنت متأكد؟')) return;
+            try {
+                const res = await fetch(`/api/lifts/${liftId}/release`, { method: 'POST' });
+                if (res.ok) fetchLifts();
+            } catch (e) { alert('خطأ في الإخلاء'); }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
+
+        function goBack() {
+            window.location.href = currentUser.role === 'admin' ? 'admin.html' : 'employee.html';
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
