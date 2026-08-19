@@ -597,6 +597,22 @@
 
                 const techNames = item.technicians_names || '<span style="color:#94a3b8; font-size:12px;">غير محدد</span>';
 
+                const totalItms = item.items_count || 0;
+                const compItms = item.completed_items_count || 0;
+                let checklistBadge = '';
+                if (totalItms > 0) {
+                    const isAllDone = compItms === totalItms;
+                    const bColor = isAllDone ? '#10b981' : (compItms > 0 ? '#3b82f6' : '#64748b');
+                    const bBg = isAllDone ? '#ecfdf5' : (compItms > 0 ? '#eff6ff' : '#f8fafc');
+                    checklistBadge = `
+                        <div style="margin-top: 4px;">
+                            <span style="font-size: 10px; font-weight: 800; color: ${bColor}; background: ${bBg}; border: 1px solid ${bColor}44; padding: 2px 6px; border-radius: 8px; display: inline-block;">
+                                ☑️ ${compItms}/${totalItms} خدمات
+                            </span>
+                        </div>
+                    `;
+                }
+
                 tr.innerHTML = `
                     <td><b>#${item.id}</b></td>
                     <td>
@@ -609,7 +625,7 @@
                         <div><b>${item.car_type || ''} ${item.car_model || ''}</b> ${item.car_color ? `<small style="color:#64748b;">(${item.car_color})</small>` : ''}</div>
                         ${item.plate_number ? `<div style="margin-top:3px;"><span class="plate-box">${item.plate_number}</span></div>` : ''}
                     </td>
-                    <td>${statusHtml}</td>
+                    <td>${statusHtml} ${checklistBadge}</td>
                     <td>${techNames}</td>
                     <td><b>${finalAmt.toFixed(2)}</b> <small>ريال</small></td>
                     <td>

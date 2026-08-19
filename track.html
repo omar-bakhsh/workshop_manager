@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang=ar dir=rtl>
 
 <head>
@@ -477,21 +477,22 @@
         </div>
 
         <!-- Approved Services & Line Items -->
-        <div class=card>
-            <div class=card-title>
+        <div class="card">
+            <div class="card-title">
                 <span>📋</span>
-                <span>تفاصيل الخدمات وأجور العمل</span>
+                <span>تفاصيل الخدمات وحالة إنجازها</span>
             </div>
-            <table class=table-custom>
+            <table class="table-custom">
                 <thead>
                     <tr>
                         <th>الخدمة / البند</th>
-                        <th style=text-align: center; width: 60px;>الكمية</th>
-                        <th style=text-align: left; width: 90px;>الإجمالي</th>
+                        <th style="text-align: center; width: 50px;">الكمية</th>
+                        <th style="text-align: center; width: 100px;">حالة الإنجاز</th>
+                        <th style="text-align: left; width: 80px;">الإجمالي</th>
                     </tr>
                 </thead>
-                <tbody id=itemsTableBody>
-                    <tr><td colspan=3 style=text-align: center; color: #94a3b8;>جاري التحميل...</td></tr>
+                <tbody id="itemsTableBody">
+                    <tr><td colspan="4" style="text-align: center; color: #94a3b8;">جاري التحميل...</td></tr>
                 </tbody>
             </table>
 
@@ -586,22 +587,30 @@
  // Stepper Logic
  applyStepper(insp);
 
- // Items
- const tbody = document.getElementById('itemsTableBody');
- if (items.length === 0) {
- tbody.innerHTML = '<tr><td colspan=3 style=text-align: center; color: #94a3b8;>لا توجد بنود مسجلة</td></tr>';
- } else {
- tbody.innerHTML = items.map(item => 
- <tr>
- <td>
- <strong></strong>
- <small style=display:block; color:#94a3b8; font-size:11px;></small>
- </td>
- <td style=text-align: center;></td>
- <td style=text-align: left; font-weight: 700;> ﷼</td>
- </tr>
- ).join('');
- }
+            // Items
+            const tbody = document.getElementById('itemsTableBody');
+            if (items.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #94a3b8;">لا توجد بنود مسجلة</td></tr>';
+            } else {
+                tbody.innerHTML = items.map(item => {
+                    const isDone = item.is_completed === 1 || item.is_completed === true;
+                    const statusTag = isDone
+                        ? '<span style="display:inline-block; font-size:11px; background:#ecfdf5; color:#047857; border:1px solid #a7f3d0; padding:2px 8px; border-radius:12px; font-weight:800;">✅ تم الإنجاز</span>'
+                        : '<span style="display:inline-block; font-size:11px; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; padding:2px 8px; border-radius:12px; font-weight:800;">⚙️ قيد التنفيذ</span>';
+
+                    return `
+                        <tr>
+                            <td>
+                                <strong>${item.service_description || ''}</strong>
+                                <small style="display:block; color:#94a3b8; font-size:11px;">${item.category || 'عام'}</small>
+                            </td>
+                            <td style="text-align: center;">${item.quantity || 1}</td>
+                            <td style="text-align: center;">${statusTag}</td>
+                            <td style="text-align: left; font-weight: 700;">${Number(item.total || 0).toFixed(2)} ﷼</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
 
  // Finance
  document.getElementById('sumSubTotal').textContent = Number(insp.total_amount || 0).toFixed(2) + ' ريال';

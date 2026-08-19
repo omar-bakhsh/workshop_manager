@@ -336,14 +336,41 @@
             <div class="info-item"><label>المسؤول</label><span id="inspectorName">-</span></div>
         </div>
 
-        <!-- Services -->
-        <div class="section-title">📋 الخدمات المطلوبة</div>
+        <!-- Services & Interactive Checklist -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; margin-bottom: 8px;">
+            <div class="section-title" style="margin: 0;">📋 قائمة فحص وإنجاز الخدمات (Service Checklist)</div>
+            <span id="checklistBadgeSummary" class="no-print" style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 800;">0 من 0 مكتمل</span>
+        </div>
+
+        <!-- Checklist Progress Card -->
+        <div class="checklist-progress-card no-print" id="checklistProgressBox">
+            <div class="checklist-progress-header">
+                <span>📊 نسبة إنجاز أعمال الصيانة: <b id="checklistPercentText">0%</b></span>
+                <span id="checklistCountsText" style="color: #64748b; font-size: 12px;">0 / 0 خدمة</span>
+            </div>
+            <div class="checklist-progress-track">
+                <div class="checklist-progress-fill" id="checklistProgressBar" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <!-- All Done Alert -->
+        <div id="allDoneAlertBox" class="checklist-ready-alert no-print" style="display: none;">
+            <div>
+                <strong style="color: #047857; font-size: 14px;">🎉 رائع! تم إنجاز وتأشير كافة بنود الصيانة بالكامل</strong>
+                <p style="margin: 0; font-size: 12px; color: #065f46;">يمكنك الآن تحويل حالة السيارة مباشرة إلى جاهزة للتسليم وإشعار العميل والإدارة.</p>
+            </div>
+            <button type="button" class="btn" onclick="markAllServicesReady()" style="background: #10b981; color: white; font-weight: 800; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);">
+                ✅ تحويل إلى جاهزة للتسليم
+            </button>
+        </div>
+
         <table style="width:100%; border-collapse: collapse; margin-bottom: 20px;">
             <thead>
                 <tr style="background:#f1f5f9;">
-                    <th style="padding:10px; text-align:right;">الخدمة</th>
-                    <th style="padding:10px; text-align:center;">الكمية</th>
-                    <th style="padding:10px; text-align:center;">ملاحظات</th>
+                    <th style="padding:10px; text-align:right;">الخدمة المطلوبة</th>
+                    <th style="padding:10px; text-align:center; width: 80px;">القسم</th>
+                    <th style="padding:10px; text-align:center; width: 60px;">الكمية</th>
+                    <th style="padding:10px; text-align:center; width: 190px;">☑️ حالة الإنجاز</th>
                 </tr>
             </thead>
             <tbody id="servicesList"></tbody>
@@ -562,22 +589,8 @@
                 document.getElementById('inspectorName').textContent = data.inspector_name || 'غير محدد';
                 document.getElementById('jobNotes').value = data.job_order_notes || '';
 
-                // Load Services
-                const tbody = document.getElementById('servicesList');
-                tbody.innerHTML = '';
-                if (data.items && data.items.length > 0) {
-                    data.items.forEach(item => {
-                        tbody.innerHTML += `
-                            <tr style="border-bottom:1px solid #eee;">
-                                <td style="padding:10px;">${item.service_description} <small style="color:#666">(${item.category || 'عام'})</small></td>
-                                <td style="padding:10px; text-align:center;">${item.quantity}</td>
-                                <td style="padding:10px; text-align:center;"></td>
-                            </tr>
-                        `;
-                    });
-                } else {
-                    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:10px;">لا توجد خدمات مسجلة</td></tr>`;
-                }
+                // Load Services & Interactive Checklist
+                renderChecklist(data.items || []);
 
                 // Load Defects
                 if (data.car_defects_diagram) {
@@ -588,6 +601,8 @@
                             defects.push(d);
                         });
                     } catch (e) { console.error("Error parsing defects", e); }
+                }
+
                 // Load Photos & Tracking link
                 renderJobPhotos(data.photos || []);
                 const trackLink = document.getElementById('btnCustomerTrackLink');
@@ -598,6 +613,158 @@
             } catch (error) {
                 console.error(error);
                 alert('فشل تحميل بيانات أمر العمل: ' + error.message);
+            }
+        }
+
+        function renderChecklist(items) {
+            const tbody = document.getElementById('servicesList');
+            tbody.innerHTML = '';
+
+            if (!items || items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:15px; color:#94a3b8;">لا توجد خدمات مسجلة</td></tr>`;
+                updateChecklistProgress(0, 0);
+                return;
+            }
+
+            let completedCount = 0;
+
+            items.forEach(item => {
+                const isComp = item.is_completed === 1 || item.is_completed === true;
+                if (isComp) completedCount++;
+
+                const d = item.completed_at ? new Date(item.completed_at) : null;
+                const timeStr = d ? d.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }) : '';
+                const metaText = isComp ? `بواسطة: ${item.completed_by || 'فني'} (${timeStr})` : '';
+
+                tbody.innerHTML += `
+                    <tr style="border-bottom:1px solid #eee;">
+                        <td style="padding:10px;">
+                            <strong style="color:#1e293b;">${item.service_description}</strong>
+                        </td>
+                        <td style="padding:10px; text-align:center;">
+                            <span style="font-size:11px; background:#f1f5f9; padding:2px 8px; border-radius:6px; font-weight:700; color:#475569;">${item.category || 'عام'}</span>
+                        </td>
+                        <td style="padding:10px; text-align:center; font-weight:bold;">${item.quantity || 1}</td>
+                        <td style="padding:10px; text-align:center;">
+                            <div class="no-print">
+                                <label class="checklist-toggle-btn ${isComp ? 'completed' : ''}" id="checkLabel_${item.id}">
+                                    <input type="checkbox" ${isComp ? 'checked' : ''} onchange="toggleServiceItem(${item.id}, this.checked, this)">
+                                    <span id="checkText_${item.id}">${isComp ? '✅ منجز' : '⏳ قيد التنفيذ'}</span>
+                                </label>
+                                <span class="checklist-meta-tag" id="checkMeta_${item.id}">${metaText}</span>
+                            </div>
+                            <div class="print-only" style="font-size:12px; font-weight:bold;">
+                                ${isComp ? '[ ✓ ] منجز' : '[   ] غير منجز'}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            updateChecklistProgress(completedCount, items.length);
+        }
+
+        function updateChecklistProgress(completed, total) {
+            const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+            
+            const pBar = document.getElementById('checklistProgressBar');
+            const pText = document.getElementById('checklistPercentText');
+            const cText = document.getElementById('checklistCountsText');
+            const bSummary = document.getElementById('checklistBadgeSummary');
+            const allDoneBox = document.getElementById('allDoneAlertBox');
+
+            if (pBar) pBar.style.width = `${percent}%`;
+            if (pText) pText.textContent = `${percent}%`;
+            if (cText) cText.textContent = `${completed} / ${total} خدمة`;
+            if (bSummary) {
+                bSummary.textContent = `${completed} من ${total} مكتمل (${percent}%)`;
+                bSummary.style.background = percent === 100 ? '#ecfdf5' : '#eff6ff';
+                bSummary.style.color = percent === 100 ? '#047857' : '#1d4ed8';
+            }
+
+            if (allDoneBox) {
+                // إظهار زر التنبيه إذا اكتملت كافة البنود وكانت حالة السيارة ليست جاهزة بعد
+                if (total > 0 && completed === total && currentInspection && currentInspection.car_status !== 'ready' && currentInspection.car_status !== 'completed') {
+                    allDoneBox.style.display = 'flex';
+                } else {
+                    allDoneBox.style.display = 'none';
+                }
+            }
+        }
+
+        async function toggleServiceItem(itemId, isChecked, inputEl) {
+            const labelEl = document.getElementById(`checkLabel_${itemId}`);
+            const textEl = document.getElementById(`checkText_${itemId}`);
+            const metaEl = document.getElementById(`checkMeta_${itemId}`);
+
+            const userName = currentUser ? (currentUser.name || currentUser.username || 'فني') : 'فني';
+
+            try {
+                const res = await fetch(`/api/inspections/items/${itemId}/toggle`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        is_completed: isChecked,
+                        completed_by: userName
+                    })
+                });
+
+                if (!res.ok) throw new Error('فشل التحديث');
+
+                const data = await res.json();
+
+                if (isChecked) {
+                    if (labelEl) labelEl.classList.add('completed');
+                    if (textEl) textEl.textContent = '✅ منجز';
+                    if (metaEl) {
+                        const nowTime = new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+                        metaEl.textContent = `بواسطة: ${userName} (${nowTime})`;
+                    }
+                    if (typeof APP_NOTIFIER !== 'undefined') APP_NOTIFIER.playChime();
+                } else {
+                    if (labelEl) labelEl.classList.remove('completed');
+                    if (textEl) textEl.textContent = '⏳ قيد التنفيذ';
+                    if (metaEl) metaEl.textContent = '';
+                }
+
+                updateChecklistProgress(data.completed_items, data.total_items);
+
+                if (data.isAllDone && typeof showSuccess === 'function') {
+                    showSuccess('🎉 تم إنجاز جميع بنود أمر العمل بنجاح!');
+                }
+
+            } catch (e) {
+                console.error(e);
+                alert('حدث خطأ في حفظ حالة البند');
+                inputEl.checked = !isChecked; // Revert
+            }
+        }
+
+        async function markAllServicesReady() {
+            if (!orderId) return;
+
+            try {
+                const res = await fetch(`/api/inspections/${orderId}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ car_status: 'ready' })
+                });
+
+                if (res.ok) {
+                    if (typeof showSuccess === 'function') {
+                        showSuccess('✅ تم تحديث حالة السيارة إلى: جاهزة للتسليم');
+                    } else {
+                        alert('✅ تم تحديث حالة السيارة إلى: جاهزة للتسليم');
+                    }
+                    if (currentInspection) currentInspection.car_status = 'ready';
+                    const allDoneBox = document.getElementById('allDoneAlertBox');
+                    if (allDoneBox) allDoneBox.style.display = 'none';
+                } else {
+                    alert('فشل تحديث حالة السيارة');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('خطأ في الاتصال بالخادم');
             }
         }
 

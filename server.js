@@ -301,6 +301,11 @@ function initializeDatabase() {
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (inspection_id) REFERENCES inspections(id) ON DELETE CASCADE
         )`, (err) => {});
+
+        // إضافة حقول قائمة الفحص والإنجاز لبنود الكشف
+        db.run(`ALTER TABLE inspection_items ADD COLUMN is_completed INTEGER DEFAULT 0`, (err) => {});
+        db.run(`ALTER TABLE inspection_items ADD COLUMN completed_at DATETIME`, (err) => {});
+        db.run(`ALTER TABLE inspection_items ADD COLUMN completed_by TEXT`, (err) => {});
         
         // إنشاء جدول مواعيد الفرع إذا لم يوجد وبذره
         const defaultShifts = [
@@ -1886,7 +1891,7 @@ app.get('/api/track/:id', async (req, res) => {
         }
 
         const items = await dbAll(`
-            SELECT category, service_description, quantity, price, total
+            SELECT id, category, service_description, quantity, price, total, is_completed, completed_at, completed_by
             FROM inspection_items
             WHERE inspection_id = ?
         `, [id]);
@@ -1906,6 +1911,67 @@ app.get('/api/track/:id', async (req, res) => {
     } catch (error) {
         console.error("Track Error:", error);
         res.status(500).json({ message: "خطأ في جلب بيانات المتابعة" });
+    }
+});
+
+// ==========================
+// ☑️ مسار تأشير إنجاز الخدمة في قائمة الفحص (Interactive Service Checklist Toggle)
+// ==========================
+app.patch('/api/inspections/items/:item_id/toggle', async (req, res) => {
+    const { item_id } = req.params;
+    const { is_completed, completed_by } = req.body;
+    const compVal = is_completed ? 1 : 0;
+    const compAt = compVal ? new Date().toISOString() : null;
+    const compBy = compVal ? (completed_by || 'فني') : null;
+
+    try {
+        const item = await dbGet(`SELECT * FROM inspection_items WHERE id = ?`, [item_id]);
+        if (!item) return res.status(404).json({ message: "البند غير موجود" });
+
+        await dbRun(`
+            UPDATE inspection_items
+            SET is_completed = ?, completed_at = ?, completed_by = ?
+            WHERE id = ?
+        `, [compVal, compAt, compBy, item_id]);
+
+        const stats = await dbGet(`
+            SELECT 
+                COUNT(*) as total_items,
+                COUNT(CASE WHEN is_completed = 1 THEN 1 END) as completed_items
+            FROM inspection_items
+            WHERE inspection_id = ?
+        `, [item.inspection_id]);
+
+        const total = stats ? stats.total_items || 0 : 0;
+        const completed = stats ? stats.completed_items || 0 : 0;
+        const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+        const isAllDone = total > 0 && completed === total;
+
+        // إذا اكتملت جميع الخدمات 100%، إرسال إشعار فوري للإدارة
+        if (isAllDone) {
+            try {
+                const insp = await dbGet(`SELECT car_type, plate_number FROM inspections WHERE id = ?`, [item.inspection_id]);
+                await dbRun(`
+                    INSERT INTO sys_notifications (recipient_type, title, message, type)
+                    VALUES ('admin', 'اكتمال بنود الصيانة 🏁', ?, 'success')
+                `, [`تم إنجاز كافة خدمات السيارة (${insp ? insp.plate_number || '' : ''}) بأمر عمل #${item.inspection_id}`]);
+            } catch (ne) { }
+        }
+
+        res.json({
+            message: "تم تحديث حالة الخدمة بنجاح",
+            item_id: Number(item_id),
+            is_completed: compVal,
+            completed_at: compAt,
+            completed_by: compBy,
+            completed_items: completed,
+            total_items: total,
+            percent,
+            isAllDone
+        });
+    } catch (error) {
+        console.error("Toggle Item Error:", error);
+        res.status(500).json({ message: "خطأ في تحديث حالة البند" });
     }
 });
 
@@ -2002,6 +2068,7 @@ app.get('/api/inspections', async (req, res) => {
                 i.*,
                 e.name as inspector_name,
                 (SELECT COUNT(*) FROM inspection_items WHERE inspection_id = i.id) as items_count,
+                (SELECT COUNT(CASE WHEN is_completed = 1 THEN 1 END) FROM inspection_items WHERE inspection_id = i.id) as completed_items_count,
                 (
                     SELECT GROUP_CONCAT(t_emp.name, ', ')
                     FROM inspection_technicians it
