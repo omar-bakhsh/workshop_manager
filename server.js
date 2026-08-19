@@ -55,7 +55,9 @@ function initializeDatabase() {
         )`,
         `CREATE TABLE IF NOT EXISTS sections (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE NOT NULL
+            name TEXT UNIQUE NOT NULL,
+            shift_start TEXT DEFAULT '08:00',
+            shift_end TEXT DEFAULT '18:00'
         )`,
         `CREATE TABLE IF NOT EXISTS employees (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -63,9 +65,20 @@ function initializeDatabase() {
             section_id INTEGER,
             target INTEGER NOT NULL DEFAULT 0,
             base_salary INTEGER DEFAULT 0,
+            target_amount REAL DEFAULT 0,
+            deposit_amount REAL DEFAULT 0,
+            total_withdrawals REAL DEFAULT 0,
+            remaining_salary REAL DEFAULT 0,
+            net_remaining REAL DEFAULT 0,
+            bank_name TEXT DEFAULT 'كاش',
+            last_sync_at TIMESTAMP,
             is_active INTEGER DEFAULT 1,
             hide_income INTEGER DEFAULT 0,
             FOREIGN KEY (section_id) REFERENCES sections(id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT
         )`,
         `CREATE TABLE IF NOT EXISTS entries (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -110,14 +123,11 @@ function initializeDatabase() {
             updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (employee_id) REFERENCES employees(id)
         )`,
-        `CREATE TABLE IF NOT EXISTS workshop_lifts (
-            id TEXT PRIMARY KEY,
-            name TEXT NOT NULL,
-            status TEXT DEFAULT 'idle', -- idle, green, yellow, red
-            technician_id INTEGER,
-            issue_description TEXT,
-            last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (technician_id) REFERENCES employees(id)
+        `CREATE TABLE IF NOT EXISTS branch_shifts (
+            day_of_week INTEGER PRIMARY KEY, -- 0-6 (Sunday-Saturday)
+            shift_start TEXT DEFAULT '08:00',
+            shift_end TEXT DEFAULT '18:00',
+            is_closed INTEGER DEFAULT 0
         )`,
         `CREATE TABLE IF NOT EXISTS attendance (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -126,6 +136,11 @@ function initializeDatabase() {
             check_in TIMESTAMP,
             check_out TIMESTAMP,
             status TEXT DEFAULT 'present',
+            delay_minutes INTEGER DEFAULT 0,
+            early_departure_minutes INTEGER DEFAULT 0,
+            overtime_minutes INTEGER DEFAULT 0,
+            shift_start TEXT,
+            shift_end TEXT,
             FOREIGN KEY (employee_id) REFERENCES employees(id)
         )`,
         `CREATE TABLE IF NOT EXISTS messages (
@@ -155,6 +170,16 @@ function initializeDatabase() {
             remaining_amount REAL DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (inspector_id) REFERENCES employees(id)
+        )`,
+        `CREATE TABLE IF NOT EXISTS sys_notifications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            recipient_type TEXT NOT NULL,
+            recipient_id INTEGER,
+            title TEXT,
+            message TEXT,
+            type TEXT DEFAULT 'info',
+            is_read INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )`,
         `CREATE TABLE IF NOT EXISTS inspection_items (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -192,11 +217,21 @@ function initializeDatabase() {
     ];
 
     db.serialize(() => {
-        tables.forEach(sql => {
-            db.run(sql, (err) => {
-                if (err) console.error('❌ خطأ في إنشاء جدول:', err.message);
+        tables.forEach(table => {
+            db.run(table, (err) => {
+                if (err) console.error('❌ خطأ في إنشاء الجدول:', err.message);
             });
         });
+
+        // إضافة الأعمدة المفقودة للموظفين (Migration)
+        db.run(`ALTER TABLE employees ADD COLUMN bank_name TEXT DEFAULT 'كاش'`, (err) => {
+            if (!err) console.log('✅ تم إضافة عمود bank_name');
+        });
+
+        // تهيئة الإعدادات الافتراضية
+        db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES ('app_name', 'Atenza App')`);
+        db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES ('workshop_name', 'Atenza App')`);
+        db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES ('max_withdrawal_limit', '500')`);
 
         // التأكد من وجود مستخدم المدير الافتراضي والأقسام الافتراضية
         db.run(`INSERT OR IGNORE INTO users (username, password, role) VALUES (?, ?, ?)`,
@@ -213,12 +248,53 @@ function initializeDatabase() {
             });
         });
 
-        // إضافة الرافعات الافتراضية (A-E)
-        const lifts = ['A', 'B', 'C', 'D', 'E'];
-        lifts.forEach(id => {
-            db.run(`INSERT OR IGNORE INTO workshop_lifts (id, name) VALUES (?, ?)`, [id, `رافعة ${id}`], (err) => {
-                if (err) console.error(`❌ خطأ في إضافة الرافعة ${id}:`, err.message);
-            });
+        // تحديث هيكلية الحضور للمناوبات المتقدمة
+        db.run(`ALTER TABLE attendance ADD COLUMN early_departure_minutes INTEGER DEFAULT 0`, (err) => {});
+        db.run(`ALTER TABLE attendance ADD COLUMN overtime_minutes INTEGER DEFAULT 0`, (err) => {});
+        db.run(`ALTER TABLE attendance ADD COLUMN shift_start TEXT`, (err) => {});
+        db.run(`ALTER TABLE attendance ADD COLUMN shift_end TEXT`, (err) => {});
+
+        // تحديث هيكلية الكشوفات وأوامر العمل
+        db.run(`ALTER TABLE inspections ADD COLUMN status TEXT DEFAULT 'new'`, (err) => {});
+        db.run(`ALTER TABLE inspections ADD COLUMN car_status TEXT DEFAULT 'in_progress'`, (err) => {});
+        db.run(`ALTER TABLE inspections ADD COLUMN assigned_technician_id INTEGER`, (err) => {});
+        db.run(`ALTER TABLE inspections ADD COLUMN job_order_notes TEXT`, (err) => {});
+        db.run(`ALTER TABLE inspections ADD COLUMN car_defects_diagram TEXT`, (err) => {});
+        db.run(`ALTER TABLE inspections ADD COLUMN odometer TEXT`, (err) => {});
+        db.run(`ALTER TABLE inspections ADD COLUMN vin TEXT`, (err) => {});
+        db.run(`CREATE TABLE IF NOT EXISTS inspection_technicians (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            inspection_id INTEGER NOT NULL,
+            technician_id INTEGER NOT NULL,
+            FOREIGN KEY (inspection_id) REFERENCES inspections(id) ON DELETE CASCADE,
+            FOREIGN KEY (technician_id) REFERENCES employees(id) ON DELETE CASCADE
+        )`, (err) => {});
+        
+        // إنشاء جدول مواعيد الفرع إذا لم يوجد وبذره
+        const defaultShifts = [
+            { day: 0, start: '08:00', end: '18:00', closed: 1 }, // Sunday (Assuming Friday is 5)
+            { day: 1, start: '08:00', end: '18:00', closed: 0 },
+            { day: 2, start: '08:00', end: '18:00', closed: 0 },
+            { day: 3, start: '08:00', end: '18:00', closed: 0 },
+            { day: 4, start: '08:00', end: '18:00', closed: 0 },
+            { day: 5, start: '08:00', end: '18:00', closed: 0 },
+            { day: 6, start: '08:30', end: '17:30', closed: 0 }  // Saturday
+        ];
+        // Note: JavaScript Date.getDay() is 0=Sunday, 1=Monday, ..., 5=Friday, 6=Saturday
+        // Middle east context: Friday (5) usually closed.
+        const meShifts = [
+            { day: 0, start: '08:00', end: '18:00', closed: 0 }, // Sun
+            { day: 1, start: '08:00', end: '18:00', closed: 0 }, // Mon
+            { day: 2, start: '08:00', end: '18:00', closed: 0 }, // Tue
+            { day: 3, start: '08:00', end: '18:00', closed: 0 }, // Wed
+            { day: 4, start: '08:00', end: '18:00', closed: 0 }, // Thu
+            { day: 5, start: '08:00', end: '18:00', closed: 1 }, // Fri (Closed)
+            { day: 6, start: '08:30', end: '17:30', closed: 0 }  // Sat
+        ];
+
+        meShifts.forEach(s => {
+            db.run(`INSERT OR IGNORE INTO branch_shifts (day_of_week, shift_start, shift_end, is_closed) VALUES (?, ?, ?, ?)`,
+                [s.day, s.start, s.end, s.closed]);
         });
 
         // بذر الخدمات الافتراضية
@@ -383,9 +459,10 @@ app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
     try {
         const user = await dbGet(`
-            SELECT u.*, e.name AS employee_name, e.id AS employee_id, e.section_id
+            SELECT u.*, e.name AS employee_name, e.id AS employee_id, e.section_id, s.name AS section_name
             FROM users u
             LEFT JOIN employees e ON u.employee_id = e.id
+            LEFT JOIN sections s ON e.section_id = s.id
             WHERE u.username = ? AND u.password = ?
         `, [username, password]);
 
@@ -410,13 +487,14 @@ app.post('/api/login', async (req, res) => {
 
 // إضافة موظف جديد
 app.post('/api/employees', async (req, res) => {
-    const { name, section_id, target, base_salary, username, password, hide_income } = req.body;
+    const { name, section_id, target, base_salary, target_amount, deposit_amount, total_withdrawals, username, password, hide_income, bank_name } = req.body;
     if (!name || !section_id || !target || !username || !password) {
-        return res.status(400).json({ message: "الرجاء إدخال جميع البيانات المطلوبة." });
+        return res.status(400).json({ message: "البيانات ناقصة." });
     }
     try {
         // 1. إضافة الموظف
-        const empResult = await dbRun(`INSERT INTO employees (name, section_id, target, base_salary, hide_income) VALUES (?, ?, ?, ?, ?)`, [name, section_id, target, base_salary || 0, hide_income || 0]);
+        const empResult = await dbRun(`INSERT INTO employees (name, section_id, target, base_salary, hide_income, bank_name) VALUES (?, ?, ?, ?, ?, ?)`, 
+            [name, section_id, target, base_salary || 0, hide_income || 0, bank_name || 'كاش']);
         const employee_id = empResult.lastID;
 
         // 2. إنشاء حساب المستخدم
@@ -435,11 +513,12 @@ app.post('/api/employees', async (req, res) => {
 // تحديث بيانات موظف
 app.put('/api/employees/:id', async (req, res) => {
     const { id } = req.params;
-    const { name, section_id, target, base_salary, username, password, hide_income } = req.body;
+    const { name, section_id, target, base_salary, username, password, hide_income, bank_name } = req.body;
 
     try {
         // 1. تحديث بيانات الموظف (الاسم، القسم، الهدف، الراتب الأساسي، إخفاء الدخل)
-        await dbRun(`UPDATE employees SET name = ?, section_id = ?, target = ?, base_salary = ?, hide_income = ? WHERE id = ?`, [name, section_id, target, base_salary, hide_income || 0, id]);
+        await dbRun(`UPDATE employees SET name = ?, section_id = ?, target = ?, base_salary = ?, hide_income = ?, bank_name = ? WHERE id = ?`, 
+            [name, section_id, target, base_salary, hide_income || 0, bank_name || 'كاش', id]);
 
         // 2. تحديث بيانات المستخدم (اسم المستخدم وكلمة المرور)
         // التحقق مما إذا كان هناك مستخدم مرتبط لتجنب تحديث المدير
@@ -486,7 +565,7 @@ app.get('/api/employees', async (req, res) => {
                 e.id,
                 e.name,
                 e.target,
-                e.base_salary,
+                e.base_salary, e.target_amount, e.deposit_amount, e.total_withdrawals, e.remaining_salary, e.net_remaining, e.last_sync_at,
                 e.hide_income,
                 e.section_id,
                 s.name AS section_name,
@@ -551,7 +630,7 @@ app.get('/api/employee-stats/:id', async (req, res) => {
     try {
         // جلب اسم الموظف والهدف والقسم
         const info = await dbGet(`
-            SELECT e.name, e.target, e.base_salary, e.hide_income, e.section_id, e.net_remaining, e.total_withdrawals, s.name AS section_name 
+            SELECT e.*, s.name AS section_name 
             FROM employees e 
             LEFT JOIN sections s ON e.section_id = s.id 
             WHERE e.id = ? AND e.is_active = 1
@@ -578,9 +657,12 @@ app.get('/api/employee-stats/:id', async (req, res) => {
 
         if (info.hide_income == 1) {
             res.json({
+                ...info,
                 info,
                 total_income: -1, // Flag for hidden
                 total_withdrawal: totalWithdrawalRow.total_withdrawal,
+                last_income_at: entries.length > 0 ? entries[0].created_at : null,
+                last_withdrawal_at: withdrawals.length > 0 ? withdrawals[0].created_at : null,
                 entries: [], // Hide entries
                 withdrawals,
                 absences,
@@ -588,6 +670,7 @@ app.get('/api/employee-stats/:id', async (req, res) => {
             });
         } else {
             res.json({
+                ...info,
                 info,
                 total_income: totalIncomeRow.total_income,
                 total_withdrawal: totalWithdrawalRow.total_withdrawal,
@@ -697,7 +780,10 @@ app.post('/api/withdrawals', async (req, res) => {
     try {
         await dbRun(`INSERT INTO withdrawals (employee_id, amount, reason, date, status) VALUES (?, ?, ?, ?, ?)`,
             [employee_id, amount, reason, withdrawalDate, withdrawalStatus]);
-        res.status(201).json({ message: "تم تسجيل السحب بنجاح" });
+        // Notification for admin
+        await dbRun(`INSERT INTO sys_notifications (recipient_type, title, message, type) VALUES ('admin', 'طلب سحب جديد', 'طلب سحب بقيمة ${amount} من الموظف', 'warning')`);
+
+        res.status(201).json({ message: "تم تسجيل الطلب بنجاح وهو بانتظار الموافقة" });
     } catch (error) {
         console.error("Add Withdrawal Error:", error);
         res.status(500).json({ message: "خطأ في تسجيل السحب" });
@@ -715,6 +801,12 @@ app.put('/api/withdrawals/:id/status', async (req, res) => {
 
     try {
         await dbRun(`UPDATE withdrawals SET status = ?, admin_note = ? WHERE id = ?`, [status, admin_note, id]);
+        
+        const withdrawal = await dbGet('SELECT employee_id FROM withdrawals WHERE id = ?', [id]);
+        if(withdrawal) {
+            await dbRun(`INSERT INTO sys_notifications (recipient_type, recipient_id, title, message, type) VALUES ('employee', ?, 'رد على طلب سحب', 'تم تغيير حالة طلب السحب الخاص بك: ${status}', 'info')`, [withdrawal.employee_id]);
+        }
+
         res.json({ message: "تم تحديث حالة السحب بنجاح" });
     } catch (error) {
         console.error("Update Withdrawal Status Error:", error);
@@ -764,7 +856,10 @@ app.post('/api/absences', async (req, res) => {
 
     try {
         await dbRun(`INSERT INTO absences (employee_id, date, reason) VALUES (?, ?, ?)`, [employee_id, date, reason]);
-        res.status(201).json({ message: "تم تسجيل الغياب بنجاح" });
+        // Notification for admin
+        await dbRun(`INSERT INTO sys_notifications (recipient_type, title, message, type) VALUES ('admin', 'طلب إجازة جديد', 'طلب إجازة جديد من موظف', 'warning')`);
+
+        res.status(201).json({ message: 'تم تقديم طلب الإجازة بنجاح' });
     } catch (error) {
         console.error("Add Absence Error:", error);
         res.status(500).json({ message: "خطأ في تسجيل الغياب" });
@@ -795,79 +890,19 @@ app.get('/api/absences', async (req, res) => {
     }
 });
 
-// جلب الغيابات (مع إمكانية التصفية حسب الفترة الزمنية والموظف)
-app.get('/api/absences', async (req, res) => {
-    const { from, to, employee_id } = req.query;
 
-    try {
-        let query = `
-            SELECT a.*, e.name as employee_name 
-            FROM absences a
-            LEFT JOIN employees e ON a.employee_id = e.id
-            WHERE 1=1
-        `;
-        let params = [];
-
-        // إذا تم تحديد فترة زمنية
-        if (from && to) {
-            query += ` AND a.date BETWEEN ? AND ?`;
-            params.push(from, to);
-        }
-
-        // إذا تم تحديد موظف
-        if (employee_id) {
-            query += ` AND a.employee_id = ?`;
-            params.push(employee_id);
-        }
-
-        query += ` ORDER BY a.date DESC`;
-
-        const absences = await dbAll(query, params);
-        res.json(absences);
-    } catch (error) {
-        console.error("Fetch Absences Error:", error);
-        res.status(500).json({ message: "خطأ في جلب الغيابات" });
-    }
-});
-
-// جلب سحوبات موظف محدد
-app.get('/api/employees/:id/withdrawals', async (req, res) => {
-    const { id } = req.params;
-    try {
-        const withdrawals = await dbAll(`SELECT * FROM withdrawals WHERE employee_id = ? ORDER BY date DESC`, [id]);
-        res.json(withdrawals);
-    } catch (error) {
-        console.error("Fetch Employee Withdrawals Error:", error);
-        res.status(500).json({ message: "خطأ في جلب سحوبات الموظف" });
-    }
-});
-
-// جلب دخل موظف محدد
-app.get('/api/employees/:id/entries', async (req, res) => {
-    const { id } = req.params;
-    try {
-        const entries = await dbAll(`SELECT * FROM entries WHERE employee_id = ? ORDER BY date DESC`, [id]);
-        res.json(entries);
-    } catch (error) {
-        console.error("Fetch Employee Entries Error:", error);
-        res.status(500).json({ message: "خطأ في جلب دخل الموظف" });
-    }
-});
-
-
-// إضافة سحب جماعي (Batch)
+// جلب السحوبات الجماعية
 app.post('/api/withdrawals/batch', async (req, res) => {
     const { employee_ids, amount, reason, date } = req.body;
-
-    if (!employee_ids || !Array.isArray(employee_ids) || employee_ids.length === 0 || !amount) {
-        return res.status(400).json({ message: "بيانات غير صالحة." });
+    if (!employee_ids || !Array.isArray(employee_ids) || !amount) {
+        return res.status(400).json({ message: "بيانات غير مكتملة" });
     }
 
     const withdrawalDate = date || new Date().toISOString().split('T')[0];
 
     try {
-        const promises = employee_ids.map(id =>
-            dbRun(`INSERT INTO withdrawals (employee_id, amount, reason, date, status) VALUES (?, ?, ?, ?, 'approved')`,
+        const promises = employee_ids.map(id => 
+            dbRun(`INSERT INTO withdrawals (employee_id, amount, reason, date, status) VALUES (?, ?, ?, ?, 'approved')`, 
                 [id, amount, reason, withdrawalDate])
         );
 
@@ -1018,7 +1053,7 @@ app.put('/api/leave-requests/:id', async (req, res) => {
     const { status, admin_notes } = req.body;
 
     if (!status || !['approved', 'rejected'].includes(status)) {
-        return res.status(400).json({ message: 'حالة غير صحيحة' });
+        return res.status(400).json({ message: 'حالة غير صالحة' });
     }
 
     try {
@@ -1027,6 +1062,11 @@ app.put('/api/leave-requests/:id', async (req, res) => {
             SET status = ?, admin_notes = ?, updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         `, [status, admin_notes || null, id]);
+
+        const request = await dbGet('SELECT employee_id FROM leave_requests WHERE id = ?', [id]);
+        if(request) {
+            await dbRun(`INSERT INTO sys_notifications (recipient_type, recipient_id, title, message, type) VALUES ('employee', ?, 'رد على طلب إجازة', 'تم تحديث حالة طلب الإجازة: ${status}', 'info')`, [request.employee_id]);
+        }
 
         res.json({ message: `تم ${status === 'approved' ? 'قبول' : 'رفض'} الطلب بنجاح` });
     } catch (error) {
@@ -1069,91 +1109,33 @@ app.get('/api/leave-balances', async (req, res) => {
         res.json(balances);
     } catch (error) {
         console.error('Fetch Leave Balances Error:', error);
+        res.status(500).json({ message: 'خطأ' });
     }
 });
 
 // ==========================
-// 🏗️ إدارة الرافعات (Lift Management)
+// 🏗️ إدارة الدوام (Shift Management)
 // ==========================
 
-// جلب حالة جميع الرافعات
-app.get('/api/lifts', async (req, res) => {
+// تحديث أوقات الدوام للفرع (الأسبوعي)
+app.get('/api/branch-shifts', async (req, res) => {
     try {
-        const lifts = await dbAll(`
-            SELECT 
-                l.*,
-                e.name AS technician_name
-            FROM workshop_lifts l
-            LEFT JOIN employees e ON l.technician_id = e.id
-            ORDER BY l.id
-        `);
-        res.json(lifts);
+        const shifts = await dbAll(`SELECT * FROM branch_shifts ORDER BY day_of_week`);
+        res.json(shifts);
     } catch (error) {
-        console.error('Fetch Lifts Error:', error);
-        res.status(500).json({ message: 'خطأ في جلب بيانات الرافعات' });
+        res.status(500).json({ message: 'خطأ في جلب المواعيد' });
     }
 });
 
-// تحديث حالة الرافعة (للفني)
-app.put('/api/lifts/:id', async (req, res) => {
-    const { id } = req.params;
-    const { status, technician_id, issue_description } = req.body;
-
+app.put('/api/branch-shifts/:day', async (req, res) => {
+    const { day } = req.params;
+    const { shift_start, shift_end, is_closed } = req.body;
     try {
-        // التحقق من وجود الرافعة
-        const lift = await dbGet('SELECT * FROM workshop_lifts WHERE id = ?', [id]);
-        if (!lift) {
-            return res.status(404).json({ message: 'الرافعة غير موجودة' });
-        }
-
-        // بناء جملة التحديث ديناميكياً
-        let updates = [];
-        let params = [];
-
-        if (status) {
-            updates.push('status = ?');
-            params.push(status);
-        }
-        if (technician_id !== undefined) {
-            updates.push('technician_id = ?');
-            params.push(technician_id);
-        }
-        if (issue_description !== undefined) {
-            updates.push('issue_description = ?');
-            params.push(issue_description);
-        }
-
-        updates.push('last_updated = CURRENT_TIMESTAMP');
-
-        if (updates.length === 1) { // Only last_updated
-            return res.status(400).json({ message: 'لا توجد بيانات للتحديث' });
-        }
-
-        const sql = `UPDATE workshop_lifts SET ${updates.join(', ')} WHERE id = ?`;
-        params.push(id);
-
-        await dbRun(sql, params);
-        res.json({ message: 'تم تحديث حالة الرافعة بنجاح' });
+        await dbRun(`UPDATE branch_shifts SET shift_start = ?, shift_end = ?, is_closed = ? WHERE day_of_week = ?`,
+            [shift_start, shift_end, is_closed ? 1 : 0, day]);
+        res.json({ message: 'تم تحديث الموعد بنجاح' });
     } catch (error) {
-        console.error('Update Lift Error:', error);
-        res.status(500).json({ message: 'خطأ في تحديث الرافعة' });
-    }
-});
-
-// تحرير الرافعة (إخلاء)
-app.post('/api/lifts/:id/release', async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        await dbRun(`
-            UPDATE workshop_lifts 
-            SET status = 'idle', technician_id = NULL, issue_description = NULL, last_updated = CURRENT_TIMESTAMP 
-            WHERE id = ?
-        `, [id]);
-        res.json({ message: 'تم إخلاء الرافعة بنجاح' });
-    } catch (error) {
-        console.error('Release Lift Error:', error);
-        res.status(500).json({ message: 'خطأ في إخلاء الرافعة' });
+        res.status(500).json({ message: 'خطأ في تحديث الموعد' });
     }
 });
 
@@ -1183,43 +1165,73 @@ app.get("/login.html", (req, res) => {
 // تسجيل دخول (Check-in)
 app.post('/api/attendance/check-in', async (req, res) => {
     const { employee_id } = req.body;
-    const date = new Date().toISOString().split('T')[0];
-    const time = new Date().toISOString();
+    const now = new Date();
+    const date = now.toISOString().split('T')[0];
+    const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon...
 
     try {
-        // التحقق مما إذا كان قد سجل بالفعل اليوم
         const existing = await dbGet('SELECT * FROM attendance WHERE employee_id = ? AND date = ?', [employee_id, date]);
-        if (existing) {
-            return res.status(400).json({ message: 'تم تسجيل الحضور مسبقاً لهذا اليوم' });
+        if (existing) return res.status(400).json({ message: 'تم تسجيل الحضور مسبقاً' });
+
+        // جلب وقت الدوام لليوم من مواعيد الفرع
+        const shift = await dbGet(`SELECT * FROM branch_shifts WHERE day_of_week = ?`, [dayOfWeek]);
+        
+        let delayMinutes = 0;
+        let sStart = '08:00', sEnd = '18:00';
+
+        if (shift) {
+            if (shift.is_closed) return res.status(400).json({ message: 'المحل مغلق اليوم' });
+            sStart = shift.shift_start;
+            sEnd = shift.shift_end;
+            
+            const [sh, sm] = sStart.split(':').map(Number);
+            const shiftTime = new Date(now);
+            shiftTime.setHours(sh, sm, 0, 0);
+
+            if (now > shiftTime) {
+                delayMinutes = Math.floor((now - shiftTime) / 60000);
+            }
         }
 
-        await dbRun(`INSERT INTO attendance (employee_id, date, check_in) VALUES (?, ?, ?)`, [employee_id, date, time]);
-        res.json({ message: 'تم تسجيل الحضور بنجاح', time });
+        await dbRun(`INSERT INTO attendance (employee_id, date, check_in, delay_minutes, shift_start, shift_end) VALUES (?, ?, ?, ?, ?, ?)`, 
+            [employee_id, date, now.toISOString(), delayMinutes, sStart, sEnd]);
+        
+        res.json({ message: delayMinutes > 0 ? `تم تسجيل الحضور (تأخير: ${delayMinutes} دقيقة)` : 'تم تسجيل الحضور في الوقت المحدد', delay_minutes: delayMinutes });
     } catch (error) {
-        console.error("Check-in Error:", error);
         res.status(500).json({ message: "خطأ في تسجيل الحضور" });
     }
 });
 
-// تسجيل خروج (Check-out)
 app.post('/api/attendance/check-out', async (req, res) => {
     const { employee_id } = req.body;
-    const date = new Date().toISOString().split('T')[0];
-    const time = new Date().toISOString();
+    const now = new Date();
+    const date = now.toISOString().split('T')[0];
 
     try {
         const existing = await dbGet('SELECT * FROM attendance WHERE employee_id = ? AND date = ?', [employee_id, date]);
-        if (!existing) {
-            return res.status(400).json({ message: 'يجب تسجيل الحضور أولاً' });
-        }
-        if (existing.check_out) {
-            return res.status(400).json({ message: 'تم تسجيل الانصراف مسبقاً' });
+        if (!existing) return res.status(400).json({ message: 'يجب تسجيل الحضور أولاً' });
+        if (existing.check_out) return res.status(400).json({ message: 'تم تسجيل الانصراف مسبقاً' });
+
+        let earlyMinutes = 0;
+        let overtimeMinutes = 0;
+
+        if (existing.shift_end) {
+            const [eh, em] = existing.shift_end.split(':').map(Number);
+            const shiftEndTime = new Date(now);
+            shiftEndTime.setHours(eh, em, 0, 0);
+
+            if (now < shiftEndTime) {
+                earlyMinutes = Math.floor((shiftEndTime - now) / 60000);
+            } else {
+                overtimeMinutes = Math.floor((now - shiftEndTime) / 60000);
+            }
         }
 
-        await dbRun(`UPDATE attendance SET check_out = ? WHERE id = ?`, [time, existing.id]);
-        res.json({ message: 'تم تسجيل الانصراف بنجاح', time });
+        await dbRun(`UPDATE attendance SET check_out = ?, early_departure_minutes = ?, overtime_minutes = ? WHERE id = ?`, 
+            [now.toISOString(), earlyMinutes, overtimeMinutes, existing.id]);
+        
+        res.json({ message: 'تم تسجيل الانصراف بنجاح', early_minutes: earlyMinutes, overtime_minutes: overtimeMinutes });
     } catch (error) {
-        console.error("Check-out Error:", error);
         res.status(500).json({ message: "خطأ في تسجيل الانصراف" });
     }
 });
@@ -1227,120 +1239,151 @@ app.post('/api/attendance/check-out', async (req, res) => {
 // جلب حالة الحضور لليوم
 app.get('/api/attendance/status/:employee_id', async (req, res) => {
     const { employee_id } = req.params;
-    const date = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const date = now.toISOString().split('T')[0];
+    const dayOfWeek = now.getDay();
 
     try {
-        const status = await dbGet('SELECT * FROM attendance WHERE employee_id = ? AND date = ?', [employee_id, date]);
-        res.json(status || { status: 'not_marked' });
+        const emp = await dbGet(`SELECT * FROM employees WHERE id = ?`, [employee_id]);
+        if (!emp) return res.status(404).json({ message: "الموظف غير موجود" });
+
+        const att = await dbGet(`SELECT * FROM attendance WHERE employee_id = ? AND date = ?`, [employee_id, date]);
+        const shift = await dbGet(`SELECT * FROM branch_shifts WHERE day_of_week = ?`, [dayOfWeek]);
+
+        res.json({
+            status: att && att.check_in ? 'marked' : 'not_marked',
+            check_in: att ? att.check_in : null,
+            check_out: att ? att.check_out : null,
+            delay_minutes: att ? (att.delay_minutes || 0) : 0,
+            early_minutes: att ? (att.early_departure_minutes || 0) : 0,
+            overtime_minutes: att ? (att.overtime_minutes || 0) : 0,
+            shift_start: shift ? shift.shift_start : '08:00',
+            shift_end: shift ? shift.shift_end : '18:00'
+        });
     } catch (error) {
         console.error("Attendance Status Error:", error);
         res.status(500).json({ message: "خطأ في جلب حالة الحضور" });
     }
 });
 
-// جلب تقرير الحضور لجميع الموظفين (Admin)
-app.get('/api/attendance/report', async (req, res) => {
-    const { date } = req.query;
-    const targetDate = date || new Date().toISOString().split('T')[0];
-
+// consolidated history for employee
+app.get('/api/employee/:id/requests', async (req, res) => {
+    const { id } = req.params;
     try {
-        const report = await dbAll(`
+        const withdrawals = await dbAll(`SELECT 'withdrawal' as type, amount, status, date as created_at FROM withdrawals WHERE employee_id = ? ORDER BY date DESC`, [id]);
+        const leaves = await dbAll(`SELECT 'leave' as type, leave_type as amount, status, created_at FROM leave_requests WHERE employee_id = ? ORDER BY created_at DESC`, [id]);
+        
+        // combine and sort
+        const all = [...withdrawals, ...leaves].sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+        res.json(all);
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
+// ==========================
+// 🧩 إعدادات النظام
+// ==========================
+app.get('/api/settings', async (req, res) => {
+    try {
+        const settings = await dbAll(`SELECT * FROM settings`);
+        const settingsObj = {};
+        settings.forEach(s => settingsObj[s.key] = s.value);
+        res.json(settingsObj);
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching settings' });
+    }
+});
+
+app.post('/api/settings', async (req, res) => {
+    try {
+        if (req.body.key && req.body.value !== undefined) {
+            await dbRun(`INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`, [req.body.key, String(req.body.value)]);
+        } else if (typeof req.body === 'object' && req.body !== null) {
+            for (const [key, value] of Object.entries(req.body)) {
+                if (value !== undefined && value !== null) {
+                    await dbRun(`INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`, [key, String(value)]);
+                }
+            }
+        }
+        res.json({ message: 'Settings updated successfully' });
+    } catch (error) {
+        console.error('Error updating settings:', error);
+        res.status(500).json({ message: 'Error updating settings' });
+    }
+});
+
+// ==========================
+// 🧩 تقرير السحبيات (للطباعة)
+// ==========================
+app.get('/api/reports/withdrawal-list', async (req, res) => {
+    try {
+        const employees = await dbAll(`
             SELECT 
-                e.id AS employee_id,
-                e.name AS employee_name,
-                s.name AS section_name,
-                a.check_in,
-                a.check_out,
-                a.status,
-                a.date
+                e.name, 
+                e.bank_name, 
+                ((e.base_salary + e.target_amount) - (e.total_withdrawals + e.deposit_amount)) AS remaining_salary, 
+                e.net_remaining
+            FROM employees e
+            WHERE e.is_active = 1
+            ORDER BY e.bank_name, e.name
+        `);
+        
+        const settings = await dbAll(`SELECT * FROM settings WHERE key = 'max_withdrawal_limit'`);
+        const maxLimit = settings.length > 0 ? settings[0].value : '500';
+
+        res.json({
+            employees,
+            maxWithdrawalLimit: maxLimit
+        });
+    } catch (error) {
+        console.error("Fetch Withdrawal List Error:", error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+app.get('/api/attendance/report', async (req, res) => {
+    const { date, month, employee_id } = req.query;
+    try {
+        let sql = `
+            SELECT 
+                e.id AS employee_id, e.name AS employee_name, s.name AS section_name,
+                a.check_in, a.check_out, a.status, a.date,
+                a.delay_minutes, a.early_departure_minutes, a.overtime_minutes,
+                a.shift_start, a.shift_end
             FROM employees e
             LEFT JOIN sections s ON e.section_id = s.id
-            LEFT JOIN attendance a ON e.id = a.employee_id AND a.date = ?
-            WHERE e.is_active = 1
-            ORDER BY s.name, e.name
-        `, [targetDate]);
+            LEFT JOIN attendance a ON e.id = a.employee_id
+        `;
+        let params = [];
+        let conditions = ["e.is_active = 1"];
+
+        if (employee_id) {
+            conditions.push("e.id = ?");
+            params.push(employee_id);
+        }
+
+        if (date) {
+            conditions.push("a.date = ?");
+            params.push(date);
+        } else if (month) {
+            conditions.push("strftime('%Y-%m', a.date) = ?");
+            params.push(month);
+        } else {
+            // Default to today if no date or month or employee filter is provided for date context
+            if (!employee_id) {
+                conditions.push("a.date = CURRENT_DATE");
+            }
+        }
+
+        sql += " WHERE " + conditions.join(" AND ");
+        sql += " ORDER BY a.date DESC, s.id, e.name";
+
+        const report = await dbAll(sql, params);
         res.json(report);
     } catch (error) {
         console.error("Attendance Report Error:", error);
         res.status(500).json({ message: "خطأ في جلب تقرير الحضور" });
-    }
-});
-
-
-// ============================================================
-// 📊 تقرير الحضور المتقدم (فلاتر: موظف، نطاق تاريخ)
-// ============================================================
-app.get('/api/attendance/advanced-report', async (req, res) => {
-    const { employee_id, date_from, date_to } = req.query;
-    const today = new Date().toISOString().split('T')[0];
-    const from = date_from || today;
-    const to   = date_to   || today;
-    try {
-        let query = `
-            SELECT
-                e.id AS employee_id, e.name AS employee_name, s.name AS section_name,
-                a.date, a.check_in, a.check_out, a.status,
-                COALESCE(a.late_minutes, 0)          AS late_minutes,
-                COALESCE(a.overtime_minutes, 0)      AS overtime_minutes,
-                COALESCE(a.total_hours, 0)           AS total_hours,
-                COALESCE(a.early_leaving_minutes, 0) AS early_leaving_minutes
-            FROM employees e
-            LEFT JOIN sections s ON e.section_id = s.id
-            LEFT JOIN attendance a ON e.id = a.employee_id AND a.date BETWEEN ? AND ?
-            WHERE e.is_active = 1`;
-        const params = [from, to];
-        if (employee_id) { query += ' AND e.id = ?'; params.push(employee_id); }
-        query += ' ORDER BY a.date DESC, e.name';
-
-        const records = await dbAll(query, params);
-
-        // إجماليات لكل موظف
-        const summaryMap = {};
-        records.forEach(r => {
-            if (!summaryMap[r.employee_id]) {
-                summaryMap[r.employee_id] = {
-                    employee_id: r.employee_id,
-                    employee_name: r.employee_name,
-                    section_name: r.section_name,
-                    present_days: 0, absent_days: 0,
-                    total_late_minutes: 0, total_overtime_minutes: 0,
-                    total_hours: 0
-                };
-            }
-            const s = summaryMap[r.employee_id];
-            if (r.date) {
-                if (r.check_in) { s.present_days++; } else { s.absent_days++; }
-                s.total_late_minutes    += r.late_minutes || 0;
-                s.total_overtime_minutes += r.overtime_minutes || 0;
-                s.total_hours           += parseFloat(r.total_hours) || 0;
-            }
-        });
-
-        res.json({ records, summary: Object.values(summaryMap), period: { from, to } });
-    } catch (error) {
-        console.error('Advanced Attendance Report Error:', error);
-        res.status(500).json({ message: 'خطأ في التقرير المتقدم' });
-    }
-});
-
-// ============================================================
-// ⚙️ حفظ إعدادات أوقات الدوام (ثابت على السبت-الخميس)
-// ============================================================
-app.post('/api/settings/work-schedule', async (req, res) => {
-    const { work_start_time, work_end_time, work_days } = req.body;
-    try {
-        const upsert = async (key, val) => {
-            const exists = await dbGet('SELECT key FROM settings WHERE key = ?', [key]);
-            if (exists) await dbRun('UPDATE settings SET value = ? WHERE key = ?', [val, key]);
-            else        await dbRun('INSERT INTO settings (key, value) VALUES (?, ?)', [key, val]);
-        };
-        if (work_start_time) await upsert('work_start_time', work_start_time);
-        if (work_end_time)   await upsert('work_end_time',   work_end_time);
-        if (work_days)       await upsert('work_days',       work_days);
-        res.json({ message: 'تم حفظ إعدادات الدوام بنجاح' });
-    } catch (error) {
-        console.error('Work Schedule Settings Error:', error);
-        res.status(500).json({ message: 'خطأ في حفظ إعدادات الدوام' });
     }
 });
 
@@ -1424,6 +1467,21 @@ app.get('/api/messages/unread/employee/:id', async (req, res) => {
 // ==========================
 // 🔔 نظام الإشعارات
 // ==========================
+// جلب إشعارات وسجل طلبات الموظف
+app.get('/api/employee/:id/requests', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const withdrawals = await dbAll(`SELECT 'withdrawal' as type, amount, reason, status, admin_note, created_at FROM withdrawals WHERE employee_id = ? ORDER BY created_at DESC LIMIT 10`, [id]);
+        const leaves = await dbAll(`SELECT 'leave' as type, leave_type as amount, reason, status, admin_notes as admin_note, created_at FROM leave_requests WHERE employee_id = ? ORDER BY created_at DESC LIMIT 10`, [id]);
+        
+        let all = [...withdrawals, ...leaves].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        res.json(all);
+    } catch (error) {
+        console.error("Fetch Employee Requests Error:", error);
+        res.status(500).json([]);
+    }
+});
+
 app.get('/api/notifications', async (req, res) => {
     try {
         const pendingWithdrawals = await dbGet(`SELECT COUNT(*) as count FROM withdrawals WHERE status = 'pending'`);
@@ -1440,49 +1498,94 @@ app.get('/api/notifications', async (req, res) => {
     }
 });
 
+// Notifications Sys API
+app.get('/api/sys_notifications', async (req, res) => {
+    const { recipient_type, recipient_id } = req.query;
+    try {
+        let sql = `SELECT * FROM sys_notifications WHERE recipient_type = ?`;
+        let params = [recipient_type];
+        
+        if (recipient_type === 'employee' && recipient_id) {
+            sql += ` AND recipient_id = ?`;
+            params.push(recipient_id);
+        }
+        
+        sql += ` ORDER BY created_at DESC LIMIT 50`;
+        const notifications = await dbAll(sql, params);
+        res.json(notifications);
+    } catch (error) {
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+app.put('/api/sys_notifications/:id/read', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await dbRun(`UPDATE sys_notifications SET is_read = 1 WHERE id = ?`, [id]);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
+app.put('/api/sys_notifications/read_all', async (req, res) => {
+    const { recipient_type, recipient_id } = req.body;
+    try {
+        if(recipient_type === 'employee') {
+            await dbRun(`UPDATE sys_notifications SET is_read = 1 WHERE recipient_type = 'employee' AND recipient_id = ?`, [recipient_id]);
+        } else {
+            await dbRun(`UPDATE sys_notifications SET is_read = 1 WHERE recipient_type = 'admin'`);
+        }
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ message: "Server Error" });
+    }
+});
+
 // ==========================
 // 🔍 نظام الكشف (Inspections)
 // ==========================
 
-// إضافة كشف جديد
+// إضافة كشف أو أمر عمل جديد
 app.post('/api/inspections', async (req, res) => {
-    console.log("Received Inspection Data:", JSON.stringify(req.body, null, 2));
     const {
         inspector_id, customer_name, customer_phone, car_type, car_color, car_model,
         plate_number, odometer, vin, items, total_amount, vat_amount, final_amount,
-        paid_amount, remaining_amount
+        paid_amount, remaining_amount, status, car_status, job_order_notes,
+        car_defects_diagram, technician_ids
     } = req.body;
 
     try {
-        // البدء في المعاملة
         await dbRun('BEGIN TRANSACTION');
 
-        if (!inspector_id) {
-            throw new Error("لم يتم تحديد معرف الموظف (inspector_id)");
-        }
+        const effectiveInspectorId = inspector_id || (req.body.inspector ? req.body.inspector.id : 1);
 
         const inspResult = await dbRun(`
             INSERT INTO inspections (
                 inspector_id, customer_name, customer_phone, car_type, car_color, car_model,
                 plate_number, odometer, vin, total_amount, vat_amount, final_amount,
-                paid_amount, remaining_amount
+                paid_amount, remaining_amount, status, car_status, job_order_notes, car_defects_diagram
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `, [
-            inspector_id,
+            effectiveInspectorId,
             customer_name || '',
             customer_phone || '',
             car_type || '',
             car_color || '',
             car_model || '',
             plate_number || '',
-            odometer || '', // Added odometer
-            vin || '',      // Added vin
+            odometer || '',
+            vin || '',
             total_amount || 0,
             vat_amount || 0,
             final_amount || 0,
             paid_amount || 0,
-            remaining_amount || 0
+            remaining_amount || 0,
+            status || 'new',
+            car_status || (status === 'job_order' ? 'in_progress' : 'pending'),
+            job_order_notes || '',
+            car_defects_diagram || ''
         ]);
 
         const inspection_id = inspResult.lastID;
@@ -1491,42 +1594,54 @@ app.post('/api/inspections', async (req, res) => {
             for (const item of items) {
                 if (item.service_description) {
                     await dbRun(`
-                    INSERT INTO inspection_items (inspection_id, category, service_description, quantity, price, total)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                `, [inspection_id, item.category, item.service_description, item.quantity || 1, item.price || 0, item.total || 0]);
+                        INSERT INTO inspection_items (inspection_id, category, service_description, quantity, price, total)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    `, [inspection_id, item.category || 'عام', item.service_description, item.quantity || 1, item.price || 0, item.total || 0]);
 
-                    // إضافة المصطلح للقاعدة إذا لم يكن موجوداً
                     await dbRun(`INSERT OR IGNORE INTO inspection_terms (term) VALUES (?)`, [item.service_description]);
                 }
             }
         }
 
+        if (technician_ids && Array.isArray(technician_ids)) {
+            for (const tId of technician_ids) {
+                if (tId) {
+                    await dbRun(`INSERT INTO inspection_technicians (inspection_id, technician_id) VALUES (?, ?)`, [inspection_id, tId]);
+                }
+            }
+        }
+
         await dbRun('COMMIT');
-        res.status(201).json({ message: "تم حفظ الكشف بنجاح", id: inspection_id });
+        res.status(201).json({ message: "تم الحفظ بنجاح", id: inspection_id, status: status || 'new' });
     } catch (error) {
-        try { await dbRun('ROLLBACK'); } catch (e) { console.error("Rollback failed:", e); }
+        try { await dbRun('ROLLBACK'); } catch (e) { }
         console.error("Add Inspection Error:", error);
-        res.status(500).json({ message: "خطأ في حفظ الكشف: " + error.message });
+        res.status(500).json({ message: "خطأ في حفظ البيانات: " + error.message });
     }
 });
 
-// تحديث كشف موجود
+// تحديث كشف أو أمر عمل موجود
 app.put('/api/inspections/:id', async (req, res) => {
     const { id } = req.params;
     const {
         customer_name, customer_phone, car_type, car_color, car_model,
         plate_number, odometer, vin, items, total_amount, vat_amount, final_amount,
-        paid_amount, remaining_amount
+        paid_amount, remaining_amount, status, car_status, job_order_notes,
+        car_defects_diagram, technician_ids
     } = req.body;
 
     try {
         await dbRun('BEGIN TRANSACTION');
 
-        // تحديث بيانات الكشف الأساسية
         await dbRun(`
             UPDATE inspections 
             SET customer_name = ?, customer_phone = ?, car_type = ?, car_color = ?, car_model = ?, 
-                plate_number = ?, odometer = ?, vin = ?, total_amount = ?, vat_amount = ?, final_amount = ?, paid_amount = ?, remaining_amount = ?
+                plate_number = ?, odometer = ?, vin = ?, total_amount = ?, vat_amount = ?, final_amount = ?, 
+                paid_amount = ?, remaining_amount = ?,
+                status = COALESCE(?, status),
+                car_status = COALESCE(?, car_status),
+                job_order_notes = COALESCE(?, job_order_notes),
+                car_defects_diagram = COALESCE(?, car_defects_diagram)
             WHERE id = ?
         `, [
             customer_name || '',
@@ -1535,195 +1650,269 @@ app.put('/api/inspections/:id', async (req, res) => {
             car_color || '',
             car_model || '',
             plate_number || '',
-            odometer || '', // Added odometer
-            vin || '',      // Added vin
+            odometer || '',
+            vin || '',
             total_amount || 0,
             vat_amount || 0,
             final_amount || 0,
             paid_amount || 0,
             remaining_amount || 0,
+            status || null,
+            car_status || null,
+            job_order_notes !== undefined ? job_order_notes : null,
+            car_defects_diagram !== undefined ? car_defects_diagram : null,
             id
         ]);
 
-        // حذف العناصر القديمة
-        await dbRun(`DELETE FROM inspection_items WHERE inspection_id = ?`, [id]);
-
-        // إضافة العناصر الجديدة
         if (items && Array.isArray(items)) {
+            await dbRun(`DELETE FROM inspection_items WHERE inspection_id = ?`, [id]);
             for (const item of items) {
                 if (item.service_description) {
                     await dbRun(`
-                    INSERT INTO inspection_items (inspection_id, category, service_description, quantity, price, total)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                `, [id, item.category, item.service_description, item.quantity || 1, item.price || 0, item.total || 0]);
+                        INSERT INTO inspection_items (inspection_id, category, service_description, quantity, price, total)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    `, [id, item.category || 'عام', item.service_description, item.quantity || 1, item.price || 0, item.total || 0]);
 
-                    // إضافة المصطلح للقاعدة إذا لم يكن موجوداً
                     await dbRun(`INSERT OR IGNORE INTO inspection_terms (term) VALUES (?)`, [item.service_description]);
                 }
             }
         }
 
+        if (technician_ids && Array.isArray(technician_ids)) {
+            await dbRun(`DELETE FROM inspection_technicians WHERE inspection_id = ?`, [id]);
+            for (const tId of technician_ids) {
+                if (tId) {
+                    await dbRun(`INSERT INTO inspection_technicians (inspection_id, technician_id) VALUES (?, ?)`, [id, tId]);
+                }
+            }
+        }
+
         await dbRun('COMMIT');
-        res.json({ message: "تم تحديث الكشف بنجاح", id: id });
+        res.json({ message: "تم التحديث بنجاح", id: id });
     } catch (error) {
-        try { await dbRun('ROLLBACK'); } catch (e) { console.error("Rollback failed:", e); }
+        try { await dbRun('ROLLBACK'); } catch (e) { }
         console.error("Update Inspection Error:", error);
-        res.status(500).json({ message: "خطأ في تحديث الكشف: " + error.message });
+        res.status(500).json({ message: "خطأ في التحديث: " + error.message });
     }
 });
 
-// جلب إحصائيات الكشيف (عدد السيارات هذا الشهر)
-app.get('/api/inspector-stats/:id', async (req, res) => {
+// تحويل تسعيرة إلى أمر عمل أو تغيير الحالة
+app.patch('/api/inspections/:id/status', async (req, res) => {
     const { id } = req.params;
-    const monthStart = new Date();
-    monthStart.setDate(1);
-    monthStart.setHours(0, 0, 0, 0);
-
+    const { status, car_status, job_order_notes } = req.body;
     try {
-        const count = await dbGet(`
-            SELECT COUNT(*) as count 
-            FROM inspections 
-            WHERE inspector_id = ? AND created_at >= ?
-        `, [id, monthStart.toISOString()]);
+        await dbRun(`
+            UPDATE inspections
+            SET status = COALESCE(?, status),
+                car_status = COALESCE(?, car_status),
+                job_order_notes = COALESCE(?, job_order_notes)
+            WHERE id = ?
+        `, [status || null, car_status || null, job_order_notes !== undefined ? job_order_notes : null, id]);
 
-        res.json(count);
+        res.json({ message: "تم تحديث حالة المستند بنجاح", id, status, car_status });
     } catch (error) {
-        console.error("Inspector Stats Error:", error);
-        res.status(500).json({ message: "خطأ في جلب الإحصائيات" });
+        console.error("Update Inspection Status Error:", error);
+        res.status(500).json({ message: "خطأ في تحديث الحالة" });
     }
 });
 
-// جلب مصطلحات الكشف (التكملة التلقائية)
-app.get('/api/inspection-terms', async (req, res) => {
+// تحويل تسعيرة مباشرة إلى أمر عمل
+app.post('/api/inspections/:id/convert-to-job', async (req, res) => {
+    const { id } = req.params;
     try {
-        const terms = await dbAll(`SELECT term FROM inspection_terms ORDER BY term ASC`);
-        res.json(terms.map(t => t.term));
+        await dbRun(`
+            UPDATE inspections
+            SET status = 'job_order',
+                car_status = CASE WHEN car_status IS NULL OR car_status = '' THEN 'in_progress' ELSE car_status END
+            WHERE id = ?
+        `, [id]);
+
+        res.json({ message: "تم تحويل التسعيرة إلى أمر عمل بنجاح", id, status: 'job_order' });
     } catch (error) {
-        console.error("Fetch Terms Error:", error);
-        res.status(500).json({ message: "خطأ في جلب المصطلحات" });
+        console.error("Convert Inspection Error:", error);
+        res.status(500).json({ message: "خطأ في تحويل التسعيرة" });
     }
 });
 
-// ==========================
-// 🧩 إدارة اختصارات الكشف (Bundles)
-// ==========================
-
-// جلب جميع الاختصارات مع عناصرها
-app.get('/api/inspection-bundles', async (req, res) => {
-    try {
-        const bundles = await dbAll(`SELECT * FROM inspection_bundles`);
-        for (let bundle of bundles) {
-            bundle.items = await dbAll(`SELECT service_description, category FROM inspection_bundle_items WHERE bundle_id = ?`, [bundle.id]);
-        }
-        res.json(bundles);
-    } catch (error) {
-        console.error("Fetch Bundles Error:", error);
-        res.status(500).json({ message: "خطأ في جلب الاختصارات" });
-    }
-});
-
-// إضافة اختصار جديد
-app.post('/api/inspection-bundles', async (req, res) => {
-    const { name, icon, items } = req.body;
+// حذف كشف أو أمر عمل
+app.delete('/api/inspections/:id', async (req, res) => {
+    const { id } = req.params;
     try {
         await dbRun('BEGIN TRANSACTION');
-        const result = await dbRun(`INSERT INTO inspection_bundles (name, icon) VALUES (?, ?)`, [name, icon]);
-        const bundle_id = result.lastID;
-
-        for (const item of items) {
-            await dbRun(`INSERT INTO inspection_bundle_items (bundle_id, service_description, category) VALUES (?, ?, ?)`,
-                [bundle_id, item.service_description, item.category]);
-        }
+        await dbRun(`DELETE FROM inspection_items WHERE inspection_id = ?`, [id]);
+        await dbRun(`DELETE FROM inspection_technicians WHERE inspection_id = ?`, [id]);
+        await dbRun(`DELETE FROM inspections WHERE id = ?`, [id]);
         await dbRun('COMMIT');
-        res.status(201).json({ message: "تم إضافة الاختصار بنجاح", id: bundle_id });
+        res.json({ message: "تم حذف الكشف بنجاح" });
     } catch (error) {
         try { await dbRun('ROLLBACK'); } catch (e) { }
-        console.error("Add Bundle Error:", error);
-        res.status(500).json({ message: "خطأ في إضافة الاختصار: " + error.message });
+        console.error("Delete Inspection Error:", error);
+        res.status(500).json({ message: "خطأ في الحذف" });
     }
 });
 
-// تحديث اختصار
-app.put('/api/inspection-bundles/:id', async (req, res) => {
-    const { id } = req.params;
-    const { name, icon, items } = req.body;
+// جلب قائمة الكشوفات وأوامر العمل مع الفلاتر المتقدمة
+app.get('/api/inspections', async (req, res) => {
+    const { status, car_status, from, to, inspector_id, technician_id, search, query, limit } = req.query;
     try {
-        await dbRun('BEGIN TRANSACTION');
-        await dbRun(`UPDATE inspection_bundles SET name = ?, icon = ? WHERE id = ?`, [name, icon, id]);
-        await dbRun(`DELETE FROM inspection_bundle_items WHERE bundle_id = ?`, [id]);
+        let whereClauses = [];
+        let params = [];
 
-        for (const item of items) {
-            await dbRun(`INSERT INTO inspection_bundle_items (bundle_id, service_description, category) VALUES (?, ?, ?)`,
-                [id, item.service_description, item.category]);
+        // فلترة نوع المستند (تسعيرة / أمر عمل)
+        if (status && status !== 'all') {
+            if (status === 'job_order') {
+                whereClauses.push(`i.status = 'job_order'`);
+            } else if (status === 'new' || status === 'quotation' || status === 'inspection') {
+                whereClauses.push(`(i.status = 'new' OR i.status = 'quotation' OR i.status IS NULL OR i.status = '')`);
+            } else {
+                whereClauses.push(`i.status = ?`);
+                params.push(status);
+            }
         }
-        await dbRun('COMMIT');
-        res.json({ message: "تم تحديث الاختصار بنجاح" });
-    } catch (error) {
-        try { await dbRun('ROLLBACK'); } catch (e) { }
-        console.error("Update Bundle Error:", error);
-        res.status(500).json({ message: "خطأ في تحديث الاختصار" });
-    }
-});
 
-// حذف اختصار
-app.delete('/api/inspection-bundles/:id', async (req, res) => {
-    const { id } = req.params;
-    try {
-        await dbRun(`DELETE FROM inspection_bundles WHERE id = ?`, [id]);
-        res.json({ message: "تم حذف الاختصار بنجاح" });
-    } catch (error) {
-        console.error("Delete Bundle Error:", error);
-        res.status(500).json({ message: "خطأ في حذف الاختصار" });
-    }
-});
+        // فلترة حالة السيارة في الورشة
+        if (car_status && car_status !== 'all') {
+            if (car_status === 'active_in_shop') {
+                whereClauses.push(`i.status = 'job_order' AND (i.car_status != 'completed' OR i.car_status IS NULL)`);
+            } else {
+                whereClauses.push(`i.car_status = ?`);
+                params.push(car_status);
+            }
+        }
 
-// جلب كشوفات موظف محدد
-app.get('/api/inspections/inspector/:id', async (req, res) => {
-    const { id } = req.params;
-    try {
-        const inspections = await dbAll(`SELECT * FROM inspections WHERE inspector_id = ? ORDER BY created_at DESC`, [id]);
-        res.json(inspections);
-    } catch (error) {
-        console.error("Fetch Inspector Inspections Error:", error);
-        res.status(500).json({ message: "خطأ في جلب الكشوفات" });
-    }
-});
+        // فلترة التاريخ
+        if (from) {
+            whereClauses.push(`date(i.created_at) >= date(?)`);
+            params.push(from);
+        }
+        if (to) {
+            whereClauses.push(`date(i.created_at) <= date(?)`);
+            params.push(to);
+        }
 
-// البحث في الكشوفات
-app.get('/api/inspections/search', async (req, res) => {
-    const { query } = req.query;
-    if (!query) return res.json([]);
+        // فلترة الكشيف
+        if (inspector_id) {
+            whereClauses.push(`i.inspector_id = ?`);
+            params.push(inspector_id);
+        }
 
-    try {
-        const inspections = await dbAll(`
-            SELECT i.*, e.name as inspector_name
+        // فلترة الفني المعين
+        if (technician_id) {
+            whereClauses.push(`i.id IN (SELECT inspection_id FROM inspection_technicians WHERE technician_id = ?)`);
+            params.push(technician_id);
+        }
+
+        // البحث النصي
+        const searchTerm = search || query;
+        if (searchTerm && searchTerm.trim() !== '') {
+            const term = `%${searchTerm.trim()}%`;
+            whereClauses.push(`(
+                CAST(i.id AS TEXT) LIKE ? OR
+                i.customer_name LIKE ? OR
+                i.customer_phone LIKE ? OR
+                i.plate_number LIKE ? OR
+                i.car_type LIKE ? OR
+                i.car_model LIKE ? OR
+                i.vin LIKE ?
+            )`);
+            params.push(term, term, term, term, term, term, term);
+        }
+
+        const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+        const limitCount = parseInt(limit) || 300;
+
+        const sql = `
+            SELECT 
+                i.*,
+                e.name as inspector_name,
+                (SELECT COUNT(*) FROM inspection_items WHERE inspection_id = i.id) as items_count,
+                (
+                    SELECT GROUP_CONCAT(t_emp.name, ', ')
+                    FROM inspection_technicians it
+                    JOIN employees t_emp ON it.technician_id = t_emp.id
+                    WHERE it.inspection_id = i.id
+                ) as technicians_names
             FROM inspections i
             LEFT JOIN employees e ON i.inspector_id = e.id
-            WHERE CAST(i.id AS TEXT) LIKE ? 
-               OR i.customer_phone LIKE ? 
-               OR i.plate_number LIKE ?
+            ${whereSql}
             ORDER BY i.created_at DESC
-            LIMIT 20
-        `, [`%${query}%`, `%${query}%`, `%${query}%`]);
-        res.json(inspections);
+            LIMIT ?
+        `;
+        params.push(limitCount);
+
+        const rows = await dbAll(sql, params);
+        res.json(rows);
     } catch (error) {
-        console.error("Search Inspections Error:", error);
-        res.status(500).json({ message: "خطأ في البحث" });
+        console.error("Fetch Inspections List Error:", error);
+        res.status(500).json({ message: "خطأ في جلب البيانات: " + error.message });
     }
 });
 
-// جلب تفاصيل كشف محدد
+// إحصائيات وملخص أوامر العمل والسيارات الموجودة في المركز
+app.get('/api/job-orders/summary', async (req, res) => {
+    try {
+        const stats = await dbGet(`
+            SELECT 
+                COUNT(CASE WHEN status = 'job_order' AND (car_status != 'completed' OR car_status IS NULL) THEN 1 END) as total_in_shop,
+                COUNT(CASE WHEN status = 'job_order' AND car_status = 'pending' THEN 1 END) as pending_count,
+                COUNT(CASE WHEN status = 'job_order' AND (car_status = 'in_progress' OR car_status IS NULL OR car_status = '') THEN 1 END) as in_progress_count,
+                COUNT(CASE WHEN status = 'job_order' AND car_status = 'waiting_parts' THEN 1 END) as waiting_parts_count,
+                COUNT(CASE WHEN status = 'job_order' AND car_status = 'ready' THEN 1 END) as ready_count,
+                COUNT(CASE WHEN status = 'job_order' AND car_status = 'completed' THEN 1 END) as completed_count,
+                COUNT(CASE WHEN status = 'new' OR status = 'quotation' OR status IS NULL OR status = '' THEN 1 END) as total_quotations,
+                COUNT(CASE WHEN status = 'job_order' THEN 1 END) as total_job_orders
+            FROM inspections
+        `);
+        res.json(stats);
+    } catch (error) {
+        console.error("Job Orders Summary Error:", error);
+        res.status(500).json({ message: "خطأ في جلب ملخص أوامر العمل" });
+    }
+});
+
+// جلب تفاصيل كشف أو أمر عمل محدد بالكامل
 app.get('/api/inspections/:id', async (req, res) => {
     const { id } = req.params;
     try {
-        const inspection = await dbGet(`SELECT * FROM inspections WHERE id = ?`, [id]);
-        if (!inspection) return res.status(404).json({ message: "الكشف غير موجود" });
+        const inspection = await dbGet(`
+            SELECT i.*, e.name as inspector_name
+            FROM inspections i
+            LEFT JOIN employees e ON i.inspector_id = e.id
+            WHERE i.id = ?
+        `, [id]);
+
+        if (!inspection) return res.status(404).json({ message: "الكشف أو أمر العمل غير موجود" });
 
         const items = await dbAll(`SELECT * FROM inspection_items WHERE inspection_id = ?`, [id]);
-        res.json({ ...inspection, items });
+        const technicians = await dbAll(`
+            SELECT it.technician_id as id, emp.name, s.name as section_name
+            FROM inspection_technicians it
+            JOIN employees emp ON it.technician_id = emp.id
+            LEFT JOIN sections s ON emp.section_id = s.id
+            WHERE it.inspection_id = ?
+        `, [id]);
+
+        res.json({ ...inspection, items, technicians });
     } catch (error) {
         console.error("Fetch Inspection Details Error:", error);
-        res.status(500).json({ message: "خطأ في جلب تفاصيل الكشف" });
+        res.status(500).json({ message: "خطأ في جلب التفاصيل" });
+    }
+});
+
+// جلب قائمة الفنيين للتعيين
+app.get('/api/technicians', async (req, res) => {
+    try {
+        const technicians = await dbAll(`
+            SELECT e.id, e.name, s.name as section_name
+            FROM employees e
+            LEFT JOIN sections s ON e.section_id = s.id
+            WHERE e.is_active = 1
+            ORDER BY s.name, e.name
+        `);
+        res.json(technicians);
+    } catch (error) {
+        console.error("Fetch Technicians Error:", error);
+        res.status(500).json({ message: "خطأ في جلب قائمة الفنيين" });
     }
 });
 
@@ -1808,63 +1997,6 @@ app.delete('/api/services/:id', async (req, res) => {
 // ==========================
 // 💾 النسخ الاحتياطي
 // ==========================
-
-// ==================================================
-// 📅 جدول الدوام الأسبوعي (GET + POST)
-// ==================================================
-app.get('/api/work-schedule', async (req, res) => {
-    try {
-        const schedule = await dbAll(`SELECT * FROM work_schedule ORDER BY 
-            CASE day_of_week 
-                WHEN 'Saturday' THEN 1 WHEN 'Sunday' THEN 2 WHEN 'Monday' THEN 3
-                WHEN 'Tuesday' THEN 4 WHEN 'Wednesday' THEN 5 WHEN 'Thursday' THEN 6
-                WHEN 'Friday' THEN 7 ELSE 8 END`);
-        res.json(schedule);
-    } catch (error) {
-        // إذا لم يوجد الجدول بعد، أرجع افتراضياً
-        const defaultSchedule = [
-            { day_of_week: 'Saturday', start_time: '08:00', end_time: '17:00', is_closed: 0 },
-            { day_of_week: 'Sunday',   start_time: '08:00', end_time: '17:00', is_closed: 0 },
-            { day_of_week: 'Monday',   start_time: '08:00', end_time: '17:00', is_closed: 0 },
-            { day_of_week: 'Tuesday',  start_time: '08:00', end_time: '17:00', is_closed: 0 },
-            { day_of_week: 'Wednesday',start_time: '08:00', end_time: '17:00', is_closed: 0 },
-            { day_of_week: 'Thursday', start_time: '08:00', end_time: '17:00', is_closed: 0 },
-            { day_of_week: 'Friday',   start_time: '00:00', end_time: '00:00', is_closed: 1 }
-        ];
-        res.json(defaultSchedule);
-    }
-});
-
-app.post('/api/work-schedule', async (req, res) => {
-    const { schedule } = req.body;
-    if (!schedule || !Array.isArray(schedule)) {
-        return res.status(400).json({ message: 'بيانات غير صحيحة' });
-    }
-    try {
-        for (const day of schedule) {
-            await dbRun(`INSERT INTO work_schedule (day_of_week, start_time, end_time, is_closed)
-                VALUES (?, ?, ?, ?)
-                ON CONFLICT(day_of_week) DO UPDATE SET
-                    start_time = excluded.start_time,
-                    end_time = excluded.end_time,
-                    is_closed = excluded.is_closed`,
-                [day.day_of_week, day.start_time || '08:00', day.end_time || '17:00', day.is_closed ? 1 : 0]);
-        }
-
-        // تحديث أوقات الدوام العامة في settings أيضاً (للتوافق)
-        const satDay = schedule.find(d => d.day_of_week === 'Saturday' && !d.is_closed);
-        if (satDay) {
-            await dbRun("UPDATE settings SET value = ? WHERE key = 'work_start_time'", [satDay.start_time]);
-            await dbRun("UPDATE settings SET value = ? WHERE key = 'work_end_time'",   [satDay.end_time]);
-        }
-
-        res.json({ message: 'تم حفظ جدول الدوام بنجاح ✅' });
-    } catch (error) {
-        console.error('Work Schedule Save Error:', error);
-        res.status(500).json({ message: 'خطأ في حفظ جدول الدوام: ' + error.message });
-    }
-});
-
 app.get('/api/backup', (req, res) => {
     const dbPath = path.join(__dirname, 'db.sqlite');
     const date = new Date().toISOString().split('T')[0];
@@ -1881,133 +2013,6 @@ app.get('/api/backup', (req, res) => {
 // ==========================
 // 🧩 تشغيل السيرفر
 // ==========================
-// استيراد الرواتب من ملف Excel (النسخة المتقدمة)
-app.post('/api/employees/import-salaries', upload.single('file'), async (req, res) => {
-    if (!req.file) return res.status(400).json({ message: "الرجاء اختيار ملف Excel." });
-    const filePath = req.file.path;
-    try {
-        const workbook = xlsx.readFile(filePath);
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const data = xlsx.utils.sheet_to_json(sheet, { header: 1 });
-
-        if (data.length < 2) throw new Error("الملف فارغ أو غير صحيح.");
-
-        // --- جلب أسماء الموظفين من DB ---
-        const allEmployees = await dbAll("SELECT id, name FROM employees WHERE is_active = 1");
-        
-        // دالة تنظيف الأسماء للمقارنة
-        const cleanName = (s) => String(s || '').trim()
-            .replace(/\s+/g, ' ')
-            .replace(/[\u200b-\u200f\ufeff]/g, '') // إزالة المحارف الخاصة
-            .toLowerCase();
-
-        const dbNames = allEmployees.map(e => ({ id: e.id, name: e.name, clean: cleanName(e.name) }));
-
-        // --- البحث التلقائي عن صف الأسماء (في أول 10 صفوف) ---
-        let namesRowIndex = -1;
-        let maxMatches = 0;
-
-        for (let rowIdx = 0; rowIdx < Math.min(10, data.length); rowIdx++) {
-            const row = data[rowIdx];
-            if (!row) continue;
-            let matches = 0;
-            for (const cell of row) {
-                if (!cell) continue;
-                const cellClean = cleanName(cell);
-                if (cellClean.length < 2) continue;
-                const found = dbNames.some(db =>
-                    db.clean === cellClean ||
-                    db.clean.includes(cellClean) ||
-                    cellClean.includes(db.clean) ||
-                    db.clean.split(' ').some(part => part.length > 2 && cellClean.includes(part)) ||
-                    cellClean.split(' ').some(part => part.length > 2 && db.clean.includes(part))
-                );
-                if (found) matches++;
-            }
-            if (matches > maxMatches) {
-                maxMatches = matches;
-                namesRowIndex = rowIdx;
-            }
-        }
-
-        // احتياطي: إذا لم يُعثر على تطابق، جرّب الصف الأول
-        if (namesRowIndex === -1) namesRowIndex = 0;
-
-        const namesRow = data[namesRowIndex];
-        const sampleCells = namesRow.slice(0, 7).map(c => c ?? '(فارغ)').join(' | ');
-
-        // --- البحث التلقائي عن الأعمدة التي تحتوي أرقاماً (رواتب) ---
-        // نبحث عن أي صف صريح يحتوي كلمة "راتب" أو "المتبقي" أو "صافي"
-        let salaryRowIndex = -1;
-        let netRowIndex = -1;
-
-        for (let rowIdx = namesRowIndex + 1; rowIdx < data.length; rowIdx++) {
-            const row = data[rowIdx];
-            if (!row) continue;
-            const rowText = row.map(c => String(c || '')).join(' ');
-            if (salaryRowIndex === -1 && (rowText.includes('الراتب الأساسي') || rowText.includes('الراتب') && !rowText.includes('المتبقي'))) {
-                salaryRowIndex = rowIdx;
-            }
-            if (netRowIndex === -1 && (rowText.includes('المتبقي') || rowText.includes('صافي') || rowText.includes('الصافي'))) {
-                netRowIndex = rowIdx;
-            }
-        }
-
-        let updatedCount = 0;
-        let notFound = [];
-        let importLog = [];
-
-        // --- المطابقة والتحديث ---
-        for (let col = 0; col < namesRow.length; col++) {
-            const cell = namesRow[col];
-            if (!cell) continue;
-
-            const nameStr = cleanName(cell);
-            if (nameStr.length < 2) continue;
-            // تخطي الخلايا التي تبدو وصفية وليست أسماء
-            if (['التاريخ','date','رقم','م','ت','المسمى','القسم','ملاحظة'].some(k => nameStr.includes(k))) continue;
-
-            const match = dbNames.find(db =>
-                db.clean === nameStr ||
-                db.clean.includes(nameStr) ||
-                nameStr.includes(db.clean) ||
-                db.clean.split(' ').some(part => part.length > 2 && nameStr.includes(part)) ||
-                nameStr.split(' ').some(part => part.length > 2 && db.clean.includes(part))
-            );
-
-            if (match) {
-                const baseSalary    = salaryRowIndex > -1 ? (parseFloat(data[salaryRowIndex]?.[col]) || 0) : 0;
-                const netRemaining  = netRowIndex    > -1 ? (parseFloat(data[netRowIndex]?.[col])    || 0) : 0;
-                const totalWithdrawals = parseFloat(data[salaryRowIndex > -1 ? salaryRowIndex - 1 : 0]?.[col]) || 0;
-
-                await dbRun(`UPDATE employees SET
-                    base_salary = CASE WHEN ? > 0 THEN ? ELSE base_salary END,
-                    net_remaining = CASE WHEN ? > 0 THEN ? ELSE net_remaining END,
-                    remaining_salary = CASE WHEN ? > 0 THEN ? ELSE remaining_salary END
-                    WHERE id = ?`,
-                    [baseSalary, baseSalary, netRemaining, netRemaining, netRemaining, netRemaining, match.id]);
-
-                updatedCount++;
-                importLog.push({ name: match.name, excelName: String(cell).trim(), baseSalary, netRemaining });
-            } else {
-                notFound.push(String(cell).trim());
-            }
-        }
-
-        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-
-        const msg = updatedCount > 0
-            ? `تم تحديث ${updatedCount} موظف بنجاح`
-            : `تم تحديث 0 موظف - صف الأسماء المكتشف: ${namesRowIndex + 1} - عينة: ${sampleCells}`;
-
-        res.json({ message: msg, updatedCount, notFound, debug: { namesRowIndex, salaryRowIndex, netRowIndex, maxMatches } });
-    } catch (error) {
-        console.error("Import Salaries Error:", error);
-        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-        res.status(500).json({ message: "خطأ في معالجة ملف Excel: " + error.message });
-    }
-});
-
 app.listen(PORT, () => {
     console.log('\n🎉 ====================================');
     console.log('🚀 تم تشغيل السيرفر بنجاح!');
@@ -2016,3 +2021,93 @@ app.listen(PORT, () => {
     console.log('====================================\n');
 });
 
+// ==========================
+// 📊 استيراد الرواتب من Excel
+// ==========================
+app.post('/api/employees/import-salaries', upload.single('file'), async (req, res) => {
+    if (!req.file) return res.status(400).json({ message: "الرجاء اختيار ملف Excel." });
+    const filePath = req.file.path;
+    const ExcelJS = require('exceljs');
+    try {
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.readFile(filePath);
+        const worksheet = workbook.worksheets[0];
+        
+        const allEmployees = await dbAll("SELECT id, name FROM employees WHERE is_active = 1");
+        const clean = (s) => String(s || '').toLowerCase()
+            .replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي')
+            .replace(/[^a-z0-9\u0600-\u06FF]/g, '');
+        const dbNamesClean = allEmployees.map(e => ({ id: e.id, name: e.name, cleanName: clean(e.name) }));
+
+        let ind = { n: -1, b: -1, t: -1, d: -1, w: -1, r: -1, nr: -1 };
+        worksheet.eachRow((row, rowNumber) => {
+            let rowText = String(row.getCell(1).value || '').trim();
+            // Also check first few cells if column 1 is empty or has a number
+            for(let i=2; i<=3; i++) {
+                if(!rowText) rowText = String(row.getCell(i).value || '').trim();
+            }
+
+            const has = (txt) => rowText.includes(txt);
+
+            if (has('إجمالي السحوبات') || has('اجمالي السحوبات') || (has('سحوبات') && (has('إجمالي') || has('اجمالي'))) || (rowText === 'السحوبات')) ind.w = rowNumber - 1;
+            if (has('الراتب المتبقي') || has('اجمالي المتبقي')) ind.r = rowNumber - 1;
+            if (has('الراتب الأساسي') || has('الراتب الاساسي') || has('الراتب الاستحقاق')) ind.b = rowNumber - 1;
+            if (has('ايداع مؤسسة') || has('إيداع مؤسسة') || has('إيداع المؤسسة') || has('ايداع كاش')) ind.d = rowNumber - 1;
+            if (has('المتبقي الصافي') || has('الصافي') || has('صافي المتبقي')) ind.nr = rowNumber - 1;
+            if (has('مكافأة التارقت') || has('بونص التارقت') || (has('التارقت') && rowNumber > 25)) ind.t = rowNumber - 1;
+
+            if (ind.n === -1 && rowNumber < 15) {
+                let m = 0;
+                row.eachCell(c => { if(clean(c.value) && dbNamesClean.some(db => db.cleanName === clean(c.value))) m++; });
+                if (m >= 3) ind.n = rowNumber - 1;
+            }
+        });
+
+        const getV = (rIdx, cIdx) => {
+            if (rIdx === -1) return 0;
+            const cell = worksheet.getRow(rIdx + 1).getCell(cIdx + 1);
+            let val = 0;
+            if (cell.value && typeof cell.value === 'object') val = cell.value.result !== undefined ? cell.value.result : (cell.value.value || 0);
+            else val = cell.value;
+            return isNaN(parseFloat(val)) ? 0 : parseFloat(val);
+        };
+
+        let updated = 0;
+        let notFound = [];
+        const namesRowIdx = ind.n + 1;
+        const namesRow = worksheet.getRow(namesRowIdx);
+        
+        for (let i = 1; i <= 250; i++) { 
+            const cell = namesRow.getCell(i);
+            const rawVal = cell.value;
+            if (!rawVal) continue;
+            
+            const cEx = clean(rawVal);
+            if (!cEx || cEx.includes('تاريخ')) continue;
+            
+            const m = dbNamesClean.find(db => 
+                db.cleanName === cEx || 
+                (cEx.length > 3 && db.cleanName.includes(cEx)) || 
+                (db.cleanName.length > 3 && cEx.includes(db.cleanName))
+            );
+
+            if (m) {
+                await dbRun(`UPDATE employees SET base_salary=?, target_amount=?, deposit_amount=?, total_withdrawals=?, remaining_salary=?, net_remaining=?, last_sync_at=CURRENT_TIMESTAMP WHERE id=?`, 
+                    [getV(ind.b, i-1), getV(ind.t, i-1), getV(ind.d, i-1), getV(ind.w, i-1), getV(ind.r, i-1), getV(ind.nr, i-1), m.id]);
+                updated++;
+            } else {
+                if (cEx.length > 1) notFound.push(String(rawVal));
+            }
+        }
+        
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        res.json({ 
+            message: `تمت مزامنة ${updated} موظف بنجاح.`, 
+            notFound: [...new Set(notFound)],
+            debug: { namesRow: namesRowIdx, headers: ind }
+        });
+    } catch (error) {
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        res.status(500).json({ message: "خطأ: " + error.message });
+    }
+});

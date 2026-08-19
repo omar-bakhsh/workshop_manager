@@ -4,10 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة اختصارات الكشف - ورشة عبد الله عصام عيد الزين</title>
+    <title>إدارة اختصارات الكشف - Atenza App</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="public/js/app-config.js"></script>
     <style>
         :root {
             --primary: #4f46e5;
@@ -169,14 +170,19 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="toast.css">
+    <script src="toast.js"></script>
+    <script src="toast_helpers.js"></script>
 </head>
 
 <body>
+    <div id="atenzaNavbar"></div>
     <div class="container">
         <div class="header">
             <h1>🚀 إدارة اختصارات الكشف (الباقات)</h1>
             <div style="display: flex; gap: 10px;">
-                <button class="btn btn-secondary" onclick="window.location.href='admin.html'">لوحة التحكم</button>
+                <button class="btn btn-secondary" onclick="APP_NAV.goBack('admin.html')">🔙 رجوع</button>
                 <button class="btn btn-primary" onclick="showAddModal()">إضافة باقة جديدة ➕</button>
             </div>
         </div>

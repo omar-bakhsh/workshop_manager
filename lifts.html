@@ -4,10 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام إدارة العمل - ورشة الصيانة</title>
+    <title>نظام إدارة العمل - Atenza App</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="public/js/app-config.js"></script>
     <style>
         :root {
             --bg-color: #f3f4f6;
@@ -286,22 +287,22 @@
             color: var(--primary);
         }
     </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
+    <div id="atenzaNavbar"></div>
     <div id="loading">جاري التحميل...</div>
 
     <header>
         <h1>🏗️ نظام إدارة العمل</h1>
         <p class="subtitle">متابعة سير العمل واحتياجات الفنيين</p>
         <div class="header-actions">
-            <button onclick="goBack()" class="back-btn">
+            <button onclick="APP_NAV.goBack()" class="back-btn">
                 <span>🔙</span>
                 <span>الرجوع</span>
             </button>
             <span id="currentUserDisplay" style="font-weight: 600; color: var(--primary);"></span>
-            <a href="login.html" onclick="logout()"
-                style="color: var(--danger); text-decoration: none; font-size: 0.9rem;">تسجيل الخروج</a>
         </div>
     </header>
 

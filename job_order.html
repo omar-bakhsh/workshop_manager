@@ -4,11 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>أمر عمل - الورشة</title>
+    <title>أمر عمل - Atenza App</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="public/js/app-config.js"></script>
     <style>
         body {
             background: #f3f4f6;
@@ -306,6 +307,7 @@
 </head>
 
 <body>
+    <div id="atenzaNavbar"></div>
     <div class="container" id="printableArea">
         <!-- Header -->
         <div class="header">
@@ -392,21 +394,34 @@
     </div>
 
     <div class="print-actions">
-        <button class="btn btn-secondary" onclick="window.history.back()">🔙 رجوع</button>
+        <button class="btn btn-secondary" onclick="APP_NAV.goBack('job_orders_list.html')">🔙 رجوع</button>
         <button class="btn btn-primary" onclick="saveOrder()">💾 حفظ التغييرات</button>
         <button class="btn btn-success" onclick="window.print()">🖨️ طباعة</button>
     </div>
 
     <script>
+        const currentUser = JSON.parse(localStorage.getItem('user'));
+        if (!currentUser) window.location.href = 'login.html';
+
+        const canEditOrder = typeof APP_PERMISSIONS !== 'undefined' ? APP_PERMISSIONS.canEditJobOrder(currentUser) : (currentUser.role === 'admin');
+
         const urlParams = new URLSearchParams(window.location.search);
         const orderId = urlParams.get('id');
         let currentInspection = null;
+
+        // Hide save button and disable notes if not management
+        if (!canEditOrder) {
+            const saveBtn = document.querySelector("button[onclick='saveOrder()']");
+            if (saveBtn) saveBtn.style.display = 'none';
+            const notesEl = document.getElementById('jobNotes');
+            if (notesEl) notesEl.disabled = true;
+        }
 
         // Diagram Logic
         const diagramContainer = document.getElementById('diagramContainer');
         const defects = [];
 
-        if (diagramContainer) {
+        if (diagramContainer && canEditOrder) {
             diagramContainer.addEventListener('click', (e) => {
                 const rect = diagramContainer.getBoundingClientRect();
                 const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -480,7 +495,7 @@
                     const settings = await setRes.json();
                     const terms = await termRes.json();
 
-                    if (settings.workshop_name) document.getElementById('shopName').textContent = settings.workshop_name;
+                    if (settings.workshop_name || settings.app_name) document.getElementById('shopName').textContent = settings.workshop_name || settings.app_name;
                     if (settings.workshop_desc) document.getElementById('shopDesc').textContent = settings.workshop_desc;
                     if (settings.workshop_phone) document.getElementById('shopPhone').textContent = settings.workshop_phone;
                     if (settings.vat_number) document.getElementById('shopVat').textContent = settings.vat_number;

@@ -4,10 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام الكشف الفني - ورشة عبد الله عصام عيد الزين</title>
+    <title>نظام الكشف الفني - Atenza App</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="public/js/app-config.js"></script>
     <style>
         :root {
             --primary: #4f46e5;
@@ -565,21 +566,55 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="toast.css">
+    <script src="toast.js"></script>
+    <script src="toast_helpers.js"></script>
 </head>
 
 <body>
+    <div id="atenzaNavbar"></div>
     <div class="container">
         <!-- Header -->
         <div class="header no-print">
             <div class="user-info">
                 <h1 id="inspectorName">...</h1>
-                <p>نظام الكشف الفني</p>
+                <p>نظام الكشوفات وأوامر العمل</p>
             </div>
             <div class="actions">
                 <input type="text" id="searchInput" placeholder="بحث (رقم، جوال، لوحة)..."
-                    style="padding:8px; border-radius:6px; border:1px solid #ccc;">
+                    style="padding:8px; border-radius:6px; border:1px solid #ccc;" onkeypress="if(event.key==='Enter') searchInspections()">
                 <button class="btn btn-primary" onclick="searchInspections()">بحث 🔍</button>
-                <button class="btn btn-secondary" onclick="window.location.href='employee.html'">الرجوع</button>
+                <button class="btn btn-secondary" onclick="APP_NAV.goBack()">🔙 الرجوع</button>
+            </div>
+        </div>
+
+        <!-- Mode & Document Type Control Bar -->
+        <div class="card no-print" style="background: linear-gradient(135deg, #f8fafc, #edf2f7); border: 2px solid #cbd5e1; margin-bottom: 15px; padding: 14px 18px; border-radius: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <label style="font-weight: 800; color: var(--text-dark); font-size: 15px;">📄 نوع المستند:</label>
+                    <select id="docTypeSelect" class="table-input" style="font-size: 14px; font-weight: 800; background: white; border: 2px solid var(--primary); padding: 8px 14px; border-radius: 8px; cursor: pointer; color: var(--primary);" onchange="changeDocType(this.value)">
+                        <option value="new" selected>📋 تسعيرة / كشف فني (Quotation)</option>
+                        <option value="job_order">🛠️ أمر عمل / كرت تشغيل (Job Card)</option>
+                    </select>
+
+                    <div id="jobStatusGroup" style="display: none; align-items: center; gap: 8px; margin-right: 10px;">
+                        <label style="font-weight: 700; color: #b45309; font-size: 13px;">🚗 حالة السيارة:</label>
+                        <select id="carStatusSelect" class="table-input" style="font-size: 13px; font-weight: bold; background: white; border: 1.5px solid #f59e0b; padding: 7px 12px; border-radius: 8px; color: #92400e;">
+                            <option value="pending">⏳ قيد الانتظار</option>
+                            <option value="in_progress" selected>⚙️ جاري العمل</option>
+                            <option value="waiting_parts">📦 بانتظار قطع غيار</option>
+                            <option value="ready">✅ جاهزة للتسليم</option>
+                            <option value="completed">🏁 تم التسليم</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button id="convertDocBtn" class="btn btn-warning" onclick="toggleConvertDoc()" style="padding: 8px 16px; font-size: 13px; font-weight: 800; box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);">🛠️ تحويل إلى أمر عمل</button>
+                    <button class="btn btn-secondary" onclick="window.location.href='inspections_list.html'" style="padding: 8px 12px; font-size: 13px;">📋 سجل التسعيرات</button>
+                    <button class="btn btn-secondary" onclick="window.location.href='job_orders_list.html'" style="padding: 8px 12px; font-size: 13px; background: #e0f2fe; color: #0369a1; border-color: #bae6fd; font-weight: 700;">🚗 أوامر العمل والسيارات</button>
+                </div>
             </div>
         </div>
 
@@ -623,18 +658,21 @@
         <div class="card" id="printableArea">
             <div class="workshop-header">
                 <div class="workshop-info-text">
-                    <h2>ورشة عبد الله عصام عيد الزين لصيانة السيارات</h2>
-                    <p>📍 طريق مكة القديم مجمع كيلو 14</p>
-                    <p>📞 0566522351</p>
-                    <p>📄 الرقم الضريبي: 302240502300003</p>
+                    <h2 id="inspectorShopName" class="app-brand-name">Atenza App</h2>
+                    <p id="inspectorShopDesc">📍 طريق مكة القديم مجمع كيلو 14</p>
+                    <p id="inspectorShopPhone">📞 0566522351</p>
+                    <p id="inspectorShopVat">📄 الرقم الضريبي: 302240502300003</p>
                 </div>
                 <div style="text-align: left;">
-                    <p>رقم الكشف: <b id="inspectionIdDisplay">جديد</b></p>
+                    <p>رقم المستند: <b id="inspectionIdDisplay">جديد</b></p>
                     <p>التاريخ: <b id="currentDate">--/--/----</b></p>
+                    <div id="docStatusPrintBadge" style="margin-top: 4px; display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; background: #e0f2fe; color: #0284c7;">تسعيرة أجور</div>
                 </div>
             </div>
 
-            <h1 class="inspection-title">كشف فني (تسعيرة أجور)</h1>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 10px 0;">
+                <h1 class="inspection-title" id="documentTitleDisplay" style="margin: 0; flex: 1;">كشف فني (تسعيرة أجور)</h1>
+            </div>
 
             <div class="form-grid">
                 <div class="form-group">
@@ -735,441 +773,723 @@
             </div>
         </div>
 
-        <div class="actions no-print">
-            <button class="btn btn-primary" onclick="saveInspection()">💾 حفظ الكشف</button>
-            <button class="btn btn-success" onclick="window.print()">🖨️ طباعة / PDF</button>
+        <div class="actions no-print" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px;">
+            <button class="btn btn-primary" onclick="saveInspection()" style="flex: 1; min-width: 150px; font-weight: 700;">💾 حفظ المستند</button>
+            <button id="convertActionBtn" class="btn btn-warning" onclick="toggleConvertDoc()" style="font-weight: 700;">🛠️ تحويل إلى أمر عمل</button>
+            <button class="btn btn-success" onclick="window.print()" style="min-width: 120px;">🖨️ طباعة / PDF</button>
             <button class="btn btn-secondary" onclick="resetForm()">🔄 جديد</button>
         </div>
     </div>
 
-    <script>
-        let pricingData = {};
-        let allServicesList = [];
-        let allBundles = [];
+                <script>
+                    let pricingData = {};
+                    let allServicesList = [];
+                    let allBundles = [];
 
-        let currentUser = JSON.parse(localStorage.getItem('user'));
-        let currentInspectionId = null;
+                    let currentUser = JSON.parse(localStorage.getItem('user'));
+                    let currentInspectionId = null;
+                    let currentDocType = 'new'; // 'new' (تسعيرة) or 'job_order' (أمر عمل)
 
-        async function init() {
-            if (!currentUser) window.location.href = 'login.html';
-            document.getElementById('inspectorName').textContent = currentUser.employee_name;
-            document.getElementById('inspectorNameDisplay').textContent = currentUser.employee_name;
-            document.getElementById('currentDate').textContent = new Date().toLocaleDateString('ar-SA');
+                    function changeDocType(type) {
+                        currentDocType = type;
+                        const selectEl = document.getElementById('docTypeSelect');
+                        if (selectEl) selectEl.value = type;
 
-            await fetchServices();
-            populateModels();
-            setupPlateInputs();
-            updateQuickServices();
-            generateRows(30);
-            setupEnterNavigation();
-            await loadBundles();
-        }
+                        const titleEl = document.getElementById('documentTitleDisplay');
+                        const badgeEl = document.getElementById('docStatusPrintBadge');
+                        const statusGroup = document.getElementById('jobStatusGroup');
+                        const convertTopBtn = document.getElementById('convertDocBtn');
+                        const convertBottomBtn = document.getElementById('convertActionBtn');
 
-        async function fetchServices() {
-            try {
-                const res = await fetch('/api/services');
-                allServicesList = await res.json();
-                pricingData = {};
-                allServicesList.forEach(s => {
-                    if (!pricingData[s.category]) pricingData[s.category] = [];
-                    pricingData[s.category].push({ service: s.service_name, price: s.price });
-                });
+                        if (type === 'job_order') {
+                            if (titleEl) titleEl.textContent = 'أمر عمل / كرت تشغيل (Job Card)';
+                            if (badgeEl) {
+                                badgeEl.textContent = '🛠️ أمر عمل (Job Card)';
+                                badgeEl.style.background = '#dcfce7';
+                                badgeEl.style.color = '#166534';
+                            }
+                            if (statusGroup) statusGroup.style.display = 'flex';
+                            if (convertTopBtn) {
+                                convertTopBtn.textContent = '📋 تحويل إلى تسعيرة';
+                                convertTopBtn.className = 'btn btn-secondary';
+                            }
+                            if (convertBottomBtn) {
+                                convertBottomBtn.textContent = '📋 تحويل إلى تسعيرة';
+                                convertBottomBtn.className = 'btn btn-secondary';
+                            }
+                        } else {
+                            if (titleEl) titleEl.textContent = 'كشف فني (تسعيرة أجور)';
+                            if (badgeEl) {
+                                badgeEl.textContent = '📋 تسعيرة أجور';
+                                badgeEl.style.background = '#e0f2fe';
+                                badgeEl.style.color = '#0284c7';
+                            }
+                            if (statusGroup) statusGroup.style.display = 'none';
+                            if (convertTopBtn) {
+                                convertTopBtn.textContent = '🛠️ تحويل إلى أمر عمل';
+                                convertTopBtn.className = 'btn btn-warning';
+                            }
+                            if (convertBottomBtn) {
+                                convertBottomBtn.textContent = '🛠️ تحويل إلى أمر عمل';
+                                convertBottomBtn.className = 'btn btn-warning';
+                            }
+                        }
 
-                // تحديث قائمة الفئات في الإضافة السريعة
-                const quickCat = document.getElementById('quickCat');
-                if (quickCat) {
-                    const categories = Object.keys(pricingData).sort();
-                    quickCat.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
-                }
-            } catch (e) {
-                console.error('Error fetching services:', e);
-            }
-        }
+                        enforcePermissionsOnDoc();
+                    }
 
-        function updateQuickServices() {
-            const cat = document.getElementById('quickCat').value;
-            const select = document.getElementById('quickService');
-            if (!pricingData[cat]) return;
-            select.innerHTML = pricingData[cat].map(s => `<option value="${s.service}" data-price="${s.price}">${s.service} (${s.price} ريال)</option>`).join('');
-        }
+                    function enforcePermissionsOnDoc() {
+                        const isJobOrder = currentDocType === 'job_order';
+                        let canEdit = false;
+                        let reason = '';
 
-        function addQuickService() {
-            const select = document.getElementById('quickService');
-            const option = select.options[select.selectedIndex];
-            if (!option) return;
+                        if (typeof APP_PERMISSIONS !== 'undefined') {
+                            if (isJobOrder) {
+                                canEdit = APP_PERMISSIONS.canEditJobOrder(currentUser);
+                                reason = '🔒 وضع العرض فقط: تعديل أوامر العمل متاح فقط لموظفي الإدارة.';
+                            } else {
+                                canEdit = APP_PERMISSIONS.canEditQuotation(currentUser);
+                                reason = '🔒 وضع العرض فقط: تعديل وإنشاء التسعيرات متاح فقط لموظفي الكشف والإدارة.';
+                            }
+                        } else {
+                            canEdit = currentUser.role === 'admin';
+                        }
 
-            const service = option.value;
-            const price = option.getAttribute('data-price');
-            const cat = document.getElementById('quickCat').value;
+                        let banner = document.getElementById('permissionNoticeBanner');
+                        if (!banner) {
+                            banner = document.createElement('div');
+                            banner.id = 'permissionNoticeBanner';
+                            banner.style.cssText = 'background: #fef3c7; color: #92400e; padding: 12px 18px; border-radius: 10px; margin: 10px auto 15px auto; font-weight: 700; border: 1.5px solid #fde68a; display: none; text-align: center; max-width: 900px; font-size: 14px;';
+                            const topCard = document.querySelector('.container') || document.body;
+                            topCard.insertBefore(banner, topCard.firstChild);
+                        }
 
-            const rows = document.querySelectorAll('#tableBody tr');
-            for (let tr of rows) {
-                const input = tr.querySelector('.service-input');
-                if (!input.value.trim()) {
-                    tr.querySelector('.cat-select').value = cat;
-                    input.value = service;
-                    tr.querySelector('.price-input').value = price;
-                    tr.querySelector('.qty-input').value = 1;
-                    calculateRow(input);
-                    tr.style.backgroundColor = '#dcfce7';
-                    setTimeout(() => tr.style.backgroundColor = '', 1000);
-                    if (window.innerWidth < 768) alert('تمت إضافة: ' + service);
-                    return;
-                }
-            }
-            alert('الجدول ممتلئ!');
-        }
+                        const saveBtn1 = document.querySelector("button[onclick='saveInspection()']");
+                        const convertBtn1 = document.getElementById('convertDocBtn');
+                        const convertBtn2 = document.getElementById('convertActionBtn');
+                        const docSelect = document.getElementById('docTypeSelect');
 
-        async function loadBundles() {
-            try {
-                const res = await fetch('/api/inspection-bundles');
-                allBundles = await res.json();
-                renderBundleShortcuts();
-            } catch (e) { console.error(e); }
-        }
+                        if (!canEdit) {
+                            banner.textContent = reason;
+                            banner.style.display = 'block';
+                            if (saveBtn1) saveBtn1.style.display = 'none';
+                            if (convertBtn1) convertBtn1.style.display = 'none';
+                            if (convertBtn2) convertBtn2.style.display = 'none';
+                            if (docSelect) docSelect.disabled = true;
 
-        function renderBundleShortcuts() {
-            const container = document.getElementById('bundlesShortcutsContainer');
-            if (!container) return;
-            if (allBundles.length === 0) {
-                container.innerHTML = '<div style="color: #166534; font-size: 14px;">لا توجد باقات مضافة</div>';
-                return;
-            }
-            container.innerHTML = allBundles.map(b => `
+                            // تعطيل حقول الإدخال
+                            document.querySelectorAll('input:not(#searchInput), select:not(#quickCategoryFilter):not(#searchInput), textarea').forEach(el => {
+                                if (el.id !== 'searchInput') el.disabled = true;
+                            });
+                        } else {
+                            banner.style.display = 'none';
+                            if (saveBtn1) saveBtn1.style.display = 'inline-flex';
+                            if (convertBtn1) convertBtn1.style.display = 'inline-block';
+                            if (convertBtn2) convertBtn2.style.display = 'inline-block';
+                            
+                            // فقط موظفو الإدارة يمكنهم تبديل نوع المستند بحرية من القائمة
+                            if (docSelect) {
+                                docSelect.disabled = (typeof APP_PERMISSIONS !== 'undefined') ? !APP_PERMISSIONS.canEditJobOrder(currentUser) : false;
+                            }
+
+                            // تفعيل حقول الإدخال
+                            document.querySelectorAll('input, select, textarea').forEach(el => {
+                                el.disabled = false;
+                            });
+                        }
+                    }
+
+                    async function toggleConvertDoc() {
+                        if (currentDocType === 'new') {
+                            if (typeof APP_PERMISSIONS !== 'undefined' && !APP_PERMISSIONS.canEditQuotation(currentUser)) {
+                                alert('عذراً، ليس لديك صلاحية تحويل هذا المستند.');
+                                return;
+                            }
+                            changeDocType('job_order');
+                            if (typeof showSuccess === 'function') {
+                                showSuccess('تم تحويل المستند إلى أمر عمل 🛠️. اضغط "حفظ المستند" لتأكيد التغيير.');
+                            } else {
+                                alert('تم تحويل المستند إلى أمر عمل 🛠️. اضغط "حفظ المستند" لتأكيد التغيير.');
+                            }
+                            if (currentInspectionId) {
+                                try {
+                                    await fetch(`/api/inspections/${currentInspectionId}/convert-to-job`, { method: 'POST' });
+                                } catch (e) { console.error(e); }
+                            }
+                        } else {
+                            if (typeof APP_PERMISSIONS !== 'undefined' && !APP_PERMISSIONS.canEditJobOrder(currentUser)) {
+                                alert('عذراً، تعديل أوامر العمل متاح فقط لموظفي الإدارة.');
+                                return;
+                            }
+                            changeDocType('new');
+                            if (typeof showInfo === 'function') {
+                                showInfo('تم تحويل المستند إلى تسعيرة أجور 📋.');
+                            } else {
+                                alert('تم تحويل المستند إلى تسعيرة أجور 📋.');
+                            }
+                            if (currentInspectionId) {
+                                try {
+                                    await fetch(`/api/inspections/${currentInspectionId}/status`, {
+                                        method: 'PATCH',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ status: 'new' })
+                                    });
+                                } catch (e) { console.error(e); }
+                            }
+                        }
+                    }
+
+                    async function init() {
+                        if (!currentUser) window.location.href = 'login.html';
+                        document.getElementById('inspectorName').textContent = currentUser.employee_name;
+                        document.getElementById('inspectorNameDisplay').textContent = currentUser.employee_name;
+                        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('ar-SA');
+
+                        try {
+                            const setRes = await fetch('/api/settings');
+                            if (setRes.ok) {
+                                const settings = await setRes.json();
+                                if (settings.workshop_name || settings.app_name) {
+                                    document.getElementById('inspectorShopName').textContent = settings.workshop_name || settings.app_name;
+                                }
+                                if (settings.workshop_desc) {
+                                    document.getElementById('inspectorShopDesc').textContent = settings.workshop_desc;
+                                }
+                                if (settings.workshop_phone) {
+                                    document.getElementById('inspectorShopPhone').textContent = '📞 ' + settings.workshop_phone;
+                                }
+                                if (settings.vat_number) {
+                                    document.getElementById('inspectorShopVat').textContent = '📄 الرقم الضريبي: ' + settings.vat_number;
+                                }
+                            }
+                        } catch (e) {}
+
+                        await fetchServices();
+                        populateModels();
+                        setupPlateInputs();
+                        updateQuickServices();
+                        generateRows(60); // Default to 60 rows for 2 pages
+                        setupEnterNavigation();
+                        await loadBundles();
+
+                        // Check URL Parameters for existing inspection or mode
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const id = urlParams.get('id');
+                        const mode = urlParams.get('mode') || urlParams.get('type');
+                        if (mode === 'job_order') {
+                            changeDocType('job_order');
+                        }
+                        if (id) {
+                            await loadInspection(id);
+                        }
+                    }
+
+                    async function fetchServices() {
+                        try {
+                            const res = await fetch('/api/services');
+                            allServicesList = await res.json();
+                            pricingData = {};
+                            allServicesList.forEach(s => {
+                                if (!pricingData[s.category]) pricingData[s.category] = [];
+                                pricingData[s.category].push({ service: s.service_name, price: s.price });
+                            });
+
+                            // Update quick add categories
+                            const quickCat = document.getElementById('quickCat');
+                            if (quickCat) {
+                                const categories = Object.keys(pricingData).sort();
+                                quickCat.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+                            }
+                        } catch (e) {
+                            console.error('Error fetching services:', e);
+                        }
+                    }
+
+                    function updateQuickServices() {
+                        const cat = document.getElementById('quickCat').value;
+                        const select = document.getElementById('quickService');
+                        if (!pricingData[cat]) return;
+                        select.innerHTML = pricingData[cat].map(s => `<option value="${s.service}" data-price="${s.price}">${s.service} (${s.price} ريال)</option>`).join('');
+                    }
+
+                    function addQuickService() {
+                        const select = document.getElementById('quickService');
+                        const option = select.options[select.selectedIndex];
+                        if (!option) return;
+
+                        const service = option.value;
+                        const price = option.getAttribute('data-price');
+                        const cat = document.getElementById('quickCat').value;
+
+                        // Try to find empty row
+                        const rows = document.querySelectorAll('#tableBody tr');
+                        for (let tr of rows) {
+                            const input = tr.querySelector('.service-input');
+                            if (!input.value.trim()) {
+                                tr.querySelector('.cat-select').value = cat;
+                                input.value = service;
+                                tr.querySelector('.price-input').value = price;
+                                tr.querySelector('.qty-input').value = 1;
+                                calculateRow(input);
+                                tr.style.backgroundColor = '#dcfce7';
+                                setTimeout(() => tr.style.backgroundColor = '', 1000);
+                                if (window.innerWidth < 768) alert('تمت إضافة: ' + service);
+                                return;
+                            }
+                        }
+
+                        // If full, add new row
+                        const newTr = addNewRow();
+                        newTr.querySelector('.cat-select').value = cat;
+                        newTr.querySelector('.service-input').value = service;
+                        newTr.querySelector('.price-input').value = price;
+                        newTr.querySelector('.qty-input').value = 1;
+                        calculateRow(newTr.querySelector('.service-input'));
+                        newTr.style.backgroundColor = '#dcfce7';
+                        setTimeout(() => newTr.style.backgroundColor = '', 1000);
+                        if (window.innerWidth < 768) alert('تمت إضافة: ' + service);
+                    }
+
+                    async function loadBundles() {
+                        try {
+                            const res = await fetch('/api/inspection-bundles');
+                            allBundles = await res.json();
+                            renderBundleShortcuts();
+                        } catch (e) { console.error(e); }
+                    }
+
+                    function renderBundleShortcuts() {
+                        const container = document.getElementById('bundlesShortcutsContainer');
+                        if (!container) return;
+                        if (allBundles.length === 0) {
+                            container.innerHTML = '<div style="color: #166534; font-size: 14px;">لا توجد باقات مضافة</div>';
+                            return;
+                        }
+                        container.innerHTML = allBundles.map(b => `
                 <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; background: white; padding: 10px 15px; border-radius: 12px; border: 1px solid #bbf7d0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.2s;" onmouseover="this.style.borderColor='#22c55e'" onmouseout="this.style.borderColor='#bbf7d0'">
                     <input type="checkbox" onchange="applyBundle(${b.id}, this)" style="width: 20px; height: 20px; cursor: pointer;">
                     <span style="font-weight: 600; color: #166534;">${b.name} ${b.icon || '✅'}</span>
                 </label>
             `).join('');
-        }
+                    }
 
-        function applyBundle(bundleId, checkbox) {
-            if (!checkbox.checked) return;
+                    function applyBundle(bundleId, checkbox) {
+                        if (!checkbox.checked) return;
 
-            const bundle = allBundles.find(b => b.id === bundleId);
-            if (!bundle) return;
+                        const bundle = allBundles.find(b => b.id === bundleId);
+                        if (!bundle) return;
 
-            const items = bundle.items;
-            const rows = document.querySelectorAll('#tableBody tr');
-            let addedCount = 0;
+                        const items = bundle.items;
 
-            items.forEach(item => {
-                for (let tr of rows) {
-                    const input = tr.querySelector('.service-input');
-                    if (!input.value.trim()) {
-                        tr.querySelector('.cat-select').value = item.category;
-                        input.value = item.service_description;
+                        items.forEach(item => {
+                            let targetRow = null;
 
-                        // محاولة إيجاد السعر من البيانات المحملة
-                        let price = 0;
-                        if (pricingData[item.category]) {
-                            const found = pricingData[item.category].find(s => s.service === item.service_description);
-                            if (found) price = found.price;
+                            // Try to find an empty row
+                            const rows = document.querySelectorAll('#tableBody tr');
+                            for (let tr of rows) {
+                                const input = tr.querySelector('.service-input');
+                                if (!input.value.trim()) {
+                                    targetRow = tr;
+                                    break;
+                                }
+                            }
+
+                            // If no empty row, create one
+                            if (!targetRow) {
+                                targetRow = addNewRow();
+                            }
+
+                            if (targetRow) {
+                                const input = targetRow.querySelector('.service-input');
+                                targetRow.querySelector('.cat-select').value = item.category;
+                                input.value = item.service_description;
+
+                                let price = 0;
+                                if (pricingData[item.category]) {
+                                    const found = pricingData[item.category].find(s => s.service === item.service_description);
+                                    if (found) price = found.price;
+                                }
+
+                                targetRow.querySelector('.price-input').value = price;
+                                targetRow.querySelector('.qty-input').value = 1;
+                                calculateRow(input);
+
+                                targetRow.style.backgroundColor = '#dcfce7';
+                                setTimeout(() => targetRow.style.backgroundColor = '', 1500);
+                            }
+                        });
+
+                        // Reset checkbox
+                        setTimeout(() => checkbox.checked = false, 500);
+                    }
+
+                    function populateModels() {
+                        const list = document.getElementById('carModels');
+                        for (let y = 2027; y >= 2008; y--) {
+                            const opt = document.createElement('option');
+                            opt.value = y;
+                            list.appendChild(opt);
                         }
-
-                        tr.querySelector('.price-input').value = price;
-                        tr.querySelector('.qty-input').value = 1;
-                        calculateRow(input);
-
-                        tr.style.backgroundColor = '#dcfce7';
-                        setTimeout(() => tr.style.backgroundColor = '', 1500);
-                        addedCount++;
-                        break;
                     }
-                }
-            });
 
-            if (addedCount < items.length) {
-                alert(`تم إضافة ${addedCount} من أصل ${items.length} خدمات. الجدول قد يكون ممتلئاً.`);
-            }
-
-            // إعادة ضبط الـ checkbox ليكون قابلاً للنقر مرة أخرى مستقبلاً
-            setTimeout(() => checkbox.checked = false, 500);
-        }
-
-        function populateModels() {
-            const list = document.getElementById('carModels');
-            for (let y = 2027; y >= 2008; y--) {
-                const opt = document.createElement('option');
-                opt.value = y;
-                list.appendChild(opt);
-            }
-        }
-
-        function setupPlateInputs() {
-            const inputs = document.querySelectorAll('.plate-input');
-            inputs.forEach((input, index) => {
-                input.addEventListener('input', () => {
-                    if (input.value.length === 1 && index < inputs.length - 1) inputs[index + 1].focus();
-                });
-                input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Backspace' && input.value.length === 0 && index > 0) inputs[index - 1].focus();
-                });
-            });
-        }
-
-        function generateRows(count) {
-            const tbody = document.getElementById('tableBody');
-            tbody.innerHTML = '';
-            const categories = Object.keys(pricingData).sort();
-            for (let i = 1; i <= count; i++) {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="col-sn" data-label="#">${i}</td>
-                    <td data-label="الفئة">
-                        <select class="table-input cat-select">
-                            ${categories.map(c => `<option value="${c}" ${c === 'كشف' ? 'selected' : ''}>${c}</option>`).join('')}
-                        </select>
-                    </td>
-                    <td class="service-container" data-label="الخدمة">
-                        <input type="text" class="table-input service-input" placeholder=" " oninput="handleServiceInput(this)">
-                        <div class="autocomplete-items" style="display:none"></div>
-                    </td>
-                    <td data-label="العدد"><input type="number" class="table-input qty-input" oninput="calculateRow(this)"></td>
-                    <td data-label="السعر"><input type="number" class="table-input price-input" oninput="calculateRow(this)"></td>
-                    <td class="col-total row-total" data-label="الإجمالي">0.00</td>
-                `;
-                tbody.appendChild(tr);
-            }
-        }
-
-        function handleServiceInput(input) {
-            const tr = input.closest('tr');
-            const currentCat = tr.querySelector('.cat-select').value;
-            const val = input.value.toLowerCase();
-            const container = input.nextElementSibling;
-            container.innerHTML = '';
-
-            if (!val) { container.style.display = 'none'; return; }
-
-            const currentCatMatches = (pricingData[currentCat] || [])
-                .filter(s => s.service.toLowerCase().includes(val))
-                .map(s => ({ ...s, category: currentCat, priority: 1 }));
-
-            let otherMatches = [];
-            Object.keys(pricingData).forEach(cat => {
-                if (cat !== currentCat) {
-                    const matches = pricingData[cat]
-                        .filter(s => s.service.toLowerCase().includes(val))
-                        .map(s => ({ ...s, category: cat, priority: 2 }));
-                    otherMatches = otherMatches.concat(matches);
-                }
-            });
-
-            const allMatches = [...currentCatMatches, ...otherMatches].slice(0, 10);
-            if (allMatches.length === 0) { container.style.display = 'none'; return; }
-
-            container.style.display = 'block';
-            allMatches.forEach(match => {
-                const div = document.createElement('div');
-                div.style.display = 'flex';
-                div.style.justifyContent = 'space-between';
-                div.innerHTML = `<span>${match.service}</span> <span style="font-size:9px; color:#999;">(${match.category})</span>`;
-                div.onclick = () => {
-                    input.value = match.service;
-                    tr.querySelector('.price-input').value = match.price;
-                    tr.querySelector('.qty-input').value = 1;
-                    tr.querySelector('.cat-select').value = match.category;
-                    calculateRow(input);
-                    container.style.display = 'none';
-                };
-                container.appendChild(div);
-            });
-        }
-
-        function calculateRow(el) {
-            const tr = el.closest('tr');
-            const qty = parseFloat(tr.querySelector('.qty-input').value) || 0;
-            const price = parseFloat(tr.querySelector('.price-input').value) || 0;
-            const total = qty * price;
-            tr.querySelector('.row-total').textContent = total.toFixed(2);
-            calculateTotals();
-        }
-
-        function calculateTotals() {
-            let subtotal = 0;
-            document.querySelectorAll('.row-total').forEach(td => {
-                subtotal += parseFloat(td.textContent) || 0;
-            });
-
-            const vat = subtotal * 0.15;
-            const final = subtotal + vat;
-            const paid = parseFloat(document.getElementById('paidAmount').value) || 0;
-            const remaining = final - paid;
-
-            document.getElementById('subTotal').textContent = subtotal.toFixed(2);
-            document.getElementById('vatTotal').textContent = vat.toFixed(2);
-            document.getElementById('finalTotal').textContent = final.toFixed(2);
-            document.getElementById('remainingAmount').textContent = remaining.toFixed(2);
-        }
-
-        async function saveInspection() {
-            if (!currentUser || !currentUser.employee_id) return alert('خطأ: لم يتم العثور على بيانات الموظف. يرجى تسجيل الدخول مرة أخرى.');
-            const items = [];
-            document.querySelectorAll('#tableBody tr').forEach(tr => {
-                const service = tr.querySelector('.service-input').value.trim();
-                if (service) {
-                    items.push({
-                        category: tr.querySelector('.cat-select').value,
-                        service_description: service,
-                        quantity: parseInt(tr.querySelector('.qty-input').value) || 1,
-                        price: parseFloat(tr.querySelector('.price-input').value) || 0,
-                        total: parseFloat(tr.querySelector('.row-total').textContent) || 0
-                    });
-                }
-            });
-
-            if (items.length === 0) return alert('الرجاء إضافة خدمة واحدة على الأقل');
-
-            const data = {
-                inspector_id: currentUser.employee_id,
-                customer_name: document.getElementById('custName').value,
-                customer_phone: document.getElementById('custPhone').value,
-                car_type: document.getElementById('carType').value,
-                car_model: document.getElementById('carModel').value,
-                car_color: document.getElementById('carColor').value,
-                odometer: document.getElementById('odometer').value,
-                vin: document.getElementById('vin').value,
-                plate_number: `${document.getElementById('pL1').value}${document.getElementById('pL2').value}${document.getElementById('pL3').value} ${document.getElementById('pN1').value}${document.getElementById('pN2').value}${document.getElementById('pN3').value}${document.getElementById('pN4').value}`,
-                total_amount: parseFloat(document.getElementById('subTotal').textContent),
-                vat_amount: parseFloat(document.getElementById('vatTotal').textContent),
-                final_amount: parseFloat(document.getElementById('finalTotal').textContent),
-                paid_amount: parseFloat(document.getElementById('paidAmount').value) || 0,
-                remaining_amount: parseFloat(document.getElementById('remainingAmount').textContent),
-                items: items
-            };
-
-            try {
-                const url = currentInspectionId ? `/api/inspections/${currentInspectionId}` : '/api/inspections';
-                const method = currentInspectionId ? 'PUT' : 'POST';
-
-                const res = await fetch(url, {
-                    method: method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                const result = await res.json();
-                if (res.ok) {
-                    alert(currentInspectionId ? 'تم تحديث الكشف بنجاح' : 'تم حفظ الكشف بنجاح، رقم الكشف: ' + result.id);
-                    if (!currentInspectionId) {
-                        currentInspectionId = result.id;
-                        document.getElementById('inspectionIdDisplay').textContent = result.id;
+                    function setupPlateInputs() {
+                        const inputs = document.querySelectorAll('.plate-input');
+                        inputs.forEach((input, index) => {
+                            input.addEventListener('input', () => {
+                                if (input.value.length === 1 && index < inputs.length - 1) inputs[index + 1].focus();
+                            });
+                            input.addEventListener('keydown', (e) => {
+                                if (e.key === 'Backspace' && input.value.length === 0 && index > 0) inputs[index - 1].focus();
+                            });
+                        });
                     }
-                } else {
-                    alert('خطأ في الحفظ: ' + (result.message || 'فشل الاتصال بالسيرفر'));
-                }
-            } catch (e) {
-                console.error(e);
-                alert('حدث خطأ: ' + e.message);
-            }
-        }
 
-        async function searchInspections() {
-            const query = document.getElementById('searchInput').value.trim();
-            if (!query) return;
+                    function addNewRow() {
+                        const tbody = document.getElementById('tableBody');
+                        const rowCount = tbody.rows.length + 1;
+                        const categories = Object.keys(pricingData).sort();
 
-            try {
-                const res = await fetch(`/api/inspections/search?query=${encodeURIComponent(query)}`);
-                if (!res.ok) throw new Error('Network response was not ok');
-                const results = await res.json();
-
-                if (!Array.isArray(results) || results.length === 0) {
-                    return alert('لا توجد نتائج لهذا البحث');
-                }
-
-                if (results.length === 1) {
-                    loadInspection(results[0].id);
-                } else {
-                    const choice = prompt(`وجدنا ${results.length} نتائج. أدخل رقم الكشف المطلوب:\n` +
-                        results.map(r => `#${r.id} - ${r.customer_name} (${r.customer_phone})`).join('\n'));
-                    if (choice) loadInspection(choice);
-                }
-            } catch (e) {
-                console.error('Search Error:', e);
-                alert('حدث خطأ أثناء البحث');
-            }
-        }
-
-        async function loadInspection(id) {
-            try {
-                const res = await fetch(`/api/inspections/${id}`);
-                const data = await res.json();
-                currentInspectionId = data.id;
-                document.getElementById('inspectionIdDisplay').textContent = data.id;
-                document.getElementById('currentDate').textContent = new Date(data.created_at).toLocaleDateString('ar-SA');
-                document.getElementById('custName').value = data.customer_name;
-                document.getElementById('custPhone').value = data.customer_phone;
-                document.getElementById('carType').value = data.car_type;
-                document.getElementById('carModel').value = data.car_model;
-                document.getElementById('carColor').value = data.car_color;
-                document.getElementById('odometer').value = data.odometer || '';
-                document.getElementById('vin').value = data.vin || '';
-                document.getElementById('paidAmount').value = data.paid_amount;
-
-                // Load plate number
-                if (data.plate_number) {
-                    const parts = data.plate_number.split(' ');
-                    if (parts.length === 2) {
-                        const letters = parts[0];
-                        const numbers = parts[1];
-                        document.getElementById('pL1').value = letters[0] || '';
-                        document.getElementById('pL2').value = letters[1] || '';
-                        document.getElementById('pL3').value = letters[2] || '';
-                        document.getElementById('pN1').value = numbers[0] || '';
-                        document.getElementById('pN2').value = numbers[1] || '';
-                        document.getElementById('pN3').value = numbers[2] || '';
-                        document.getElementById('pN4').value = numbers[3] || '';
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                <td class="col-sn" data-label="#">${rowCount}</td>
+                <td data-label="الفئة">
+                    <select class="table-input cat-select">
+                        ${categories.map(c => `<option value="${c}" ${c === 'كشف' ? 'selected' : ''}>${c}</option>`).join('')}
+                    </select>
+                </td>
+                <td class="service-container" data-label="الخدمة">
+                    <input type="text" class="table-input service-input" placeholder=" " oninput="handleServiceInput(this)">
+                    <div class="autocomplete-items" style="display:none"></div>
+                </td>
+                <td data-label="العدد"><input type="number" class="table-input qty-input" oninput="calculateRow(this)"></td>
+                <td data-label="السعر"><input type="number" class="table-input price-input" oninput="calculateRow(this)"></td>
+                <td class="col-total row-total" data-label="الإجمالي">0.00</td>
+            `;
+                        tbody.appendChild(tr);
+                        return tr;
                     }
-                }
 
-                // Load items
-                generateRows(30); // Reset rows
-                const rows = document.querySelectorAll('#tableBody tr');
-                data.items.forEach((item, i) => {
-                    if (rows[i]) {
-                        rows[i].querySelector('.cat-select').value = item.category;
-                        rows[i].querySelector('.service-input').value = item.service_description;
-                        rows[i].querySelector('.qty-input').value = item.quantity;
-                        rows[i].querySelector('.price-input').value = item.price;
-                        calculateRow(rows[i].querySelector('.service-input'));
-                    }
-                });
-                calculateTotals();
-            } catch (e) { console.error(e); }
-        }
-
-        function resetForm() {
-            if (confirm('بدء كشف جديد؟')) location.reload();
-        }
-
-        function setupEnterNavigation() {
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    const target = e.target;
-                    if (target.tagName === 'INPUT' || target.tagName === 'SELECT') {
-                        if (target.classList.contains('service-input')) {
-                            const container = target.nextElementSibling;
-                            if (container && container.style.display === 'block') return;
+                    function generateRows(count) {
+                        const tbody = document.getElementById('tableBody');
+                        if (tbody.rows.length === 0) {
+                            for (let i = 0; i < count; i++) {
+                                addNewRow();
+                            }
+                        } else {
+                            tbody.innerHTML = '';
+                            for (let i = 0; i < count; i++) {
+                                addNewRow();
+                            }
                         }
-                        if (target.id === 'searchInput') {
-                            e.preventDefault();
-                            searchInspections();
+                    }
+
+                    function handleServiceInput(input) {
+                        const tr = input.closest('tr');
+                        const currentCat = tr.querySelector('.cat-select').value;
+                        const val = input.value.toLowerCase();
+                        const container = input.nextElementSibling;
+                        container.innerHTML = '';
+
+                        if (!val) { container.style.display = 'none'; return; }
+
+                        const currentCatMatches = (pricingData[currentCat] || [])
+                            .filter(s => s.service.toLowerCase().includes(val))
+                            .map(s => ({ ...s, category: currentCat, priority: 1 }));
+
+                        let otherMatches = [];
+                        Object.keys(pricingData).forEach(cat => {
+                            if (cat !== currentCat) {
+                                const matches = pricingData[cat]
+                                    .filter(s => s.service.toLowerCase().includes(val))
+                                    .map(s => ({ ...s, category: cat, priority: 2 }));
+                                otherMatches = otherMatches.concat(matches);
+                            }
+                        });
+
+                        const allMatches = [...currentCatMatches, ...otherMatches].slice(0, 10);
+                        if (allMatches.length === 0) { container.style.display = 'none'; return; }
+
+                        container.style.display = 'block';
+                        allMatches.forEach(match => {
+                            const div = document.createElement('div');
+                            div.style.display = 'flex';
+                            div.style.justifyContent = 'space-between';
+                            div.innerHTML = `<span>${match.service}</span> <span style="font-size:9px; color:#999;">(${match.category})</span>`;
+                            div.onclick = () => {
+                                input.value = match.service;
+                                tr.querySelector('.price-input').value = match.price;
+                                tr.querySelector('.qty-input').value = 1;
+                                tr.querySelector('.cat-select').value = match.category;
+                                calculateRow(input);
+                                container.style.display = 'none';
+                            };
+                            container.appendChild(div);
+                        });
+                    }
+
+                    function calculateRow(el) {
+                        const tr = el.closest('tr');
+                        const qty = parseFloat(tr.querySelector('.qty-input').value) || 0;
+                        const price = parseFloat(tr.querySelector('.price-input').value) || 0;
+                        const total = qty * price;
+                        tr.querySelector('.row-total').textContent = total.toFixed(2);
+                        calculateTotals();
+                    }
+
+                    function calculateTotals() {
+                        let subtotal = 0;
+                        document.querySelectorAll('.row-total').forEach(td => {
+                            subtotal += parseFloat(td.textContent) || 0;
+                        });
+
+                        const vat = subtotal * 0.15;
+                        const final = subtotal + vat;
+                        const paid = parseFloat(document.getElementById('paidAmount').value) || 0;
+                        const remaining = final - paid;
+
+                        document.getElementById('subTotal').textContent = subtotal.toFixed(2);
+                        document.getElementById('vatTotal').textContent = vat.toFixed(2);
+                        document.getElementById('finalTotal').textContent = final.toFixed(2);
+                        document.getElementById('remainingAmount').textContent = remaining.toFixed(2);
+                    }
+
+                    async function saveInspection() {
+                        // إعادة تحميل بيانات المستخدم من localStorage
+                        currentUser = JSON.parse(localStorage.getItem('user'));
+
+                        // التحقق من وجود بيانات المستخدم
+                        if (!currentUser) {
+                            alert('خطأ: لم يتم العثور على بيانات المستخدم. يرجى تسجيل الدخول مرة أخرى.');
+                            window.location.href = 'login.html';
                             return;
                         }
-                        e.preventDefault();
-                        const focusable = Array.from(document.querySelectorAll('input:not([type="hidden"]), select, button:not(.no-print)'))
-                            .filter(el => !el.disabled && el.offsetWidth > 0 && el.offsetHeight > 0);
-                        const index = focusable.indexOf(target);
-                        if (index > -1 && index < focusable.length - 1) {
-                            focusable[index + 1].focus();
+
+                        // التحقق من وجود معرف الموظف (يمكن أن يكون employee_id أو id)
+                        const inspectorId = currentUser.employee_id || currentUser.id;
+                        if (!inspectorId) {
+                            alert('خطأ: لم يتم العثور على معرف الموظف. يرجى تسجيل الدخول مرة أخرى.');
+                            console.error('User data:', currentUser);
+                            window.location.href = 'login.html';
+                            return;
+                        }
+                        const items = [];
+                        document.querySelectorAll('#tableBody tr').forEach(tr => {
+                            const service = tr.querySelector('.service-input').value.trim();
+                            if (service) {
+                                items.push({
+                                    category: tr.querySelector('.cat-select').value,
+                                    service_description: service,
+                                    quantity: parseInt(tr.querySelector('.qty-input').value) || 1,
+                                    price: parseFloat(tr.querySelector('.price-input').value) || 0,
+                                    total: parseFloat(tr.querySelector('.row-total').textContent) || 0
+                                });
+                            }
+                        });
+
+                        if (items.length === 0) {
+                            if (typeof showWarning === 'function') {
+                                showWarning('الرجاء إضافة خدمة واحدة على الأقل');
+                            } else {
+                                alert('الرجاء إضافة خدمة واحدة على الأقل');
+                            }
+                            return;
+                        }
+
+                        const carStatusEl = document.getElementById('carStatusSelect');
+                        const data = {
+                            inspector_id: inspectorId,
+                            customer_name: document.getElementById('custName').value,
+                            customer_phone: document.getElementById('custPhone').value,
+                            car_type: document.getElementById('carType').value,
+                            car_model: document.getElementById('carModel').value,
+                            car_color: document.getElementById('carColor').value,
+                            odometer: document.getElementById('odometer').value,
+                            vin: document.getElementById('vin').value,
+                            plate_number: `${document.getElementById('pL1').value}${document.getElementById('pL2').value}${document.getElementById('pL3').value} ${document.getElementById('pN1').value}${document.getElementById('pN2').value}${document.getElementById('pN3').value}${document.getElementById('pN4').value}`,
+                            total_amount: parseFloat(document.getElementById('subTotal').textContent),
+                            vat_amount: parseFloat(document.getElementById('vatTotal').textContent),
+                            final_amount: parseFloat(document.getElementById('finalTotal').textContent),
+                            paid_amount: parseFloat(document.getElementById('paidAmount').value) || 0,
+                            remaining_amount: parseFloat(document.getElementById('remainingAmount').textContent),
+                            status: currentDocType,
+                            car_status: carStatusEl ? carStatusEl.value : 'in_progress',
+                            items: items
+                        };
+
+                        try {
+                            const url = currentInspectionId ? `/api/inspections/${currentInspectionId}` : '/api/inspections';
+                            const method = currentInspectionId ? 'PUT' : 'POST';
+
+                            const res = await fetch(url, {
+                                method: method,
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(data)
+                            });
+                            const result = await res.json();
+                            if (res.ok) {
+                                const docName = currentDocType === 'job_order' ? 'أمر العمل' : 'الكشف / التسعيرة';
+                                const message = currentInspectionId ? `تم تحديث ${docName} بنجاح` : `تم حفظ ${docName} بنجاح، الرقم: ${result.id}`;
+                                if (typeof showSuccess === 'function') {
+                                    showSuccess(message);
+                                } else {
+                                    alert(message);
+                                }
+                                if (!currentInspectionId) {
+                                    currentInspectionId = result.id;
+                                    document.getElementById('inspectionIdDisplay').textContent = result.id;
+                                }
+                            } else {
+                                const errorMsg = 'خطأ في الحفظ: ' + (result.message || 'فشل الاتصال بالسيرفر');
+                                if (typeof showError === 'function') {
+                                    showError(errorMsg);
+                                } else {
+                                    alert(errorMsg);
+                                }
+                            }
+                        } catch (e) {
+                            console.error(e);
+                            const errorMsg = 'حدث خطأ: ' + e.message;
+                            if (typeof showError === 'function') {
+                                showError(errorMsg);
+                            } else {
+                                alert(errorMsg);
+                            }
                         }
                     }
-                }
-            });
-        }
 
-        init();
-    </script>
-</body>
+                    async function searchInspections() {
+                        const query = document.getElementById('searchInput').value.trim();
+                        if (!query) return;
+
+                        try {
+                            const res = await fetch(`/api/inspections/search?query=${encodeURIComponent(query)}`);
+                            if (!res.ok) throw new Error('Network response was not ok');
+                            const results = await res.json();
+
+                            if (!Array.isArray(results) || results.length === 0) {
+                                return alert('لا توجد نتائج لهذا البحث');
+                            }
+
+                            if (results.length === 1) {
+                                loadInspection(results[0].id);
+                            } else {
+                                const choice = prompt(`وجدنا ${results.length} نتائج. أدخل رقم المستند المطلوب:\n` +
+                                    results.map(r => `${r.id} - ${r.customer_name || 'بدون اسم'} (${r.customer_phone || ''}) [${r.status === 'job_order' ? 'أمر عمل' : 'تسعيرة'}]`).join('\n'));
+                                if (choice) {
+                                    const id = choice.replace(/\D/g, '');
+                                    if(id) loadInspection(id);
+                                }
+                            }
+                        } catch (e) {
+                            console.error('Search Error:', e);
+                            alert('حدث خطأ أثناء البحث');
+                        }
+                    }
+
+                    async function loadInspection(id) {
+                        try {
+                            const res = await fetch(`/api/inspections/${id}`);
+                            if (!res.ok) throw new Error('Document not found');
+                            const data = await res.json();
+                            currentInspectionId = data.id;
+                            document.getElementById('inspectionIdDisplay').textContent = data.id;
+                            document.getElementById('currentDate').textContent = new Date(data.created_at).toLocaleDateString('ar-SA');
+                            document.getElementById('custName').value = data.customer_name || '';
+                            document.getElementById('custPhone').value = data.customer_phone || '';
+                            document.getElementById('carType').value = data.car_type || '';
+                            document.getElementById('carModel').value = data.car_model || '';
+                            document.getElementById('carColor').value = data.car_color || '';
+                            document.getElementById('odometer').value = data.odometer || '';
+                            document.getElementById('vin').value = data.vin || '';
+                            document.getElementById('paidAmount').value = data.paid_amount || 0;
+
+                            // Set Document Type & Status
+                            if (data.status === 'job_order') {
+                                changeDocType('job_order');
+                                if (data.car_status && document.getElementById('carStatusSelect')) {
+                                    document.getElementById('carStatusSelect').value = data.car_status;
+                                }
+                            } else {
+                                changeDocType('new');
+                            }
+
+                            // Load plate number
+                            if (data.plate_number) {
+                                const parts = data.plate_number.split(' ');
+                                if (parts.length === 2) {
+                                    const letters = parts[0];
+                                    const numbers = parts[1];
+                                    document.getElementById('pL1').value = letters[0] || '';
+                                    document.getElementById('pL2').value = letters[1] || '';
+                                    document.getElementById('pL3').value = letters[2] || '';
+                                    document.getElementById('pN1').value = numbers[0] || '';
+                                    document.getElementById('pN2').value = numbers[1] || '';
+                                    document.getElementById('pN3').value = numbers[2] || '';
+                                    document.getElementById('pN4').value = numbers[3] || '';
+                                }
+                            }
+
+                            // Load items
+                            generateRows(60); // Reset rows to 60
+                            const rows = document.querySelectorAll('#tableBody tr');
+                            if (data.items && Array.isArray(data.items)) {
+                                data.items.forEach((item, i) => {
+                                    if (rows[i]) {
+                                        rows[i].querySelector('.cat-select').value = item.category || 'عام';
+                                        rows[i].querySelector('.service-input').value = item.service_description || '';
+                                        rows[i].querySelector('.qty-input').value = item.quantity || 1;
+                                        rows[i].querySelector('.price-input').value = item.price || 0;
+                                        calculateRow(rows[i].querySelector('.service-input'));
+                                    } else {
+                                        const newTr = addNewRow();
+                                        newTr.querySelector('.cat-select').value = item.category || 'عام';
+                                        newTr.querySelector('.service-input').value = item.service_description || '';
+                                        newTr.querySelector('.qty-input').value = item.quantity || 1;
+                                        newTr.querySelector('.price-input').value = item.price || 0;
+                                        calculateRow(newTr.querySelector('.service-input'));
+                                    }
+                                });
+                            }
+                            calculateTotals();
+                        } catch (e) { 
+                            console.error(e); 
+                            if (typeof showError === 'function') showError('تعذر تحميل بيانات المستند: ' + e.message);
+                        }
+                    }
+
+                    function resetForm() {
+                        if (confirm('بدء كشف جديد؟')) location.reload();
+                    }
+
+                    function setupEnterNavigation() {
+                        document.addEventListener('keydown', (e) => {
+                            if (e.key === 'Enter') {
+                                const target = e.target;
+                                if (target.tagName === 'INPUT' || target.tagName === 'SELECT') {
+                                    if (target.classList.contains('service-input')) {
+                                        const container = target.nextElementSibling;
+                                        if (container && container.style.display === 'block') return;
+                                    }
+                                    if (target.id === 'searchInput') {
+                                        e.preventDefault();
+                                        searchInspections();
+                                        return;
+                                    }
+                                    e.preventDefault();
+                                    const focusable = Array.from(document.querySelectorAll('input:not([type="hidden"]), select, button:not(.no-print)'))
+                                        .filter(el => !el.disabled && el.offsetWidth > 0 && el.offsetHeight > 0);
+                                    const index = focusable.indexOf(target);
+                                    if (index > -1 && index < focusable.length - 1) {
+                                        focusable[index + 1].focus();
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    init();
+                </script>
+            </body>
+
 
 </html>

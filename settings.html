@@ -4,11 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إعدادات النظام - الورشة</title>
+    <title>إعدادات النظام - Atenza App</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="public/js/app-config.js"></script>
     <style>
         .container {
             max-width: 800px;
@@ -92,17 +93,23 @@
 </head>
 
 <body>
+    <div id="atenzaNavbar"></div>
     <div class="container">
         <div class="header">
             <h1>⚙️ إعدادات النظام</h1>
-            <button class="btn btn-secondary" onclick="window.history.back()">🔙 رجوع</button>
+            <button class="btn btn-secondary" onclick="APP_NAV.goBack('admin.html')">🔙 رجوع</button>
         </div>
 
         <div class="section-box">
-            <div class="section-title">🏢 بيانات الورشة (للطباعة)</div>
+            <div class="section-title">📱 هوية واسم التطبيق (App Branding)</div>
             <div class="form-group">
-                <label>اسم الورشة</label>
-                <input type="text" id="workshopName" placeholder="مركز الورشة المتخصص">
+                <label>اسم التطبيق العام (App Name)</label>
+                <input type="text" id="appName" placeholder="Atenza App">
+                <small style="color: #64748b; font-size: 12px; display: block; margin-top: 4px;">يظهر هذا الاسم في عناوين الصفحات، شاشات الدخول، الشريط الجانبي وتثبيت التطبيق.</small>
+            </div>
+            <div class="form-group">
+                <label>اسم الورشة / المؤسسة (للفواتير والكشوفات والطباعة)</label>
+                <input type="text" id="workshopName" placeholder="Atenza App">
             </div>
             <div class="form-group">
                 <label>وصف النشاط</label>
@@ -116,7 +123,6 @@
                 <label>الرقم الضريبي</label>
                 <input type="text" id="vatNumber" placeholder="30xxxxxxxxxxxxx">
             </div>
-            <!-- Future: Logo Upload -->
         </div>
 
         <!-- Work Schedule Settings -->
@@ -196,7 +202,8 @@
             try {
                 const res = await fetch('/api/settings');
                 const settings = await res.json();
-                if (settings.workshop_name) document.getElementById('workshopName').value = settings.workshop_name;
+                document.getElementById('appName').value = settings.app_name || 'Atenza App';
+                document.getElementById('workshopName').value = settings.workshop_name || 'Atenza App';
                 if (settings.workshop_desc) document.getElementById('workshopDesc').value = settings.workshop_desc;
                 if (settings.workshop_phone) document.getElementById('workshopPhone').value = settings.workshop_phone;
                 if (settings.vat_number) document.getElementById('vatNumber').value = settings.vat_number;
@@ -258,8 +265,12 @@
 
         async function saveAllSettings() {
             try {
+                const appNameVal = document.getElementById('appName').value.trim() || 'Atenza App';
+                const workshopNameVal = document.getElementById('workshopName').value.trim() || 'Atenza App';
+                
                 const settingsPayload = {
-                    workshop_name: document.getElementById('workshopName').value,
+                    app_name: appNameVal,
+                    workshop_name: workshopNameVal,
                     workshop_desc: document.getElementById('workshopDesc').value,
                     workshop_phone: document.getElementById('workshopPhone').value,
                     vat_number: document.getElementById('vatNumber').value
@@ -269,6 +280,15 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(settingsPayload)
                 });
+
+                if (window.APP_CONFIG) {
+                    window.APP_CONFIG.setAppName(appNameVal);
+                    window.APP_CONFIG.setWorkshopName(workshopNameVal);
+                    window.APP_CONFIG.applyToDOM(appNameVal, workshopNameVal);
+                } else {
+                    localStorage.setItem('app_name', appNameVal);
+                    localStorage.setItem('workshop_name', workshopNameVal);
+                }
 
                 await fetch('/api/terms', {
                     method: 'POST',
@@ -282,7 +302,7 @@
                     body: JSON.stringify({ schedule: currentSchedule })
                 });
 
-                alert('✅ تم حفظ كافة الإعدادات بنجاح');
+                alert('✅ تم حفظ كافة الإعدادات واسم التطبيق بنجاح');
             } catch (e) { console.error(e); alert('❌ خطأ في الحفظ'); }
         }
 

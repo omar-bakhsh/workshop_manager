@@ -4,65 +4,216 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة أوامر العمل - الورشة</title>
+    <title>أوامر العمل والسيارات بالمركز - Atenza App</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="public/js/app-config.js"></script>
+    <script src="toast.js"></script>
+    <script src="toast_helpers.js"></script>
     <style>
         .container {
-            max-width: 1200px;
+            max-width: 1350px;
             margin: 20px auto;
-            padding: 20px;
+            padding: 15px;
         }
 
-        .header {
+        .page-top-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
             margin-bottom: 20px;
         }
 
-        .search-box {
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .kpi-card {
+            background: white;
+            padding: 14px 18px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid #e2e8f0;
             display: flex;
-            gap: 10px;
-            flex-grow: 1;
-            max-width: 600px;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-color: var(--primary);
+        }
+
+        .kpi-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .kpi-info h3 {
+            margin: 0;
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 700;
+        }
+
+        .kpi-info .val {
+            font-size: 20px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-top: 2px;
+        }
+
+        .filter-card {
+            background: white;
+            padding: 18px;
+            border-radius: 14px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-group label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #475569;
+        }
+
+        .filter-group input,
+        .filter-group select {
+            padding: 9px 12px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 13px;
+            background: #f8fafc;
+        }
+
+        .filter-group input:focus,
+        .filter-group select:focus {
+            border-color: var(--primary);
+            background: white;
+            outline: none;
         }
 
         .inspections-table {
             width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
             background: white;
-            border-radius: var(--radius-md);
+            border-radius: 12px;
             overflow: hidden;
             box-shadow: var(--shadow-sm);
         }
 
-        .inspections-table th,
-        .inspections-table td {
-            padding: 15px;
-            text-align: right;
-            border-bottom: 1px solid var(--border-color);
-        }
-
         .inspections-table th {
             background: #f8fafc;
-            font-weight: 700;
+            padding: 14px 16px;
+            font-size: 13px;
+            font-weight: 800;
+            color: #334155;
+            border-bottom: 2px solid #e2e8f0;
+            text-align: right;
         }
 
-        .status-badge {
-            padding: 5px 10px;
-            border-radius: 12px;
+        .inspections-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 13px;
+            vertical-align: middle;
+        }
+
+        .inspections-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .status-select-inline {
+            padding: 5px 8px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 800;
+            border: 1.5px solid #cbd5e1;
+            font-family: 'Cairo', sans-serif;
+            cursor: pointer;
+        }
+
+        .status-pending { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+        .status-in_progress { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
+        .status-waiting_parts { background: #ffedd5; color: #c2410c; border-color: #fed7aa; }
+        .status-ready { background: #dcfce7; color: #15803d; border-color: #bbf7d0; }
+        .status-completed { background: #f1f5f9; color: #475569; border-color: #cbd5e1; }
+
+        .action-btns {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .btn-action-icon {
+            padding: 6px 10px;
             font-size: 12px;
             font-weight: 700;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
         }
 
-        .status-badge.job-order {
-            background: #dcfce7;
-            color: #16a34a;
+        .btn-card { background: #4f46e5; color: white; }
+        .btn-card:hover { background: #4338ca; }
+
+        .btn-edit { background: #e0e7ff; color: #4338ca; }
+        .btn-edit:hover { background: #c7d2fe; }
+
+        .btn-assign { background: #fef3c7; color: #92400e; }
+        .btn-assign:hover { background: #fde68a; }
+
+        .btn-delete { background: #fee2e2; color: #b91c1c; }
+        .btn-delete:hover { background: #fecaca; }
+
+        .plate-box {
+            display: inline-block;
+            background: #fff;
+            border: 1.5px solid #000;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            font-size: 12px;
         }
 
-        /* Modal Styles */
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -84,78 +235,159 @@
         .modal-content {
             background: white;
             padding: 24px;
-            border-radius: 8px;
+            border-radius: 14px;
             width: 100%;
-            max-width: 500px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-        }
-
-        .action-btns {
-            display: flex;
-            gap: 5px;
-        }
-
-        .btn-icon {
-            padding: 5px 10px;
-            font-size: 14px;
+            max-width: 520px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
 
         .tech-list {
-            max-height: 300px;
+            max-height: 280px;
             overflow-y: auto;
             margin: 15px 0;
-            border: 1px solid #ddd;
+            border: 1px solid #e2e8f0;
             padding: 10px;
-            border-radius: 4px;
+            border-radius: 8px;
+            background: #f8fafc;
         }
 
         .tech-item {
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 8px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .tech-item:last-child {
-            border-bottom: none;
+            padding: 10px;
+            border-bottom: 1px solid #edf2f7;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 6px;
         }
     </style>
 </head>
 
 <body>
+    <div id="atenzaNavbar"></div>
     <div class="container">
-        <div class="header">
-            <h1 id="pageTitle">🛠️ أوامر العمل</h1>
-            <button class="btn btn-secondary" onclick="window.location.href='employee.html'">🔙 الرجوع للوحة
-                التحكم</button>
-        </div>
-
-        <div class="card">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="بحث برقم الأمر، الجوال، أو اللوحة..."
-                    onkeypress="handleEnter(event)">
-                <button class="btn btn-primary" onclick="searchOrders()">بحث 🔍</button>
-                <button class="btn btn-secondary" onclick="loadOrders()">عرض الكل 🔄</button>
+        <!-- Top Bar -->
+        <div class="page-top-bar">
+            <div>
+                <h1 style="font-size: 24px; font-weight: 800; color: #0f172a; margin: 0;">🛠️ أوامر العمل والسيارات الموجودة بالمركز</h1>
+                <p style="margin: 4px 0 0 0; color: #64748b; font-size: 13px;">متابعة فورية للسيارات داخل الورشة وتحديث الحالات وتعيين الفنيين</p>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="window.location.href='inspector.html?mode=job_order'" style="font-weight: 700;">➕ أمر عمل جديد</button>
+                <button class="btn btn-secondary" onclick="window.location.href='inspections_list.html'" style="font-weight: 700;">📋 سجل التسعيرات</button>
+                <button class="btn btn-secondary" onclick="APP_NAV.goBack()">🔙 رجوع</button>
             </div>
         </div>
 
+        <!-- KPI Summary Cards (Cars in Workshop) -->
+        <div class="kpi-grid">
+            <div class="kpi-card" onclick="filterByCarStatus('active_in_shop')">
+                <div class="kpi-icon" style="background: #e0f2fe; color: #0284c7;">🚗</div>
+                <div class="kpi-info">
+                    <h3>السيارات بالمركز حالياً</h3>
+                    <div class="val" id="kpiTotalInShop">0</div>
+                </div>
+            </div>
+            <div class="kpi-card" onclick="filterByCarStatus('in_progress')">
+                <div class="kpi-icon" style="background: #e0e7ff; color: #4338ca;">⚙️</div>
+                <div class="kpi-info">
+                    <h3>جاري العمل عليها</h3>
+                    <div class="val" id="kpiInProgress">0</div>
+                </div>
+            </div>
+            <div class="kpi-card" onclick="filterByCarStatus('waiting_parts')">
+                <div class="kpi-icon" style="background: #ffedd5; color: #c2410c;">📦</div>
+                <div class="kpi-info">
+                    <h3>بانتظار قطع غيار</h3>
+                    <div class="val" id="kpiWaitingParts">0</div>
+                </div>
+            </div>
+            <div class="kpi-card" onclick="filterByCarStatus('ready')">
+                <div class="kpi-icon" style="background: #dcfce7; color: #15803d;">✅</div>
+                <div class="kpi-info">
+                    <h3>جاهزة للتسليم</h3>
+                    <div class="val" id="kpiReady">0</div>
+                </div>
+            </div>
+            <div class="kpi-card" onclick="filterByCarStatus('pending')">
+                <div class="kpi-icon" style="background: #fef3c7; color: #b45309;">⏳</div>
+                <div class="kpi-info">
+                    <h3>قيد الانتظار</h3>
+                    <div class="val" id="kpiPending">0</div>
+                </div>
+            </div>
+            <div class="kpi-card" onclick="filterByCarStatus('completed')">
+                <div class="kpi-icon" style="background: #f1f5f9; color: #475569;">🏁</div>
+                <div class="kpi-info">
+                    <h3>تم تسليمها</h3>
+                    <div class="val" id="kpiCompleted">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter & Search Card -->
+        <div class="filter-card">
+            <div class="filter-grid">
+                <div class="filter-group" style="grid-column: span 2;">
+                    <label>🔍 بحث في أوامر العمل</label>
+                    <input type="text" id="searchInput" placeholder="رقم الأمر، اسم العميل، الجوال، اللوحة، الهيكل..." onkeypress="if(event.key==='Enter') loadOrders()">
+                </div>
+                <div class="filter-group">
+                    <label>🚗 تواجد السيارة</label>
+                    <select id="presenceFilter" onchange="loadOrders()">
+                        <option value="active_in_shop" selected>🚗 متواجدة بالمركز حالياً</option>
+                        <option value="all">جميع أوامر العمل (الحالية والمسلمة)</option>
+                        <option value="completed">🏁 سيارات تم تسليمها فقط</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>⚙️ حالة العمل</label>
+                    <select id="carStatusFilter" onchange="loadOrders()">
+                        <option value="all" selected>جميع الحالات</option>
+                        <option value="pending">⏳ قيد الانتظار</option>
+                        <option value="in_progress">⚙️ جاري العمل</option>
+                        <option value="waiting_parts">📦 بانتظار قطع غيار</option>
+                        <option value="ready">✅ جاهزة للتسليم</option>
+                        <option value="completed">🏁 تم التسليم</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>📅 من تاريخ</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="filter-group">
+                    <label>📅 إلى تاريخ</label>
+                    <input type="date" id="endDate">
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-primary" onclick="loadOrders()" style="flex: 1; height: 40px;">بحث 🔍</button>
+                    <button class="btn btn-secondary" onclick="resetFilters()" style="height: 40px;">تفريغ 🔄</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table View -->
         <div class="table-container">
             <table class="inspections-table">
                 <thead>
                     <tr>
-                        <th>#</th>
-                        <th>التاريخ</th>
+                        <th style="width: 70px;"># الأمر</th>
+                        <th>تاريخ الدخول</th>
                         <th>العميل</th>
-                        <th>السيارة</th>
+                        <th>رقم الجوال</th>
+                        <th>السيارة واللوحة</th>
+                        <th>حالة السيارة بالورشة</th>
                         <th>الفنيين المعينين</th>
-                        <th>الحالة</th>
-                        <th>إجراءات</th>
+                        <th>المبلغ الإجمالي</th>
+                        <th style="text-align: center; width: 230px;">الإجراءات</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
                     <tr>
-                        <td colspan="7" style="text-align:center;">جاري التحميل...</td>
+                        <td colspan="9" style="text-align:center; padding: 40px; color: #94a3b8;">
+                            ⏳ جاري تحميل أوامر العمل...
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -165,72 +397,152 @@
     <!-- Assign Technician Modal -->
     <div id="assignModal" class="modal">
         <div class="modal-content">
-            <h2>تعيين الفنيين لأمر العمل #<span id="assignOrderId"></span></h2>
-            <p>اختر الفنيين المسؤولين عن هذا العمل:</p>
+            <h2 style="margin-top:0; font-size: 18px;">👥 تعيين الفنيين لأمر العمل #<span id="assignOrderId"></span></h2>
+            <p style="color: #64748b; font-size: 13px; margin-bottom: 12px;">حدد الفنيين المسؤولين عن إنجاز العمل:</p>
 
             <div class="tech-list" id="techList">
-                <div style="text-align:center;">جاري تحميل الفنيين...</div>
+                <div style="text-align:center; padding: 20px;">جاري تحميل قائمة الفنيين...</div>
             </div>
 
-            <div style="display:flex; justify-content:flex-end; gap:10px;">
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top: 15px;">
                 <button class="btn btn-secondary" onclick="closeAssignModal()">إلغاء</button>
-                <button class="btn btn-primary" onclick="saveAssignment()">حفظ التعيين</button>
+                <button class="btn btn-primary" onclick="saveAssignment()">حفظ التعيين ✅</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Auth Check
         const currentUser = JSON.parse(localStorage.getItem('user'));
         if (!currentUser) window.location.href = 'login.html';
 
-        let currentOrderIdToAssign = null;
-        let allEmployees = [];
-
-        // Title logic
-        if (currentUser.role === 'admin') {
-            document.getElementById('pageTitle').textContent = '🛠️ جميع أوامر العمل';
-        } else if (currentUser.section_name && (currentUser.section_name.includes('فني') || currentUser.section_name.includes('مكانيك') || currentUser.section_name.includes('كهربا'))) {
-            document.getElementById('pageTitle').textContent = '🛠️ أوامر العمل الخاصة بي';
-        }
-
-        async function loadOrders() {
-            try {
-                let url = '/api/inspections?status=job_order&limit=50';
-
-                // If technician, filter by their ID logic (unless admin/manager/inspector)
-                const isTech = currentUser.role === 'employee' &&
-                    currentUser.section_name &&
-                    !currentUser.section_name.includes('كشف') &&
-                    !currentUser.section_name.includes('إدارة');
-
-                if (isTech) {
-                    url += `&technician_id=${currentUser.employee_id || currentUser.id}`;
-                }
-
-                const res = await fetch(url);
-                const data = await res.json();
-                renderTable(data);
-            } catch (error) {
-                console.error("Error:", error);
-                alert("حدث خطأ في تحميل البيانات");
+        // 🛡️ التحقق من الصلاحيات: استعراض أوامر العمل متاح لـ (الإدارة + الكشف + المكانيكا والكهرباء المعينين + الأدمن)
+        if (typeof APP_PERMISSIONS !== 'undefined' && !APP_PERMISSIONS.canViewJobOrders(currentUser)) {
+            alert('عذراً، استعراض أوامر العمل متاح فقط لموظفي الإدارة، الكشف، أو الفنيين المعينين لأمر العمل.');
+            if (currentUser.role === 'admin') {
+                window.location.href = 'admin.html';
+            } else {
+                window.location.href = 'employee.html';
             }
         }
 
-        async function searchOrders() {
-            const query = document.getElementById('searchInput').value.trim();
-            if (!query) return loadOrders();
+        const isManagement = typeof APP_PERMISSIONS !== 'undefined' ? APP_PERMISSIONS.canEditJobOrder(currentUser) : (currentUser.role === 'admin');
+        const isAssignedOnly = typeof APP_PERMISSIONS !== 'undefined' ? APP_PERMISSIONS.isAssignedOnlyTechnician(currentUser) : false;
 
-            // Note: Search API currently searches ALL inspections. We might filter client-side or update API.
-            // For now, simpler to use existing search and locally filter for status='job_order'
+        // تعديل العناوين والأزرار حسب الصلاحية
+        if (isAssignedOnly) {
+            const h1 = document.querySelector('.page-top-bar h1');
+            if (h1) h1.textContent = '🛠️ أوامر العمل والسيارات المسندة إليّ';
+            const sub = document.querySelector('.page-top-bar p');
+            if (sub) sub.textContent = 'متابعة كروت التشغيل والسيارات المسندة إليك لإنجاز العمل';
+        }
+
+        // إخفاء زر إنشاء أمر عمل لمن ليس من الإدارة
+        if (!isManagement) {
+            const newOrderBtn = document.querySelector("button[onclick*='mode=job_order']");
+            if (newOrderBtn) newOrderBtn.style.display = 'none';
+        }
+
+        let currentOrderIdToAssign = null;
+        let allTechnicians = [];
+
+        function goBackDashboard() {
+            if (currentUser.role === 'admin') {
+                window.location.href = 'admin.html';
+            } else {
+                window.location.href = 'employee.html';
+            }
+        }
+
+        function filterByCarStatus(statusKey) {
+            if (statusKey === 'active_in_shop') {
+                document.getElementById('presenceFilter').value = 'active_in_shop';
+                document.getElementById('carStatusFilter').value = 'all';
+            } else if (statusKey === 'completed') {
+                document.getElementById('presenceFilter').value = 'completed';
+                document.getElementById('carStatusFilter').value = 'completed';
+            } else {
+                document.getElementById('presenceFilter').value = 'all';
+                document.getElementById('carStatusFilter').value = statusKey;
+            }
+            loadOrders();
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('presenceFilter').value = 'active_in_shop';
+            document.getElementById('carStatusFilter').value = 'all';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            loadOrders();
+        }
+
+        async function loadSummary() {
             try {
-                const res = await fetch(`/api/inspections/search?query=${encodeURIComponent(query)}`);
-                let data = await res.json();
-                data = data.filter(item => item.status === 'job_order'); // Client-side filtering
+                const res = await fetch('/api/job-orders/summary');
+                if (!res.ok) return;
+                const stats = await res.json();
+
+                document.getElementById('kpiTotalInShop').textContent = stats.total_in_shop || 0;
+                document.getElementById('kpiInProgress').textContent = stats.in_progress_count || 0;
+                document.getElementById('kpiWaitingParts').textContent = stats.waiting_parts_count || 0;
+                document.getElementById('kpiReady').textContent = stats.ready_count || 0;
+                document.getElementById('kpiPending').textContent = stats.pending_count || 0;
+                document.getElementById('kpiCompleted').textContent = stats.completed_count || 0;
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function loadOrders() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:30px; color:#64748b;">⏳ جاري التحميل...</td></tr>`;
+
+            loadSummary();
+
+            const search = document.getElementById('searchInput').value.trim();
+            const presence = document.getElementById('presenceFilter').value;
+            const carStatus = document.getElementById('carStatusFilter').value;
+            const from = document.getElementById('startDate').value;
+            const to = document.getElementById('endDate').value;
+
+            let url = `/api/inspections?status=job_order&limit=300`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (from) url += `&from=${from}`;
+            if (to) url += `&to=${to}`;
+
+            // إذا كان المستخدم فني (مكانيكا / كهرباء)، استرجع فقط الكروت المعينة له
+            if (isAssignedOnly) {
+                const myEmpId = currentUser.employee_id || currentUser.id;
+                url += `&technician_id=${myEmpId}`;
+            }
+
+            if (presence === 'active_in_shop') {
+                url += `&car_status=active_in_shop`;
+            } else if (presence === 'completed') {
+                url += `&car_status=completed`;
+            } else if (carStatus && carStatus !== 'all') {
+                url += `&car_status=${carStatus}`;
+            }
+
+            try {
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('فشل جلب أوامر العمل');
+                const data = await res.json();
                 renderTable(data);
             } catch (error) {
-                console.error("Error:", error);
-                alert("حدث خطأ في البحث");
+                console.error(error);
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:30px; color:#ef4444;">❌ حدث خطأ: ${error.message}</td></tr>`;
+            }
+        }
+
+        function getStatusLabel(st) {
+            switch(st) {
+                case 'pending': return '⏳ قيد الانتظار';
+                case 'in_progress': return '⚙️ جاري العمل';
+                case 'waiting_parts': return '📦 بانتظار قطع';
+                case 'ready': return '✅ جاهزة للتسليم';
+                case 'completed': return '🏁 تم التسليم';
+                default: return '⚙️ جاري العمل';
             }
         }
 
@@ -239,97 +551,178 @@
             tbody.innerHTML = '';
 
             if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">لا توجد أوامر عمل</td></tr>';
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:40px; color:#94a3b8; font-size:15px;">لا توجد سيارات أو أوامر عمل مطابقة للبحث</td></tr>`;
                 return;
             }
 
-            const canAssign = currentUser.role === 'admin' || (currentUser.section_name && currentUser.section_name.includes('كشف'));
+            const canEditOrders = typeof APP_PERMISSIONS !== 'undefined' ? APP_PERMISSIONS.canEditJobOrder(currentUser) : (currentUser.role === 'admin');
+            const canDelete = typeof APP_PERMISSIONS !== 'undefined' ? APP_PERMISSIONS.canDelete(currentUser) : (currentUser.role === 'admin');
 
             data.forEach(item => {
                 const tr = document.createElement('tr');
-                const date = new Date(item.created_at).toLocaleDateString('ar-SA');
+                const d = new Date(item.created_at);
+                const dateStr = d.toLocaleDateString('ar-SA');
+                const timeStr = d.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+                const currentStatus = item.car_status || 'in_progress';
+                const finalAmt = parseFloat(item.final_amount) || 0;
 
+                // حالة السيارة: للمدير قائمة قابلة للتعديل، ولغير المدير شارة للقراءة فقط
+                let statusHtml = '';
+                if (canEditOrders) {
+                    statusHtml = `
+                        <select class="status-select-inline status-${currentStatus}" onchange="updateCarStatus(${item.id}, this.value, this)">
+                            <option value="pending" ${currentStatus === 'pending' ? 'selected' : ''}>⏳ قيد الانتظار</option>
+                            <option value="in_progress" ${currentStatus === 'in_progress' ? 'selected' : ''}>⚙️ جاري العمل</option>
+                            <option value="waiting_parts" ${currentStatus === 'waiting_parts' ? 'selected' : ''}>📦 بانتظار قطع</option>
+                            <option value="ready" ${currentStatus === 'ready' ? 'selected' : ''}>✅ جاهزة للتسليم</option>
+                            <option value="completed" ${currentStatus === 'completed' ? 'selected' : ''}>🏁 تم التسليم</option>
+                        </select>
+                    `;
+                } else {
+                    statusHtml = `<span class="status-select-inline status-${currentStatus}">${getStatusLabel(currentStatus)}</span>`;
+                }
+
+                let editBtn = '';
                 let assignBtn = '';
-                if (canAssign) {
-                    assignBtn = `<button class="btn btn-secondary btn-icon" onclick="openAssignModal(${item.id}, '${item.assigned_technician_ids || ''}')">👥 تعيين فني</button>`;
+                let deleteBtn = '';
+
+                if (canEditOrders) {
+                    editBtn = `<button class="btn-action-icon btn-edit" onclick="openInspectionEditor(${item.id})" title="تعديل بنود الكشف والأسعار">📝 تعديل</button>`;
+                    assignBtn = `<button class="btn-action-icon btn-assign" onclick="openAssignModal(${item.id})" title="تعيين الفنيين">👥 تعيين فني</button>`;
                 }
 
-                let deleteBtn = '';
-                if (currentUser.role === 'admin') {
-                    deleteBtn = `<button class="btn btn-danger btn-icon" onclick="deleteOrder(${item.id})">🗑️ حذف</button>`;
+                if (canDelete) {
+                    deleteBtn = `<button class="btn-action-icon btn-delete" onclick="deleteOrder(${item.id})" title="حذف أمر العمل">🗑️</button>`;
                 }
+
+                const techNames = item.technicians_names || '<span style="color:#94a3b8; font-size:12px;">غير محدد</span>';
 
                 tr.innerHTML = `
-                    <td>${item.id}</td>
-                    <td>${date}</td>
-                    <td>${item.customer_name || '-'}</td>
-                    <td>${item.car_type || ''} ${item.plate_number || ''}</td>
-                    <td>${item.assigned_technicians || '<span style="color:#aaa">غير محدد</span>'}</td>
-                    <td><span class="status-badge job-order">أمر عمل</span></td>
-                    <td class="action-btns">
-                        <button class="btn btn-primary btn-icon" onclick="openJobOrder(${item.id})">📋 فتح الكرت</button>
-                        ${assignBtn}
-                        ${deleteBtn}
+                    <td><b>#${item.id}</b></td>
+                    <td>
+                        <div style="font-weight:700;">${dateStr}</div>
+                        <div style="font-size:11px; color:#64748b;">${timeStr}</div>
+                    </td>
+                    <td><b>${item.customer_name || 'عميل نقدي'}</b></td>
+                    <td dir="ltr" style="text-align:right;">${item.customer_phone ? `<a href="tel:${item.customer_phone}" style="color:var(--primary); text-decoration:none;">📞 ${item.customer_phone}</a>` : '-'}</td>
+                    <td>
+                        <div><b>${item.car_type || ''} ${item.car_model || ''}</b> ${item.car_color ? `<small style="color:#64748b;">(${item.car_color})</small>` : ''}</div>
+                        ${item.plate_number ? `<div style="margin-top:3px;"><span class="plate-box">${item.plate_number}</span></div>` : ''}
+                    </td>
+                    <td>${statusHtml}</td>
+                    <td>${techNames}</td>
+                    <td><b>${finalAmt.toFixed(2)}</b> <small>ريال</small></td>
+                    <td>
+                        <div class="action-btns" style="justify-content: center;">
+                            <button class="btn-action-icon btn-card" onclick="openJobOrderCard(${item.id})" title="فتح كرت التشغيل ومخطط الصدمات">📋 كرت العمل</button>
+                            ${editBtn}
+                            ${assignBtn}
+                            ${deleteBtn}
+                        </div>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        function openJobOrder(id) {
+        async function updateCarStatus(id, newStatus, selectEl) {
+            try {
+                const res = await fetch(`/api/inspections/${id}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ car_status: newStatus })
+                });
+
+                if (res.ok) {
+                    if (typeof showSuccess === 'function') {
+                        showSuccess(`تم تحديث حالة السيارة للأمر #${id} بنجاح ✅`);
+                    }
+                    if (selectEl) {
+                        selectEl.className = `status-select-inline status-${newStatus}`;
+                    }
+                    loadSummary();
+                } else {
+                    alert('فشل تحديث الحالة');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('خطأ أثناء التحديث');
+            }
+        }
+
+        function openJobOrderCard(id) {
             window.location.href = `job_order.html?id=${id}`;
         }
 
-        function deleteOrder(id) {
-            if (!confirm('هل أنت متأكد من حذف أمر العمل هذا؟ سيتم حذف الكشف بالكامل.')) return;
-            fetch(`/api/inspections/${id}`, { method: 'DELETE' })
-                .then(res => {
-                    if (res.ok) { alert('تم الحذف'); loadOrders(); }
-                    else alert('فشل الحذف');
-                });
+        function openInspectionEditor(id) {
+            window.location.href = `inspector.html?id=${id}&mode=job_order`;
         }
 
-        // --- Assignment Modal Logic ---
+        async function deleteOrder(id) {
+            if (!confirm(`تحذير: هل أنت متأكد من حذف أمر العمل رقم #${id} نهائياً؟`)) return;
 
-        async function openAssignModal(orderId, currentIdsStr) {
+            try {
+                const res = await fetch(`/api/inspections/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    if (typeof showSuccess === 'function') {
+                        showSuccess(`تم حذف أمر العمل #${id} بنجاح 🗑️`);
+                    } else {
+                        alert('تم الحذف بنجاح');
+                    }
+                    loadOrders();
+                } else {
+                    alert('فشل الحذف');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('حدث خطأ أثناء الحذف');
+            }
+        }
+
+        // --- Assign Technicians Modal ---
+        async function openAssignModal(orderId) {
             currentOrderIdToAssign = orderId;
             document.getElementById('assignOrderId').textContent = orderId;
             document.getElementById('assignModal').classList.add('open');
 
-            // Convert "1,2,3" to [1, 2, 3]
-            const currentIds = currentIdsStr ? currentIdsStr.split(',').map(Number) : [];
-
-            if (allEmployees.length === 0) {
-                // Fetch employees only once
-                try {
-                    const res = await fetch('/api/employees');
-                    allEmployees = await res.json();
-                } catch (e) { console.error(e); }
-            }
-
             const techListEl = document.getElementById('techList');
-            techListEl.innerHTML = '';
+            techListEl.innerHTML = '<div style="text-align:center; padding: 20px;">جاري تحميل الفنيين...</div>';
 
-            // Filter out admins generally, but allow anyone to be assigned if needed. 
-            // Better to show everyone but highlight technicians?
-            // User request: "Assign technician, mechanic, electrician..."
-            // We just list all employees for flexibility.
+            try {
+                // Fetch existing details for this inspection to see currently assigned technicians
+                const [orderRes, techsRes] = await Promise.all([
+                    fetch(`/api/inspections/${orderId}`),
+                    fetch('/api/technicians')
+                ]);
 
-            allEmployees.forEach(emp => {
-                const isChecked = currentIds.includes(emp.id) ? 'checked' : '';
-                const roleLabel = emp.section_name || 'موظف';
+                const orderData = await orderRes.json();
+                const allTechs = await techsRes.json();
 
-                const item = document.createElement('div');
-                item.className = 'tech-item';
-                item.innerHTML = `
-                    <input type="checkbox" id="tech_${emp.id}" value="${emp.id}" ${isChecked}>
-                    <label for="tech_${emp.id}" style="cursor:pointer; flex-grow:1;">
-                        <strong>${emp.name}</strong> 
-                        <span style="font-size:0.8em; color:#666;">(${roleLabel})</span>
-                    </label>
-                `;
-                techListEl.appendChild(item);
-            });
+                const currentTechIds = (orderData.technicians || []).map(t => t.id);
+
+                techListEl.innerHTML = '';
+                if (allTechs.length === 0) {
+                    techListEl.innerHTML = '<div style="text-align:center; padding:20px; color:#94a3b8;">لا يوجد فنيين مسجلين</div>';
+                    return;
+                }
+
+                allTechs.forEach(tech => {
+                    const isChecked = currentTechIds.includes(tech.id) ? 'checked' : '';
+                    const item = document.createElement('div');
+                    item.className = 'tech-item';
+                    item.innerHTML = `
+                        <input type="checkbox" id="tech_${tech.id}" value="${tech.id}" ${isChecked} style="width:18px; height:18px; cursor:pointer;">
+                        <label for="tech_${tech.id}" style="cursor:pointer; flex-grow:1; display:flex; justify-content:space-between; align-items:center;">
+                            <strong>${tech.name}</strong>
+                            <span style="font-size:12px; background:#e2e8f0; padding:2px 8px; border-radius:10px; color:#475569;">${tech.section_name || 'عام'}</span>
+                        </label>
+                    `;
+                    techListEl.appendChild(item);
+                });
+            } catch (e) {
+                console.error(e);
+                techListEl.innerHTML = '<div style="color:red; text-align:center;">حدث خطأ في تحميل الفنيين</div>';
+            }
         }
 
         function closeAssignModal() {
@@ -343,32 +736,15 @@
             const checkboxes = document.querySelectorAll('#techList input[type="checkbox"]:checked');
             const selectedIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
 
-            // We need to fetch the existing simplified order data to update just the technicians
-            // OR we can make a dedicated API endpoint for assignment.
-            // Since I updated PUT /api/inspections/:id to handle technician_ids, I can use that.
-            // But PUT expects the full object generally, or at least doesn't partial update easily without clearing others if not careful in some designs.
-            // Let's check server.js PUT logic... 
-            // It does `COALESCE(?, status)` etc, but arrays like `items` are deleted and recreated.
-            // `technician_ids` is optional. 
-            // IMPORTANT: If I send ONLY technician_ids, will it break other fields?
-            // The SQL UPDATE sets fields to NULL if I send undefined?
-            // "SET customer_name = ? ..." -> if req.body.customer_name is undefined, it sets it to NULL.
-            // This is BAD for partial updates.
-            // My server code is NOT set up for partial updates (PATCH).
-            // Quick fix: fetch the inspection first, merge, then PUT.
-
             try {
-                // 1. Fetch current details
                 const getRes = await fetch(`/api/inspections/${currentOrderIdToAssign}`);
                 const currentData = await getRes.json();
 
-                // 2. Prepare payload
                 const payload = {
                     ...currentData,
                     technician_ids: selectedIds
                 };
 
-                // 3. Send PUT
                 const putRes = await fetch(`/api/inspections/${currentOrderIdToAssign}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -376,22 +752,21 @@
                 });
 
                 if (putRes.ok) {
-                    alert('تم تعيين الفنيين بنجاح ✅');
+                    if (typeof showSuccess === 'function') {
+                        showSuccess('تم تعيين الفنيين بنجاح ✅');
+                    } else {
+                        alert('تم تعيين الفنيين بنجاح ✅');
+                    }
                     closeAssignModal();
                     loadOrders();
                 } else {
                     const err = await putRes.json();
                     alert('خطأ: ' + err.message);
                 }
-
             } catch (e) {
                 console.error(e);
                 alert('حدث خطأ أثناء الحفظ');
             }
-        }
-
-        function handleEnter(e) {
-            if (e.key === 'Enter') searchOrders();
         }
 
         // Init

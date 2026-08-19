@@ -475,3 +475,146 @@ tr:hover { background-color: #f1f5f9; }
     font-size: 20px;
   }
 }
+
+/* =========================================
+   🌐 Unified Global Navigation Bar (Atenza App)
+   ========================================= */
+.atenza-global-navbar {
+  background: #ffffff;
+  border-bottom: 1.5px solid #e2e8f0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  width: 100%;
+  font-family: 'Cairo', sans-serif;
+}
+
+[data-theme="dark"] .atenza-global-navbar {
+  background: #1e293b;
+  border-bottom-color: #334155;
+}
+
+.atenza-nav-inner {
+  max-width: 1350px;
+  margin: 0 auto;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.atenza-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--text-dark, #0f172a);
+  text-decoration: none;
+}
+
+.atenza-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.nav-bar-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+  text-decoration: none;
+  transition: all 0.2s;
+  background: transparent;
+}
+
+.nav-bar-link:hover {
+  background: #f1f5f9;
+  color: var(--primary-color, #2563eb);
+}
+
+.nav-bar-link.active {
+  background: #e0e7ff;
+  color: #4338ca;
+}
+
+.atenza-nav-user-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.atenza-user-badge {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+  line-height: 1.2;
+  padding: 4px 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.atenza-user-name {
+  font-size: 12px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.atenza-user-role {
+  font-size: 10px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.atenza-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+  font-family: 'Cairo', sans-serif;
+}
+
+.atenza-btn-back {
+  background: #f1f5f9;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+
+.atenza-btn-back:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.atenza-btn-logout {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #fecaca;
+  padding: 7px 10px;
+}
+
+.atenza-btn-logout:hover {
+  background: #fca5a5;
+}
+
+@media print {
+  .atenza-global-navbar {
+    display: none !important;
+  }
+}

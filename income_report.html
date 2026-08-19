@@ -4,10 +4,11 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>تقرير دخل الفنيين - إدارة الورشة</title>
+    <title>تقرير دخل الفنيين - Atenza App</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script src="public/js/app-config.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
@@ -25,10 +26,10 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
         }
 
         body {
-            font-family: 'Cairo', sans-serif;
             background-color: var(--bg-gray);
             color: var(--text-dark);
             -webkit-print-color-adjust: exact;
@@ -39,7 +40,7 @@
             max-width: 210mm;
             margin: 20px auto;
             display: flex;
-            gap: 10px;
+            gap: 12px;
             justify-content: flex-end;
             padding: 0 20px;
         }
@@ -47,9 +48,8 @@
         .btn {
             padding: 10px 20px;
             border: none;
-            border-radius: 8px;
-            font-family: inherit;
-            font-weight: 600;
+            border-radius: 12px;
+            font-weight: 700;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -60,74 +60,86 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        .btn-print {
-            background: var(--primary);
-        }
+        .btn-print { background: var(--primary); }
+        .btn-image { background: #10b981; }
+        .btn-excel { background: #217346; }
+        .btn-back { background: white; color: var(--text-dark); border: 1.5px solid var(--border-color); box-shadow: none; }
 
-        .btn-print:hover {
-            background: var(--primary-hover);
-        }
-
-        .btn-image {
-            background: #10b981;
-        }
-
-        .btn-image:hover {
-            background: #059669;
-        }
-
-        .btn-excel {
-            background: #217346;
-        }
-
-        .btn-excel:hover {
-            background: #154c2f;
-        }
-
-        .btn-back {
-            background: #6b7280;
-        }
-
-        .btn-back:hover {
-            background: #4b5563;
-        }
-
-        /* A4 Page Styling */
         .page {
             width: 210mm;
             min-height: 297mm;
             padding: 20mm;
             margin: 0 auto 40px;
             background: white;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             position: relative;
         }
 
-        .header {
-            text-align: center;
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
             margin-bottom: 40px;
-            border-bottom: 2px solid var(--primary);
-            padding-bottom: 20px;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 30px;
         }
 
-        .header h1 {
-            font-size: 28px;
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-box {
+            width: 64px;
+            height: 64px;
+            background: var(--primary);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+            box-shadow: 0 8px 16px rgba(79, 70, 229, 0.2);
+        }
+
+        .title-text h1 {
+            font-size: 26px;
+            font-weight: 800;
             color: var(--text-dark);
-            margin-bottom: 8px;
+            margin: 0;
         }
 
-        .header p {
+        .title-text p {
             color: var(--text-gray);
             font-size: 14px;
+            margin: 0;
         }
 
         .report-meta {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 30px;
+            text-align: left;
             font-size: 14px;
             color: var(--text-gray);
+            font-weight: 600;
         }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .mini-stat {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .mini-stat .label { font-size: 12px; color: var(--text-gray); font-weight: 700; }
+        .mini-stat .value { font-size: 18px; color: var(--text-dark); font-weight: 800; }
 
         table {
             width: 100%;
@@ -137,43 +149,29 @@
 
         th {
             background: #f8fafc;
-            color: var(--text-dark);
-            font-weight: 700;
-            padding: 12px;
+            padding: 15px;
             text-align: right;
-            border-bottom: 2px solid var(--border-color);
+            border-bottom: 2px solid var(--primary);
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text-dark);
         }
 
         td {
-            padding: 12px;
+            padding: 15px;
             border-bottom: 1px solid var(--border-color);
-            color: var(--text-dark);
+            font-size: 14px;
         }
 
-        tr:nth-child(even) {
-            background-color: #f9fafb;
-        }
-
-        .rank-col {
-            width: 60px;
-            text-align: center;
-            font-weight: bold;
-        }
-
-        .amount-col {
-            text-align: left;
-            font-weight: bold;
-            color: var(--primary);
-        }
-
-        .target-col {
-            text-align: center;
-            color: var(--text-gray);
-            font-size: 13px;
-        }
+        .rank-col { width: 60px; text-align: center; font-weight: 800; }
+        .amount-col { font-weight: 800; color: var(--primary); text-align: left; }
+        .target-col { text-align: center; font-weight: 700; }
 
         .footer {
-            margin-top: 50px;
+            position: absolute;
+            bottom: 20mm;
+            left: 20mm;
+            right: 20mm;
             text-align: center;
             font-size: 12px;
             color: var(--text-gray);
@@ -181,67 +179,66 @@
             padding-top: 20px;
         }
 
-        /* Print Styles */
         @media print {
-            body {
-                background: white;
-            }
-
-            .controls {
-                display: none;
-            }
-
-            .page {
-                margin: 0;
-                box-shadow: none;
-                width: 100%;
-                height: auto;
-                padding: 0;
-            }
-
-            @page {
-                size: A4;
-                margin: 20mm;
-            }
+            body { background: white; }
+            .controls { display: none; }
+            .page { margin: 0; box-shadow: none; width: 100%; }
         }
     </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <div class="controls no-print">
-        <button class="btn btn-back" onclick="window.location.href='admin.html'">
-            <span>🔙</span> عودة
-        </button>
-        <button class="btn btn-image" onclick="saveAsImage()">
-            <span>🖼️</span> حفظ كصورة
-        </button>
-        <button class="btn btn-excel" onclick="exportToExcel()">
-            <span>📊</span> Excel
-        </button>
-        <button class="btn btn-print" onclick="window.print()">
-            <span>🖨️</span> طباعة
-        </button>
+    <div id="atenzaNavbar"></div>
+    <div class="controls">
+        <button class="btn btn-back" onclick="APP_NAV.goBack('admin.html')">🔙 عودة</button>
+        <button class="btn btn-excel" onclick="exportToExcel()">📊 إكسل</button>
+        <button class="btn btn-image" onclick="exportToImage()">🖼️ صورة</button>
+        <button class="btn btn-print" onclick="window.print()">🖨️ طباعة</button>
     </div>
 
-    <div class="page" id="reportContent">
-        <div class="header">
-            <h1>تقارير دخل الفنيين</h1>
-            <p>تقرير شامل لترتيب الفنيين حسب الدخل</p>
+    <div class="page" id="reportPage">
+        <div class="report-header">
+            <div class="logo-section">
+                <div class="logo-box">💼</div>
+                <div class="title-text">
+                    <h1>تقرير أداء الفنيين</h1>
+                    <p id="reportWorkshopName" class="workshop-name-text">Atenza App</p>
+                </div>
+            </div>
+            <div class="report-meta">
+                <p id="reportDate">التاريخ: --/--/----</p>
+                <p id="employeeCount">عدد الفنيين: 0</p>
+            </div>
         </div>
 
-        <div class="report-meta">
-            <span id="reportDate">التاريخ: </span>
-            <span id="employeeCount">عدد الفنيين: 0</span>
+        <div class="stats-summary">
+            <div class="mini-stat">
+                <div class="label">إجمالي الدخل (بدون ضريبة)</div>
+                <div class="value" id="summaryTotalIncome">0 ﷼</div>
+            </div>
+            <div class="mini-stat">
+                <div class="label">إجمالي الدخل (مع ضريبة 15%)</div>
+                <div class="value" id="summaryTotalIncomeWithTax" style="color:#7c3aed;">0 ﷼</div>
+            </div>
+            <div class="mini-stat">
+                <div class="label">متوسط الإنجاز</div>
+                <div class="value" id="summaryAvgAchievement">0%</div>
+            </div>
+            <div class="mini-stat">
+                <div class="label">أعلى دخل </div>
+                <div class="value" id="summaryTopIncome">0 ﷼</div>
+            </div>
         </div>
 
         <table>
             <thead>
                 <tr>
                     <th class="rank-col">#</th>
-                    <th>اسم الفني</th>
+                    <th>الاسم</th>
                     <th>القسم</th>
-                    <th class="target-col">نسبة الانجاز</th>
-                    <th class="amount-col">الدخل الحالي</th>
+                    <th style="text-align: center;">نسبة الإنجاز</th>
+                    <th style="text-align: left;">الدخل (بدون ضريبة)</th>
                 </tr>
             </thead>
             <tbody id="tableBody">
@@ -250,7 +247,8 @@
         </table>
 
         <div class="footer">
-            <p>تم استخراج هذا التقرير من نظام إدارة الورشة</p>
+            <p>تم استخراج هذا التقرير تلقائياً من نظام <span class="app-name-text">Atenza App</span></p>
+            <p style="font-size: 10px; margin-top: 5px;">حقوق الطبع محفوظة © 2026</p>
         </div>
     </div>
 
@@ -259,100 +257,92 @@
 
         async function loadReport() {
             try {
-                // Set Date
                 const now = new Date();
                 document.getElementById('reportDate').textContent = 'التاريخ: ' + now.toLocaleDateString('ar-SA');
 
-                // Fetch Data
+                try {
+                    const setRes = await fetch('/api/settings');
+                    if (setRes.ok) {
+                        const settings = await setRes.json();
+                        if (settings.workshop_name || settings.app_name) {
+                            document.getElementById('reportWorkshopName').textContent = settings.workshop_name || settings.app_name;
+                        }
+                    }
+                } catch(e) {}
+
                 const response = await fetch('/api/employees');
                 const employees = await response.json();
-
-                // Sort by Income (Descending)
+                
                 employees.sort((a, b) => b.total_income - a.total_income);
                 currentEmployees = employees;
 
-                // Update Count
                 document.getElementById('employeeCount').textContent = `عدد الفنيين: ${employees.length}`;
 
-                // Render Table
                 const tbody = document.getElementById('tableBody');
                 tbody.innerHTML = '';
 
+                let totalIncome = 0;
+                let totalPercent = 0;
+                let topIncome = 0;
+
                 employees.forEach((emp, index) => {
-                    const tr = document.createElement('tr');
+                    const percent = emp.target > 0 ? Math.round((emp.total_income / emp.target) * 100) : 0;
+                    totalIncome += emp.total_income;
+                    totalPercent += percent;
+                    if(emp.total_income > topIncome) topIncome = emp.total_income;
 
-                    // Rank styling (Top 3)
                     let rankDisplay = index + 1;
-                    if (index === 0) rankDisplay = '🥇 ' + rankDisplay;
-                    else if (index === 1) rankDisplay = '🥈 ' + rankDisplay;
-                    else if (index === 2) rankDisplay = '🥉 ' + rankDisplay;
+                    if (index === 0) rankDisplay = '🥇';
+                    else if (index === 1) rankDisplay = '🥈';
+                    else if (index === 2) rankDisplay = '🥉';
 
+                    const tr = document.createElement('tr');
+                    const incomeWithTax = Math.round(emp.total_income * 1.15);
                     tr.innerHTML = `
                         <td class="rank-col">${rankDisplay}</td>
-                        <td>${emp.name}</td>
+                        <td style="font-weight: 700;">${emp.name}</td>
                         <td>${emp.section_name || '-'}</td>
-                        <td class="target-col">${emp.target > 0 ? Math.round((emp.total_income / emp.target) * 100) : 0}%</td>
+                        <td class="target-col" style="color: ${percent >= 100 ? '#059669' : percent >= 75 ? '#d97706' : '#dc2626'}">${percent}%</td>
                         <td class="amount-col">${emp.total_income.toLocaleString()} ﷼</td>
                     `;
                     tbody.appendChild(tr);
                 });
 
+                document.getElementById('summaryTotalIncome').textContent = totalIncome.toLocaleString() + ' ﷼';
+                document.getElementById('summaryTotalIncomeWithTax').textContent = Math.round(totalIncome * 1.15).toLocaleString() + ' ﷼';
+                document.getElementById('summaryAvgAchievement').textContent = (employees.length > 0 ? Math.round(totalPercent / employees.length) : 0) + '%';
+                document.getElementById('summaryTopIncome').textContent = topIncome.toLocaleString() + ' ﷼';
+
             } catch (error) {
                 console.error('Error loading report:', error);
-                alert('حدث خطأ أثناء تحميل التقرير');
             }
         }
 
-        function saveAsImage() {
-            const element = document.getElementById('reportContent');
-            html2canvas(element, {
-                scale: 2, // Higher quality
-                useCORS: true
-            }).then(canvas => {
+        function exportToImage() {
+            const page = document.getElementById('reportPage');
+            html2canvas(page, { scale: 2 }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = `income-report-${new Date().toISOString().split('T')[0]}.png`;
+                link.download = `تقرير_الدخل_${new Date().toLocaleDateString()}.png`;
                 link.href = canvas.toDataURL();
                 link.click();
             });
         }
 
         function exportToExcel() {
-            if (!currentEmployees || currentEmployees.length === 0) {
-                alert('لا توجد بيانات للتصدير');
-                return;
-            }
-
-            // Prepare data for Excel
             const data = currentEmployees.map((emp, index) => ({
                 'الترتيب': index + 1,
-                'اسم الفني': emp.name,
-                'القسم': emp.section_name || '-',
-                'نسبة الانجاز': (emp.target > 0 ? Math.round((emp.total_income / emp.target) * 100) : 0) + '%',
-                'الدخل الحالي': emp.total_income
+                'الاسم': emp.name,
+                'القسم': emp.section_name,
+                'نسبة الإنجاز': (emp.target > 0 ? Math.round((emp.total_income / emp.target) * 100) : 0) + '%',
+                'الدخل (بدون ضريبة)': emp.total_income,
+               
             }));
-
-            // Create worksheet
             const ws = XLSX.utils.json_to_sheet(data);
-
-            // Adjust column widths
-            const wscols = [
-                { wch: 10 }, // Rank
-                { wch: 20 }, // Name
-                { wch: 15 }, // Section
-                { wch: 15 }, // Target
-                { wch: 15 }  // Income
-            ];
-            ws['!cols'] = wscols;
-
-            // Create workbook
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "تقرير الدخل");
-
-            // Save file
-            XLSX.writeFile(wb, `income-report-${new Date().toISOString().split('T')[0]}.xlsx`);
+            XLSX.writeFile(wb, `تقرير_الدخل_${new Date().toLocaleDateString()}.xlsx`);
         }
 
-        // Initialize
         loadReport();
     </script>
 </body>

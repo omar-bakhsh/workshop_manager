@@ -1,7 +1,7 @@
 {
-  "name": "مدير الورشة",
-  "short_name": "الورشة",
-  "description": "نظام إدارة الورشة والموظفين",
+  "name": "Atenza App",
+  "short_name": "Atenza",
+  "description": "نظام Atenza App لإدارة الورشة والموظفين",
   "start_url": "/login.html",
   "scope": "/",
   "display": "standalone",

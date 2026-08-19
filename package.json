@@ -1,7 +1,7 @@
 {
-  "name": "workshop-system",
-  "version": "1.0.0",
-  "description": "Workshop Management System (Localhost)",
+  "name": "atenza-app",
+  "version": "5.0.0",
+  "description": "Atenza App - Workshop Management System",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -12,7 +12,7 @@
     "cors": "^2.8.5",
     "exceljs": "^4.4.0",
     "express": "^4.18.2",
-    "multer": "^2.0.2",
+    "multer": "^2.1.1",
     "sqlite3": "^5.1.7",
     "xlsx": "^0.18.5"
   }
