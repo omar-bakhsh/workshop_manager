@@ -542,6 +542,7 @@
                         <div class="action-btns" style="justify-content: center;">
                             <button class="btn-action-icon btn-edit" onclick="openInspection(${item.id})" title="${editBtnText}">${editBtnText}</button>
                             <button class="btn-action-icon btn-print" onclick="printInspectionDirect(${item.id})" title="طباعة">🖨️ طباعة</button>
+                            <button class="btn-action-icon" style="background:#25d366; color:white; border-color:#22c55e;" onclick='openWhatsAppModalFor(${JSON.stringify(item).replace(/'/g, "&apos;")})' title="إرسال واتساب للعميل">💬 واتساب</button>
                             ${convertBtn}
                             ${deleteBtn}
                         </div>
@@ -604,6 +605,12 @@
             } catch (e) {
                 console.error(e);
                 alert('حدث خطأ أثناء الحذف');
+            }
+        }
+
+        function openWhatsAppModalFor(item) {
+            if (typeof APP_WHATSAPP !== 'undefined') {
+                APP_WHATSAPP.showModal(item);
             }
         }
 

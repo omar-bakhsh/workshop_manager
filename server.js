@@ -8,6 +8,28 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+
+// Configure upload storage with extensions
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
+const photoStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const dir = path.join(__dirname, 'uploads', 'inspection_photos');
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+    },
+    filename: function (req, file, cb) {
+        const ext = path.extname(file.originalname) || '.jpg';
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'photo-' + uniqueSuffix + ext);
+    }
+});
+const uploadPhoto = multer({
+    storage: photoStorage,
+    limits: { fileSize: 20 * 1024 * 1024 } // 20MB
+});
+
 const upload = multer({ dest: 'uploads/' });
 const xlsx = require('xlsx');
 
@@ -268,6 +290,16 @@ function initializeDatabase() {
             technician_id INTEGER NOT NULL,
             FOREIGN KEY (inspection_id) REFERENCES inspections(id) ON DELETE CASCADE,
             FOREIGN KEY (technician_id) REFERENCES employees(id) ON DELETE CASCADE
+        )`, (err) => {});
+        
+        db.run(`CREATE TABLE IF NOT EXISTS inspection_photos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            inspection_id INTEGER NOT NULL,
+            photo_type TEXT DEFAULT 'before', -- 'before', 'damaged_part', 'after'
+            file_path TEXT NOT NULL,
+            caption TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (inspection_id) REFERENCES inspections(id) ON DELETE CASCADE
         )`, (err) => {});
         
         // إنشاء جدول مواعيد الفرع إذا لم يوجد وبذره
@@ -1683,6 +1715,14 @@ app.put('/api/inspections/:id', async (req, res) => {
             for (const tId of technician_ids) {
                 if (tId) {
                     await dbRun(`INSERT INTO inspection_technicians (inspection_id, technician_id) VALUES (?, ?)`, [id, tId]);
+                    // إرسال إشعار فوري للفني
+                    try {
+                        const carLabel = `${car_type || ''} ${car_model || ''} (${plate_number || ''})`.trim();
+                        await dbRun(`
+                            INSERT INTO sys_notifications (recipient_type, recipient_id, title, message, type)
+                            VALUES ('employee', ?, 'تم إسناد أمر عمل لك 🛠️', ?, 'info')
+                        `, [tId, `تم تعيينك للعمل على سيارة: ${carLabel || 'أمر عمل #' + id}`]);
+                    } catch (ne) { console.error("Notification Error:", ne); }
                 }
             }
         }
@@ -1709,6 +1749,18 @@ app.patch('/api/inspections/:id/status', async (req, res) => {
             WHERE id = ?
         `, [status || null, car_status || null, job_order_notes !== undefined ? job_order_notes : null, id]);
 
+        // إشعار للإدارة عند جاهزية السيارة للتسليم
+        if (car_status === 'ready') {
+            try {
+                const insp = await dbGet(`SELECT car_type, car_model, plate_number, customer_name FROM inspections WHERE id = ?`, [id]);
+                const carLabel = insp ? `${insp.car_type || ''} ${insp.car_model || ''} (${insp.plate_number || ''})`.trim() : `#${id}`;
+                await dbRun(`
+                    INSERT INTO sys_notifications (recipient_type, title, message, type)
+                    VALUES ('admin', 'سيارة جاهزة للتسليم ✅', ?, 'success')
+                `, [`السيارة: ${carLabel} أصبحت جاهزة للتسليم للعميل ${insp ? insp.customer_name || '' : ''}`]);
+            } catch (ne) { console.error("Notification Error:", ne); }
+        }
+
         res.json({ message: "تم تحديث حالة المستند بنجاح", id, status, car_status });
     } catch (error) {
         console.error("Update Inspection Status Error:", error);
@@ -1727,10 +1779,133 @@ app.post('/api/inspections/:id/convert-to-job', async (req, res) => {
             WHERE id = ?
         `, [id]);
 
+        try {
+            const insp = await dbGet(`SELECT car_type, plate_number, customer_name FROM inspections WHERE id = ?`, [id]);
+            await dbRun(`
+                INSERT INTO sys_notifications (recipient_type, title, message, type)
+                VALUES ('admin', 'تحويل تسعيرة لأمر عمل 🚗', ?, 'info')
+            `, [`تم تحويل تسعيرة السيارة (${insp ? insp.plate_number || '' : ''}) إلى أمر عمل رقم #${id}`]);
+        } catch (ne) { }
+
         res.json({ message: "تم تحويل التسعيرة إلى أمر عمل بنجاح", id, status: 'job_order' });
     } catch (error) {
         console.error("Convert Inspection Error:", error);
         res.status(500).json({ message: "خطأ في تحويل التسعيرة" });
+    }
+});
+
+// ==========================
+// 📷 مسارات رفع ومعاينة صور الكشوفات وأوامر العمل
+// ==========================
+app.post('/api/inspections/:id/photos', uploadPhoto.array('photos', 10), async (req, res) => {
+    const { id } = req.params;
+    const photo_type = req.body.photo_type || 'before'; // 'before', 'damaged_part', 'after'
+    const caption = req.body.caption || '';
+
+    try {
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).json({ message: "لم يتم اختيار أي صور" });
+        }
+
+        const insertedPhotos = [];
+        for (const file of req.files) {
+            const filePath = '/uploads/inspection_photos/' + file.filename;
+            const result = await dbRun(`
+                INSERT INTO inspection_photos (inspection_id, photo_type, file_path, caption)
+                VALUES (?, ?, ?, ?)
+            `, [id, photo_type, filePath, caption]);
+
+            insertedPhotos.push({
+                id: result.lastID,
+                inspection_id: Number(id),
+                photo_type,
+                file_path: filePath,
+                caption,
+                created_at: new Date().toISOString()
+            });
+        }
+
+        res.json({ message: "تم رفع الصور بنجاح", photos: insertedPhotos });
+    } catch (error) {
+        console.error("Upload Photos Error:", error);
+        res.status(500).json({ message: "خطأ في رفع الصور: " + error.message });
+    }
+});
+
+// جلب صور الكشف
+app.get('/api/inspections/:id/photos', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const photos = await dbAll(`
+            SELECT * FROM inspection_photos
+            WHERE inspection_id = ?
+            ORDER BY id DESC
+        `, [id]);
+        res.json(photos);
+    } catch (error) {
+        console.error("Get Photos Error:", error);
+        res.status(500).json({ message: "خطأ في جلب الصور" });
+    }
+});
+
+// حذف صورة
+app.delete('/api/inspections/photos/:photo_id', async (req, res) => {
+    const { photo_id } = req.params;
+    try {
+        const photo = await dbGet(`SELECT * FROM inspection_photos WHERE id = ?`, [photo_id]);
+        if (photo) {
+            const fullPath = path.join(__dirname, photo.file_path);
+            if (fs.existsSync(fullPath)) {
+                try { fs.unlinkSync(fullPath); } catch (e) { console.warn("Failed to delete file:", e); }
+            }
+            await dbRun(`DELETE FROM inspection_photos WHERE id = ?`, [photo_id]);
+        }
+        res.json({ message: "تم حذف الصورة بنجاح" });
+    } catch (error) {
+        console.error("Delete Photo Error:", error);
+        res.status(500).json({ message: "خطأ في حذف الصورة" });
+    }
+});
+
+// ==========================
+// 📱 مسار تتبع العميل المباشر (Public Customer Tracking)
+// ==========================
+app.get('/api/track/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const inspection = await dbGet(`
+            SELECT id, customer_name, customer_phone, car_type, car_color, car_model, 
+                   plate_number, odometer, status, car_status, total_amount, vat_amount, 
+                   final_amount, paid_amount, remaining_amount, created_at
+            FROM inspections
+            WHERE id = ?
+        `, [id]);
+
+        if (!inspection) {
+            return res.status(404).json({ message: "لم يتم العثور على سجل أمر العمل أو التسعيرة" });
+        }
+
+        const items = await dbAll(`
+            SELECT category, service_description, quantity, price, total
+            FROM inspection_items
+            WHERE inspection_id = ?
+        `, [id]);
+
+        const photos = await dbAll(`
+            SELECT id, photo_type, file_path, caption, created_at
+            FROM inspection_photos
+            WHERE inspection_id = ?
+            ORDER BY id ASC
+        `, [id]);
+
+        res.json({
+            inspection,
+            items,
+            photos
+        });
+    } catch (error) {
+        console.error("Track Error:", error);
+        res.status(500).json({ message: "خطأ في جلب بيانات المتابعة" });
     }
 });
 
@@ -1741,6 +1916,7 @@ app.delete('/api/inspections/:id', async (req, res) => {
         await dbRun('BEGIN TRANSACTION');
         await dbRun(`DELETE FROM inspection_items WHERE inspection_id = ?`, [id]);
         await dbRun(`DELETE FROM inspection_technicians WHERE inspection_id = ?`, [id]);
+        await dbRun(`DELETE FROM inspection_photos WHERE inspection_id = ?`, [id]);
         await dbRun(`DELETE FROM inspections WHERE id = ?`, [id]);
         await dbRun('COMMIT');
         res.json({ message: "تم حذف الكشف بنجاح" });
@@ -1892,7 +2068,13 @@ app.get('/api/inspections/:id', async (req, res) => {
             WHERE it.inspection_id = ?
         `, [id]);
 
-        res.json({ ...inspection, items, technicians });
+        const photos = await dbAll(`
+            SELECT * FROM inspection_photos
+            WHERE inspection_id = ?
+            ORDER BY id ASC
+        `, [id]);
+
+        res.json({ ...inspection, items, technicians, photos });
     } catch (error) {
         console.error("Fetch Inspection Details Error:", error);
         res.status(500).json({ message: "خطأ في جلب التفاصيل" });

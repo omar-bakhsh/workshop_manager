@@ -612,6 +612,8 @@
 
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                     <button id="convertDocBtn" class="btn btn-warning" onclick="toggleConvertDoc()" style="padding: 8px 16px; font-size: 13px; font-weight: 800; box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);">🛠️ تحويل إلى أمر عمل</button>
+                    <button type="button" class="btn" onclick="sendWhatsAppFromInspector()" style="padding: 8px 14px; font-size: 13px; font-weight: 800; background: #25d366; color: white; border-color: #22c55e;">💬 أتمتة الواتساب</button>
+                    <a id="inspectorTrackLink" target="_blank" class="btn" style="padding: 8px 12px; font-size: 13px; background: #e0f2fe; color: #0369a1; border-color: #bae6fd; font-weight: 700; text-decoration: none; display: none;">🔗 رابط العميل</a>
                     <button class="btn btn-secondary" onclick="window.location.href='inspections_list.html'" style="padding: 8px 12px; font-size: 13px;">📋 سجل التسعيرات</button>
                     <button class="btn btn-secondary" onclick="window.location.href='job_orders_list.html'" style="padding: 8px 12px; font-size: 13px; background: #e0f2fe; color: #0369a1; border-color: #bae6fd; font-weight: 700;">🚗 أوامر العمل والسيارات</button>
                 </div>
@@ -1451,9 +1453,41 @@
                                 });
                             }
                             calculateTotals();
+
+                            const trackLink = document.getElementById('inspectorTrackLink');
+                            if (trackLink && data.id) {
+                                trackLink.href = `track.html?id=${data.id}`;
+                                trackLink.style.display = 'inline-flex';
+                            }
                         } catch (e) { 
                             console.error(e); 
                             if (typeof showError === 'function') showError('تعذر تحميل بيانات المستند: ' + e.message);
+                        }
+                    }
+
+                    function sendWhatsAppFromInspector() {
+                        const plateLetters = `${document.getElementById('pL1').value}${document.getElementById('pL2').value}${document.getElementById('pL3').value}`.trim();
+                        const plateNumbers = `${document.getElementById('pN1').value}${document.getElementById('pN2').value}${document.getElementById('pN3').value}${document.getElementById('pN4').value}`.trim();
+                        const plate = plateLetters || plateNumbers ? `${plateLetters} ${plateNumbers}` : '';
+
+                        const cust = {
+                            id: currentInspectionId || 0,
+                            customer_name: document.getElementById('custName').value,
+                            customer_phone: document.getElementById('custPhone').value,
+                            car_type: document.getElementById('carType').value,
+                            car_model: document.getElementById('carModel').value,
+                            plate_number: plate,
+                            final_amount: parseFloat(document.getElementById('finalTotal').textContent) || 0,
+                            remaining_amount: parseFloat(document.getElementById('remainingAmount').textContent) || 0
+                        };
+
+                        if (!cust.customer_phone) {
+                            alert('يرجى إدخال رقم جوال العميل أولاً');
+                            return;
+                        }
+
+                        if (typeof APP_WHATSAPP !== 'undefined') {
+                            APP_WHATSAPP.showModal(cust);
                         }
                     }
 

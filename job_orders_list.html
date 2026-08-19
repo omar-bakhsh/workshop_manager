@@ -615,6 +615,7 @@
                     <td>
                         <div class="action-btns" style="justify-content: center;">
                             <button class="btn-action-icon btn-card" onclick="openJobOrderCard(${item.id})" title="فتح كرت التشغيل ومخطط الصدمات">📋 كرت العمل</button>
+                            <button class="btn-action-icon" style="background:#25d366; color:white; border-color:#22c55e;" onclick='openWhatsAppModalFor(${JSON.stringify(item).replace(/'/g, "&apos;")})' title="إرسال واتساب للعميل">💬 واتساب</button>
                             ${editBtn}
                             ${assignBtn}
                             ${deleteBtn}
@@ -766,6 +767,12 @@
             } catch (e) {
                 console.error(e);
                 alert('حدث خطأ أثناء الحفظ');
+            }
+        }
+
+        function openWhatsAppModalFor(item) {
+            if (typeof APP_WHATSAPP !== 'undefined') {
+                APP_WHATSAPP.showModal(item);
             }
         }
 

@@ -387,26 +387,237 @@
         }
     };
 
+    /**
+     * 💬 WhatsApp Automation Helper (Atenza App)
+     */
+    const APP_WHATSAPP = {
+        formatPhone: function (phone) {
+            if (!phone) return '';
+            let p = String(phone).replace(/[^\d+]/g, '');
+            if (p.startsWith('00')) p = p.substring(2);
+            if (p.startsWith('+')) p = p.substring(1);
+            if (p.startsWith('05')) p = '966' + p.substring(1);
+            if (p.startsWith('5') && p.length === 9) p = '966' + p;
+            return p;
+        },
+
+        getTrackingUrl: function (inspectionId) {
+            const loc = window.location;
+            const origin = loc.origin || `${loc.protocol}//${loc.host}`;
+            return `${origin}/track.html?id=${inspectionId}`;
+        },
+
+        sendWhatsApp: function (phone, message) {
+            const cleanPhone = this.formatPhone(phone);
+            if (!cleanPhone) {
+                alert('يرجى التأكد من إدخال رقم جوال العميل أولاً');
+                return;
+            }
+            const encodedText = encodeURIComponent(message);
+            const url = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedText}`;
+            window.open(url, '_blank');
+        },
+
+        sendQuotation: function (cust) {
+            const appName = APP_CONFIG.getAppName();
+            const trackUrl = this.getTrackingUrl(cust.id);
+            const car = `${cust.car_type || ''} ${cust.car_model || ''}`.trim() || 'السيارة';
+            const plate = cust.plate_number ? `(لوحة: ${cust.plate_number})` : '';
+            const total = cust.final_amount || cust.total_amount || 0;
+
+            const msg = `مرحباً بك أستاذ ${cust.customer_name || 'العميل العزيز'} 🌹\n\nنرفق لك كشف التسعيرة الفني لـ ${car} ${plate} من *${appName}*.\n\n💰 *إجمالي التسعيرة:* ${total} ريال\n\n📋 *لمعاينة بنود التسعيرة وتفاصيل الكشف أونلاين:*\n${trackUrl}\n\nنسعد بخدمتكم وتأكيد البدء بالعمل!`;
+            this.sendWhatsApp(cust.customer_phone, msg);
+        },
+
+        sendWorkInProgress: function (cust) {
+            const appName = APP_CONFIG.getAppName();
+            const trackUrl = this.getTrackingUrl(cust.id);
+            const car = `${cust.car_type || ''} ${cust.car_model || ''}`.trim() || 'السيارة';
+            const plate = cust.plate_number ? `(لوحة: ${cust.plate_number})` : '';
+
+            const msg = `مرحباً أستاذ ${cust.customer_name || 'العميل العزيز'} ⚙️\n\nنفيدكم ببدء أعمال الصيانة على ${car} ${plate} لدى *${appName}*.\n\n🚗 *يمكنكم متابعة مرحلة صيانة سيارتكم والصور لحظة بلحظة عبر الرابط التالي:*\n${trackUrl}\n\nشكراً لثقتكم بنا!`;
+            this.sendWhatsApp(cust.customer_phone, msg);
+        },
+
+        sendReadyForDelivery: function (cust) {
+            const appName = APP_CONFIG.getAppName();
+            const trackUrl = this.getTrackingUrl(cust.id);
+            const car = `${cust.car_type || ''} ${cust.car_model || ''}`.trim() || 'السيارة';
+            const plate = cust.plate_number ? `(لوحة: ${cust.plate_number})` : '';
+            const remaining = cust.remaining_amount !== undefined ? cust.remaining_amount : (cust.final_amount || 0);
+
+            const msg = `يسعدنا إبلاغك أستاذ ${cust.customer_name || 'العميل العزيز'} بأن سيارتك ${car} ${plate} أصبحت *جاهزة للتسليم* ✅ في *${appName}*.\n\n💵 *المبلغ المتبقي:* ${remaining} ريال\n\n📄 *تقرير الفحص والصور النهائية:*\n${trackUrl}\n\nنسعد بزيارتكم لاستلام السيارة! 🚗💨`;
+            this.sendWhatsApp(cust.customer_phone, msg);
+        },
+
+        showModal: function (cust) {
+            let modal = document.getElementById('atenzaWhatsAppModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'atenzaWhatsAppModal';
+                modal.className = 'atenza-wa-modal no-print';
+                document.body.appendChild(modal);
+            }
+
+            modal.innerHTML = `
+                <div class="atenza-wa-backdrop" onclick="document.getElementById('atenzaWhatsAppModal').style.display='none'"></div>
+                <div class="atenza-wa-content">
+                    <div class="atenza-wa-header">
+                        <h3>💬 أتمتة رسائل الواتساب للعميل</h3>
+                        <button type="button" class="atenza-wa-close" onclick="document.getElementById('atenzaWhatsAppModal').style.display='none'">&times;</button>
+                    </div>
+                    <div class="atenza-wa-body">
+                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px; margin-bottom:15px; font-size:13px;">
+                            <div>👤 العميل: <strong>${cust.customer_name || 'بدون اسم'}</strong></div>
+                            <div>📱 الجوال: <strong dir="ltr">${cust.customer_phone || 'غير مسجل'}</strong></div>
+                            <div>🚗 السيارة: <strong>${cust.car_type || ''} ${cust.car_model || ''} (${cust.plate_number || ''})</strong></div>
+                        </div>
+                        <div class="atenza-wa-options">
+                            <button type="button" class="atenza-wa-btn atenza-wa-quote" id="waBtnQuote">
+                                <span class="wa-icon">📋</span>
+                                <div class="wa-text">
+                                    <strong>إرسال التسعيرة / الكشف</strong>
+                                    <small>إرسال رابط التسعيرة والمبلغ الإجمالي</small>
+                                </div>
+                            </button>
+                            <button type="button" class="atenza-wa-btn atenza-wa-progress" id="waBtnProgress">
+                                <span class="wa-icon">⚙️</span>
+                                <div class="wa-text">
+                                    <strong>إشعار بدء العمل ورابط المتابعة</strong>
+                                    <small>إبلاغ العميل ببدء الصيانة ورابط البوابة</small>
+                                </div>
+                            </button>
+                            <button type="button" class="atenza-wa-btn atenza-wa-ready" id="waBtnReady">
+                                <span class="wa-icon">✅</span>
+                                <div class="wa-text">
+                                    <strong>إشعار جاهزية السيارة للتسليم</strong>
+                                    <small>إشعار باكتمال العمل والمبلغ المتبقي</small>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('waBtnQuote').onclick = () => {
+                this.sendQuotation(cust);
+                modal.style.display = 'none';
+            };
+            document.getElementById('waBtnProgress').onclick = () => {
+                this.sendWorkInProgress(cust);
+                modal.style.display = 'none';
+            };
+            document.getElementById('waBtnReady').onclick = () => {
+                this.sendReadyForDelivery(cust);
+                modal.style.display = 'none';
+            };
+
+            modal.style.display = 'flex';
+        }
+    };
+
+    /**
+     * 🔔 Real-time Audio & Live Alert Manager (Atenza App)
+     */
+    const APP_NOTIFIER = {
+        audioCtx: null,
+        playChime: function () {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                if (!this.audioCtx) this.audioCtx = new AudioContext();
+                if (this.audioCtx.state === 'suspended') {
+                    this.audioCtx.resume();
+                }
+                const now = this.audioCtx.currentTime;
+                const osc1 = this.audioCtx.createOscillator();
+                const gain1 = this.audioCtx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(587.33, now); // D5
+                osc1.frequency.exponentialRampToValueAtTime(880, now + 0.15); // A5
+                gain1.gain.setValueAtTime(0.3, now);
+                gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                osc1.connect(gain1);
+                gain1.connect(this.audioCtx.destination);
+                osc1.start(now);
+                osc1.stop(now + 0.35);
+            } catch (e) {
+                console.warn('Audio chime error:', e);
+            }
+        },
+
+        initLiveWatcher: function () {
+            const user = APP_PERMISSIONS.getUser();
+            if (!user || (!user.role && !user.employee_id)) return;
+
+            let lastSeenId = Number(localStorage.getItem('last_seen_notif_id') || 0);
+
+            const check = async () => {
+                try {
+                    let url = '/api/sys_notifications?';
+                    if (user.role === 'admin') {
+                        url += 'recipient_type=admin';
+                    } else if (user.employee_id || user.id) {
+                        url += `recipient_type=employee&recipient_id=${user.employee_id || user.id}`;
+                    } else {
+                        return;
+                    }
+
+                    const res = await fetch(url);
+                    if (!res.ok) return;
+                    const notifs = await res.json();
+                    if (!Array.isArray(notifs)) return;
+
+                    const unread = notifs.filter(n => !n.is_read && n.id > lastSeenId);
+                    if (unread.length > 0) {
+                        const newest = unread[0];
+                        lastSeenId = Math.max(...unread.map(n => n.id));
+                        localStorage.setItem('last_seen_notif_id', lastSeenId);
+
+                        // Play chime
+                        this.playChime();
+
+                        // Show Toast Alert
+                        if (typeof Toast !== 'undefined' && Toast.show) {
+                            Toast.show({
+                                title: newest.title || 'إشعار جديد 🔔',
+                                message: newest.message || '',
+                                type: newest.type || 'info',
+                                duration: 8000
+                            });
+                        }
+                    }
+                } catch (e) { }
+            };
+
+            setInterval(check, 6000);
+            setTimeout(check, 1000);
+        }
+    };
+
     // Expose globally
     global.APP_CONFIG = APP_CONFIG;
     global.APP_PERMISSIONS = APP_PERMISSIONS;
     global.APP_NAV = APP_NAV;
+    global.APP_WHATSAPP = APP_WHATSAPP;
+    global.APP_NOTIFIER = APP_NOTIFIER;
 
     // Automatic startup when DOM is ready
     if (typeof document !== 'undefined') {
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function () {
                 APP_CONFIG.initBranding();
-                // Auto render global navbar if container #atenzaNavbar exists
                 if (document.getElementById('atenzaNavbar')) {
                     APP_NAV.renderNavbar('#atenzaNavbar');
                 }
+                APP_NOTIFIER.initLiveWatcher();
             });
         } else {
             APP_CONFIG.initBranding();
             if (document.getElementById('atenzaNavbar')) {
                 APP_NAV.renderNavbar('#atenzaNavbar');
             }
+            APP_NOTIFIER.initLiveWatcher();
         }
     }
 

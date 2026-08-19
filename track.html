@@ -1,0 +1,704 @@
+﻿<!DOCTYPE html>
+<html lang=ar dir=rtl>
+
+<head>
+    <meta charset=UTF-8>
+    <meta name=viewport content=width=device-width, initial-scale=1.0>
+    <title>متابعة حالة صيانة السيارة - Atenza App</title>
+    <link rel=preconnect href=https://fonts.googleapis.com>
+    <link rel=preconnect href=https://fonts.gstatic.com crossorigin>
+    <link href=https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap rel=stylesheet>
+    <script src=public/js/app-config.js></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-gray: #f8fafc;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-gray);
+            color: var(--text-dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
+
+        .track-container {
+            max-width: 750px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        /* Top Hero Card */
+        .track-hero {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: white;
+            padding: 24px 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .track-hero::after {
+            content: 🚗;
+            position: absolute;
+            bottom: -20px;
+            left: -15px;
+            font-size: 110px;
+            opacity: 0.08;
+            pointer-events: none;
+        }
+
+        .workshop-brand-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #38bdf8;
+            margin-bottom: 4px;
+        }
+
+        .track-main-title {
+            font-size: 24px;
+            font-weight: 900;
+            margin-bottom: 6px;
+        }
+
+        .track-car-sub {
+            font-size: 14px;
+            color: #cbd5e1;
+        }
+
+        /* Card container */
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 18px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1.5px solid #f1f5f9;
+            padding-bottom: 8px;
+        }
+
+        /* 5-Step Tracker */
+        .stepper {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin: 25px 0 15px 0;
+        }
+
+        .stepper::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            right: 15px;
+            left: 15px;
+            height: 4px;
+            background: #e2e8f0;
+            z-index: 1;
+        }
+
+        .step-progress-bar {
+            position: absolute;
+            top: 20px;
+            right: 15px;
+            height: 4px;
+            background: #10b981;
+            z-index: 2;
+            transition: width 0.4s ease;
+        }
+
+        .step-item {
+            position: relative;
+            z-index: 3;
+            text-align: center;
+            flex: 1;
+        }
+
+        .step-circle {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #cbd5e1;
+            margin: 0 auto 8px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 800;
+            color: #64748b;
+            transition: all 0.3s;
+        }
+
+        .step-item.active .step-circle {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.2);
+        }
+
+        .step-item.completed .step-circle {
+            border-color: var(--success);
+            background: var(--success);
+            color: white;
+        }
+
+        .step-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+            line-height: 1.3;
+        }
+
+        .step-item.active .step-label {
+            color: var(--primary);
+            font-weight: 800;
+        }
+
+        .step-item.completed .step-label {
+            color: #0f172a;
+        }
+
+        /* Status Badge Highlight */
+        .status-hero-banner {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .status-in_progress { background: #eff6ff; color: #1d4ed8; border: 1.5px solid #bfdbfe; }
+        .status-waiting_parts { background: #fff7ed; color: #c2410c; border: 1.5px solid #fed7aa; }
+        .status-ready { background: #ecfdf5; color: #047857; border: 1.5px solid #a7f3d0; animation: pulseReady 2s infinite; }
+        .status-completed { background: #f8fafc; color: #334155; border: 1.5px solid #cbd5e1; }
+
+        @keyframes pulseReady {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* Info Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .info-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 10px 14px;
+            border-radius: 10px;
+        }
+
+        .info-box label {
+            display: block;
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .info-box span {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--text-dark);
+        }
+
+        /* Table */
+        .table-custom {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .table-custom th {
+            background: #f1f5f9;
+            padding: 8px 10px;
+            text-align: right;
+            font-weight: 800;
+            color: #475569;
+            border-radius: 6px;
+        }
+
+        .table-custom td {
+            padding: 10px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        /* Financial summary */
+        .finance-summary {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border: 1.5px solid #cbd5e1;
+            padding: 14px;
+            border-radius: 12px;
+            margin-top: 15px;
+        }
+
+        .finance-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .finance-row.total {
+            border-top: 1.5px dashed #cbd5e1;
+            margin-top: 8px;
+            padding-top: 8px;
+            font-size: 16px;
+            font-weight: 900;
+            color: var(--primary);
+        }
+
+        /* Photo Tabs & Gallery */
+        .photo-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 8px;
+            overflow-x: auto;
+        }
+
+        .photo-tab-btn {
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .photo-tab-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+            gap: 10px;
+        }
+
+        .gallery-item {
+            aspect-ratio: 1;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid #e2e8f0;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.2s;
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.06);
+        }
+
+        /* Action bar for customer */
+        .customer-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 800;
+            text-align: center;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        .btn-call { background: #2563eb; color: white; }
+        .btn-whatsapp { background: #25d366; color: white; }
+
+        /* Lightbox modal */
+        #lightboxModal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        #lightboxModal img {
+            max-width: 95%;
+            max-height: 90vh;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <div class=track-container>
+        <!-- Hero Header -->
+        <div class=track-hero>
+            <div class=workshop-brand-title id=trackWorkshopName>Atenza App</div>
+            <div class=track-main-title>بوابة متابعة صيانة السيارة</div>
+            <div class=track-car-sub id=trackCarHeader>جاري جلب تفاصيل السيارة...</div>
+        </div>
+
+        <!-- 5-Step Progress Tracker -->
+        <div class=card>
+            <div class=card-title>
+                <span>📍</span>
+                <span>مرحلة الصيانة الحالية</span>
+            </div>
+
+            <div class=stepper>
+                <div class=step-progress-bar id=stepperProgressBar style=width: 25%;></div>
+                
+                <div class=step-item id=step1>
+                    <div class=step-circle>1</div>
+                    <div class=step-label>استلام السيارة</div>
+                </div>
+                <div class=step-item id=step2>
+                    <div class=step-circle>2</div>
+                    <div class=step-label>الفحص والتسعيرة</div>
+                </div>
+                <div class=step-item id=step3>
+                    <div class=step-circle>3</div>
+                    <div class=step-label>جاري الصيانة</div>
+                </div>
+                <div class=step-item id=step4>
+                    <div class=step-circle>4</div>
+                    <div class=step-label>جاهزة للتسليم</div>
+                </div>
+                <div class=step-item id=step5>
+                    <div class=step-circle>5</div>
+                    <div class=step-label>تم الاستلام</div>
+                </div>
+            </div>
+
+            <div id=statusBanner class=status-hero-banner status-in_progress>
+                <span id=statusBannerText>⚙️ جاري العمل على صيانة سيارتكم</span>
+                <span id=statusBannerSub style=font-size:12px; opacity:0.8;>رقم الأمر: #---</span>
+            </div>
+        </div>
+
+        <!-- Vehicle Details Card -->
+        <div class=card>
+            <div class=card-title>
+                <span>🚗</span>
+                <span>بيانات السيارة والعميل</span>
+            </div>
+            <div class=info-grid>
+                <div class=info-box>
+                    <label>العميل</label>
+                    <span id=custName>...</span>
+                </div>
+                <div class=info-box>
+                    <label>نوع وموديل السيارة</label>
+                    <span id=carTypeModel>...</span>
+                </div>
+                <div class=info-box>
+                    <label>رقم اللوحة</label>
+                    <span id=carPlate style=letter-spacing: 2px;>...</span>
+                </div>
+                <div class=info-box>
+                    <label>اللون والعداد</label>
+                    <span id=carColorOdo>...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Photos Gallery Card -->
+        <div class=card id=photosCard style=display: none;>
+            <div class=card-title>
+                <span>📸</span>
+                <span>توثيق السيارة بالصور</span>
+            </div>
+            <div class=photo-tabs>
+                <button class=photo-tab-btn active onclick=filterPhotos('all', this)>جميع الصور</button>
+                <button class=photo-tab-btn onclick=filterPhotos('before', this)>صور الاستلام</button>
+                <button class=photo-tab-btn onclick=filterPhotos('damaged_part', this)>القطع التالفة</button>
+                <button class=photo-tab-btn onclick=filterPhotos('after', this)>بعد الصيانة</button>
+            </div>
+            <div class=gallery-grid id=galleryContainer></div>
+        </div>
+
+        <!-- Approved Services & Line Items -->
+        <div class=card>
+            <div class=card-title>
+                <span>📋</span>
+                <span>تفاصيل الخدمات وأجور العمل</span>
+            </div>
+            <table class=table-custom>
+                <thead>
+                    <tr>
+                        <th>الخدمة / البند</th>
+                        <th style=text-align: center; width: 60px;>الكمية</th>
+                        <th style=text-align: left; width: 90px;>الإجمالي</th>
+                    </tr>
+                </thead>
+                <tbody id=itemsTableBody>
+                    <tr><td colspan=3 style=text-align: center; color: #94a3b8;>جاري التحميل...</td></tr>
+                </tbody>
+            </table>
+
+            <div class=finance-summary>
+                <div class=finance-row>
+                    <span>المجموع الأساسي:</span>
+                    <span id=sumSubTotal>0.00 ريال</span>
+                </div>
+                <div class=finance-row>
+                    <span>ضريبة القيمة المضافة (15%):</span>
+                    <span id=sumVat>0.00 ريال</span>
+                </div>
+                <div class=finance-row>
+                    <span>المدفوع:</span>
+                    <span id=sumPaid style=color: #16a34a;>0.00 ريال</span>
+                </div>
+                <div class=finance-row total>
+                    <span>المبلغ المتبقي:</span>
+                    <span id=sumRemaining>0.00 ريال</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Direct Workshop Contact Buttons -->
+        <div class=customer-actions>
+            <a id=btnCallWorkshop href=tel: class=btn-action btn-call>
+                <span>📞</span>
+                <span>اتصال بالمركز</span>
+            </a>
+            <a id=btnWhatsAppWorkshop href=https://api.whatsapp.com/send?phone= target=_blank class=btn-action btn-whatsapp>
+                <span>💬</span>
+                <span>محادثة واتساب</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Lightbox Modal -->
+    <div id=lightboxModal onclick=this.style.display='none'>
+        <img id=lightboxImg src=" alt=Full view>
+ </div>
+
+ <script>
+ let allPhotos = [];
+ const urlParams = new URLSearchParams(window.location.search);
+ const inspectionId = urlParams.get('id');
+
+ async function loadTrackingData() {
+ if (!inspectionId) {
+ alert('عذراً، رابط المتابعة غير صحيح');
+ return;
+ }
+
+ try {
+ const res = await fetch('/api/track/' + inspectionId);
+ if (!res.ok) {
+ throw new Error('لم يتم العثور على أمر العمل المطلوب');
+ }
+ const data = await res.json();
+ renderTracking(data);
+ } catch (err) {
+ console.error(err);
+ document.querySelector('.track-container').innerHTML = 
+ <div class=card style=text-align:center; padding: 50px 20px;>
+ <h2 style=color: #ef4444; margin-bottom: 10px;>⚠️ لم يتم العثور على أمر العمل</h2>
+ <p style=color: #64748b;>يرجى التأكد من صحة الرابط أو التواصل مع إدارة المركز.</p>
+ </div>
+ ;
+ }
+ }
+
+ function renderTracking(data) {
+ const insp = data.inspection;
+ const items = data.items || [];
+ allPhotos = data.photos || [];
+
+ // App Name
+ if (typeof APP_CONFIG !== 'undefined') {
+ const appName = APP_CONFIG.getAppName();
+ document.getElementById('trackWorkshopName').textContent = appName;
+ document.title = appName + ' - متابعة حالة ' + (insp.car_type || 'السيارة');
+ }
+
+ // Header
+ document.getElementById('trackCarHeader').textContent = (insp.car_type || '') + ' ' + (insp.car_model || '') + ' - ' + (insp.plate_number || '');
+
+ // Vehicle info
+ document.getElementById('custName').textContent = insp.customer_name || 'العميل العزيز';
+ document.getElementById('carTypeModel').textContent = (insp.car_type || '-') + ' ' + (insp.car_model || '');
+ document.getElementById('carPlate').textContent = insp.plate_number || '-';
+ document.getElementById('carColorOdo').textContent = (insp.car_color || '-') + ' | ' + (insp.odometer ? insp.odometer + ' كم' : '-');
+
+ // Stepper Logic
+ applyStepper(insp);
+
+ // Items
+ const tbody = document.getElementById('itemsTableBody');
+ if (items.length === 0) {
+ tbody.innerHTML = '<tr><td colspan=3 style=text-align: center; color: #94a3b8;>لا توجد بنود مسجلة</td></tr>';
+ } else {
+ tbody.innerHTML = items.map(item => 
+ <tr>
+ <td>
+ <strong></strong>
+ <small style=display:block; color:#94a3b8; font-size:11px;></small>
+ </td>
+ <td style=text-align: center;></td>
+ <td style=text-align: left; font-weight: 700;> ﷼</td>
+ </tr>
+ ).join('');
+ }
+
+ // Finance
+ document.getElementById('sumSubTotal').textContent = Number(insp.total_amount || 0).toFixed(2) + ' ريال';
+ document.getElementById('sumVat').textContent = Number(insp.vat_amount || 0).toFixed(2) + ' ريال';
+ document.getElementById('sumPaid').textContent = Number(insp.paid_amount || 0).toFixed(2) + ' ريال';
+ document.getElementById('sumRemaining').textContent = Number(insp.remaining_amount !== undefined ? insp.remaining_amount : (insp.final_amount || 0)).toFixed(2) + ' ريال';
+
+ // Photos
+ if (allPhotos.length > 0) {
+ document.getElementById('photosCard').style.display = 'block';
+ renderPhotos(allPhotos);
+ }
+ }
+
+ function applyStepper(insp) {
+ const isJob = insp.status === 'job_order';
+ const carStatus = insp.car_status || 'in_progress';
+
+ let activeStep = 2;
+ let percent = '25%';
+ let bannerClass = 'status-in_progress';
+ let bannerText = '⚙️ جاري العمل على صيانة سيارتكم';
+
+ if (!isJob || carStatus === 'pending') {
+ activeStep = 2;
+ percent = '25%';
+ bannerText = '🔍 تم الفحص وإصدار كشف التسعيرة';
+ bannerClass = 'status-in_progress';
+ } else if (carStatus === 'waiting_parts') {
+ activeStep = 3;
+ percent = '50%';
+ bannerText = '📦 بانتظار توفير قطع الغيار المطلوبة';
+ bannerClass = 'status-waiting_parts';
+ } else if (carStatus === 'in_progress') {
+ activeStep = 3;
+ percent = '50%';
+ bannerText = '⚙️ جاري العمل وتجهيز السيارة';
+ bannerClass = 'status-in_progress';
+ } else if (carStatus === 'ready') {
+ activeStep = 4;
+ percent = '75%';
+ bannerText = '✅ سيارتكم جاهزة للتسليم الآن!';
+ bannerClass = 'status-ready';
+ } else if (carStatus === 'completed') {
+ activeStep = 5;
+ percent = '100%';
+ bannerText = '🏁 تم تسليم السيارة، شكراً لتعاملكم معنا!';
+ bannerClass = 'status-completed';
+ }
+
+ document.getElementById('stepperProgressBar').style.width = percent;
+
+ for (let i = 1; i <= 5; i++) {
+ const el = document.getElementById('step' + i);
+ el.classList.remove('active', 'completed');
+ if (i < activeStep) el.classList.add('completed');
+ if (i === activeStep) el.classList.add('active');
+ }
+
+ const banner = document.getElementById('statusBanner');
+ banner.className = 'status-hero-banner ' + bannerClass;
+ document.getElementById('statusBannerText').textContent = bannerText;
+ document.getElementById('statusBannerSub').textContent = 'رقم المستند: #' + insp.id;
+ }
+
+ function renderPhotos(photos) {
+ const container = document.getElementById('galleryContainer');
+ if (photos.length === 0) {
+ container.innerHTML = '<div style=grid-column: 1/-1; text-align:center; color:#94a3b8; font-size:12px; padding:10px;>لا توجد صور في هذا القسم</div>';
+ return;
+ }
+ container.innerHTML = photos.map(p => 
+ <div class=gallery-item onclick=openLightbox('')>
+ <img src= alt= loading=lazy>
+ </div>
+ ).join('');
+ }
+
+ function filterPhotos(type, btn) {
+ document.querySelectorAll('.photo-tab-btn').forEach(b => b.classList.remove('active'));
+ btn.classList.add('active');
+
+ if (type === 'all') {
+ renderPhotos(allPhotos);
+ } else {
+ const filtered = allPhotos.filter(p => p.photo_type === type);
+ renderPhotos(filtered);
+ }
+ }
+
+ function openLightbox(src) {
+ document.getElementById('lightboxImg').src = src;
+ document.getElementById('lightboxModal').style.display = 'flex';
+ }
+
+ loadTrackingData();
+ </script>
+</body>
+
+</html>

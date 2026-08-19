@@ -614,7 +614,199 @@ tr:hover { background-color: #f1f5f9; }
 }
 
 @media print {
-  .atenza-global-navbar {
+  .atenza-global-navbar,
+  .atenza-wa-modal {
     display: none !important;
   }
 }
+
+/* =========================================
+   💬 WhatsApp Modal & Automation Styling
+   ========================================= */
+.atenza-wa-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  direction: rtl;
+  font-family: 'Cairo', sans-serif;
+}
+
+.atenza-wa-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.atenza-wa-content {
+  position: relative;
+  background: white;
+  width: 92%;
+  max-width: 480px;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  animation: atenzaModalSlide 0.2s ease-out;
+}
+
+@keyframes atenzaModalSlide {
+  from { transform: translateY(20px) scale(0.96); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.atenza-wa-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: #25d366;
+  color: white;
+}
+
+.atenza-wa-header h3 {
+  font-size: 16px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.atenza-wa-close {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.atenza-wa-body {
+  padding: 20px;
+}
+
+.atenza-wa-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.atenza-wa-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  cursor: pointer;
+  text-align: right;
+  transition: all 0.2s;
+  font-family: 'Cairo', sans-serif;
+}
+
+.atenza-wa-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.atenza-wa-quote:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.atenza-wa-progress:hover {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.atenza-wa-ready:hover {
+  border-color: #10b981;
+  background: #ecfdf5;
+}
+
+.wa-icon {
+  font-size: 24px;
+}
+
+.wa-text strong {
+  display: block;
+  font-size: 14px;
+  color: #1e293b;
+}
+
+.wa-text small {
+  display: block;
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* =========================================
+   📷 Vehicle Inspection Photos Gallery
+   ========================================= */
+.photo-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.photo-thumb-card {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid #e2e8f0;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.photo-thumb-card:hover {
+  border-color: var(--primary-color, #2563eb);
+  transform: scale(1.02);
+}
+
+.photo-thumb-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photo-badge-type {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  color: white;
+  background: rgba(15, 23, 42, 0.75);
+}
+
+.photo-delete-btn {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: white;
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
