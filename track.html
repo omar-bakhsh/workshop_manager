@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang=ar dir=rtl>
+<html lang="ar" dir="rtl">
 
 <head>
-    <meta charset=UTF-8>
-    <meta name=viewport content=width=device-width, initial-scale=1.0>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>متابعة حالة صيانة السيارة - Atenza App</title>
-    <link rel=preconnect href=https://fonts.googleapis.com>
-    <link rel=preconnect href=https://fonts.gstatic.com crossorigin>
-    <link href=https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap rel=stylesheet>
-    <script src=public/js/app-config.js></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="public/js/app-config.js"></script>
     <style>
         :root {
             --primary: #2563eb;
@@ -43,7 +43,6 @@
             padding: 16px;
         }
 
-        /* Top Hero Card */
         .track-hero {
             background: linear-gradient(135deg, #1e293b, #0f172a);
             color: white;
@@ -57,7 +56,7 @@
         }
 
         .track-hero::after {
-            content: 🚗;
+            content: "🚗";
             position: absolute;
             bottom: -20px;
             left: -15px;
@@ -84,7 +83,6 @@
             color: #cbd5e1;
         }
 
-        /* Card container */
         .card {
             background: white;
             border-radius: 16px;
@@ -106,7 +104,6 @@
             padding-bottom: 8px;
         }
 
-        /* 5-Step Tracker */
         .stepper {
             display: flex;
             justify-content: space-between;
@@ -187,7 +184,6 @@
             color: #0f172a;
         }
 
-        /* Status Badge Highlight */
         .status-hero-banner {
             padding: 12px 16px;
             border-radius: 12px;
@@ -210,7 +206,6 @@
             100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
         }
 
-        /* Info Grid */
         .info-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -238,7 +233,6 @@
             color: var(--text-dark);
         }
 
-        /* Table */
         .table-custom {
             width: 100%;
             border-collapse: collapse;
@@ -259,7 +253,6 @@
             border-bottom: 1px solid #f1f5f9;
         }
 
-        /* Financial summary */
         .finance-summary {
             background: linear-gradient(135deg, #f8fafc, #f1f5f9);
             border: 1.5px solid #cbd5e1;
@@ -285,7 +278,6 @@
             color: var(--primary);
         }
 
-        /* Photo Tabs & Gallery */
         .photo-tabs {
             display: flex;
             gap: 8px;
@@ -339,7 +331,6 @@
             transform: scale(1.06);
         }
 
-        /* Action bar for customer */
         .customer-actions {
             display: flex;
             gap: 10px;
@@ -364,7 +355,6 @@
         .btn-call { background: #2563eb; color: white; }
         .btn-whatsapp { background: #25d366; color: white; }
 
-        /* Lightbox modal */
         #lightboxModal {
             display: none;
             position: fixed;
@@ -389,91 +379,91 @@
 </head>
 
 <body>
-    <div class=track-container>
+    <div class="track-container">
         <!-- Hero Header -->
-        <div class=track-hero>
-            <div class=workshop-brand-title id=trackWorkshopName>Atenza App</div>
-            <div class=track-main-title>بوابة متابعة صيانة السيارة</div>
-            <div class=track-car-sub id=trackCarHeader>جاري جلب تفاصيل السيارة...</div>
+        <div class="track-hero">
+            <div class="workshop-brand-title" id="trackWorkshopName">Atenza App</div>
+            <div class="track-main-title">بوابة متابعة صيانة السيارة</div>
+            <div class="track-car-sub" id="trackCarHeader">جاري جلب تفاصيل السيارة...</div>
         </div>
 
         <!-- 5-Step Progress Tracker -->
-        <div class=card>
-            <div class=card-title>
+        <div class="card">
+            <div class="card-title">
                 <span>📍</span>
                 <span>مرحلة الصيانة الحالية</span>
             </div>
 
-            <div class=stepper>
-                <div class=step-progress-bar id=stepperProgressBar style=width: 25%;></div>
+            <div class="stepper">
+                <div class="step-progress-bar" id="stepperProgressBar" style="width: 25%;"></div>
                 
-                <div class=step-item id=step1>
-                    <div class=step-circle>1</div>
-                    <div class=step-label>استلام السيارة</div>
+                <div class="step-item" id="step1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">استلام السيارة</div>
                 </div>
-                <div class=step-item id=step2>
-                    <div class=step-circle>2</div>
-                    <div class=step-label>الفحص والتسعيرة</div>
+                <div class="step-item" id="step2">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">الفحص والتسعيرة</div>
                 </div>
-                <div class=step-item id=step3>
-                    <div class=step-circle>3</div>
-                    <div class=step-label>جاري الصيانة</div>
+                <div class="step-item" id="step3">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">جاري الصيانة</div>
                 </div>
-                <div class=step-item id=step4>
-                    <div class=step-circle>4</div>
-                    <div class=step-label>جاهزة للتسليم</div>
+                <div class="step-item" id="step4">
+                    <div class="step-circle">4</div>
+                    <div class="step-label">جاهزة للتسليم</div>
                 </div>
-                <div class=step-item id=step5>
-                    <div class=step-circle>5</div>
-                    <div class=step-label>تم الاستلام</div>
+                <div class="step-item" id="step5">
+                    <div class="step-circle">5</div>
+                    <div class="step-label">تم الاستلام</div>
                 </div>
             </div>
 
-            <div id=statusBanner class=status-hero-banner status-in_progress>
-                <span id=statusBannerText>⚙️ جاري العمل على صيانة سيارتكم</span>
-                <span id=statusBannerSub style=font-size:12px; opacity:0.8;>رقم الأمر: #---</span>
+            <div id="statusBanner" class="status-hero-banner status-in_progress">
+                <span id="statusBannerText">⚙️ جاري العمل على صيانة سيارتكم</span>
+                <span id="statusBannerSub" style="font-size:12px; opacity:0.8;">رقم الأمر: #---</span>
             </div>
         </div>
 
         <!-- Vehicle Details Card -->
-        <div class=card>
-            <div class=card-title>
+        <div class="card">
+            <div class="card-title">
                 <span>🚗</span>
                 <span>بيانات السيارة والعميل</span>
             </div>
-            <div class=info-grid>
-                <div class=info-box>
+            <div class="info-grid">
+                <div class="info-box">
                     <label>العميل</label>
-                    <span id=custName>...</span>
+                    <span id="custName">...</span>
                 </div>
-                <div class=info-box>
+                <div class="info-box">
                     <label>نوع وموديل السيارة</label>
-                    <span id=carTypeModel>...</span>
+                    <span id="carTypeModel">...</span>
                 </div>
-                <div class=info-box>
+                <div class="info-box">
                     <label>رقم اللوحة</label>
-                    <span id=carPlate style=letter-spacing: 2px;>...</span>
+                    <span id="carPlate" style="letter-spacing: 2px;">...</span>
                 </div>
-                <div class=info-box>
+                <div class="info-box">
                     <label>اللون والعداد</label>
-                    <span id=carColorOdo>...</span>
+                    <span id="carColorOdo">...</span>
                 </div>
             </div>
         </div>
 
         <!-- Photos Gallery Card -->
-        <div class=card id=photosCard style=display: none;>
-            <div class=card-title>
+        <div class="card" id="photosCard" style="display: none;">
+            <div class="card-title">
                 <span>📸</span>
                 <span>توثيق السيارة بالصور</span>
             </div>
-            <div class=photo-tabs>
-                <button class=photo-tab-btn active onclick=filterPhotos('all', this)>جميع الصور</button>
-                <button class=photo-tab-btn onclick=filterPhotos('before', this)>صور الاستلام</button>
-                <button class=photo-tab-btn onclick=filterPhotos('damaged_part', this)>القطع التالفة</button>
-                <button class=photo-tab-btn onclick=filterPhotos('after', this)>بعد الصيانة</button>
+            <div class="photo-tabs">
+                <button class="photo-tab-btn active" onclick="filterPhotos('all', this)">جميع الصور</button>
+                <button class="photo-tab-btn" onclick="filterPhotos('before', this)">صور الاستلام</button>
+                <button class="photo-tab-btn" onclick="filterPhotos('damaged_part', this)">القطع التالفة</button>
+                <button class="photo-tab-btn" onclick="filterPhotos('after', this)">بعد الصيانة</button>
             </div>
-            <div class=gallery-grid id=galleryContainer></div>
+            <div class="gallery-grid" id="galleryContainer"></div>
         </div>
 
         <!-- Approved Services & Line Items -->
@@ -496,33 +486,33 @@
                 </tbody>
             </table>
 
-            <div class=finance-summary>
-                <div class=finance-row>
+            <div class="finance-summary">
+                <div class="finance-row">
                     <span>المجموع الأساسي:</span>
-                    <span id=sumSubTotal>0.00 ريال</span>
+                    <span id="sumSubTotal">0.00 ريال</span>
                 </div>
-                <div class=finance-row>
+                <div class="finance-row">
                     <span>ضريبة القيمة المضافة (15%):</span>
-                    <span id=sumVat>0.00 ريال</span>
+                    <span id="sumVat">0.00 ريال</span>
                 </div>
-                <div class=finance-row>
+                <div class="finance-row">
                     <span>المدفوع:</span>
-                    <span id=sumPaid style=color: #16a34a;>0.00 ريال</span>
+                    <span id="sumPaid" style="color: #16a34a;">0.00 ريال</span>
                 </div>
-                <div class=finance-row total>
+                <div class="finance-row total">
                     <span>المبلغ المتبقي:</span>
-                    <span id=sumRemaining>0.00 ريال</span>
+                    <span id="sumRemaining">0.00 ريال</span>
                 </div>
             </div>
         </div>
 
         <!-- Direct Workshop Contact Buttons -->
-        <div class=customer-actions>
-            <a id=btnCallWorkshop href=tel: class=btn-action btn-call>
+        <div class="customer-actions">
+            <a id="btnCallWorkshop" href="tel:" class="btn-action btn-call">
                 <span>📞</span>
                 <span>اتصال بالمركز</span>
             </a>
-            <a id=btnWhatsAppWorkshop href=https://api.whatsapp.com/send?phone= target=_blank class=btn-action btn-whatsapp>
+            <a id="btnWhatsAppWorkshop" href="https://api.whatsapp.com/send?phone=" target="_blank" class="btn-action btn-whatsapp">
                 <span>💬</span>
                 <span>محادثة واتساب</span>
             </a>
@@ -530,64 +520,63 @@
     </div>
 
     <!-- Lightbox Modal -->
-    <div id=lightboxModal onclick=this.style.display='none'>
-        <img id=lightboxImg src=" alt=Full view>
- </div>
+    <div id="lightboxModal" onclick="this.style.display='none'">
+        <img id="lightboxImg" src="" alt="Full view">
+    </div>
 
- <script>
- let allPhotos = [];
- const urlParams = new URLSearchParams(window.location.search);
- const inspectionId = urlParams.get('id');
+    <script>
+        let allPhotos = [];
+        const urlParams = new URLSearchParams(window.location.search);
+        const inspectionId = urlParams.get('id');
 
- async function loadTrackingData() {
- if (!inspectionId) {
- alert('عذراً، رابط المتابعة غير صحيح');
- return;
- }
+        async function loadTrackingData() {
+            if (!inspectionId) {
+                document.querySelector('.track-container').innerHTML = `
+                    <div class="card" style="text-align:center; padding: 50px 20px;">
+                        <h2 style="color: #ef4444; margin-bottom: 10px;">⚠️ لم يتم تحديد رقم أمر العمل</h2>
+                        <p style="color: #64748b;">يرجى فتح الرابط المرسل إليكم عبر الواتساب أو التواصل مع إدارة المركز.</p>
+                    </div>
+                `;
+                return;
+            }
 
- try {
- const res = await fetch('/api/track/' + inspectionId);
- if (!res.ok) {
- throw new Error('لم يتم العثور على أمر العمل المطلوب');
- }
- const data = await res.json();
- renderTracking(data);
- } catch (err) {
- console.error(err);
- document.querySelector('.track-container').innerHTML = 
- <div class=card style=text-align:center; padding: 50px 20px;>
- <h2 style=color: #ef4444; margin-bottom: 10px;>⚠️ لم يتم العثور على أمر العمل</h2>
- <p style=color: #64748b;>يرجى التأكد من صحة الرابط أو التواصل مع إدارة المركز.</p>
- </div>
- ;
- }
- }
+            try {
+                const res = await fetch('/api/track/' + inspectionId);
+                if (!res.ok) {
+                    throw new Error('لم يتم العثور على أمر العمل المطلوب');
+                }
+                const data = await res.json();
+                renderTracking(data);
+            } catch (err) {
+                console.error(err);
+                document.querySelector('.track-container').innerHTML = `
+                    <div class="card" style="text-align:center; padding: 50px 20px;">
+                        <h2 style="color: #ef4444; margin-bottom: 10px;">⚠️ تعذر جلب بيانات أمر العمل</h2>
+                        <p style="color: #64748b;">يرجى التأكد من صحة الرابط أو التواصل مع إدارة المركز.</p>
+                    </div>
+                `;
+            }
+        }
 
- function renderTracking(data) {
- const insp = data.inspection;
- const items = data.items || [];
- allPhotos = data.photos || [];
+        function renderTracking(data) {
+            const insp = data.inspection;
+            const items = data.items || [];
+            allPhotos = data.photos || [];
 
- // App Name
- if (typeof APP_CONFIG !== 'undefined') {
- const appName = APP_CONFIG.getAppName();
- document.getElementById('trackWorkshopName').textContent = appName;
- document.title = appName + ' - متابعة حالة ' + (insp.car_type || 'السيارة');
- }
+            if (typeof APP_CONFIG !== 'undefined') {
+                const appName = APP_CONFIG.getAppName();
+                document.getElementById('trackWorkshopName').textContent = appName;
+                document.title = appName + ' - متابعة حالة ' + (insp.car_type || 'السيارة');
+            }
 
- // Header
- document.getElementById('trackCarHeader').textContent = (insp.car_type || '') + ' ' + (insp.car_model || '') + ' - ' + (insp.plate_number || '');
+            document.getElementById('trackCarHeader').textContent = (insp.car_type || '') + ' ' + (insp.car_model || '') + ' - ' + (insp.plate_number || '');
+            document.getElementById('custName').textContent = insp.customer_name || 'العميل العزيز';
+            document.getElementById('carTypeModel').textContent = (insp.car_type || '-') + ' ' + (insp.car_model || '');
+            document.getElementById('carPlate').textContent = insp.plate_number || '-';
+            document.getElementById('carColorOdo').textContent = (insp.car_color || '-') + ' | ' + (insp.odometer ? insp.odometer + ' كم' : '-');
 
- // Vehicle info
- document.getElementById('custName').textContent = insp.customer_name || 'العميل العزيز';
- document.getElementById('carTypeModel').textContent = (insp.car_type || '-') + ' ' + (insp.car_model || '');
- document.getElementById('carPlate').textContent = insp.plate_number || '-';
- document.getElementById('carColorOdo').textContent = (insp.car_color || '-') + ' | ' + (insp.odometer ? insp.odometer + ' كم' : '-');
+            applyStepper(insp);
 
- // Stepper Logic
- applyStepper(insp);
-
-            // Items
             const tbody = document.getElementById('itemsTableBody');
             if (items.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #94a3b8;">لا توجد بنود مسجلة</td></tr>';
@@ -612,102 +601,119 @@
                 }).join('');
             }
 
- // Finance
- document.getElementById('sumSubTotal').textContent = Number(insp.total_amount || 0).toFixed(2) + ' ريال';
- document.getElementById('sumVat').textContent = Number(insp.vat_amount || 0).toFixed(2) + ' ريال';
- document.getElementById('sumPaid').textContent = Number(insp.paid_amount || 0).toFixed(2) + ' ريال';
- document.getElementById('sumRemaining').textContent = Number(insp.remaining_amount !== undefined ? insp.remaining_amount : (insp.final_amount || 0)).toFixed(2) + ' ريال';
+            document.getElementById('sumSubTotal').textContent = Number(insp.total_amount || 0).toFixed(2) + ' ريال';
+            document.getElementById('sumVat').textContent = Number(insp.vat_amount || 0).toFixed(2) + ' ريال';
+            document.getElementById('sumPaid').textContent = Number(insp.paid_amount || 0).toFixed(2) + ' ريال';
+            document.getElementById('sumRemaining').textContent = Number(insp.remaining_amount !== undefined ? insp.remaining_amount : (insp.final_amount || 0)).toFixed(2) + ' ريال';
 
- // Photos
- if (allPhotos.length > 0) {
- document.getElementById('photosCard').style.display = 'block';
- renderPhotos(allPhotos);
- }
- }
+            if (allPhotos.length > 0) {
+                document.getElementById('photosCard').style.display = 'block';
+                renderPhotos(allPhotos);
+            }
+        }
 
- function applyStepper(insp) {
- const isJob = insp.status === 'job_order';
- const carStatus = insp.car_status || 'in_progress';
+        function applyStepper(insp) {
+            const isJob = insp.status === 'job_order';
+            const carStatus = insp.car_status || 'in_progress';
 
- let activeStep = 2;
- let percent = '25%';
- let bannerClass = 'status-in_progress';
- let bannerText = '⚙️ جاري العمل على صيانة سيارتكم';
+            let activeStep = 2;
+            let percent = '25%';
+            let bannerClass = 'status-in_progress';
+            let bannerText = '⚙️ جاري العمل على صيانة سيارتكم';
 
- if (!isJob || carStatus === 'pending') {
- activeStep = 2;
- percent = '25%';
- bannerText = '🔍 تم الفحص وإصدار كشف التسعيرة';
- bannerClass = 'status-in_progress';
- } else if (carStatus === 'waiting_parts') {
- activeStep = 3;
- percent = '50%';
- bannerText = '📦 بانتظار توفير قطع الغيار المطلوبة';
- bannerClass = 'status-waiting_parts';
- } else if (carStatus === 'in_progress') {
- activeStep = 3;
- percent = '50%';
- bannerText = '⚙️ جاري العمل وتجهيز السيارة';
- bannerClass = 'status-in_progress';
- } else if (carStatus === 'ready') {
- activeStep = 4;
- percent = '75%';
- bannerText = '✅ سيارتكم جاهزة للتسليم الآن!';
- bannerClass = 'status-ready';
- } else if (carStatus === 'completed') {
- activeStep = 5;
- percent = '100%';
- bannerText = '🏁 تم تسليم السيارة، شكراً لتعاملكم معنا!';
- bannerClass = 'status-completed';
- }
+            if (!isJob || carStatus === 'pending') {
+                activeStep = 2;
+                percent = '25%';
+                bannerText = '🔍 تم الفحص وإصدار كشف التسعيرة';
+                bannerClass = 'status-in_progress';
+            } else if (carStatus === 'waiting_parts') {
+                activeStep = 3;
+                percent = '50%';
+                bannerText = '📦 بانتظار توفير قطع الغيار المطلوبة';
+                bannerClass = 'status-waiting_parts';
+            } else if (carStatus === 'in_progress') {
+                activeStep = 3;
+                percent = '50%';
+                bannerText = '⚙️ جاري العمل وتجهيز السيارة';
+                bannerClass = 'status-in_progress';
+            } else if (carStatus === 'ready') {
+                activeStep = 4;
+                percent = '75%';
+                bannerText = '✅ سيارتكم جاهزة للتسليم الآن!';
+                bannerClass = 'status-ready';
+            } else if (carStatus === 'completed') {
+                activeStep = 5;
+                percent = '100%';
+                bannerText = '🏁 تم تسليم السيارة، شكراً لتعاملكم معنا!';
+                bannerClass = 'status-completed';
+            }
 
- document.getElementById('stepperProgressBar').style.width = percent;
+            document.getElementById('stepperProgressBar').style.width = percent;
 
- for (let i = 1; i <= 5; i++) {
- const el = document.getElementById('step' + i);
- el.classList.remove('active', 'completed');
- if (i < activeStep) el.classList.add('completed');
- if (i === activeStep) el.classList.add('active');
- }
+            for (let i = 1; i <= 5; i++) {
+                const el = document.getElementById('step' + i);
+                el.classList.remove('active', 'completed');
+                if (i < activeStep) el.classList.add('completed');
+                if (i === activeStep) el.classList.add('active');
+            }
 
- const banner = document.getElementById('statusBanner');
- banner.className = 'status-hero-banner ' + bannerClass;
- document.getElementById('statusBannerText').textContent = bannerText;
- document.getElementById('statusBannerSub').textContent = 'رقم المستند: #' + insp.id;
- }
+            const banner = document.getElementById('statusBanner');
+            banner.className = 'status-hero-banner ' + bannerClass;
+            document.getElementById('statusBannerText').textContent = bannerText;
+            document.getElementById('statusBannerSub').textContent = 'رقم المستند: #' + insp.id;
+        }
 
- function renderPhotos(photos) {
- const container = document.getElementById('galleryContainer');
- if (photos.length === 0) {
- container.innerHTML = '<div style=grid-column: 1/-1; text-align:center; color:#94a3b8; font-size:12px; padding:10px;>لا توجد صور في هذا القسم</div>';
- return;
- }
- container.innerHTML = photos.map(p => 
- <div class=gallery-item onclick=openLightbox('')>
- <img src= alt= loading=lazy>
- </div>
- ).join('');
- }
+        function renderPhotos(photos) {
+            const container = document.getElementById('galleryContainer');
+            if (photos.length === 0) {
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; color:#94a3b8; font-size:12px; padding:10px;">لا توجد صور في هذا القسم</div>';
+                return;
+            }
+            container.innerHTML = photos.map(p => `
+                <div class="gallery-item" onclick="openLightbox('${p.file_path}')">
+                    <img src="${p.file_path}" alt="${p.caption || 'صورة'}" loading="lazy">
+                </div>
+            `).join('');
+        }
 
- function filterPhotos(type, btn) {
- document.querySelectorAll('.photo-tab-btn').forEach(b => b.classList.remove('active'));
- btn.classList.add('active');
+        function filterPhotos(type, btn) {
+            document.querySelectorAll('.photo-tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
 
- if (type === 'all') {
- renderPhotos(allPhotos);
- } else {
- const filtered = allPhotos.filter(p => p.photo_type === type);
- renderPhotos(filtered);
- }
- }
+            if (type === 'all') {
+                renderPhotos(allPhotos);
+            } else {
+                const filtered = allPhotos.filter(p => p.photo_type === type);
+                renderPhotos(filtered);
+            }
+        }
 
- function openLightbox(src) {
- document.getElementById('lightboxImg').src = src;
- document.getElementById('lightboxModal').style.display = 'flex';
- }
+        function openLightbox(src) {
+            document.getElementById('lightboxImg').src = src;
+            document.getElementById('lightboxModal').style.display = 'flex';
+        }
 
- loadTrackingData();
- </script>
+        async function initWorkshopContact() {
+            try {
+                const res = await fetch('/api/settings');
+                if (res.ok) {
+                    const settings = await res.json();
+                    const phone = settings.company_phone || '966500000000';
+                    const callBtn = document.getElementById('btnCallWorkshop');
+                    const waBtn = document.getElementById('btnWhatsAppWorkshop');
+                    if (callBtn) callBtn.href = 'tel:' + phone;
+                    if (waBtn) {
+                        let cleanPhone = phone.replace(/\D/g, '');
+                        if (cleanPhone.startsWith('05')) cleanPhone = '966' + cleanPhone.substring(1);
+                        waBtn.href = 'https://api.whatsapp.com/send?phone=' + cleanPhone;
+                    }
+                }
+            } catch (e) { }
+        }
+
+        initWorkshopContact();
+        loadTrackingData();
+    </script>
 </body>
 
 </html>
