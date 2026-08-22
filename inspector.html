@@ -1053,44 +1053,62 @@
                     }
 
                     async function loadBundles() {
+                        const container = document.getElementById('bundlesShortcutsContainer');
                         try {
                             const res = await fetch('/api/inspection-bundles');
+                            if (!res.ok) throw new Error('فشل جلب باقات الكشف');
                             allBundles = await res.json();
+                            if (!Array.isArray(allBundles)) allBundles = [];
                             renderBundleShortcuts();
-                        } catch (e) { console.error(e); }
+                        } catch (e) {
+                            console.error('Error loading bundles:', e);
+                            if (container) {
+                                container.innerHTML = '<div style="color: #166534; font-size: 13px; font-weight: 600;">لا توجد باقات سريعة مضافة حالياً. يمكنك إضافتها من <a href="shortcuts_manager.html" style="color:var(--primary); text-decoration:underline;">إدارة باقات الصيانة</a></div>';
+                            }
+                        }
                     }
 
                     function renderBundleShortcuts() {
                         const container = document.getElementById('bundlesShortcutsContainer');
                         if (!container) return;
-                        if (allBundles.length === 0) {
-                            container.innerHTML = '<div style="color: #166534; font-size: 14px;">لا توجد باقات مضافة</div>';
+                        if (!allBundles || allBundles.length === 0) {
+                            container.innerHTML = '<div style="color: #166534; font-size: 13px; font-weight: 600;">لا توجد باقات مضافة حالياً. يمكنك إضافتها من <a href="shortcuts_manager.html" style="color:var(--primary); text-decoration:underline;">إدارة باقات الصيانة</a></div>';
                             return;
                         }
-                        container.innerHTML = allBundles.map(b => `
-                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; background: white; padding: 10px 15px; border-radius: 12px; border: 1px solid #bbf7d0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.2s;" onmouseover="this.style.borderColor='#22c55e'" onmouseout="this.style.borderColor='#bbf7d0'">
-                    <input type="checkbox" onchange="applyBundle(${b.id}, this)" style="width: 20px; height: 20px; cursor: pointer;">
-                    <span style="font-weight: 600; color: #166534;">${b.name} ${b.icon || '✅'}</span>
-                </label>
-            `).join('');
+                        container.innerHTML = allBundles.map(b => {
+                            const count = b.items ? b.items.length : 0;
+                            return `
+                            <button type="button" class="bundle-quick-pill" onclick="applyBundle(${b.id})" style="display: inline-flex; align-items: center; gap: 8px; background: white; padding: 8px 14px; border-radius: 10px; border: 1.5px solid #86efac; color: #166534; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.04); transition: all 0.15s; font-family: inherit;" onmouseover="this.style.background='#dcfce7'; this.style.borderColor='#22c55e';" onmouseout="this.style.background='white'; this.style.borderColor='#86efac';">
+                                <span style="font-size: 16px;">${b.icon || '🚀'}</span>
+                                <span>${b.name}</span>
+                                <span style="font-size: 11px; background: #dcfce7; color: #15803d; padding: 2px 7px; border-radius: 6px; font-weight: 800;">${count} بنود ➕</span>
+                            </button>
+                            `;
+                        }).join('');
                     }
 
-                    function applyBundle(bundleId, checkbox) {
-                        if (!checkbox.checked) return;
-
+                    function applyBundle(bundleId) {
                         const bundle = allBundles.find(b => b.id === bundleId);
-                        if (!bundle) return;
+                        if (!bundle || !bundle.items || bundle.items.length === 0) {
+                            if (typeof showError === 'function') showError('هذه الباقة لا تحتوي على بنود صيانة');
+                            return;
+                        }
 
                         const items = bundle.items;
+                        let addedCount = 0;
 
                         items.forEach(item => {
                             let targetRow = null;
+                            const serviceDesc = item.service_description || item.service;
+                            const category = item.category || 'كشف';
+
+                            if (!serviceDesc) return;
 
                             // Try to find an empty row
                             const rows = document.querySelectorAll('#tableBody tr');
                             for (let tr of rows) {
                                 const input = tr.querySelector('.service-input');
-                                if (!input.value.trim()) {
+                                if (input && !input.value.trim()) {
                                     targetRow = tr;
                                     break;
                                 }
@@ -1103,26 +1121,32 @@
 
                             if (targetRow) {
                                 const input = targetRow.querySelector('.service-input');
-                                targetRow.querySelector('.cat-select').value = item.category;
-                                input.value = item.service_description;
+                                const catSelect = targetRow.querySelector('.cat-select');
+                                if (catSelect) catSelect.value = category;
+                                if (input) input.value = serviceDesc;
 
                                 let price = 0;
-                                if (pricingData[item.category]) {
-                                    const found = pricingData[item.category].find(s => s.service === item.service_description);
+                                if (pricingData && pricingData[category]) {
+                                    const found = pricingData[category].find(s => s.service === serviceDesc);
                                     if (found) price = found.price;
                                 }
 
-                                targetRow.querySelector('.price-input').value = price;
-                                targetRow.querySelector('.qty-input').value = 1;
-                                calculateRow(input);
+                                const priceInput = targetRow.querySelector('.price-input');
+                                const qtyInput = targetRow.querySelector('.qty-input');
+                                if (priceInput) priceInput.value = price;
+                                if (qtyInput) qtyInput.value = 1;
+
+                                if (input) calculateRow(input);
 
                                 targetRow.style.backgroundColor = '#dcfce7';
                                 setTimeout(() => targetRow.style.backgroundColor = '', 1500);
+                                addedCount++;
                             }
                         });
 
-                        // Reset checkbox
-                        setTimeout(() => checkbox.checked = false, 500);
+                        if (typeof showSuccess === 'function') {
+                            showSuccess(`تمت إضافة ${addedCount} بنود من ${bundle.name} بنجاح 🚀`);
+                        }
                     }
 
                     function populateModels() {

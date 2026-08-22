@@ -34,14 +34,21 @@ const upload = multer({ dest: 'uploads/' });
 const xlsx = require('xlsx');
 
 const app = express();
-const PORT = 8080;
+const PORT = process.env.PORT || 8080;
 
 // ==========================
 // 🧩 الإعدادات العامة
 // ==========================
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static('.')); // خدمة الملفات من المجلد الحالي
+app.use(express.static(path.join(__dirname, '.')));
+app.use('/public', express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// توجيه الصفحة الرئيسية إلى صفحة تسجيل الدخول
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'login.html'));
+});
 
 // ==========================
 // 🧩 إعداد قاعدة البيانات
@@ -2240,6 +2247,111 @@ app.delete('/api/services/:id', async (req, res) => {
     } catch (error) {
         console.error("Delete Service Error:", error);
         res.status(500).json({ message: "خطأ في حذف الخدمة" });
+    }
+});
+
+// ==========================
+// 🚀 باقات واختصارات الكشف (Inspection Bundles / Shortcuts)
+// ==========================
+
+// جلب جميع باقات الكشف مع بنودها
+app.get('/api/inspection-bundles', async (req, res) => {
+    try {
+        const bundles = await dbAll(`SELECT * FROM inspection_bundles ORDER BY id ASC`);
+        const result = [];
+        for (const b of bundles) {
+            const items = await dbAll(`SELECT * FROM inspection_bundle_items WHERE bundle_id = ? ORDER BY id ASC`, [b.id]);
+            result.push({
+                id: b.id,
+                name: b.name,
+                icon: b.icon || '🚀',
+                items: items || []
+            });
+        }
+        res.json(result);
+    } catch (error) {
+        console.error("Fetch Inspection Bundles Error:", error);
+        res.status(500).json({ message: "خطأ في جلب باقات واختصارات الكشف" });
+    }
+});
+
+// إضافة باقة كشف جديدة
+app.post('/api/inspection-bundles', async (req, res) => {
+    const { name, icon, items } = req.body;
+    if (!name) {
+        return res.status(400).json({ message: "اسم الباقة مطلوب" });
+    }
+
+    try {
+        await dbRun('BEGIN TRANSACTION');
+        const result = await dbRun(`INSERT INTO inspection_bundles (name, icon) VALUES (?, ?)`, [name, icon || '🚀']);
+        const bundleId = result.lastID;
+
+        if (items && Array.isArray(items)) {
+            for (const item of items) {
+                const desc = item.service_description || item.service;
+                if (desc) {
+                    await dbRun(
+                        `INSERT INTO inspection_bundle_items (bundle_id, service_description, category) VALUES (?, ?, ?)`,
+                        [bundleId, desc, item.category || 'كشف']
+                    );
+                }
+            }
+        }
+
+        await dbRun('COMMIT');
+        res.status(201).json({ message: "تمت إضافة الباقة بنجاح", id: bundleId });
+    } catch (error) {
+        try { await dbRun('ROLLBACK'); } catch (e) { }
+        console.error("Add Bundle Error:", error);
+        res.status(500).json({ message: "خطأ في إضافة الباقة: " + error.message });
+    }
+});
+
+// تحديث باقة كشف موجودة
+app.put('/api/inspection-bundles/:id', async (req, res) => {
+    const { id } = req.params;
+    const { name, icon, items } = req.body;
+
+    try {
+        await dbRun('BEGIN TRANSACTION');
+        await dbRun(`UPDATE inspection_bundles SET name = ?, icon = ? WHERE id = ?`, [name, icon || '🚀', id]);
+        await dbRun(`DELETE FROM inspection_bundle_items WHERE bundle_id = ?`, [id]);
+
+        if (items && Array.isArray(items)) {
+            for (const item of items) {
+                const desc = item.service_description || item.service;
+                if (desc) {
+                    await dbRun(
+                        `INSERT INTO inspection_bundle_items (bundle_id, service_description, category) VALUES (?, ?, ?)`,
+                        [id, desc, item.category || 'كشف']
+                    );
+                }
+            }
+        }
+
+        await dbRun('COMMIT');
+        res.json({ message: "تم تحديث الباقة بنجاح" });
+    } catch (error) {
+        try { await dbRun('ROLLBACK'); } catch (e) { }
+        console.error("Update Bundle Error:", error);
+        res.status(500).json({ message: "خطأ في تحديث الباقة: " + error.message });
+    }
+});
+
+// حذف باقة كشف
+app.delete('/api/inspection-bundles/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await dbRun('BEGIN TRANSACTION');
+        await dbRun(`DELETE FROM inspection_bundle_items WHERE bundle_id = ?`, [id]);
+        await dbRun(`DELETE FROM inspection_bundles WHERE id = ?`, [id]);
+        await dbRun('COMMIT');
+        res.json({ message: "تم حذف الباقة بنجاح" });
+    } catch (error) {
+        try { await dbRun('ROLLBACK'); } catch (e) { }
+        console.error("Delete Bundle Error:", error);
+        res.status(500).json({ message: "خطأ في حذف الباقة" });
     }
 });
 

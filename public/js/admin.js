@@ -174,20 +174,20 @@ function renderSections() {
                             const percent = target > 0 ? Math.round((income / target) * 100) : 0;
                             return `
                             <tr>
-                                <td>
-                                    <div style="font-weight:700;">${emp.name}</div>
-                                    <div style="font-size:11px; color:var(--text-gray);">${emp.username}</div>
+                                <td data-label="الموظف">
+                                    <div style="font-weight:800; font-size:14px;">${emp.name}</div>
+                                    <div style="font-size:11px; color:var(--text-gray); font-weight:600;">${emp.username}</div>
                                 </td>
-                                <td>${(emp.base_salary || 0).toLocaleString()}</td>
-                                <td>${(emp.target_amount || 0).toLocaleString()}</td>
-                                <td style="color:var(--danger); font-weight:700;">${(emp.total_withdrawals || 0).toLocaleString()}</td>
-                                <td style="background:#f7fff9; font-weight:800; color:#15803d;">${(emp.net_remaining || 0).toLocaleString()}</td>
-                                <td style="font-weight:800; color:var(--primary);">${income.toLocaleString()}</td>
-                                <td>
-                                    <span style="font-weight:700; color:${getPercentColor(percent)};">${percent}%</span>
+                                <td data-label="الراتب الأساسي">${(emp.base_salary || 0).toLocaleString()} ﷼</td>
+                                <td data-label="التارقت">${(emp.target_amount || 0).toLocaleString()} ﷼</td>
+                                <td data-label="سحوبات اليوم" style="color:var(--danger); font-weight:800;">${(emp.total_withdrawals || 0).toLocaleString()} ﷼</td>
+                                <td data-label="راتب متبقي (إكسل)" style="background:#f7fff9; font-weight:900; color:#15803d;">${(emp.net_remaining || 0).toLocaleString()} ﷼</td>
+                                <td data-label="الدخل المحلي" style="font-weight:800; color:var(--primary);">${income.toLocaleString()} ﷼</td>
+                                <td data-label="الإنجاز">
+                                    <span style="font-weight:800; color:${getPercentColor(percent)};">${percent}%</span>
                                 </td>
-                                <td>
-                                    <div style="display:flex; justify-content:center; gap:8px;">
+                                <td data-label="إجراءات">
+                                    <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
                                         <button class="action-btn-pill" style="background:#fef2f2; color:var(--danger);" onclick="deleteEmployee(${emp.id})" title="حذف">🗑️</button>
                                         <button class="action-btn-pill" style="background:#f0f9ff; color:var(--primary);" onclick="openEditModal(${emp.id})" title="تعديل">✏️</button>
                                         <button class="action-btn-pill" style="background:#f0fdf4; color:var(--success);" onclick="openIncomeModal(${emp.id})" title="إيداع">💰</button>
@@ -763,5 +763,25 @@ async function importSalaries(input) {
     } catch(e) { smartAlert('❌ خطأ في الاتصال'); } finally { input.value = ''; }
 }
 
+function toggleMobileSidebar(forceState) {
+    const sb = document.getElementById('adminSidebar') || document.querySelector('.sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    if (!sb) return;
+    
+    if (typeof forceState === 'boolean') {
+        if (forceState) {
+            sb.classList.add('open');
+            if (overlay) overlay.classList.add('open');
+        } else {
+            sb.classList.remove('open');
+            if (overlay) overlay.classList.remove('open');
+        }
+    } else {
+        sb.classList.toggle('open');
+        if (overlay) overlay.classList.toggle('open');
+    }
+}
+
 // Initialize!
 init();
+

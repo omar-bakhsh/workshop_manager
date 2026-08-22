@@ -108,6 +108,11 @@
                 <small style="color: #64748b; font-size: 12px; display: block; margin-top: 4px;">يظهر هذا الاسم في عناوين الصفحات، شاشات الدخول، الشريط الجانبي وتثبيت التطبيق.</small>
             </div>
             <div class="form-group">
+                <label>🌐 رابط النظام العام / دومين التتبع (Public Base URL)</label>
+                <input type="url" id="publicAppUrl" placeholder="مثال: https://atenza-app.com أو الرابط المنشور">
+                <small style="color: #64748b; font-size: 12px; display: block; margin-top: 4px;">يُستخدم هذا الرابط لإنشاء روابط التتبع (track.html) في رسائل الواتساب للعملاء حتى تفتح معهم بدون مشاكل المعاينة الخاصة أو الروابط المحلية.</small>
+            </div>
+            <div class="form-group">
                 <label>اسم الورشة / المؤسسة (للفواتير والكشوفات والطباعة)</label>
                 <input type="text" id="workshopName" placeholder="Atenza App">
             </div>
@@ -203,6 +208,7 @@
                 const res = await fetch('/api/settings');
                 const settings = await res.json();
                 document.getElementById('appName').value = settings.app_name || 'Atenza App';
+                document.getElementById('publicAppUrl').value = settings.public_app_url || '';
                 document.getElementById('workshopName').value = settings.workshop_name || 'Atenza App';
                 if (settings.workshop_desc) document.getElementById('workshopDesc').value = settings.workshop_desc;
                 if (settings.workshop_phone) document.getElementById('workshopPhone').value = settings.workshop_phone;
@@ -266,10 +272,12 @@
         async function saveAllSettings() {
             try {
                 const appNameVal = document.getElementById('appName').value.trim() || 'Atenza App';
+                const publicAppUrlVal = document.getElementById('publicAppUrl').value.trim();
                 const workshopNameVal = document.getElementById('workshopName').value.trim() || 'Atenza App';
                 
                 const settingsPayload = {
                     app_name: appNameVal,
+                    public_app_url: publicAppUrlVal,
                     workshop_name: workshopNameVal,
                     workshop_desc: document.getElementById('workshopDesc').value,
                     workshop_phone: document.getElementById('workshopPhone').value,
@@ -284,10 +292,12 @@
                 if (window.APP_CONFIG) {
                     window.APP_CONFIG.setAppName(appNameVal);
                     window.APP_CONFIG.setWorkshopName(workshopNameVal);
+                    window.APP_CONFIG.setPublicAppUrl(publicAppUrlVal);
                     window.APP_CONFIG.applyToDOM(appNameVal, workshopNameVal);
                 } else {
                     localStorage.setItem('app_name', appNameVal);
                     localStorage.setItem('workshop_name', workshopNameVal);
+                    localStorage.setItem('public_app_url', publicAppUrlVal);
                 }
 
                 await fetch('/api/terms', {

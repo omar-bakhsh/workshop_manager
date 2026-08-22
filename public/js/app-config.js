@@ -32,6 +32,11 @@
             return localStorage.getItem('workshop_name') || this.DEFAULT_WORKSHOP_NAME;
         },
 
+        // Get currently cached or default public app URL
+        getPublicAppUrl: function () {
+            return localStorage.getItem('public_app_url') || '';
+        },
+
         // Save new app name to local cache
         setAppName: function (name) {
             if (name && typeof name === 'string') {
@@ -43,6 +48,13 @@
         setWorkshopName: function (name) {
             if (name && typeof name === 'string') {
                 localStorage.setItem('workshop_name', name.trim());
+            }
+        },
+
+        // Save new public app URL to local cache
+        setPublicAppUrl: function (url) {
+            if (typeof url === 'string') {
+                localStorage.setItem('public_app_url', url.trim());
             }
         },
 
@@ -121,6 +133,9 @@
                     }
                     if (settings.workshop_name) {
                         this.setWorkshopName(settings.workshop_name);
+                    }
+                    if (settings.public_app_url !== undefined) {
+                        this.setPublicAppUrl(settings.public_app_url);
                     }
                     this.applyToDOM(settings.app_name, settings.workshop_name);
                 }
@@ -402,6 +417,11 @@
         },
 
         getTrackingUrl: function (inspectionId) {
+            const publicUrl = APP_CONFIG.getPublicAppUrl();
+            if (publicUrl && publicUrl.trim()) {
+                const base = publicUrl.trim().replace(/\/+$/, '');
+                return `${base}/track.html?id=${inspectionId}`;
+            }
             const loc = window.location;
             const origin = loc.origin || `${loc.protocol}//${loc.host}`;
             return `${origin}/track.html?id=${inspectionId}`;
