@@ -70,7 +70,7 @@ if (!fs.existsSync(dbPath) && fs.existsSync(defaultSeedPath)) {
 
 console.log('📍 مسار قاعدة البيانات:', dbPath);
 
-const db = new sqlite3.Database(dbPath, (err) => {
+let db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('❌ خطأ في فتح قاعدة البيانات:', err.message);
         process.exit(1); // إيقاف التطبيق إذا فشل الاتصال بقاعدة البيانات
@@ -2369,19 +2369,89 @@ app.delete('/api/inspection-bundles/:id', async (req, res) => {
 });
 
 // ==========================
-// 💾 النسخ الاحتياطي
+// 💾 مسارات النسخ الاحتياطي واستعادة قاعدة البيانات
 // ==========================
+
+// تحميل نسخة احتياطية
 app.get('/api/backup', (req, res) => {
-    const dbPath = path.join(__dirname, 'db.sqlite');
+    const currentDbPath = path.join(__dirname, 'db.sqlite');
     const date = new Date().toISOString().split('T')[0];
     const filename = `backup_workshop_${date}.sqlite`;
 
-    res.download(dbPath, filename, (err) => {
+    res.download(currentDbPath, filename, (err) => {
         if (err) {
             console.error("Backup Download Error:", err);
             res.status(500).send("Could not download backup");
         }
     });
+});
+
+// رفع واستعادة نسخة احتياطية
+const restoreUpload = multer({
+    dest: 'uploads/',
+    limits: { fileSize: 100 * 1024 * 1024 } // 100MB
+});
+
+app.post('/api/backup/restore', restoreUpload.single('backup_file'), async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ message: "الرجاء اختيار ملف قاعدة البيانات (.sqlite أو .db)" });
+    }
+
+    const uploadedPath = req.file.path;
+    try {
+        // التحقق من صحة ملف SQLite (فحص الـ Header الأول)
+        const buffer = Buffer.alloc(16);
+        const fd = fs.openSync(uploadedPath, 'r');
+        fs.readSync(fd, buffer, 0, 16, 0);
+        fs.closeSync(fd);
+
+        const headerStr = buffer.toString('utf8');
+        if (!headerStr.startsWith('SQLite format 3')) {
+            if (fs.existsSync(uploadedPath)) fs.unlinkSync(uploadedPath);
+            return res.status(400).json({ message: "الملف المرفوع ليس ملف قاعدة بيانات SQLite صالح!" });
+        }
+
+        // إنشاء نسخة أمان احتياطية من القاعدة الحالية قبل الاستبدال
+        if (fs.existsSync(dbPath)) {
+            const safetyBackup = path.join(__dirname, `backup_auto_safety_${Date.now()}.sqlite`);
+            try { fs.copyFileSync(dbPath, safetyBackup); } catch (be) { console.warn("Safety backup copy error:", be); }
+        }
+
+        // إغلاق الاتصال الحالي بقاعدة البيانات
+        await new Promise((resolve) => {
+            db.close((err) => {
+                if (err) console.warn("Closing DB error:", err);
+                resolve();
+            });
+        });
+
+        // استبدال ملف قاعدة البيانات
+        fs.copyFileSync(uploadedPath, dbPath);
+        // تحديث ملف default_seed أيضاً لضمان المزامنة في بيئات الاستضافة
+        try { fs.copyFileSync(uploadedPath, defaultSeedPath); } catch (e) { }
+
+        // حذف الملف المؤقت المرفوع
+        if (fs.existsSync(uploadedPath)) fs.unlinkSync(uploadedPath);
+
+        // إعادة فتح الاتصال بقاعدة البيانات الجديدة وتهيئة الجداول
+        db = new sqlite3.Database(dbPath, (err) => {
+            if (err) {
+                console.error("Reopening DB error:", err);
+            } else {
+                console.log("✅ تم استعادة وإعادة فتح قاعدة البيانات بنجاح.");
+                initializeDatabase();
+            }
+        });
+
+        res.json({
+            success: true,
+            message: "تمت استعادة قاعدة البيانات بنجاح واسترجاع كافة سجلات الموظفين والدخل والتسعيرات 🚀"
+        });
+    } catch (error) {
+        console.error("Restore DB Error:", error);
+        if (fs.existsSync(uploadedPath)) fs.unlinkSync(uploadedPath);
+        res.status(500).json({ message: "حدث خطأ أثناء استعادة قاعدة البيانات: " + error.message });
+    }
 });
 
 // ==========================

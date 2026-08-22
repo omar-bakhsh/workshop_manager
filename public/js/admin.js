@@ -631,8 +631,42 @@ function updateDateHeader() {
 function openModal(id) { document.getElementById(id).style.display = 'flex'; }
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 function openLeaveModal() { openModal('leaveModal'); }
-function scrollToPending() { const s = document.getElementById('pendingRequestsSection'); if(s.style.display!=='none') s.scrollIntoView({behavior:'smooth'}); }
-function backupDatabase() { window.location.href = '/api/backup'; }
+function backupDatabase() { openModal('backupModal'); }
+function downloadDbBackup() { window.location.href = '/api/backup'; }
+
+async function uploadAndRestoreDatabase(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    if (!confirm(`⚠️ تحذير مهم:\nهل أنت متأكد من استعادة قاعدة البيانات من الملف (${file.name})؟\nسيتم استبدال البيانات الحالية على السيرفر بالبيانات الموجودة في هذا الملف واسترجاع كافة سجلات الموظفين والدخل.`)) {
+        input.value = '';
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('backup_file', file);
+
+    try {
+        if (typeof showToast === 'function') showToast('⏳ جاري رفع واستعادة قاعدة البيانات...', 'info');
+        const res = await fetch('/api/backup/restore', {
+            method: 'POST',
+            body: formData
+        });
+        const result = await res.json();
+        if (res.ok) {
+            alert('🎉 ' + result.message);
+            closeModal('backupModal');
+            location.reload();
+        } else {
+            alert('❌ خطأ: ' + (result.message || 'فشلت عملية الاستعادة'));
+        }
+    } catch (e) {
+        console.error(e);
+        alert('❌ حدث خطأ أثناء الاتصال بالسيرفر');
+    } finally {
+        input.value = '';
+    }
+}
 function checkNotifications() { fetch('/api/notifications').then(r => r.json()).then(d => { if(d.total > 0 && d.total !== document.getElementById('notifBadgeDot').innerText) { /* old logic replaced */ } }); }
 
 let unreadAdminCount = 0;

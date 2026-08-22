@@ -307,7 +307,28 @@
                     </table>
                 </div>
             </div>
-            <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('leaveModal')">إغلاق</button></div>
+    <!-- 💾 Backup & Restore Database Modal -->
+    <div class="modal" id="backupModal">
+        <div class="modal-content" style="max-width: 440px; text-align: center;">
+            <div class="modal-header">
+                <h3>💾 النسخ الاحتياطي واستعادة البيانات</h3>
+                <button class="close-btn" onclick="closeModal('backupModal')">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px 10px;">
+                <p style="font-size: 13px; color: var(--text-gray); margin-bottom: 18px; line-height: 1.6;">
+                    اختر الإجراء المطلوب لقاعدة بيانات النظام (الموظفين، الدخل، التسعيرات):
+                </p>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <button class="btn btn-primary" onclick="downloadDbBackup()" style="padding: 12px; font-weight: 800; font-size: 13px; justify-content: center;">
+                        <span>📥 تحميل نسخة احتياطية من السيرفر</span>
+                    </button>
+                    <button class="btn" onclick="document.getElementById('adminDbRestoreInput').click()" style="padding: 12px; font-weight: 800; font-size: 13px; justify-content: center; background: #f59e0b; color: white;">
+                        <span>📤 رفع واستعادة نسخة سابقة (.sqlite)</span>
+                    </button>
+                    <input type="file" id="adminDbRestoreInput" style="display: none;" accept=".sqlite,.db" onchange="uploadAndRestoreDatabase(this)">
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('backupModal')">إغلاق</button></div>
         </div>
     </div>
 
