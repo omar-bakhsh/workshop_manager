@@ -1,7 +1,6 @@
 uploads/
 node_modules/
 
-db.sqlite
 *.log
 backup_*.sqlite
 .DS_Store

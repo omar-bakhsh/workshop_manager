@@ -55,6 +55,19 @@ app.get('/', (req, res) => {
 // ==========================
 console.log('📁 محاولة فتح قاعدة البيانات...');
 const dbPath = path.join(__dirname, 'db.sqlite');
+const defaultSeedPath = path.join(__dirname, 'default_seed.sqlite');
+
+// استعادة قاعدة البيانات التلقائية عند النشر لأول مرة في بيئات الاستضافة
+if (!fs.existsSync(dbPath) && fs.existsSync(defaultSeedPath)) {
+    try {
+        console.log('🔄 جاري استعادة قاعدة البيانات الافتراضية من default_seed.sqlite...');
+        fs.copyFileSync(defaultSeedPath, dbPath);
+        console.log('✅ تمت استعادة قاعدة البيانات بنجاح.');
+    } catch (copyErr) {
+        console.warn('⚠️ تعذر نسخ قاعدة البيانات الافتراضية:', copyErr.message);
+    }
+}
+
 console.log('📍 مسار قاعدة البيانات:', dbPath);
 
 const db = new sqlite3.Database(dbPath, (err) => {

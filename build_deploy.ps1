@@ -52,7 +52,7 @@ $nullEntry = $archive.CreateEntry("uploads/inspection_photos/", [System.IO.Compr
 $nullStream = $nullEntry.Open()
 $nullStream.Close()
 
-# 4. Add db.sqlite if present
+# 4. Add db.sqlite and default_seed.sqlite if present
 $dbFile = Join-Path $PSScriptRoot "db.sqlite"
 if (Test-Path $dbFile) {
     try {
@@ -62,6 +62,13 @@ if (Test-Path $dbFile) {
         $fileStream.CopyTo($entryStream)
         $fileStream.Close()
         $entryStream.Close()
+
+        $entrySeed = $archive.CreateEntry("default_seed.sqlite", [System.IO.Compression.CompressionLevel]::Optimal)
+        $entrySeedStream = $entrySeed.Open()
+        $fileSeedStream = [System.IO.File]::Open($dbFile, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
+        $fileSeedStream.CopyTo($entrySeedStream)
+        $fileSeedStream.Close()
+        $entrySeedStream.Close()
     } catch {
         Write-Host "db.sqlite warning: $($_.Exception.Message)"
     }
