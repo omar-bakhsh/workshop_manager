@@ -599,43 +599,172 @@
         }
 
         /* --- Print Styles --- */
+        
+        
+        /* --- Complete Print Engine Styles (Single Page / Multi-Page A4) --- */
+        #officialQuotationPrintSheet,
+        #officialJobOrderPrintSheet {
+            display: none;
+        }
+
         @media print {
+            @page {
+                size: A4 portrait;
+                margin: 6mm 7mm 6mm 7mm;
+            }
+
             .no-print,
             .mobile-bottom-bar,
             #atenzaNavbar,
             .inspector-top-card,
             .shortcuts-card,
-            .quick-add-bar {
+            .quick-add-bar,
+            .container,
+            #printableArea,
+            .print-actions,
+            .header,
+            .info-grid,
+            .checklist-progress-card,
+            .checklist-ready-alert,
+            .diagram-container,
+            .notes-section,
+            .terms-section,
+            .signature-section,
+            .photos-upload-section,
+            #toastContainer {
                 display: none !important;
             }
 
-            body {
-                background: white !important;
-                padding: 0 !important;
-                color: black !important;
-            }
-
-            .container {
-                max-width: 100% !important;
+            html, body {
+                background: #ffffff !important;
+                color: #000000 !important;
                 padding: 0 !important;
                 margin: 0 !important;
+                height: auto !important;
+                min-height: 0 !important;
+                overflow: visible !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
 
-            .card {
-                border: none !important;
-                box-shadow: none !important;
+            /* Quotation Print Mode */
+            body.print-quotation-mode #officialQuotationPrintSheet,
+            body:not(.print-job-order-mode):not(.job-order-page) #officialQuotationPrintSheet {
+                display: block !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 auto !important;
                 padding: 0 !important;
+                font-family: 'Segoe UI', Tahoma, Arial, 'Cairo', sans-serif !important;
+                color: #000000 !important;
+                background: #ffffff !important;
             }
 
-            table, th, td {
-                border-color: #000 !important;
+            /* Job Order Print Mode */
+            body.print-job-order-mode #officialJobOrderPrintSheet,
+            body.job-order-page #officialJobOrderPrintSheet {
+                display: block !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 auto !important;
+                padding: 0 !important;
+                font-family: 'Segoe UI', Tahoma, Arial, 'Cairo', sans-serif !important;
+                color: #000000 !important;
+                background: #ffffff !important;
             }
 
-            input.table-input, select.table-input {
-                font-weight: bold !important;
-                color: #000 !important;
+            body.print-job-order-mode #officialQuotationPrintSheet,
+            body.job-order-page #officialQuotationPrintSheet {
+                display: none !important;
             }
+
+            /* ---------------- QUOTATION STYLES (Single Unified Services Table) ---------------- */
+            .ops-header { margin-bottom: 5px !important; }
+            .ops-header-top { text-align: center !important; }
+            .ops-title-ar { font-size: 19px !important; font-weight: 900 !important; margin-bottom: 1px !important; color: #000 !important; }
+            .ops-title-en { font-size: 13px !important; font-weight: 700 !important; margin-bottom: 2px !important; color: #222 !important; }
+            .ops-phones { font-size: 12px !important; font-weight: 700 !important; display: flex !important; justify-content: center !important; gap: 25px !important; direction: ltr !important; }
+            .ops-meta-row { display: flex !important; justify-content: space-between !important; align-items: center !important; margin-top: 6px !important; margin-bottom: 6px !important; font-size: 12px !important; font-weight: 700 !important; }
+            .ops-quote-badge { text-align: center !important; background: #e2e8f0 !important; padding: 3px 14px !important; border-radius: 4px !important; border: 1.5px solid #475569 !important; display: flex !important; flex-direction: column !important; align-items: center !important; line-height: 1.1 !important; }
+            .ops-quote-badge .badge-label { font-size: 10px !important; font-weight: 700 !important; }
+            .ops-quote-badge .badge-num { font-size: 16px !important; font-weight: 900 !important; }
+            .ops-customer-row { display: flex !important; justify-content: space-between !important; align-items: center !important; font-size: 12px !important; font-weight: 800 !important; margin-bottom: 4px !important; }
+            .ops-intro-text { font-size: 10.5px !important; font-weight: 600 !important; color: #222 !important; margin-bottom: 5px !important; }
+            
+            .ops-car-table { width: 100% !important; border-collapse: collapse !important; border: 1.5px solid #000 !important; margin-bottom: 6px !important; text-align: center !important; }
+            .ops-car-table th { border: 1.2px solid #000 !important; background: #f1f5f9 !important; font-size: 10.5px !important; font-weight: 800 !important; padding: 3px 4px !important; color: #000 !important; }
+            .ops-car-table td { border: 1.2px solid #000 !important; font-size: 11px !important; font-weight: 700 !important; padding: 3px 4px !important; color: #000 !important; }
+            
+            /* Unified Full-Width Services Table */
+            .ops-unified-table { width: 100% !important; border-collapse: collapse !important; border: 1.5px solid #000 !important; margin-bottom: 6px !important; }
+            .ops-unified-table th { border: 1.2px solid #000 !important; background: #f8fafc !important; font-size: 10.5px !important; font-weight: 800 !important; padding: 3px 4px !important; text-align: center !important; color: #000 !important; }
+            .ops-unified-table td { border: 1px dashed #000 !important; font-size: 10px !important; font-weight: 600 !important; padding: 3px 4px !important; height: 20px !important; color: #000 !important; text-align: center !important; }
+            .ops-unified-table td.col-desc { text-align: right !important; padding-right: 8px !important; font-weight: 700 !important; }
+            .ops-unified-table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
+
+            /* 5-Columns Quotation Financial Summary Table */
+            .ops-totals-table { width: 100% !important; border-collapse: collapse !important; border: 1.5px solid #000 !important; margin-bottom: 6px !important; text-align: center !important; page-break-inside: avoid !important; break-inside: avoid !important; }
+            .ops-totals-table th { border: 1.2px solid #000 !important; background: #f1f5f9 !important; font-size: 10px !important; font-weight: 800 !important; padding: 3px 3px !important; line-height: 1.1 !important; color: #000 !important; }
+            .ops-totals-table td { border: 1.2px solid #000 !important; font-size: 11px !important; font-weight: 800 !important; padding: 3px 3px !important; height: 20px !important; color: #000 !important; }
+            .ops-grand-total-cell { background: #bbf7d0 !important; font-size: 13px !important; font-weight: 900 !important; }
+
+            .ops-footer { margin-top: 6px !important; font-size: 10px !important; page-break-inside: avoid !important; break-inside: avoid !important; }
+            .ops-notes-row { text-align: center !important; font-size: 10px !important; font-weight: 700 !important; color: #334155 !important; margin-bottom: 3px !important; }
+            .ops-wishes-text { text-align: center !important; font-size: 11px !important; font-weight: 800 !important; border-top: 1.2px solid #000 !important; padding-top: 4px !important; margin-bottom: 6px !important; }
+            .ops-signatures-row { display: flex !important; justify-content: space-between !important; align-items: flex-end !important; padding: 0 20px !important; margin-top: 6px !important; }
+            .ops-stamp-box { text-align: center !important; font-size: 11px !important; font-weight: 800 !important; }
+            .ops-stamp-circle { width: 65px !important; height: 38px !important; border: 1px dashed #94a3b8 !important; border-radius: 50% !important; margin-top: 2px !important; display: flex !important; align-items: center !important; justify-content: center !important; font-size: 9.5px !important; color: #64748b !important; }
+            .ops-manager-box { text-align: center !important; font-size: 11px !important; font-weight: 800 !important; }
+            .ops-sign-line { margin-top: 12px !important; font-size: 13px !important; letter-spacing: 2px !important; }
+            .ops-bottom-info { display: flex !important; justify-content: space-between !important; align-items: center !important; font-size: 9.5px !important; color: #475569 !important; margin-top: 5px !important; border-top: 1px dotted #cbd5e1 !important; padding-top: 3px !important; }
+
+            /* ---------------- CONTRACT JOB CARD STYLES ---------------- */
+            .job-card-sheet {
+                border: 1.5px solid #000 !important;
+                padding: 6px 10px !important;
+                background: #fff !important;
+                height: auto !important;
+                min-height: 0 !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            .jc-header { display: flex !important; justify-content: space-between !important; align-items: flex-start !important; margin-bottom: 3px !important; }
+            .jc-header-right { text-align: right !important; }
+            .jc-header-right h2 { font-size: 15px !important; font-weight: 900 !important; margin: 0 0 1px 0 !important; color: #000 !important; }
+            .jc-header-right p { font-size: 10px !important; font-weight: 700 !important; margin: 1px 0 !important; color: #111 !important; }
+            .jc-header-left { text-align: left !important; direction: ltr !important; }
+            .jc-header-left h2 { font-size: 14px !important; font-weight: 900 !important; margin: 0 0 1px 0 !important; color: #000 !important; }
+            .jc-header-left p { font-size: 10px !important; font-weight: 700 !important; margin: 1px 0 !important; color: #111 !important; }
+            .jc-title-bar { text-align: center !important; margin: 2px 0 4px 0 !important; }
+            .jc-main-title { font-size: 13.5px !important; font-weight: 900 !important; letter-spacing: 0.5px !important; color: #000 !important; }
+            .jc-meta-dates-row { display: flex !important; justify-content: space-between !important; align-items: center !important; font-size: 11px !important; font-weight: 800 !important; margin-bottom: 4px !important; }
+            .jc-job-no-badge { font-size: 13px !important; font-weight: 900 !important; }
+            .jc-info-table { width: 100% !important; border-collapse: collapse !important; border: 1.5px solid #000 !important; margin-bottom: 4px !important; }
+            .jc-info-table td { border: 1.2px solid #000 !important; padding: 2px 4px !important; font-size: 9.5px !important; height: 18px !important; }
+            .jc-info-table .lbl { font-weight: 800 !important; background: #f1f5f9 !important; text-align: right !important; width: 22% !important; white-space: nowrap !important; color: #000 !important; }
+            .jc-info-table .val { font-weight: 700 !important; text-align: center !important; width: 28% !important; color: #000 !important; }
+            .jc-services-section-title { display: flex !important; justify-content: space-between !important; font-size: 11px !important; font-weight: 900 !important; border: 1.2px solid #000 !important; border-bottom: none !important; background: #e2e8f0 !important; padding: 2px 6px !important; color: #000 !important; }
+            .jc-services-table { width: 100% !important; border-collapse: collapse !important; border: 1.5px solid #000 !important; margin-bottom: 4px !important; }
+            .jc-services-table th { border: 1.2px solid #000 !important; background: #f8fafc !important; font-size: 9.5px !important; font-weight: 800 !important; padding: 2px 3px !important; text-align: center !important; line-height: 1.1 !important; color: #000 !important; }
+            .jc-services-table td { border: 1px dashed #000 !important; font-size: 9px !important; font-weight: 600 !important; padding: 1.5px 3px !important; height: 17px !important; text-align: center !important; color: #000 !important; }
+            .jc-services-table td.col-svc-desc { text-align: right !important; padding-right: 5px !important; }
+            .jc-services-table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
+            .jc-totals-table { width: 100% !important; border-collapse: collapse !important; border: 1.5px solid #000 !important; margin-bottom: 4px !important; text-align: center !important; page-break-inside: avoid !important; break-inside: avoid !important; }
+            .jc-totals-table th { border: 1.2px solid #000 !important; background: #f1f5f9 !important; font-size: 9px !important; font-weight: 800 !important; padding: 2px 2px !important; line-height: 1.1 !important; color: #000 !important; }
+            .jc-totals-table td { border: 1.2px solid #000 !important; font-size: 10px !important; font-weight: 800 !important; padding: 2px 2px !important; height: 18px !important; color: #000 !important; }
+            .jc-bottom-block { page-break-inside: avoid !important; break-inside: avoid !important; }
+            .jc-terms-box { font-size: 7.5px !important; line-height: 1.2 !important; font-weight: 600 !important; margin-bottom: 2px !important; color: #111 !important; }
+            .jc-terms-box p { margin: 1px 0 !important; }
+            .jc-declaration-box { font-size: 7.5px !important; font-weight: 700 !important; line-height: 1.2 !important; margin-bottom: 3px !important; border-top: 1px dotted #000 !important; padding-top: 2px !important; color: #000 !important; }
+            .jc-diagram-wrapper { text-align: center !important; margin: 2px 0 !important; padding: 1px 0 !important; }
+            .jc-diagram-title { font-size: 9px !important; font-weight: 800 !important; margin-bottom: 1px !important; color: #000 !important; }
+            .jc-diagram-img { width: 100% !important; max-width: 620px !important; height: 80px !important; object-fit: contain !important; display: block !important; margin: 0 auto !important; }
+            .jc-receipt-table { width: 100% !important; border-collapse: collapse !important; border: 1.5px solid #000 !important; margin-bottom: 3px !important; page-break-inside: avoid !important; break-inside: avoid !important; }
+            .jc-receipt-table td { border: 1.2px solid #000 !important; padding: 1.5px 4px !important; font-size: 8.5px !important; font-weight: 700 !important; color: #000 !important; }
+            .jc-footer-bar { display: flex !important; justify-content: space-between !important; align-items: center !important; font-size: 8px !important; font-weight: 700 !important; margin-top: 2px !important; border-top: 1px solid #000 !important; padding-top: 2px !important; }
+            .jc-footer-contacts { display: flex !important; gap: 12px !important; direction: ltr !important; }
         }
+
     </style>
 </head>
 
@@ -651,7 +780,15 @@
                     <span class="doc-id-pill" id="inspectionIdBadge">جديد #</span>
                 </div>
                 <div class="top-nav-actions">
-                    <button class="btn-action-top btn-whatsapp-top" onclick="sendWhatsAppFromInspector()" title="إرسال واتساب">
+                    <button type="button" class="btn-action-top" style="background: #0284c7; color: white; font-weight: 800; border: none; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);" onclick="doPrint()" title="طباعة">
+                        <span>🖨️</span>
+                        <span>طباعة</span>
+                    </button>
+                    <button type="button" class="btn-action-top btn-bottom-save" style="background: linear-gradient(135deg, #10b981, #059669); color: white; font-weight: 800; border: none; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);" onclick="saveInspection()" title="حفظ">
+                        <span>💾</span>
+                        <span>حفظ</span>
+                    </button>
+                    <button type="button" class="btn-action-top btn-whatsapp-top" onclick="sendWhatsAppFromInspector()" title="إرسال واتساب">
                         <span>💬</span>
                         <span>واتساب</span>
                     </button>
@@ -659,18 +796,18 @@
                         <span>🔗</span>
                         <span>رابط العميل</span>
                     </a>
-                    <button class="btn-action-top" onclick="window.location.href='inspections_list.html'">
+                    <button type="button" class="btn-action-top" onclick="window.location.href='inspections_list.html'">
                         <span>📋</span>
                         <span>السجل</span>
                     </button>
-                    <button class="btn-action-top" onclick="window.location.href='job_orders_list.html'" style="background:#e0f2fe; color:#0369a1;">
+                    <button type="button" class="btn-action-top" onclick="window.location.href='job_orders_list.html'" style="background:#e0f2fe; color:#0369a1;">
                         <span>🚗</span>
                         <span>أوامر العمل</span>
                     </button>
-                    <button class="btn-action-top" onclick="APP_NAV.goBack()">
+                    <button type="button" class="btn-action-top" onclick="APP_NAV.goBack()">
                         <span>🔙</span>
                     </button>
-                </div>
+                </div></div>
             </div>
 
             <!-- Controls Row: Document Type & Search -->
@@ -858,7 +995,7 @@
                 <span>🛠️</span>
                 <span>تحويل</span>
             </button>
-            <button type="button" class="btn-bottom btn-bottom-print" onclick="window.print()">
+            <button type="button" class="btn-bottom btn-bottom-print" onclick="doPrint()">
                 <span>🖨️</span>
             </button>
             <button type="button" class="btn-bottom" onclick="resetForm()" style="background:#fee2e2; color:#b91c1c;">
@@ -918,19 +1055,44 @@
         }
 
         function enforcePermissionsOnDoc() {
+            currentUser = JSON.parse(localStorage.getItem('user') || '{}');
             const isJobOrder = currentDocType === 'job_order';
-            let canEdit = false;
+            
+            let canEdit = true;
+            let canConvert = true;
 
             if (typeof APP_PERMISSIONS !== 'undefined') {
-                canEdit = isJobOrder ? APP_PERMISSIONS.canEditJobOrder(currentUser) : APP_PERMISSIONS.canEditQuotation(currentUser);
-            } else {
-                canEdit = currentUser.role === 'admin';
+                const canJob = APP_PERMISSIONS.canEditJobOrder(currentUser);
+                const canQuote = APP_PERMISSIONS.canEditQuotation(currentUser);
+                
+                canEdit = isJobOrder ? canJob : canQuote;
+                // Converting from quotation to job order is allowed for inspection + management + admin
+                // Converting from job order back to quotation is allowed for management + admin
+                canConvert = isJobOrder ? canJob : canQuote;
             }
 
             const docSelect = document.getElementById('docTypeSelect');
             if (docSelect) {
-                docSelect.disabled = (typeof APP_PERMISSIONS !== 'undefined') ? !APP_PERMISSIONS.canEditJobOrder(currentUser) : false;
+                docSelect.disabled = !canConvert;
             }
+
+            const saveBtn = document.querySelector('.btn-bottom-save');
+            if (saveBtn) {
+                saveBtn.style.display = canEdit ? 'inline-flex' : 'none';
+            }
+
+            const addRowBtn = document.querySelector("button[onclick='addNewRow()']");
+            if (addRowBtn) {
+                addRowBtn.style.display = canEdit ? 'inline-block' : 'none';
+            }
+
+            // Toggle fields disabled state if cannot edit this doc
+            const formInputs = document.querySelectorAll('#tableBody input, #tableBody select, .cust-input, #carStatusSelect, #paidAmount');
+            formInputs.forEach(el => {
+                if (el.id !== 'docTypeSelect') {
+                    el.disabled = !canEdit;
+                }
+            });
         }
 
         async function toggleConvertDoc() {
@@ -950,7 +1112,7 @@
                 }
             } else {
                 if (typeof APP_PERMISSIONS !== 'undefined' && !APP_PERMISSIONS.canEditJobOrder(currentUser)) {
-                    if (typeof showError === 'function') showError('عذراً، تعديل أوامر العمل متاح فقط لموظفي الإدارة.');
+                    if (typeof showError === 'function') showError('عذراً، تعديل وتحويل أوامر العمل متاح فقط لموظفي الإدارة.');
                     return;
                 }
                 changeDocType('new');
@@ -1553,8 +1715,685 @@
         if (window.APP_CONFIG) {
             window.APP_CONFIG.initBranding();
         }
+        
+        
+        function getSafeVal(elId, propName) {
+            if (typeof currentInspection !== 'undefined' && currentInspection && currentInspection[propName] !== undefined && currentInspection[propName] !== null) {
+                const v = String(currentInspection[propName]).trim();
+                if (v && v !== '-' && v !== '---') return v;
+            }
+            const el = document.getElementById(elId);
+            if (!el) return '';
+            if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
+                return (el.value || '').trim();
+            }
+            const txt = (el.textContent || '').trim();
+            if (txt === '-' || txt === '---' || txt === 'غير محدد' || txt === 'جديد') return '';
+            return txt;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function prepareJobOrderSheet() {
+            const sheet = document.getElementById('officialJobOrderPrintSheet');
+            if (!sheet) return;
+
+            // 1. Dynamic Workshop Info from Settings / DOM
+            let shopName = '';
+            let shopDesc = '';
+            let shopPhone = '';
+
+            try {
+                if (typeof settings !== 'undefined' && settings) {
+                    shopName = settings.workshop_name || settings.app_name || '';
+                    shopDesc = settings.workshop_desc || '';
+                    shopPhone = settings.workshop_phone || '';
+                } else if (window.APP_CONFIG && window.APP_CONFIG.settings) {
+                    const s = window.APP_CONFIG.settings;
+                    shopName = s.workshop_name || s.app_name || '';
+                    shopDesc = s.workshop_desc || '';
+                    shopPhone = s.workshop_phone || '';
+                }
+            } catch(e) {}
+
+            if (!shopName) {
+                shopName = document.getElementById('shopName')?.textContent?.trim() || 
+                           document.getElementById('inspectorShopName')?.textContent?.trim() || 
+                           'مركز صيانة السيارات';
+            }
+            if (!shopDesc) {
+                shopDesc = document.getElementById('shopDesc')?.textContent?.trim() || 
+                           document.getElementById('inspectorShopDesc')?.textContent?.trim() || '';
+            }
+            if (!shopPhone) {
+                shopPhone = document.getElementById('shopPhone')?.textContent?.trim() || 
+                            document.getElementById('inspectorShopPhone')?.textContent?.trim() || '';
+            }
+
+            const jcShopName = document.getElementById('jcShopName');
+            if (jcShopName) jcShopName.textContent = shopName;
+            
+            const jcShopDesc = document.getElementById('jcShopDesc');
+            if (jcShopDesc) jcShopDesc.textContent = shopDesc;
+
+            if (shopPhone) {
+                const cleanPhone = shopPhone.replace(/📞|جوال:?/g, '').trim();
+                const jcShopPhones = document.getElementById('jcShopPhones');
+                if (jcShopPhones) jcShopPhones.textContent = cleanPhone;
+                const jcFooterContacts = document.getElementById('jcFooterContacts');
+                if (jcFooterContacts) jcFooterContacts.innerHTML = '<span>📞 ' + cleanPhone + '</span>';
+            }
+
+            // 2. Job Order ID & Dates
+            let docId = getSafeVal('orderId', 'id') || 
+                        getSafeVal('inspectionIdDisplay', 'id') || 
+                        (typeof currentInspectionId !== 'undefined' ? currentInspectionId : '') || '';
+            docId = String(docId).replace(/[^0-9]/g, '');
+            if (!docId && typeof urlParams !== 'undefined' && urlParams.get('id')) {
+                docId = urlParams.get('id');
+            }
+            if (!docId) docId = '---';
+
+            const jcJobNo = document.getElementById('jcJobNo');
+            if (jcJobNo) jcJobNo.textContent = docId;
+            const jcCustNo = document.getElementById('jcCustNo');
+            if (jcCustNo) jcCustNo.textContent = docId;
+
+            let curDate = getSafeVal('orderDate', 'created_at') || 
+                          getSafeVal('currentDate', 'created_at') || 
+                          new Date().toLocaleDateString('en-GB');
+            if (curDate.includes('T')) {
+                curDate = new Date(curDate).toLocaleDateString('en-GB');
+            }
+            const jcDateRight = document.getElementById('jcDateRight');
+            if (jcDateRight) jcDateRight.textContent = curDate;
+            const jcDateLeft = document.getElementById('jcDateLeft');
+            if (jcDateLeft) jcDateLeft.textContent = curDate;
+            const jcEntryDate = document.getElementById('jcEntryDate');
+            if (jcEntryDate) jcEntryDate.textContent = curDate;
+
+            // 3. Customer Information
+            const custName = getSafeVal('custName', 'customer_name');
+            const jcCustName = document.getElementById('jcCustName');
+            if (jcCustName) jcCustName.textContent = custName;
+            const jcSignCustName = document.getElementById('jcSignCustName');
+            if (jcSignCustName) jcSignCustName.textContent = custName;
+
+            const jcCustPhone = document.getElementById('jcCustPhone');
+            if (jcCustPhone) jcCustPhone.textContent = getSafeVal('custPhone', 'customer_phone');
+
+            const jcCustAddress = document.getElementById('jcCustAddress');
+            if (jcCustAddress) jcCustAddress.textContent = getSafeVal('custAddress', 'customer_address');
+
+            const jcClaimNo = document.getElementById('jcClaimNo');
+            if (jcClaimNo) jcClaimNo.textContent = getSafeVal('claimNo', 'claim_number');
+
+            const jcCompletionDate = document.getElementById('jcCompletionDate');
+            if (jcCompletionDate) jcCompletionDate.textContent = getSafeVal('completionDate', 'completion_date');
+
+            // 4. Vehicle Information
+            const jcCarType = document.getElementById('jcCarType');
+            if (jcCarType) jcCarType.textContent = getSafeVal('carType', 'car_type');
+
+            let carColor = getSafeVal('carColor', 'car_color');
+            if (!carColor) {
+                const modelColor = getSafeVal('carModelColor', 'car_model_color');
+                if (modelColor.includes('/')) carColor = modelColor.split('/')[1]?.trim() || '';
+            }
+            const jcCarColor = document.getElementById('jcCarColor');
+            if (jcCarColor) jcCarColor.textContent = carColor;
+
+            let plate = getSafeVal('plateNum', 'plate_number');
+            if (!plate) {
+                const pL = [document.getElementById('pL1')?.value, document.getElementById('pL2')?.value, document.getElementById('pL3')?.value].filter(Boolean).join(' ');
+                const pN = [document.getElementById('pN1')?.value, document.getElementById('pN2')?.value, document.getElementById('pN3')?.value, document.getElementById('pN4')?.value].filter(Boolean).join('');
+                if (pL || pN) plate = (pL + ' ' + pN).trim();
+            }
+            const jcPlateNo = document.getElementById('jcPlateNo');
+            if (jcPlateNo) jcPlateNo.textContent = plate;
+
+            const jcOdometer = document.getElementById('jcOdometer');
+            if (jcOdometer) jcOdometer.textContent = getSafeVal('odometer', 'odometer');
+
+            const jcVin = document.getElementById('jcVin');
+            if (jcVin) jcVin.textContent = getSafeVal('vin', 'vin');
+
+            // User / Inspector
+            let user = getSafeVal('inspectorName', 'inspector_name');
+            if (!user && typeof currentUser !== 'undefined' && currentUser) {
+                user = currentUser.name || currentUser.employee_name || currentUser.username || '';
+            }
+            const jcUserName = document.getElementById('jcUserName');
+            if (jcUserName) jcUserName.textContent = (user || 'ADMIN').toUpperCase();
+
+            // 5. Populate Services Table
+            const tbody = document.getElementById('jcServicesTbody');
+            if (tbody) {
+                tbody.innerHTML = '';
+                let rawSubtotal = 0;
+                let count = 0;
+                const catTotals = {};
+
+                // A) From currentInspection.items
+                let itemsList = [];
+                if (typeof currentInspection !== 'undefined' && currentInspection && Array.isArray(currentInspection.items) && currentInspection.items.length > 0) {
+                    itemsList = currentInspection.items;
+                }
+
+                if (itemsList.length > 0) {
+                    itemsList.forEach((item) => {
+                        const service = item.service_description || item.service || item.description || '';
+                        if (service) {
+                            count++;
+                            const cat = item.category || 'قسم الميكانيكا';
+                            const qty = parseFloat(item.quantity || item.qty) || 1;
+                            const price = parseFloat(item.price) || 0;
+                            const total = parseFloat(item.total) || (qty * price);
+
+                            rawSubtotal += total;
+                            catTotals[cat] = (catTotals[cat] || 0) + total;
+
+                            const rowTr = document.createElement('tr');
+                            rowTr.innerHTML = '<td>' + count + '</td><td>' + escapeHtml(cat) + '</td><td class="col-svc-desc">' + escapeHtml(service) + '</td><td>' + qty + '</td><td>' + price.toFixed(2) + '</td><td>' + total.toFixed(2) + '</td>';
+                            tbody.appendChild(rowTr);
+                        }
+                    });
+                } else {
+                    // B) From DOM rows
+                    const rows = document.querySelectorAll('#tableBody tr, #servicesList tr');
+                    rows.forEach((tr) => {
+                        let service = tr.querySelector('.service-input')?.value?.trim();
+                        let cat = (tr.querySelector('.cat-select')?.value || 'قسم الميكانيكا').trim();
+                        let qty = parseFloat(tr.querySelector('.qty-input')?.value) || 1;
+                        let price = parseFloat(tr.querySelector('.price-input')?.value) || 0;
+                        let total = parseFloat(tr.querySelector('.row-total')?.textContent) || (qty * price);
+
+                        if (!service && tr.querySelectorAll('td').length >= 3) {
+                            const tds = tr.querySelectorAll('td');
+                            service = tds[0]?.textContent?.trim() || '';
+                            cat = tds[1]?.textContent?.trim() || 'قسم الميكانيكا';
+                            qty = parseFloat(tds[2]?.textContent) || 1;
+                            price = parseFloat(tr.getAttribute('data-price')) || 0;
+                            total = qty * price;
+                        }
+
+                        if (service) {
+                            count++;
+                            rawSubtotal += total;
+                            catTotals[cat] = (catTotals[cat] || 0) + total;
+
+                            const rowTr = document.createElement('tr');
+                            rowTr.innerHTML = '<td>' + count + '</td><td>' + escapeHtml(cat) + '</td><td class="col-svc-desc">' + escapeHtml(service) + '</td><td>' + qty + '</td><td>' + price.toFixed(2) + '</td><td>' + total.toFixed(2) + '</td>';
+                            tbody.appendChild(rowTr);
+                        }
+                    });
+                }
+
+                if (count === 0) {
+                    const rowTr = document.createElement('tr');
+                    rowTr.innerHTML = '<td>1</td><td>قسم الميكانيكا</td><td class="col-svc-desc">كشف وفحص صيانة</td><td>1</td><td>0.00</td><td>0.00</td>';
+                    tbody.appendChild(rowTr);
+                }
+
+                // 6. Financial Summary Table
+                const discount = 0.00;
+                const afterDiscount = Math.max(0, rawSubtotal - discount);
+                const vat = +(afterDiscount * 0.15).toFixed(2);
+                let paid = 0.00;
+                const paidInput = document.getElementById('paidAmount');
+                if (paidInput) {
+                    paid = parseFloat(paidInput.value) || 0;
+                } else if (typeof currentInspection !== 'undefined' && currentInspection && currentInspection.paid_amount) {
+                    paid = parseFloat(currentInspection.paid_amount) || 0;
+                }
+                const retainer = 0.00;
+                const residual = Math.max(0, (afterDiscount + vat) - paid - retainer);
+
+                const jcTotalBeforeDisc = document.getElementById('jcTotalBeforeDisc');
+                if (jcTotalBeforeDisc) jcTotalBeforeDisc.textContent = rawSubtotal.toFixed(2);
+                const jcDiscountVal = document.getElementById('jcDiscountVal');
+                if (jcDiscountVal) jcDiscountVal.textContent = discount.toFixed(2);
+                const jcAmountAfterDisc = document.getElementById('jcAmountAfterDisc');
+                if (jcAmountAfterDisc) jcAmountAfterDisc.textContent = afterDiscount.toFixed(2);
+                const jcVatVal = document.getElementById('jcVatVal');
+                if (jcVatVal) jcVatVal.textContent = vat.toFixed(2);
+                const jcRetainerVal = document.getElementById('jcRetainerVal');
+                if (jcRetainerVal) jcRetainerVal.textContent = retainer.toFixed(2);
+                const jcPaidVal = document.getElementById('jcPaidVal');
+                if (jcPaidVal) jcPaidVal.textContent = paid.toFixed(2);
+                const jcResidualVal = document.getElementById('jcResidualVal');
+                if (jcResidualVal) jcResidualVal.textContent = residual.toFixed(2);
+            }
+        }
+
+        function prepareOfficialQuotationSheet() {
+            const sheet = document.getElementById('officialQuotationPrintSheet');
+            if (!sheet) return;
+
+            // 1. Dynamic Workshop Info
+            let shopName = '';
+            let shopDesc = '';
+            let shopPhone = '';
+
+            try {
+                if (typeof settings !== 'undefined' && settings) {
+                    shopName = settings.workshop_name || settings.app_name || '';
+                    shopDesc = settings.workshop_desc || '';
+                    shopPhone = settings.workshop_phone || '';
+                } else if (window.APP_CONFIG && window.APP_CONFIG.settings) {
+                    const s = window.APP_CONFIG.settings;
+                    shopName = s.workshop_name || s.app_name || '';
+                    shopDesc = s.workshop_desc || '';
+                    shopPhone = s.workshop_phone || '';
+                }
+            } catch(e) {}
+
+            if (!shopName) {
+                shopName = document.getElementById('inspectorShopName')?.textContent?.trim() || 
+                           document.getElementById('shopName')?.textContent?.trim() || 
+                           'مركز صيانة السيارات';
+            }
+            if (!shopPhone) {
+                shopPhone = document.getElementById('inspectorShopPhone')?.textContent?.trim() || 
+                            document.getElementById('shopPhone')?.textContent?.trim() || '';
+            }
+
+            const opsWorkshopTitleAr = document.getElementById('opsWorkshopTitleAr');
+            if (opsWorkshopTitleAr && shopName !== 'Atenza App') {
+                opsWorkshopTitleAr.textContent = shopName;
+            }
+            if (shopPhone) {
+                const opsWorkshopPhones = document.getElementById('opsWorkshopPhones');
+                if (opsWorkshopPhones) {
+                    opsWorkshopPhones.innerHTML = '<span>' + shopPhone.replace(/[^0-9 ]/g, '').trim() + '</span>';
+                }
+            }
+
+            // 2. Meta Information
+            const docId = (currentInspectionId || document.getElementById('inspectionIdDisplay')?.textContent || '').replace(/[^0-9]/g, '') || '---';
+            document.getElementById('opsQuoteNo').textContent = docId;
+
+            const curDate = document.getElementById('currentDate')?.textContent || new Date().toLocaleDateString('ar-SA');
+            document.getElementById('opsDate').textContent = curDate;
+
+            const custName = document.getElementById('custName')?.value || '---';
+            document.getElementById('opsCustomerName').textContent = custName;
+
+            document.getElementById('opsCarType').textContent = document.getElementById('carType')?.value || '---';
+            document.getElementById('opsCarModel').textContent = document.getElementById('carModel')?.value || '---';
+
+            const pL = [document.getElementById('pL1')?.value, document.getElementById('pL2')?.value, document.getElementById('pL3')?.value].filter(Boolean).join(' ');
+            const pN = [document.getElementById('pN1')?.value, document.getElementById('pN2')?.value, document.getElementById('pN3')?.value, document.getElementById('pN4')?.value].filter(Boolean).join('');
+            const plate = (pL || pN) ? (pL + ' ' + pN) : '---';
+            document.getElementById('opsPlateNo').textContent = plate;
+            document.getElementById('opsChassisNo').textContent = document.getElementById('vin')?.value || '';
+
+            let user = currentUser?.name || currentUser?.employee_name || currentUser?.username || 'ADMIN';
+            document.getElementById('opsUserName').textContent = user.toUpperCase();
+
+            // 3. Populate Unified Services Table
+            const tbody = document.getElementById('opsServicesTbody');
+            if (tbody) {
+                tbody.innerHTML = '';
+                let rawSubtotal = 0;
+                let count = 0;
+
+                document.querySelectorAll('#tableBody tr').forEach(tr => {
+                    const service = tr.querySelector('.service-input')?.value?.trim();
+                    if (service) {
+                        count++;
+                        const cat = (tr.querySelector('.cat-select')?.value || 'قسم الميكانيكا').trim();
+                        const qty = parseFloat(tr.querySelector('.qty-input')?.value) || 1;
+                        const price = parseFloat(tr.querySelector('.price-input')?.value) || 0;
+                        const total = parseFloat(tr.querySelector('.row-total')?.textContent) || (qty * price);
+
+                        rawSubtotal += total;
+
+                        const rowTr = document.createElement('tr');
+                        rowTr.innerHTML = '<td>' + count + '</td><td>' + escapeHtml(cat) + '</td><td class="col-desc">' + escapeHtml(service) + '</td><td>' + qty + '</td><td>' + price.toFixed(2) + '</td><td>' + total.toFixed(2) + '</td>';
+                        tbody.appendChild(rowTr);
+                    }
+                });
+
+                if (count === 0) {
+                    const rowTr = document.createElement('tr');
+                    rowTr.innerHTML = '<td>1</td><td>قسم الميكانيكا</td><td class="col-desc">كشف وفحص صيانة</td><td>1</td><td>0.00</td><td>0.00</td>';
+                    tbody.appendChild(rowTr);
+                }
+
+                // 4. Quotation Totals
+                const discount = 0.00;
+                const afterDiscount = Math.max(0, rawSubtotal - discount);
+                const vat = +(afterDiscount * 0.15).toFixed(2);
+                const grandTotal = +(afterDiscount + vat).toFixed(2);
+
+                document.getElementById('opsSubtotalVal').textContent = rawSubtotal.toFixed(2);
+                document.getElementById('opsDiscountVal').textContent = discount.toFixed(2);
+                document.getElementById('opsAfterDiscVal').textContent = afterDiscount.toFixed(2);
+                document.getElementById('opsVatVal').textContent = vat.toFixed(2);
+                document.getElementById('opsGrandTotalVal').textContent = grandTotal.toFixed(2);
+            }
+        }
+
+        function prepareDispatchPrint() {
+            if (typeof currentDocType !== 'undefined' && currentDocType === 'job_order') {
+                document.body.classList.add('print-job-order-mode');
+                document.body.classList.remove('print-quotation-mode');
+                prepareJobOrderSheet();
+            } else if (document.body.classList.contains('job-order-page')) {
+                document.body.classList.add('print-job-order-mode');
+                prepareJobOrderSheet();
+            } else {
+                document.body.classList.add('print-quotation-mode');
+                document.body.classList.remove('print-job-order-mode');
+                prepareOfficialQuotationSheet();
+            }
+        }
+
+
+        window.addEventListener('beforeprint', prepareDispatchPrint);
+
+        // Enhance direct print calls
+        window.print = (function(oldPrint) {
+            return function() {
+                prepareDispatchPrint();
+                setTimeout(function() { oldPrint.call(window); }, 40);
+            };
+        })(window.print);
+
+        
+        function doPrint() {
+            prepareDispatchPrint();
+            setTimeout(function() {
+                window.print();
+            }, 60);
+        }
+
+        // Auto-print support when opened from lists with ?autoprint=1
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('autoprint') === '1') {
+                const checkInterval = setInterval(() => {
+                    if (document.getElementById('custName')?.value || document.querySelectorAll('#tableBody tr').length > 0) {
+                        clearInterval(checkInterval);
+                        setTimeout(() => { doPrint(); }, 400);
+                    }
+                }, 100);
+                setTimeout(() => { clearInterval(checkInterval); }, 4000);
+            }
+        })();
+
         init();
     </script>
+
+    
+    <!-- OFFICIAL QUOTATION PRINT SHEET (Single Unified Services Table) -->
+    <div id="officialQuotationPrintSheet">
+        <header class="ops-header">
+            <div class="ops-header-top">
+                <h1 class="ops-title-ar" id="opsWorkshopTitleAr">مركز الصيانة</h1>
+                <div class="ops-title-en" id="opsWorkshopTitleEn">Mazda Service</div>
+                <div class="ops-phones" id="opsWorkshopPhones">
+                    <span>0556565135</span>
+                    <span>0566522351</span>
+                </div>
+            </div>
+            <div class="ops-meta-row">
+                <div><span>رقم المطالبة / Claim the No : </span><span id="opsClaimNo" style="font-weight: bold;"></span></div>
+                <div class="ops-quote-badge">
+                    <span class="badge-label" id="opsBadgeTitle">تسعيرة إصلاح رقم<br>priceing No</span>
+                    <span class="badge-num" id="opsQuoteNo">---</span>
+                </div>
+                <div><span>التاريخ / Date : </span><span id="opsDate" style="direction: ltr; font-family: inherit;">--/--/----</span></div>
+            </div>
+            <div class="ops-customer-row">
+                <div><span>السادة / </span><span id="opsCustomerName" style="font-weight: 800; font-size: 13px;"></span></div>
+                <div><span>Customer Name\</span></div>
+            </div>
+            <div class="ops-intro-text">
+                تقدم لكم نموذج تسعيرة إصلاح للمركبة المبين تفاصيلها أدناه ,,, A repair model for the vehicle details below
+            </div>
+            <table class="ops-car-table">
+                <thead>
+                    <tr>
+                        <th style="width: 25%;">نوع السيارة<br><span style="font-weight: normal;">Type Car</span></th>
+                        <th style="width: 20%;">الموديل<br><span style="font-weight: normal;">Model</span></th>
+                        <th style="width: 25%;">رقم اللوحة<br><span style="font-weight: normal;">plate No</span></th>
+                        <th style="width: 30%;">رقم الشاص<br><span style="font-weight: normal;">Shass</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td id="opsCarType">---</td>
+                        <td id="opsCarModel">---</td>
+                        <td id="opsPlateNo">---</td>
+                        <td id="opsChassisNo"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </header>
+
+        <!-- Unified Full-Width Services / Labor Table -->
+        <table class="ops-unified-table">
+            <thead>
+                <tr>
+                    <th style="width: 30px;">م<br>No</th>
+                    <th style="width: 110px;">القسم<br>Section</th>
+                    <th>تفصيل الإصلاح والخدمات المطلوبة<br>Description of Services & Reform</th>
+                    <th style="width: 45px;">العدد<br>Qty</th>
+                    <th style="width: 85px;">السعر<br>Price</th>
+                    <th style="width: 90px;">الإجمالي<br>Total</th>
+                </tr>
+            </thead>
+            <tbody id="opsServicesTbody"></tbody>
+        </table>
+
+        <!-- Quotation Totals Table -->
+        <table class="ops-totals-table">
+            <thead>
+                <tr>
+                    <th style="width: 20%;">المبلغ قبل الضريبة<br>Subtotal</th>
+                    <th style="width: 20%;">الخصم<br>Discount</th>
+                    <th style="width: 20%;">المبلغ بعد الخصم<br>Taxable Amount</th>
+                    <th style="width: 20%;">القيمة المضافة 15%<br>VAT 15%</th>
+                    <th style="width: 20%;">الإجمالي النهائي<br>Grand Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td id="opsSubtotalVal">0.00</td>
+                    <td id="opsDiscountVal">0.00</td>
+                    <td id="opsAfterDiscVal">0.00</td>
+                    <td id="opsVatVal">0.00</td>
+                    <td id="opsGrandTotalVal" class="ops-grand-total-cell">0.00</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <footer class="ops-footer">
+            <div class="ops-notes-row"><span>اعمال بعد الفك Possible appear damage after jaw</span></div>
+            <div class="ops-wishes-text">نرجو أن ينال عرضنا هذا رضاكم وشاكرين حسن تعاونكم best wishes</div>
+            <div class="ops-signatures-row">
+                <div class="ops-stamp-box"><span>الختم Stamp</span><div class="ops-stamp-circle">ختم الورشة</div></div>
+                <div class="ops-manager-box"><span>توقيع المسؤول Manager Sign</span><div class="ops-sign-line">................................................</div></div>
+            </div>
+            <div class="ops-bottom-info">
+                <div><span>User Name : </span><b id="opsUserName">ADMIN</b><span style="margin-right: 4px;">اسم المستخدم</span></div>
+                <div><span id="opsFooterBrand">Atenza Service - Mazda Specialists</span></div>
+            </div>
+        </footer>
+    </div>
+
+
+    <!-- OFFICIAL CONTRACT JOB CARD PRINT SHEET -->
+    <div id="officialJobOrderPrintSheet">
+        <div class="job-card-sheet">
+            <header class="jc-header">
+                <div class="jc-header-right">
+                    <h2 id="jcShopName">مركز الصيانة</h2>
+                    <p id="jcShopDesc">طريق مكة القديم مجمع كيلو 14</p>
+                    <p id="jcShopPhones">0556565135 &nbsp;&nbsp;&nbsp; 0566522351</p>
+                </div>
+                <div class="jc-header-left">
+                    <h2 id="jcShopEnName">Mazda Service</h2>
+                    <p id="jcBranchName">kello 14</p>
+                    <p>نسخه رقم &nbsp; <b>1</b> &nbsp; Copy No</p>
+                </div>
+            </header>
+
+            <div class="jc-title-bar">
+                <span class="jc-main-title">Contract Job Card &nbsp;&nbsp;&nbsp; إتفاقية وأمر عمل</span>
+            </div>
+
+            <div class="jc-meta-dates-row">
+                <div><span>التاريخ &nbsp;&nbsp; <b id="jcDateRight" style="direction:ltr; display:inline-block;"></b></span></div>
+                <div class="jc-job-no-badge"><span>رقم كرت العمل &nbsp;&nbsp; Job No &nbsp;&nbsp; <b id="jcJobNo"></b></span></div>
+                <div><span>Date &nbsp;&nbsp; <b id="jcDateLeft" style="direction:ltr; display:inline-block;"></b></span></div>
+            </div>
+
+            <table class="jc-info-table">
+                <tbody>
+                    <tr>
+                        <td class="lbl">نوع السيارة Type Car</td>
+                        <td class="val" id="jcCarType"></td>
+                        <td class="lbl">رقم العميل Customer No</td>
+                        <td class="val" id="jcCustNo"></td>
+                    </tr>
+                    <tr>
+                        <td class="lbl">لون السيارة Car Color</td>
+                        <td class="val" id="jcCarColor"></td>
+                        <td class="lbl">أسم العميل Customer Name</td>
+                        <td class="val" id="jcCustName"></td>
+                    </tr>
+                    <tr>
+                        <td class="lbl">رقم اللوحة plate Number</td>
+                        <td class="val" id="jcPlateNo"></td>
+                        <td class="lbl">رقم الجوال Mobile No</td>
+                        <td class="val" id="jcCustPhone"></td>
+                    </tr>
+                    <tr>
+                        <td class="lbl">قراءة عداد المركبة Vehicle milage</td>
+                        <td class="val" id="jcOdometer"></td>
+                        <td class="lbl">عنوان العميل Address Customer</td>
+                        <td class="val" id="jcCustAddress"></td>
+                    </tr>
+                    <tr>
+                        <td class="lbl">تاريخ إنتهاء العمل Completion Date</td>
+                        <td class="val" id="jcCompletionDate"></td>
+                        <td class="lbl">تاريخ الدخول Date of Entry</td>
+                        <td class="val" id="jcEntryDate"></td>
+                    </tr>
+                    <tr>
+                        <td class="lbl">رقم الشاصيه The VIN</td>
+                        <td class="val" id="jcVin"></td>
+                        <td class="lbl">رقم المطالبة Claim Number</td>
+                        <td class="val" id="jcClaimNo"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="jc-services-section-title">
+                <span>الخدمات</span>
+                <span>Services</span>
+            </div>
+
+            <table class="jc-services-table">
+                <thead>
+                    <tr>
+                        <th style="width: 28px;">تسلسل<br>serial</th>
+                        <th style="width: 95px;">القسم<br>Section</th>
+                        <th>نوع الخدمة<br>Service type</th>
+                        <th style="width: 38px;">العدد<br>count</th>
+                        <th style="width: 70px;">السعر الافرادي<br>uint price</th>
+                        <th style="width: 70px;">السعر الاجمالي<br>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="jcServicesTbody"></tbody>
+            </table>
+
+            <div id="jcCatsMiniContainer" style="display: none;">
+                <table class="jc-cats-mini-table"><tbody id="jcCatsMiniTbody"></tbody></table>
+            </div>
+
+            <table class="jc-totals-table">
+                <thead>
+                    <tr>
+                        <th style="width: 14%;">الإجمالي<br>Total</th>
+                        <th style="width: 14%;">مبلغ الخصم<br>Discount</th>
+                        <th style="width: 15%;">المبلغ بعد الخصم<br>Amount after discount</th>
+                        <th style="width: 15%;">القيمة المضافه 15%<br>tax%</th>
+                        <th style="width: 14%;">عربون مدفوع<br>Retainer</th>
+                        <th style="width: 14%;">المدفوع<br>paid up</th>
+                        <th style="width: 14%;">المتبقي<br>Residual</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td id="jcTotalBeforeDisc">0.00</td>
+                        <td id="jcDiscountVal">0.00</td>
+                        <td id="jcAmountAfterDisc">0.00</td>
+                        <td id="jcVatVal">0.00</td>
+                        <td id="jcRetainerVal">0.00</td>
+                        <td id="jcPaidVal">0.00</td>
+                        <td id="jcResidualVal" style="font-weight: 900; background: #fef08a;">0.00</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="jc-bottom-block">
+                <div class="jc-terms-box">
+                    <p>1- يتم دفع كامل المبلغ قبل استلام السيارة.</p>
+                    <p>2- في حالة احتياج لقطع الغيار يبلغ صاحبها بما يحتاج ويعطى مهلة خمسة أيام لتأمين القطع، وفي حالة تأخره عن تأمين القطع أو في حالة تم تجهيز السيارة ولم يستلمها العميل لأكثر من 3 أيام فإن المركز غير مسؤول عن أي مخالفات تصدر عليها.</p>
+                    <p>3- المركز لا يتحمل مسؤولية غير زيت الجيربوكس أو تزويد ((لا يوجد ضمان)).</p>
+                    <p>4- المركز غير مسؤول عن قطع التي تم تغييرها وتركها في المركز عن مدة تزيد عن 3 أيام.</p>
+                    <p>5- المركز غير مسؤول عن الأعطال التي تظهر والتي لم يتم الاتفاق على إصلاحها.</p>
+                    <p>6- المركز غير مسؤول عن كشف السيارة بعد 7 أيام من تاريخ الكشف.</p>
+                </div>
+
+                <div class="jc-declaration-box">
+                    <b>إقرار:</b> نعم، أنا صاحب السيارة الموضحة أعلاه، أقر بأنني موافق على الإصلاحات أعلاه لسيارتي وبنفس الشروط والأجرة المتفق عليها في هذا العقد، وفي حالة الحاجة إلى الإصلاحات المتفق عليها لاحقا دون ربطها بأجرة الإصلاحات السابقة، وعلى ذلك جرى التوقيع.
+                </div>
+
+                <div class="jc-diagram-wrapper">
+                    <div class="jc-diagram-title">كشف المعاينة Detection preview</div>
+                    <img src="car_diagram.svg" class="jc-diagram-img" alt="Car Diagram" onerror="this.src='car_diagram.png'">
+                </div>
+
+                <table class="jc-receipt-table">
+                    <tbody>
+                        <tr>
+                            <td style="width: 50%; font-size: 8.5px;">تم إستلام المركبة بدون فوارق Without Discrepancies</td>
+                            <td style="width: 25%; text-align: center;" id="jcSignCustName"></td>
+                            <td style="width: 25%; background: #f1f5f9;">اسم العميل Customer Name</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size: 8.5px;">توقيع العميل Customer's Signature : &nbsp; ..............................</td>
+                            <td style="text-align: center;">..........................................</td>
+                            <td style="background: #f1f5f9;">توقيع العميل Customer's Signature</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size: 8.5px;">تاريخ الاستلام Collected Date : &nbsp; ...................................</td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="jc-footer-bar">
+                    <div class="jc-footer-contacts" id="jcFooterContacts">
+                        <span>📞 0556565135</span>
+                        <span>💬 0566522351</span>
+                        <span>✉️ info@mazda-spc.com</span>
+                    </div>
+                    <div><span>نسخه &nbsp; 1 &nbsp; copy</span></div>
+                    <div><span>user name &nbsp;&nbsp; <b id="jcUserName">ADMIN</b> &nbsp;&nbsp; اسم المستخدم</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
 
 </html>
