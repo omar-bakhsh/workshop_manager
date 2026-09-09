@@ -978,7 +978,7 @@
             const sheet = document.getElementById('officialQuotationPrintSheet');
             if (!sheet) return;
 
-            const docId = (currentInspectionId || document.getElementById('inspectionIdDisplay')?.textContent || '').replace(/[^0-9]/g, '') || '---';
+            const docId = String(currentInspectionId || document.getElementById('inspectionIdDisplay')?.textContent || '').replace(/[^0-9]/g, '') || '---';
             document.getElementById('opsQuoteNo').textContent = docId;
 
             const curDate = document.getElementById('currentDate')?.textContent || new Date().toLocaleDateString('ar-SA');
