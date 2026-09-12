@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة العملاء - استيراد وتصدير | Atenza App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="toast.css?v=5.0">
+    <script src="toast.js?v=5.0"></script>
+    <script src="toast_helpers.js?v=5.0"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #e0e7ff;
+            --primary-hover: #4338ca;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg-gray: #f8fafc;
+            --text-dark: #0f172a;
+            --text-gray: #64748b;
+            --border-color: #e2e8f0;
+            --glass: rgba(255, 255, 255, 0.95);
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-gray);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.06) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.06) 0px, transparent 50%);
+            color: var(--text-dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        /* Glass Header */
+        .header-glass {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            padding: 26px 32px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-title-group {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-icon {
+            width: 58px;
+            height: 58px;
+            background: linear-gradient(135deg, var(--primary), #6366f1);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            color: white;
+            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+        }
+
+        .header-title-group h1 {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text-dark);
+        }
+
+        .header-title-group p {
+            font-size: 13px;
+            color: var(--text-gray);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* KPI Cards Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 25px;
+        }
+
+        .kpi-card {
+            background: white;
+            padding: 20px;
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .kpi-icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .kpi-content h3 {
+            font-size: 12px;
+            color: var(--text-gray);
+            font-weight: 600;
+        }
+
+        .kpi-content .kpi-value {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-top: 2px;
+        }
+
+        /* Toolbar & Controls */
+        .toolbar-card {
+            background: white;
+            padding: 20px 24px;
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 260px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 42px 12px 16px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+            background: #f8fafc;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: var(--text-gray);
+        }
+
+        .tools-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+        }
+
+        .btn-success:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--text-dark);
+            border: 1.5px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: #f1f5f9;
+        }
+
+        .btn-default-import {
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            color: white;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+        }
+
+        .btn-default-import:hover {
+            background: linear-gradient(135deg, #0369a1, #075985);
+            transform: translateY(-1px);
+        }
+
+        /* Table Card */
+        .table-card {
+            background: white;
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: right;
+        }
+
+        th {
+            background: #f8fafc;
+            padding: 14px 18px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-gray);
+            border-bottom: 1.5px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 14px 18px;
+            font-size: 13px;
+            border-bottom: 1px solid #f1f5f9;
+            color: var(--text-dark);
+            vertical-align: middle;
+        }
+
+        tr:hover td {
+            background: #f8fafc;
+        }
+
+        .phone-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-weight: 700;
+            font-size: 13px;
+            direction: ltr;
+        }
+
+        .intl-badge {
+            color: var(--text-gray);
+            font-size: 12px;
+            font-family: monospace;
+            direction: ltr;
+        }
+
+        .action-btn-sm {
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s;
+        }
+
+        .action-edit {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .action-edit:hover {
+            background: #c7d2fe;
+        }
+
+        .action-delete {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .action-delete:hover {
+            background: #fca5a5;
+        }
+
+        /* Pagination */
+        .pagination-bar {
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border-color);
+            background: #fafafa;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .pagination-info {
+            font-size: 13px;
+            color: var(--text-gray);
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-btn {
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: white;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 520px;
+            padding: 28px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalPop {
+            0% { transform: scale(0.95); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-header h2 {
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--text-gray);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 13px;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            border-color: var(--primary);
+        }
+
+        /* Dropzone */
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            padding: 30px 20px;
+            text-align: center;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 20px;
+        }
+
+        .dropzone:hover, .dropzone.dragover {
+            border-color: var(--primary);
+            background: #eef2ff;
+        }
+
+        .dropzone-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .empty-state {
+            padding: 60px 20px;
+            text-align: center;
+            color: var(--text-gray);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Top Glass Header -->
+        <div class="header-glass">
+            <div class="header-title-group">
+                <div class="header-icon">👥</div>
+                <div>
+                    <h1>قاعدة بيانات العملاء</h1>
+                    <p>استيراد وتصدير وإدارة سجلات العملاء والربط الفوري مع أوامر العمل</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <a href="admin.html" class="btn btn-secondary">
+                    <span>🔙</span>
+                    <span>لوحة التحكم</span>
+                </a>
+                <a href="inspector.html" class="btn btn-secondary" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;">
+                    <span>🛠️</span>
+                    <span>أوامر العمل</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon-box" style="background: var(--primary-light); color: var(--primary);">📊</div>
+                <div class="kpi-content">
+                    <h3>إجمالي العملاء في النظام</h3>
+                    <div class="kpi-value" id="kpiTotal">0</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon-box" style="background: var(--success-light); color: var(--success);">📱</div>
+                <div class="kpi-content">
+                    <h3>أرقام جوال مفعلة</h3>
+                    <div class="kpi-value" id="kpiWithPhone">0</div>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon-box" style="background: #fef3c7; color: #b45309;">⚡</div>
+                <div class="kpi-content">
+                    <h3>ملف النظام المعتمد</h3>
+                    <div class="kpi-value" style="font-size: 15px; margin-top: 6px;">CLIENTS NO.xls</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar-card">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="بحث فوري بالاسم أو برقم الجوال (05xxxxxxx)..." oninput="debounceSearch()">
+            </div>
+
+            <div class="tools-buttons">
+                <button class="btn btn-default-import" onclick="importFromDefaultFile()" id="btnDefaultImport" title="استيراد الملف الموجود على السيرفر مباشرة">
+                    <span>⚡</span>
+                    <span>استيراد CLIENTS NO.xls الأصلي</span>
+                </button>
+
+                <button class="btn btn-secondary" onclick="openImportModal()" title="رفع ملف إكسل من جهازك">
+                    <span>📥</span>
+                    <span>استيراد ملف إكسل</span>
+                </button>
+
+                <button class="btn btn-success" onclick="exportToExcel()" title="تنزيل نسخة إكسل كاملة">
+                    <span>📤</span>
+                    <span>تصدير إكسل</span>
+                </button>
+
+                <button class="btn btn-primary" onclick="openAddModal()">
+                    <span>➕</span>
+                    <span>إضافة عميل</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Clients Table -->
+        <div class="table-card">
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 60px;">#</th>
+                            <th>اسم العميل</th>
+                            <th>رقم الجوال المحلي</th>
+                            <th>الرقم بالصيغة الدولية</th>
+                            <th>ملاحظات</th>
+                            <th>تاريخ الإضافة</th>
+                            <th style="width: 120px; text-align: center;">إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientsTableBody">
+                        <tr>
+                            <td colspan="7" class="empty-state">⏳ جاري تحميل بيانات العملاء...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Bar -->
+            <div class="pagination-bar">
+                <div class="pagination-info" id="paginationInfo">
+                    عرض 0 من 0 عميل
+                </div>
+                <div class="pagination-controls">
+                    <button class="page-btn" id="prevBtn" onclick="changePage(-1)" disabled>◀ السابق</button>
+                    <span id="pageNumberDisplay" style="font-weight: 700; font-size: 12px; margin: 0 4px;">1</span>
+                    <button class="page-btn" id="nextBtn" onclick="changePage(1)" disabled>التالي ▶</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Client Modal -->
+    <div class="modal-overlay" id="clientModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">➕ إضافة عميل جديد</h2>
+                <button class="close-btn" onclick="closeClientModal()">&times;</button>
+            </div>
+            <form id="clientForm" onsubmit="saveClient(event)">
+                <input type="hidden" id="clientId">
+                <div class="form-group">
+                    <label>👤 اسم العميل *</label>
+                    <input type="text" id="clientName" placeholder="الاسم الكريم" required>
+                </div>
+                <div class="form-group">
+                    <label>📞 رقم الجوال *</label>
+                    <input type="tel" id="clientPhone" placeholder="05xxxxxxxx" required dir="ltr">
+                </div>
+                <div class="form-group">
+                    <label>🌐 الرقم بالصيغة الدولية (اختياري)</label>
+                    <input type="text" id="clientIntlPhone" placeholder="9665xxxxxxxx" dir="ltr">
+                </div>
+                <div class="form-group">
+                    <label>📝 ملاحظات إضافية</label>
+                    <textarea id="clientNotes" rows="2" placeholder="أي ملاحظات حول العميل"></textarea>
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeClientModal()">إلغاء</button>
+                    <button type="submit" class="btn btn-primary" id="saveClientBtn">💾 حفظ العميل</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Upload/Import Excel Modal -->
+    <div class="modal-overlay" id="importModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📥 استيراد بيانات العملاء من ملف إكسل</h2>
+                <button class="close-btn" onclick="closeImportModal()">&times;</button>
+            </div>
+            <div>
+                <p style="font-size: 13px; color: var(--text-gray); margin-bottom: 16px;">
+                    يمكنك رفع ملف بصيغة <b>.xls</b> أو <b>.xlsx</b> بنفس تركيبة أعمدة <code>CLIENTS NO.xls</code> (اسم العميل، رقم الجوال، الرقم بالصيغة الدوليه).
+                </p>
+
+                <div class="dropzone" id="dropzone" onclick="document.getElementById('excelFileInput').click()">
+                    <div class="dropzone-icon">📊</div>
+                    <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">اسحب وأفلت ملف الإكسل هنا أو انقر للاختيار</div>
+                    <div style="font-size: 12px; color: var(--text-gray);" id="selectedFileName">يدعم ملفات .xls و .xlsx حتى 20 ميجابايت</div>
+                    <input type="file" id="excelFileInput" accept=".xls,.xlsx" style="display: none;" onchange="handleFileSelected(event)">
+                </div>
+
+                <div id="importProgress" style="display: none; margin-bottom: 16px;">
+                    <div style="font-size: 12px; font-weight: 700; color: var(--primary); margin-bottom: 6px;">⏳ جاري قراءة واستيراد السجلات... يرجى الانتظار</div>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closeImportModal()">إلغاء</button>
+                    <button type="button" class="btn btn-primary" id="startImportBtn" onclick="submitExcelImport()" disabled>🚀 بدء الاستيراد</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        const pageSize = 25;
+        let totalRecords = 0;
+        let searchTimeout = null;
+        let selectedFile = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadClients();
+            setupDropzone();
+        });
+
+        // Load clients with pagination & search
+        async function loadClients() {
+            const query = document.getElementById('searchInput').value.trim();
+            const tableBody = document.getElementById('clientsTableBody');
+            tableBody.innerHTML = `<tr><td colspan="7" class="empty-state">⏳ جاري التحميل...</td></tr>`;
+
+            try {
+                const url = `/api/clients?page=${currentPage}&limit=${pageSize}&search=${encodeURIComponent(query)}`;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('فشل جلب السجلات');
+
+                const data = await res.json();
+                totalRecords = data.total || 0;
+
+                // Update KPIs
+                document.getElementById('kpiTotal').textContent = Number(totalRecords).toLocaleString('ar-SA');
+                document.getElementById('kpiWithPhone').textContent = Number(totalRecords).toLocaleString('ar-SA');
+
+                renderTable(data.clients || []);
+                updatePagination(data);
+            } catch (err) {
+                console.error(err);
+                tableBody.innerHTML = `<tr><td colspan="7" class="empty-state" style="color:red;">❌ حدث خطأ في تحميل البيانات</td></tr>`;
+            }
+        }
+
+        function renderTable(clients) {
+            const tableBody = document.getElementById('clientsTableBody');
+            if (!clients.length) {
+                tableBody.innerHTML = `<tr><td colspan="7" class="empty-state">📭 لا توجد سجلات مطابقة للبحث</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = clients.map((c, index) => {
+                const sn = (currentPage - 1) * pageSize + index + 1;
+                const dateStr = c.created_at ? new Date(c.created_at).toLocaleDateString('ar-SA') : '-';
+                return `
+                    <tr>
+                        <td style="color: var(--text-gray); font-weight: 700;">${sn}</td>
+                        <td style="font-weight: 700; color: var(--text-dark); font-size: 14px;">
+                            ${escapeHtml(c.name || 'عميل غير مسجل')}
+                        </td>
+                        <td>
+                            ${c.phone ? `<span class="phone-badge">📞 ${escapeHtml(c.phone)}</span>` : '<span style="color:#94a3b8;">-</span>'}
+                        </td>
+                        <td>
+                            ${c.intl_phone ? `<span class="intl-badge">${escapeHtml(c.intl_phone)}</span>` : '<span style="color:#94a3b8;">-</span>'}
+                        </td>
+                        <td style="color: var(--text-gray); font-size: 12px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            ${escapeHtml(c.notes || '-')}
+                        </td>
+                        <td style="color: var(--text-gray); font-size: 12px;">${dateStr}</td>
+                        <td style="text-align: center;">
+                            <div style="display: flex; gap: 6px; justify-content: center;">
+                                <button class="action-btn-sm action-edit" onclick="openEditModal(${c.id}, '${escapeHtml(c.name)}', '${escapeHtml(c.phone)}', '${escapeHtml(c.intl_phone || '')}', '${escapeHtml(c.notes || '')}')" title="تعديل">
+                                    ✏️
+                                </button>
+                                <button class="action-btn-sm action-delete" onclick="deleteClient(${c.id}, '${escapeHtml(c.name)}')" title="حذف">
+                                    🗑️
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function updatePagination(data) {
+            const totalPages = data.totalPages || 1;
+            document.getElementById('pageNumberDisplay').textContent = `${currentPage} / ${totalPages}`;
+            document.getElementById('prevBtn').disabled = currentPage <= 1;
+            document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+
+            const start = totalRecords === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+            const end = Math.min(currentPage * pageSize, totalRecords);
+            document.getElementById('paginationInfo').textContent = `عرض ${start} - ${end} من أصل ${totalRecords} عميل`;
+        }
+
+        function changePage(delta) {
+            currentPage += delta;
+            if (currentPage < 1) currentPage = 1;
+            loadClients();
+        }
+
+        function debounceSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                currentPage = 1;
+                loadClients();
+            }, 300);
+        }
+
+        // Add/Edit Modal
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = '➕ إضافة عميل جديد';
+            document.getElementById('clientId').value = '';
+            document.getElementById('clientName').value = '';
+            document.getElementById('clientPhone').value = '';
+            document.getElementById('clientIntlPhone').value = '';
+            document.getElementById('clientNotes').value = '';
+            document.getElementById('clientModal').style.display = 'flex';
+        }
+
+        function openEditModal(id, name, phone, intl, notes) {
+            document.getElementById('modalTitle').textContent = '✏️ تعديل بيانات العميل';
+            document.getElementById('clientId').value = id;
+            document.getElementById('clientName').value = name || '';
+            document.getElementById('clientPhone').value = phone || '';
+            document.getElementById('clientIntlPhone').value = intl || '';
+            document.getElementById('clientNotes').value = notes || '';
+            document.getElementById('clientModal').style.display = 'flex';
+        }
+
+        function closeClientModal() {
+            document.getElementById('clientModal').style.display = 'none';
+        }
+
+        async function saveClient(e) {
+            e.preventDefault();
+            const id = document.getElementById('clientId').value;
+            const name = document.getElementById('clientName').value.trim();
+            const phone = document.getElementById('clientPhone').value.trim();
+            const intl_phone = document.getElementById('clientIntlPhone').value.trim();
+            const notes = document.getElementById('clientNotes').value.trim();
+
+            const btn = document.getElementById('saveClientBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ جاري الحفظ...';
+
+            try {
+                const res = await fetch('/api/clients', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, name, phone, intl_phone, notes })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'فشل الحفظ');
+
+                if (window.showSuccessToast) showSuccessToast(data.message || 'تم الحفظ بنجاح 🚀');
+                else alert(data.message);
+
+                closeClientModal();
+                loadClients();
+            } catch (err) {
+                alert('خطأ: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '💾 حفظ العميل';
+            }
+        }
+
+        // Delete client
+        async function deleteClient(id, name) {
+            if (!confirm(`هل أنت متأكد من حذف العميل "${name}" من قاعدة البيانات؟`)) return;
+
+            try {
+                const res = await fetch(`/api/clients/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'فشل الحذف');
+
+                if (window.showSuccessToast) showSuccessToast('تم حذف العميل بنجاح');
+                loadClients();
+            } catch (err) {
+                alert('خطأ: ' + err.message);
+            }
+        }
+
+        // One-Click Default Import
+        async function importFromDefaultFile() {
+            if (!confirm('هل تريد استيراد وتحديث قاعدة البيانات من ملف CLIENTS NO.xls الموجود في السيرفر؟')) return;
+
+            const btn = document.getElementById('btnDefaultImport');
+            const origText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span>⏳</span><span>جاري الاستيراد...</span>';
+
+            try {
+                const res = await fetch('/api/clients/import-default', { method: 'POST' });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'فشل الاستيراد');
+
+                if (window.showSuccessToast) showSuccessToast(data.message);
+                else alert(data.message);
+
+                currentPage = 1;
+                loadClients();
+            } catch (err) {
+                alert('خطأ: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origText;
+            }
+        }
+
+        // Excel Export
+        function exportToExcel() {
+            if (window.showInfoToast) showInfoToast('جاري إنشاء ملف الإكسل وتنزيله... ⏳');
+            window.location.href = '/api/clients/export';
+        }
+
+        // Import Excel Modal Handlers
+        function openImportModal() {
+            selectedFile = null;
+            document.getElementById('excelFileInput').value = '';
+            document.getElementById('selectedFileName').textContent = 'يدعم ملفات .xls و .xlsx حتى 20 ميجابايت';
+            document.getElementById('startImportBtn').disabled = true;
+            document.getElementById('importProgress').style.display = 'none';
+            document.getElementById('importModal').style.display = 'flex';
+        }
+
+        function closeImportModal() {
+            document.getElementById('importModal').style.display = 'none';
+        }
+
+        function handleFileSelected(e) {
+            const files = e.target.files;
+            if (files && files.length > 0) {
+                selectedFile = files[0];
+                document.getElementById('selectedFileName').textContent = `📄 تم اختيار: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(1)} KB)`;
+                document.getElementById('startImportBtn').disabled = false;
+            }
+        }
+
+        function setupDropzone() {
+            const dz = document.getElementById('dropzone');
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dz.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dz.classList.add('dragover');
+                }, false);
+            });
+            ['dragleave', 'drop'].forEach(eventName => {
+                dz.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dz.classList.remove('dragover');
+                }, false);
+            });
+            dz.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                if (files && files.length > 0) {
+                    selectedFile = files[0];
+                    document.getElementById('selectedFileName').textContent = `📄 تم اختيار: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(1)} KB)`;
+                    document.getElementById('startImportBtn').disabled = false;
+                }
+            }, false);
+        }
+
+        async function submitExcelImport() {
+            if (!selectedFile) return;
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            const btn = document.getElementById('startImportBtn');
+            btn.disabled = true;
+            document.getElementById('importProgress').style.display = 'block';
+
+            try {
+                const res = await fetch('/api/clients/import', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'فشل استيراد الملف');
+
+                if (window.showSuccessToast) showSuccessToast(data.message);
+                else alert(data.message);
+
+                closeImportModal();
+                currentPage = 1;
+                loadClients();
+            } catch (err) {
+                alert('خطأ أثناء الاستيراد: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                document.getElementById('importProgress').style.display = 'none';
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+    </script>
+</body>
+
+</html>

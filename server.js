@@ -32,6 +32,7 @@ const uploadPhoto = multer({
 
 const upload = multer({ dest: 'uploads/' });
 const xlsx = require('xlsx');
+const { importClients, normalizePhone } = require('./import_clients');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -326,6 +327,19 @@ function initializeDatabase() {
         db.run(`ALTER TABLE inspection_items ADD COLUMN is_completed INTEGER DEFAULT 0`, (err) => {});
         db.run(`ALTER TABLE inspection_items ADD COLUMN completed_at DATETIME`, (err) => {});
         db.run(`ALTER TABLE inspection_items ADD COLUMN completed_by TEXT`, (err) => {});
+        
+        // إنشاء جدول العملاء وفهارسه
+        db.run(`CREATE TABLE IF NOT EXISTS clients (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            phone TEXT NOT NULL,
+            intl_phone TEXT,
+            notes TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`, (err) => {});
+        db.run(`CREATE INDEX IF NOT EXISTS idx_clients_phone ON clients(phone)`, (err) => {});
+        db.run(`CREATE INDEX IF NOT EXISTS idx_clients_name ON clients(name)`, (err) => {});
         
         // إنشاء جدول مواعيد الفرع إذا لم يوجد وبذره
         const defaultShifts = [
@@ -1682,6 +1696,12 @@ app.post('/api/inspections', async (req, res) => {
         }
 
         await dbRun('COMMIT');
+        
+        // مزامنة تلقائية لبيانات العميل في جدول العملاء
+        if (customer_phone || customer_name) {
+            upsertClient(customer_name, customer_phone).catch(e => console.error("upsertClient error:", e));
+        }
+
         res.status(201).json({ message: "تم الحفظ بنجاح", id: inspection_id, status: status || 'new' });
     } catch (error) {
         try { await dbRun('ROLLBACK'); } catch (e) { }
@@ -1766,6 +1786,12 @@ app.put('/api/inspections/:id', async (req, res) => {
         }
 
         await dbRun('COMMIT');
+        
+        // مزامنة تلقائية لبيانات العميل في جدول العملاء
+        if (customer_phone || customer_name) {
+            upsertClient(customer_name, customer_phone).catch(e => console.error("upsertClient error:", e));
+        }
+
         res.json({ message: "تم التحديث بنجاح", id: id });
     } catch (error) {
         try { await dbRun('ROLLBACK'); } catch (e) { }
@@ -2464,6 +2490,273 @@ app.post('/api/backup/restore', restoreUpload.single('backup_file'), async (req,
         console.error("Restore DB Error:", error);
         if (fs.existsSync(uploadedPath)) fs.unlinkSync(uploadedPath);
         res.status(500).json({ message: "حدث خطأ أثناء استعادة قاعدة البيانات: " + error.message });
+    }
+});
+
+// ==========================
+// 👥 إدارة واستيراد وتصدير العملاء (Clients Management)
+// ==========================
+
+// دالة مساعدة لحفظ أو تحديث العميل تلقائياً
+async function upsertClient(name, phone, intl_phone = '', notes = '') {
+    if (!name && !phone) return;
+    try {
+        const { phone: cleanPhone, intl_phone: autoIntl } = normalizePhone(phone, intl_phone);
+        if (!cleanPhone && !name) return;
+
+        let existing = null;
+        if (cleanPhone) {
+            existing = await dbGet(`SELECT id, name, phone FROM clients WHERE phone = ?`, [cleanPhone]);
+        }
+        if (!existing && name && name.trim()) {
+            existing = await dbGet(`SELECT id, name, phone FROM clients WHERE name = ?`, [name.trim()]);
+        }
+
+        if (existing) {
+            if (name && (!existing.name || existing.name.length < name.length || existing.name === 'عميل غير مسجل')) {
+                await dbRun(`UPDATE clients SET name = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`, [name.trim(), existing.id]);
+            }
+        } else {
+            await dbRun(`INSERT INTO clients (name, phone, intl_phone, notes) VALUES (?, ?, ?, ?)`, 
+                [name ? name.trim() : 'عميل غير مسجل', cleanPhone || '', autoIntl || '', notes || '']);
+        }
+    } catch (e) {
+        console.error("Error in upsertClient:", e.message);
+    }
+}
+
+// 1. البحث السريع الذكي للعملاء (بالرقم أو الاسم مع جلب آخر سيارة)
+app.get('/api/clients/search', async (req, res) => {
+    try {
+        const query = String(req.query.q || '').trim();
+        if (!query || query.length < 2) {
+            return res.json([]);
+        }
+
+        const digitsOnly = query.replace(/\D/g, '');
+        let rows = [];
+
+        if (digitsOnly.length >= 2) {
+            // البحث بالأرقام (يدعم البحث بالرقم المباشر أو بصفر البداية أو بالصيغة الدولية)
+            const p1 = `%${digitsOnly}%`;
+            const p2 = digitsOnly.startsWith('0') ? `%${digitsOnly.substring(1)}%` : `%0${digitsOnly}%`;
+            rows = await dbAll(`
+                SELECT id, name, phone, intl_phone, notes 
+                FROM clients 
+                WHERE phone LIKE ? OR phone LIKE ? OR intl_phone LIKE ? OR name LIKE ?
+                ORDER BY 
+                    CASE 
+                        WHEN phone = ? THEN 1 
+                        WHEN phone LIKE ? THEN 2
+                        WHEN phone LIKE ? THEN 3
+                        ELSE 4 
+                    END
+                LIMIT 15
+            `, [p1, p2, p1, `%${query}%`, digitsOnly, `${digitsOnly}%`, p2]);
+        } else {
+            // البحث بالاسم مع دعم مرونة الهمزات (أ, إ, آ, ا)
+            const normQuery = query.replace(/[أإآ]/g, 'ا');
+            rows = await dbAll(`
+                SELECT id, name, phone, intl_phone, notes 
+                FROM clients 
+                WHERE name LIKE ? OR name LIKE ?
+                ORDER BY 
+                    CASE 
+                        WHEN name = ? THEN 1
+                        WHEN name LIKE ? THEN 2
+                        ELSE 3
+                    END
+                LIMIT 15
+            `, [`%${query}%`, `%${normQuery}%`, query, `${query}%`]);
+        }
+
+        // إثراء النتائج بآخر سيارة مسجلة للعميل في الكشوفات السابقة إن وجدت
+        const enriched = await Promise.all(rows.map(async (client) => {
+            let lastCar = null;
+            if (client.phone) {
+                const phoneAlt = client.phone.startsWith('0') ? client.phone.substring(1) : ('0' + client.phone);
+                lastCar = await dbGet(`
+                    SELECT car_type, car_color, car_model, plate_number, odometer, vin 
+                    FROM inspections 
+                    WHERE (customer_phone = ? OR customer_phone = ?)
+                      AND ((car_type IS NOT NULL AND car_type != '') OR (plate_number IS NOT NULL AND plate_number != ''))
+                    ORDER BY id DESC 
+                    LIMIT 1
+                `, [client.phone, phoneAlt]);
+            }
+            return {
+                id: client.id,
+                name: client.name,
+                phone: client.phone,
+                intl_phone: client.intl_phone,
+                notes: client.notes,
+                last_car: lastCar || null
+            };
+        }));
+
+        res.json(enriched);
+    } catch (error) {
+        console.error('Error searching clients:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 2. استعراض العملاء مع البحث والترقيم (Pagination)
+app.get('/api/clients', async (req, res) => {
+    try {
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const limit = Math.min(100, Math.max(10, parseInt(req.query.limit) || 25));
+        const offset = (page - 1) * limit;
+        const search = String(req.query.search || '').trim();
+
+        let countSql = `SELECT COUNT(*) as total FROM clients`;
+        let dataSql = `SELECT * FROM clients`;
+        let params = [];
+
+        if (search) {
+            const digits = search.replace(/\D/g, '');
+            if (digits.length >= 2) {
+                const p1 = `%${digits}%`;
+                const p2 = digits.startsWith('0') ? `%${digits.substring(1)}%` : `%0${digits}%`;
+                countSql += ` WHERE phone LIKE ? OR phone LIKE ? OR intl_phone LIKE ? OR name LIKE ?`;
+                dataSql += ` WHERE phone LIKE ? OR phone LIKE ? OR intl_phone LIKE ? OR name LIKE ?`;
+                params = [p1, p2, p1, `%${search}%`];
+            } else {
+                countSql += ` WHERE name LIKE ?`;
+                dataSql += ` WHERE name LIKE ?`;
+                params = [`%${search}%`];
+            }
+        }
+
+        dataSql += ` ORDER BY id DESC LIMIT ? OFFSET ?`;
+
+        const countRow = await dbGet(countSql, params);
+        const total = countRow ? countRow.total : 0;
+        const clients = await dbAll(dataSql, [...params, limit, offset]);
+
+        res.json({
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit) || 1,
+            clients
+        });
+    } catch (error) {
+        console.error("Error fetching clients:", error);
+        res.status(500).json({ message: "خطأ في جلب بيانات العملاء: " + error.message });
+    }
+});
+
+// 3. إضافة أو تعديل عميل يدوياً
+app.post('/api/clients', async (req, res) => {
+    try {
+        const { id, name, phone, intl_phone, notes } = req.body;
+        if (!name && !phone) {
+            return res.status(400).json({ message: "يجب إدخال اسم العميل أو رقم الجوال." });
+        }
+
+        const { phone: cleanPhone, intl_phone: autoIntl } = normalizePhone(phone, intl_phone);
+
+        if (id) {
+            await dbRun(`
+                UPDATE clients 
+                SET name = ?, phone = ?, intl_phone = ?, notes = ?, updated_at = CURRENT_TIMESTAMP 
+                WHERE id = ?
+            `, [name ? name.trim() : 'عميل غير مسجل', cleanPhone || '', autoIntl || '', notes || '', id]);
+            res.json({ success: true, message: "تم تحديث بيانات العميل بنجاح." });
+        } else {
+            const result = await dbRun(`
+                INSERT INTO clients (name, phone, intl_phone, notes)
+                VALUES (?, ?, ?, ?)
+            `, [name ? name.trim() : 'عميل غير مسجل', cleanPhone || '', autoIntl || '', notes || '']);
+            res.status(201).json({ success: true, message: "تمت إضافة العميل بنجاح.", id: result.lastID });
+        }
+    } catch (error) {
+        console.error("Error saving client:", error);
+        res.status(500).json({ message: "خطأ في حفظ العميل: " + error.message });
+    }
+});
+
+// 4. حذف عميل
+app.delete('/api/clients/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await dbRun(`DELETE FROM clients WHERE id = ?`, [id]);
+        res.json({ success: true, message: "تم حذف العميل بنجاح." });
+    } catch (error) {
+        console.error("Error deleting client:", error);
+        res.status(500).json({ message: "خطأ في حذف العميل: " + error.message });
+    }
+});
+
+// 5. استيراد الملف الافتراضي CLIENTS NO.xls
+app.post('/api/clients/import-default', async (req, res) => {
+    try {
+        const defaultPath = path.join(__dirname, 'CLIENTS NO.xls');
+        if (!fs.existsSync(defaultPath)) {
+            return res.status(404).json({ message: "ملف CLIENTS NO.xls غير موجود في المجلد الرئيسي." });
+        }
+
+        const result = await importClients(defaultPath);
+        res.json({
+            success: true,
+            message: `تم استيراد ${result.importedCount} عميل بنجاح من أصل ${result.totalRows} سجل.`,
+            details: result
+        });
+    } catch (error) {
+        console.error("Error importing default clients:", error);
+        res.status(500).json({ message: "خطأ في استيراد ملف العملاء: " + error.message });
+    }
+});
+
+// 6. استيراد ملف Excel خارجي (.xls أو .xlsx)
+app.post('/api/clients/import', upload.single('file'), async (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ message: "الرجاء اختيار ملف Excel صالح (.xls أو .xlsx)." });
+    }
+
+    const filePath = req.file.path;
+    try {
+        const result = await importClients(filePath);
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        res.json({
+            success: true,
+            message: `تم استيراد ${result.importedCount} عميل بنجاح من أصل ${result.totalRows} سجل في الملف.`,
+            details: result
+        });
+    } catch (error) {
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        console.error("Error importing uploaded clients file:", error);
+        res.status(500).json({ message: "فشل استيراد الملف: " + error.message });
+    }
+});
+
+// 7. تصدير قاعدة بيانات العملاء إلى ملف Excel
+app.get('/api/clients/export', async (req, res) => {
+    try {
+        const rows = await dbAll(`SELECT name, phone, intl_phone, notes, created_at FROM clients ORDER BY id ASC`);
+        
+        const wb = xlsx.utils.book_new();
+        const exportData = rows.map(r => ({
+            'اسم العميل': r.name,
+            'رقم الجوال': r.phone,
+            'الرقم بالصيغة الدوليه': r.intl_phone || '',
+            'تاريخ التسجيل': r.created_at || '',
+            'ملاحظات': r.notes || ''
+        }));
+
+        const ws = xlsx.utils.json_to_sheet(exportData);
+        xlsx.utils.book_append_sheet(wb, ws, 'QR_Transfer_Mobile');
+
+        const buffer = xlsx.write(wb, { type: 'buffer', bookType: 'xlsx' });
+        
+        const timestamp = new Date().toISOString().slice(0, 10);
+        res.setHeader('Content-Disposition', `attachment; filename="CLIENTS_${timestamp}.xlsx"`);
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.send(buffer);
+    } catch (error) {
+        console.error("Error exporting clients:", error);
+        res.status(500).json({ message: "خطأ في تصدير ملف العملاء: " + error.message });
     }
 });
 
