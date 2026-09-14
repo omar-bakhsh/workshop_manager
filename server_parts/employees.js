@@ -15,7 +15,7 @@ router.post('/', async (req, res) => {
         await dbRun(`INSERT INTO users (employee_id, username, password, role) VALUES (?, ?, ?, 'employee')`, [employee_id, username, password]);
         res.status(201).json({ message: "تمت إضافة الموظف بنجاح", id: employee_id });
     } catch (error) {
-        if (error.code === 'SQLITE_CONSTRAINT') return res.status(409).json({ message: "اسم المستخدم موجود بالفعل." });
+        if (error.code === 'SQLITE_CONSTRAINT' || error.code === 'ER_DUP_ENTRY' || error.errno === 1062) return res.status(409).json({ message: "اسم المستخدم موجود بالفعل." });
         res.status(500).json({ message: "خطأ في إضافة الموظف" });
     }
 });

@@ -1,9 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const xlsx = require('xlsx');
-const sqlite3 = require('sqlite3').verbose();
+const { dbRun, dbGet, dbAll, initDatabase } = require('./db');
 
-const dbPath = path.join(__dirname, 'db.sqlite');
 const excelPath = path.join(__dirname, 'CLIENTS NO.xls');
 
 // Normalize Saudi phone numbers to '05xxxxxxxx' and international '966xxxxxxxxx'
@@ -37,126 +36,91 @@ function normalizePhone(rawPhone, rawIntl) {
 }
 
 async function importClients(filePath = excelPath) {
-    return new Promise((resolve, reject) => {
-        if (!fs.existsSync(filePath)) {
-            return reject(new Error(`File not found: ${filePath}`));
-        }
+    if (!fs.existsSync(filePath)) {
+        throw new Error(`File not found: ${filePath}`);
+    }
 
-        console.log(`Reading Excel file: ${filePath}...`);
-        const wb = xlsx.readFile(filePath);
-        const firstSheetName = wb.SheetNames[0];
-        const sheet = wb.Sheets[firstSheetName];
-        const rawData = xlsx.utils.sheet_to_json(sheet);
+    console.log(`Reading Excel file: ${filePath}...`);
+    const wb = xlsx.readFile(filePath);
+    const firstSheetName = wb.SheetNames[0];
+    const sheet = wb.Sheets[firstSheetName];
+    const rawData = xlsx.utils.sheet_to_json(sheet);
 
-        console.log(`Found ${rawData.length} rows in sheet "${firstSheetName}".`);
+    console.log(`Found ${rawData.length} rows in sheet "${firstSheetName}".`);
 
-        const db = new sqlite3.Database(dbPath, (err) => {
-            if (err) return reject(err);
-        });
+    // Ensure database structure is ready
+    await initDatabase();
 
-        db.serialize(() => {
-            // Create table & indices
-            db.run(`
-                CREATE TABLE IF NOT EXISTS clients (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT NOT NULL,
-                    phone TEXT NOT NULL,
-                    intl_phone TEXT,
-                    notes TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                );
-            `);
+    // Deduplicate and clean rows
+    const clientMap = new Map();
 
-            db.run(`CREATE INDEX IF NOT EXISTS idx_clients_phone ON clients(phone);`);
-            db.run(`CREATE INDEX IF NOT EXISTS idx_clients_name ON clients(name);`);
+    for (const row of rawData) {
+        const nameKey = Object.keys(row).find(k => k.includes('اسم') || k.toLowerCase().includes('name'));
+        const phoneKey = Object.keys(row).find(k => (k.includes('جوال') || k.includes('هاتف') || k.toLowerCase().includes('phone') || k.toLowerCase().includes('mobile')) && !k.includes('دولي'));
+        const intlKey = Object.keys(row).find(k => k.includes('دولي') || k.toLowerCase().includes('intl'));
 
-            // Deduplicate and clean rows
-            const clientMap = new Map();
+        const rawName = String(row[nameKey] || '').trim();
+        const rawPhone = row[phoneKey];
+        const rawIntl = row[intlKey];
 
-            for (const row of rawData) {
-                // Determine column keys dynamically (supports Arabic and standard English)
-                const nameKey = Object.keys(row).find(k => k.includes('اسم') || k.toLowerCase().includes('name'));
-                const phoneKey = Object.keys(row).find(k => (k.includes('جوال') || k.includes('هاتف') || k.toLowerCase().includes('phone') || k.toLowerCase().includes('mobile')) && !k.includes('دولي'));
-                const intlKey = Object.keys(row).find(k => k.includes('دولي') || k.toLowerCase().includes('intl'));
+        if (!rawPhone && !rawName) continue;
 
-                const rawName = String(row[nameKey] || '').trim();
-                const rawPhone = row[phoneKey];
-                const rawIntl = row[intlKey];
+        const { phone, intl_phone } = normalizePhone(rawPhone, rawIntl);
+        if (!phone && !rawName) continue;
 
-                if (!rawPhone && !rawName) continue;
+        const dedupeKey = phone || ('name:' + rawName);
 
-                const { phone, intl_phone } = normalizePhone(rawPhone, rawIntl);
-                if (!phone && !rawName) continue;
-
-                // Deduplicate by phone if valid, otherwise by name
-                const dedupeKey = phone || ('name:' + rawName);
-
-                if (!clientMap.has(dedupeKey)) {
-                    clientMap.set(dedupeKey, {
-                        name: rawName || 'عميل غير مسجل',
-                        phone: phone || '',
-                        intl_phone: intl_phone || ''
-                    });
-                } else {
-                    // If we have an existing entry with same phone, pick the longer / cleaner name
-                    const existing = clientMap.get(dedupeKey);
-                    if (rawName && rawName.length > existing.name.length && existing.name === 'عميل غير مسجل') {
-                        existing.name = rawName;
-                    } else if (rawName && rawName.length > existing.name.length && !existing.name.includes(rawName)) {
-                        existing.name = rawName;
-                    }
-                    if (!existing.intl_phone && intl_phone) {
-                        existing.intl_phone = intl_phone;
-                    }
-                }
-            }
-
-            console.log(`Prepared ${clientMap.size} unique client records. Inserting into database...`);
-
-            db.run('BEGIN TRANSACTION');
-
-            // Optional: check if we should update or insert
-            const stmt = db.prepare(`
-                INSERT INTO clients (name, phone, intl_phone)
-                VALUES (?, ?, ?)
-            `);
-
-            let count = 0;
-            for (const client of clientMap.values()) {
-                stmt.run(client.name, client.phone, client.intl_phone);
-                count++;
-            }
-
-            stmt.finalize();
-
-            db.run('COMMIT', (err) => {
-                if (err) {
-                    console.error('Error committing transaction:', err);
-                    db.close();
-                    return reject(err);
-                }
-
-                console.log(`Successfully imported ${count} clients into db.sqlite.`);
-                db.close((closeErr) => {
-                    if (closeErr) return reject(closeErr);
-                    resolve({ totalRows: rawData.length, importedCount: count });
-                });
+        if (!clientMap.has(dedupeKey)) {
+            clientMap.set(dedupeKey, {
+                name: rawName || 'عميل غير مسجل',
+                phone: phone || '',
+                intl_phone: intl_phone || ''
             });
-        });
-    });
+        } else {
+            const existing = clientMap.get(dedupeKey);
+            if (rawName && rawName.length > existing.name.length && existing.name === 'عميل غير مسجل') {
+                existing.name = rawName;
+            } else if (rawName && rawName.length > existing.name.length && !existing.name.includes(rawName)) {
+                existing.name = rawName;
+            }
+            if (!existing.intl_phone && intl_phone) {
+                existing.intl_phone = intl_phone;
+            }
+        }
+    }
+
+    console.log(`Prepared ${clientMap.size} unique client records. Inserting into database...`);
+
+    let count = 0;
+    for (const client of clientMap.values()) {
+        try {
+            await dbRun(`INSERT INTO clients (name, phone, intl_phone) VALUES (?, ?, ?)`,
+                [client.name, client.phone, client.intl_phone]);
+            count++;
+        } catch (insertErr) {
+            console.warn(`Could not insert client ${client.phone}:`, insertErr.message);
+        }
+    }
+
+    console.log(`Successfully imported ${count} clients into database.`);
+    return { totalRows: rawData.length, importedCount: count };
 }
 
+// Standalone execution: node import_clients.js [optional_excel_path]
 if (require.main === module) {
-    importClients()
+    const customPath = process.argv[2] ? path.resolve(process.argv[2]) : excelPath;
+    importClients(customPath)
         .then(res => {
-            console.log('Import finished successfully:', res);
+            console.log('✅ Import complete:', res);
             process.exit(0);
         })
         .catch(err => {
-            console.error('Import failed:', err);
+            console.error('❌ Import failed:', err);
             process.exit(1);
         });
 }
 
-module.exports = { importClients, normalizePhone };
+module.exports = {
+    importClients,
+    normalizePhone
+};

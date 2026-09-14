@@ -51,477 +51,23 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'login.html'));
 });
 
-// ==========================
-// 🧩 إعداد قاعدة البيانات
-// ==========================
-console.log('📁 محاولة فتح قاعدة البيانات...');
-const dbPath = path.join(__dirname, 'db.sqlite');
-const defaultSeedPath = path.join(__dirname, 'default_seed.sqlite');
+// ========================== 
+// 🧩 إعداد قاعدة البيانات المركزية (Hosted MySQL / SQLite Fallback)
+// ========================== 
+const {
+    dbRun,
+    dbGet,
+    dbAll,
+    initDatabase,
+    isMySQL,
+    exportDatabaseJson,
+    restoreDatabaseFromJson
+} = require('./db');
 
-// استعادة قاعدة البيانات التلقائية عند النشر لأول مرة في بيئات الاستضافة
-if (!fs.existsSync(dbPath) && fs.existsSync(defaultSeedPath)) {
-    try {
-        console.log('🔄 جاري استعادة قاعدة البيانات الافتراضية من default_seed.sqlite...');
-        fs.copyFileSync(defaultSeedPath, dbPath);
-        console.log('✅ تمت استعادة قاعدة البيانات بنجاح.');
-    } catch (copyErr) {
-        console.warn('⚠️ تعذر نسخ قاعدة البيانات الافتراضية:', copyErr.message);
-    }
-}
-
-console.log('📍 مسار قاعدة البيانات:', dbPath);
-
-let db = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-        console.error('❌ خطأ في فتح قاعدة البيانات:', err.message);
-        process.exit(1); // إيقاف التطبيق إذا فشل الاتصال بقاعدة البيانات
-    } else {
-        console.log('✅ تم الاتصال بقاعدة البيانات SQLite بنجاح');
-        initializeDatabase();
-    }
+// تهيئة الجداول وترحيل الحقول عند إقلاع التطبيق
+initDatabase().catch(err => {
+    console.error('❌ خطأ في تهيئة قاعدة البيانات:', err);
 });
-
-// ==========================
-// 🧩 تهيئة قاعدة البيانات
-// ==========================
-function initializeDatabase() {
-    console.log('🔧 جاري تهيئة قاعدة البيانات...');
-
-    // إنشاء الجداول
-    const tables = [
-        `CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            employee_id INTEGER,
-            username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
-            role TEXT NOT NULL CHECK (role IN ('admin', 'employee'))
-        )`,
-        `CREATE TABLE IF NOT EXISTS sections (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE NOT NULL,
-            shift_start TEXT DEFAULT '08:00',
-            shift_end TEXT DEFAULT '18:00'
-        )`,
-        `CREATE TABLE IF NOT EXISTS employees (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            section_id INTEGER,
-            target INTEGER NOT NULL DEFAULT 0,
-            base_salary INTEGER DEFAULT 0,
-            target_amount REAL DEFAULT 0,
-            deposit_amount REAL DEFAULT 0,
-            total_withdrawals REAL DEFAULT 0,
-            remaining_salary REAL DEFAULT 0,
-            net_remaining REAL DEFAULT 0,
-            bank_name TEXT DEFAULT 'كاش',
-            last_sync_at TIMESTAMP,
-            is_active INTEGER DEFAULT 1,
-            hide_income INTEGER DEFAULT 0,
-            FOREIGN KEY (section_id) REFERENCES sections(id)
-        )`,
-        `CREATE TABLE IF NOT EXISTS settings (
-            key TEXT PRIMARY KEY,
-            value TEXT
-        )`,
-        `CREATE TABLE IF NOT EXISTS entries (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            employee_id INTEGER NOT NULL,
-            section_id INTEGER NOT NULL,
-            income INTEGER NOT NULL,
-            details TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (employee_id) REFERENCES employees(id),
-            FOREIGN KEY (section_id) REFERENCES sections(id)
-        )`,
-        `CREATE TABLE IF NOT EXISTS withdrawals (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            employee_id INTEGER NOT NULL,
-            amount INTEGER NOT NULL,
-            reason TEXT,
-            status TEXT DEFAULT 'pending', -- pending, approved, rejected
-            admin_note TEXT,
-            date DATE DEFAULT CURRENT_DATE,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (employee_id) REFERENCES employees(id)
-        )`,
-        `CREATE TABLE IF NOT EXISTS absences (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            employee_id INTEGER NOT NULL,
-            date DATE NOT NULL,
-            reason TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (employee_id) REFERENCES employees(id)
-        )`,
-        `CREATE TABLE IF NOT EXISTS leave_requests (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            employee_id INTEGER NOT NULL,
-            leave_type TEXT DEFAULT 'annual',
-            start_date TEXT NOT NULL,
-            end_date TEXT NOT NULL,
-            days_count INTEGER NOT NULL,
-            reason TEXT,
-            status TEXT DEFAULT 'pending',
-            admin_notes TEXT,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (employee_id) REFERENCES employees(id)
-        )`,
-        `CREATE TABLE IF NOT EXISTS branch_shifts (
-            day_of_week INTEGER PRIMARY KEY, -- 0-6 (Sunday-Saturday)
-            shift_start TEXT DEFAULT '08:00',
-            shift_end TEXT DEFAULT '18:00',
-            is_closed INTEGER DEFAULT 0
-        )`,
-        `CREATE TABLE IF NOT EXISTS attendance (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            employee_id INTEGER NOT NULL,
-            date DATE DEFAULT CURRENT_DATE,
-            check_in TIMESTAMP,
-            check_out TIMESTAMP,
-            status TEXT DEFAULT 'present',
-            delay_minutes INTEGER DEFAULT 0,
-            early_departure_minutes INTEGER DEFAULT 0,
-            overtime_minutes INTEGER DEFAULT 0,
-            shift_start TEXT,
-            shift_end TEXT,
-            FOREIGN KEY (employee_id) REFERENCES employees(id)
-        )`,
-        `CREATE TABLE IF NOT EXISTS messages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            employee_id INTEGER NOT NULL,
-            sender TEXT NOT NULL, -- 'employee' or 'admin'
-            message TEXT NOT NULL,
-            is_read INTEGER DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (employee_id) REFERENCES employees(id)
-        )`,
-        `CREATE TABLE IF NOT EXISTS inspections (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            inspector_id INTEGER NOT NULL,
-            customer_name TEXT,
-            customer_phone TEXT,
-            car_type TEXT,
-            car_color TEXT,
-            car_model TEXT,
-            plate_number TEXT,
-            odometer TEXT,
-            vin TEXT,
-            total_amount REAL DEFAULT 0,
-            vat_amount REAL DEFAULT 0,
-            final_amount REAL DEFAULT 0,
-            paid_amount REAL DEFAULT 0,
-            remaining_amount REAL DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (inspector_id) REFERENCES employees(id)
-        )`,
-        `CREATE TABLE IF NOT EXISTS sys_notifications (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            recipient_type TEXT NOT NULL,
-            recipient_id INTEGER,
-            title TEXT,
-            message TEXT,
-            type TEXT DEFAULT 'info',
-            is_read INTEGER DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )`,
-        `CREATE TABLE IF NOT EXISTS inspection_items (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            inspection_id INTEGER NOT NULL,
-            category TEXT,
-            service_description TEXT,
-            quantity INTEGER DEFAULT 1,
-            price REAL DEFAULT 0,
-            total REAL DEFAULT 0,
-            FOREIGN KEY (inspection_id) REFERENCES inspections(id)
-        )`,
-        `CREATE TABLE IF NOT EXISTS inspection_terms (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            term TEXT UNIQUE NOT NULL
-        )`,
-        `CREATE TABLE IF NOT EXISTS services (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            category TEXT NOT NULL,
-            service_name TEXT NOT NULL,
-            price REAL DEFAULT 0,
-            UNIQUE(category, service_name)
-        )`,
-        `CREATE TABLE IF NOT EXISTS inspection_bundles (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE NOT NULL,
-            icon TEXT
-        )`,
-        `CREATE TABLE IF NOT EXISTS inspection_bundle_items (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            bundle_id INTEGER NOT NULL,
-            service_description TEXT NOT NULL,
-            category TEXT,
-            FOREIGN KEY (bundle_id) REFERENCES inspection_bundles(id) ON DELETE CASCADE
-        )`
-    ];
-
-    db.serialize(() => {
-        tables.forEach(table => {
-            db.run(table, (err) => {
-                if (err) console.error('❌ خطأ في إنشاء الجدول:', err.message);
-            });
-        });
-
-        // إضافة الأعمدة المفقودة للموظفين (Migration)
-        db.run(`ALTER TABLE employees ADD COLUMN bank_name TEXT DEFAULT 'كاش'`, (err) => {
-            if (!err) console.log('✅ تم إضافة عمود bank_name');
-        });
-
-        // تهيئة الإعدادات الافتراضية
-        db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES ('app_name', 'Atenza App')`);
-        db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES ('workshop_name', 'Atenza App')`);
-        db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES ('max_withdrawal_limit', '500')`);
-
-        // التأكد من وجود مستخدم المدير الافتراضي والأقسام الافتراضية
-        db.run(`INSERT OR IGNORE INTO users (username, password, role) VALUES (?, ?, ?)`,
-            ['admin', 'admin123', 'admin'],
-            (err) => {
-                if (err) console.error('❌ خطأ في إضافة المدير الافتراضي:', err.message);
-            }
-        );
-
-        const defaultSections = ['مكانيكا', 'كهرباء', 'كشف', 'ادارة'];
-        defaultSections.forEach(sectionName => {
-            db.run(`INSERT OR IGNORE INTO sections (name) VALUES (?)`, [sectionName], (err) => {
-                if (err) console.error(`❌ خطأ في إضافة قسم ${sectionName}:`, err.message);
-            });
-        });
-
-        // تحديث هيكلية الحضور للمناوبات المتقدمة
-        db.run(`ALTER TABLE attendance ADD COLUMN early_departure_minutes INTEGER DEFAULT 0`, (err) => {});
-        db.run(`ALTER TABLE attendance ADD COLUMN overtime_minutes INTEGER DEFAULT 0`, (err) => {});
-        db.run(`ALTER TABLE attendance ADD COLUMN shift_start TEXT`, (err) => {});
-        db.run(`ALTER TABLE attendance ADD COLUMN shift_end TEXT`, (err) => {});
-
-        // تحديث هيكلية الكشوفات وأوامر العمل
-        db.run(`ALTER TABLE inspections ADD COLUMN status TEXT DEFAULT 'new'`, (err) => {});
-        db.run(`ALTER TABLE inspections ADD COLUMN car_status TEXT DEFAULT 'in_progress'`, (err) => {});
-        db.run(`ALTER TABLE inspections ADD COLUMN assigned_technician_id INTEGER`, (err) => {});
-        db.run(`ALTER TABLE inspections ADD COLUMN job_order_notes TEXT`, (err) => {});
-        db.run(`ALTER TABLE inspections ADD COLUMN car_defects_diagram TEXT`, (err) => {});
-        db.run(`ALTER TABLE inspections ADD COLUMN odometer TEXT`, (err) => {});
-        db.run(`ALTER TABLE inspections ADD COLUMN vin TEXT`, (err) => {});
-        db.run(`CREATE TABLE IF NOT EXISTS inspection_technicians (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            inspection_id INTEGER NOT NULL,
-            technician_id INTEGER NOT NULL,
-            FOREIGN KEY (inspection_id) REFERENCES inspections(id) ON DELETE CASCADE,
-            FOREIGN KEY (technician_id) REFERENCES employees(id) ON DELETE CASCADE
-        )`, (err) => {});
-        
-        db.run(`CREATE TABLE IF NOT EXISTS inspection_photos (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            inspection_id INTEGER NOT NULL,
-            photo_type TEXT DEFAULT 'before', -- 'before', 'damaged_part', 'after'
-            file_path TEXT NOT NULL,
-            caption TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (inspection_id) REFERENCES inspections(id) ON DELETE CASCADE
-        )`, (err) => {});
-
-        // إضافة حقول قائمة الفحص والإنجاز لبنود الكشف
-        db.run(`ALTER TABLE inspection_items ADD COLUMN is_completed INTEGER DEFAULT 0`, (err) => {});
-        db.run(`ALTER TABLE inspection_items ADD COLUMN completed_at DATETIME`, (err) => {});
-        db.run(`ALTER TABLE inspection_items ADD COLUMN completed_by TEXT`, (err) => {});
-        
-        // إنشاء جدول العملاء وفهارسه
-        db.run(`CREATE TABLE IF NOT EXISTS clients (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            phone TEXT NOT NULL,
-            intl_phone TEXT,
-            notes TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )`, (err) => {});
-        db.run(`CREATE INDEX IF NOT EXISTS idx_clients_phone ON clients(phone)`, (err) => {});
-        db.run(`CREATE INDEX IF NOT EXISTS idx_clients_name ON clients(name)`, (err) => {});
-        
-        // إنشاء جدول مواعيد الفرع إذا لم يوجد وبذره
-        const defaultShifts = [
-            { day: 0, start: '08:00', end: '18:00', closed: 1 }, // Sunday (Assuming Friday is 5)
-            { day: 1, start: '08:00', end: '18:00', closed: 0 },
-            { day: 2, start: '08:00', end: '18:00', closed: 0 },
-            { day: 3, start: '08:00', end: '18:00', closed: 0 },
-            { day: 4, start: '08:00', end: '18:00', closed: 0 },
-            { day: 5, start: '08:00', end: '18:00', closed: 0 },
-            { day: 6, start: '08:30', end: '17:30', closed: 0 }  // Saturday
-        ];
-        // Note: JavaScript Date.getDay() is 0=Sunday, 1=Monday, ..., 5=Friday, 6=Saturday
-        // Middle east context: Friday (5) usually closed.
-        const meShifts = [
-            { day: 0, start: '08:00', end: '18:00', closed: 0 }, // Sun
-            { day: 1, start: '08:00', end: '18:00', closed: 0 }, // Mon
-            { day: 2, start: '08:00', end: '18:00', closed: 0 }, // Tue
-            { day: 3, start: '08:00', end: '18:00', closed: 0 }, // Wed
-            { day: 4, start: '08:00', end: '18:00', closed: 0 }, // Thu
-            { day: 5, start: '08:00', end: '18:00', closed: 1 }, // Fri (Closed)
-            { day: 6, start: '08:30', end: '17:30', closed: 0 }  // Sat
-        ];
-
-        meShifts.forEach(s => {
-            db.run(`INSERT OR IGNORE INTO branch_shifts (day_of_week, shift_start, shift_end, is_closed) VALUES (?, ?, ?, ?)`,
-                [s.day, s.start, s.end, s.closed]);
-        });
-
-        // بذر الخدمات الافتراضية
-        const defaultServices = {
-            "نظام التعليق الامامي": [
-                { "service": "غيار أقمشة أمامية + مسح هوبات (مخرطة)", "price": 100 },
-                { "service": "غيار مساعدات أمامية + كراسي مساعدات", "price": 200 },
-                { "service": "غيار مقصات أمامية", "price": 200 }
-            ],
-            "نظام التعليق الخلفي": [
-                { "service": "غيار أقمشة خلفية + مسح هوبات (مخرطة)", "price": 100 },
-                { "service": "غيار مقصات خلفية", "price": 200 }
-            ],
-            "نظام التصفية": [
-                { "service": "غيار بواجي + فلتر الهواء + فلتر مكيف", "price": 100 },
-                { "service": "فك ثلاجة المحرك + تنظيف بخاخات بجهاز اختبار", "price": 400 },
-                { "service": "غيار فلتر البنزين + صفاية", "price": 150 },
-                { "service": "تصفية كاملة", "price": 550 },
-                { "service": "تصفية بدون بواجي", "price": 450 },
-                { "service": "تنظيف حساس m.a.f + حساس m.a.p بالمحاليل", "price": 100 },
-                { "service": "تنظيف حساس الشكمان العلوي", "price": 100 }
-            ],
-            "نظام تبريد المحرك": [
-                { "service": "غيار طرمبة ماء", "price": 300 },
-                { "service": "فك رديتر المحرك + تركيب (غيار طبة علوية خارجي)", "price": 200 },
-                { "service": "غيار بلف الحرارة + ماء رديتر عدد (2)", "price": 150 },
-                { "service": "ماء رديتر", "price": 50 }
-            ],
-            "نظام صوف": [
-                { "service": "فك جربكس + غيار صوفة المحرك الخلفية", "price": 1000 }
-            ],
-            "الزيوت": [
-                { "service": "غيار زيت المحرك + فلتر + صرة + وردة", "price": 50 },
-                { "service": "غيار زيت الفرامل + تنسيم النظام كامل", "price": 150 },
-                { "service": "زيت دبل أمامي", "price": 100 },
-                { "service": "زيت الدفرنس", "price": 50 }
-            ],
-            "كهرباء وتكييف": [
-                { "service": "تحديث المحرك PCM", "price": 300 },
-                { "service": "تحديث الجربكس TCM (بدون ضمان)", "price": 200 },
-                { "service": "تحديث FSC تحسين نظام المسارات", "price": 150 },
-                { "service": "فك جرم مراوح + غيار دينمو", "price": 300 },
-                { "service": "كشف عام + كشف كمبيوتر", "price": 100 },
-                { "service": "تعبئة فريون + زيت بالجهاز", "price": 200 },
-                { "service": "فك طبلون أمامي + غيار ثلاجة المكيف", "price": 900 },
-                { "service": "غيار بلف التنسيم + جلود ليات الكمبروسر", "price": 250 }
-            ],
-            "أخرى / قطع غيار": [
-                { "service": "محاليل التنظيف", "price": 90 },
-                { "service": "سليكون تويوتا أصلي", "price": 100 },
-                { "service": "خرط هوبات (للقطعة)", "price": 30 },
-                { "service": "غيار سيور المحرك + شداد", "price": 150 }
-            ]
-        };
-
-        db.get("SELECT COUNT(*) as count FROM services", (err, row) => {
-            if (row && row.count === 0) {
-                Object.keys(defaultServices).forEach(cat => {
-                    defaultServices[cat].forEach(s => {
-                        db.run("INSERT INTO services (category, service_name, price) VALUES (?, ?, ?)", [cat, s.service, s.price]);
-                    });
-                });
-                console.log('🌱 تم بذر الخدمات الافتراضية');
-            }
-        });
-
-        // بذر باقات الكشف الافتراضية
-        db.get("SELECT COUNT(*) as count FROM inspection_bundles", (err, row) => {
-            if (row && row.count === 0) {
-                const defaultBundles = [
-                    {
-                        name: "نظام الصوف",
-                        icon: "🛠️",
-                        items: [
-                            { service: "فك جربكس غيار صوفة المحرك الخلفية", category: "نظام صوف" },
-                            { service: "غيار صوفة الجربكس امامية", category: "نظام صوف" },
-                            { service: "غيار صوف العكوس يمين + يسار", category: "نظام صوف" },
-                            { service: "فك كرتير المحرك + غيار سليكون", category: "نظام صوف" },
-                            { service: "غيار زيت المحرك + فلتر + صرة +وردة", category: "الزيوت" }
-                        ]
-                    },
-                    {
-                        name: "نظام الكمبروسر",
-                        icon: "❄️",
-                        items: [
-                            { service: "غيار كمبروسر", category: "كهرباء وتكييف" },
-                            { service: "غيار رديتر المكيف", category: "كهرباء وتكييف" },
-                            { service: "تنظيف دائرة بفريون 11", category: "كهرباء وتكييف" },
-                            { service: "غيار بلف المكيف الامامي", category: "كهرباء وتكييف" },
-                            { service: "تعبئة فريون + زيت الكمبروسر بالجهاز", category: "كهرباء وتكييف" },
-                            { service: "غيار بلف التنسيم + جلود ليات الكمبروسر", category: "كهرباء وتكييف" },
-                            { service: "قطع بلف التنسيم + جلود ليات الكمبروسر", category: "كهرباء وتكييف" }
-                        ]
-                    },
-                    {
-                        name: "نظام التصفية",
-                        icon: "✅",
-                        items: [
-                            { service: "غيار بواجي , فلتر هواء ,فلتر مكيف", category: "نظام التصفية" },
-                            { service: "غيار فلتر بنزين + صفاية صغيرة", category: "نظام التصفية" },
-                            { service: "تنظيف بخاخات خارجي", category: "نظام التصفية" },
-                            { service: "تنظيف حساس ماب + ماف", category: "نظام التصفية" },
-                            { service: "غيار بلف البخار , قاعدة بلف البخار كاملة", category: "نظام التصفية" },
-                            { service: "تنظيف ثلاجة المحرك", category: "نظام التصفية" }
-                        ]
-                    }
-                ];
-
-                defaultBundles.forEach(b => {
-                    db.run("INSERT INTO inspection_bundles (name, icon) VALUES (?, ?)", [b.name, b.icon], function (err) {
-                        if (!err) {
-                            const bundleId = this.lastID;
-                            b.items.forEach(item => {
-                                db.run("INSERT INTO inspection_bundle_items (bundle_id, service_description, category) VALUES (?, ?, ?)",
-                                    [bundleId, item.service, item.category]);
-                            });
-                        }
-                    });
-                });
-                console.log('🌱 تم بذر باقات الكشف الافتراضية');
-            }
-        });
-
-        console.log('✅ تم الانتهاء من تهيئة قاعدة البيانات');
-    });
-}
-
-// ==========================
-// 🧩 دالة للاستعلام عن قاعدة البيانات (Promise Wrapper)
-// ==========================
-function dbRun(sql, params = []) {
-    return new Promise((resolve, reject) => {
-        db.run(sql, params, function (err) {
-            if (err) reject(err);
-            else resolve(this);
-        });
-    });
-}
-
-function dbGet(sql, params = []) {
-    return new Promise((resolve, reject) => {
-        db.get(sql, params, (err, row) => {
-            if (err) reject(err);
-            else resolve(row);
-        });
-    });
-}
-
-function dbAll(sql, params = []) {
-    return new Promise((resolve, reject) => {
-        db.all(sql, params, (err, rows) => {
-            if (err) reject(err);
-            else resolve(rows);
-        });
-    });
-}
 
 // ==========================
 // 🔐 مصادقة المستخدمين
@@ -573,7 +119,7 @@ app.post('/api/employees', async (req, res) => {
 
         res.status(201).json({ message: "تمت إضافة الموظف بنجاح", id: employee_id });
     } catch (error) {
-        if (error.code === 'SQLITE_CONSTRAINT') {
+        if (error.code === 'SQLITE_CONSTRAINT' || error.code === 'ER_DUP_ENTRY' || error.errno === 1062) {
             return res.status(409).json({ message: "اسم المستخدم موجود بالفعل." });
         }
         console.error("Add Employee Error:", error);
@@ -600,7 +146,7 @@ app.put('/api/employees/:id', async (req, res) => {
 
         res.json({ message: "تم تحديث بيانات الموظف بنجاح" });
     } catch (error) {
-        if (error.code === 'SQLITE_CONSTRAINT') {
+        if (error.code === 'SQLITE_CONSTRAINT' || error.code === 'ER_DUP_ENTRY' || error.errno === 1062) {
             return res.status(409).json({ message: "اسم المستخدم موجود بالفعل." });
         }
         console.error("Update Employee Error:", error);
@@ -1207,6 +753,89 @@ app.put('/api/branch-shifts/:day', async (req, res) => {
         res.json({ message: 'تم تحديث الموعد بنجاح' });
     } catch (error) {
         res.status(500).json({ message: 'خطأ في تحديث الموعد' });
+    }
+});
+
+// ==========================
+// 📅 جدول العمل الأسبوعي (Work Schedule)
+// ==========================
+app.get('/api/work-schedule', async (req, res) => {
+    try {
+        const schedule = await dbAll(`SELECT * FROM work_schedule ORDER BY id`);
+        res.json(schedule);
+    } catch (error) {
+        console.error("Error fetching work schedule:", error);
+        res.status(500).json({ message: "خطأ في جلب جدول الدوام" });
+    }
+});
+
+app.post('/api/work-schedule', async (req, res) => {
+    const { schedule } = req.body;
+    if (!Array.isArray(schedule)) {
+        return res.status(400).json({ message: "بيانات الجدول غير صالحة" });
+    }
+    try {
+        for (const item of schedule) {
+            await dbRun(`
+                UPDATE work_schedule 
+                SET start_time = ?, end_time = ?, is_closed = ?
+                WHERE day_of_week = ?
+            `, [item.start_time || '', item.end_time || '', item.is_closed ? 1 : 0, item.day_of_week]);
+        }
+        res.json({ message: "تم حفظ جدول الدوام بنجاح" });
+    } catch (error) {
+        console.error("Error saving work schedule:", error);
+        res.status(500).json({ message: "خطأ في حفظ جدول الدوام" });
+    }
+});
+
+// ==========================
+// 🏗️ إدارة الرافعات (Workshop Lifts)
+// ==========================
+app.get('/api/lifts', async (req, res) => {
+    try {
+        const lifts = await dbAll(`
+            SELECT l.*, e.name AS technician_name 
+            FROM workshop_lifts l
+            LEFT JOIN employees e ON l.technician_id = e.id
+            ORDER BY l.id
+        `);
+        res.json(lifts);
+    } catch (error) {
+        console.error("Error fetching lifts:", error);
+        res.status(500).json({ message: "خطأ في جلب بيانات الرافعات" });
+    }
+});
+
+app.put('/api/lifts/:id', async (req, res) => {
+    const { id } = req.params;
+    const { status, technician_id, issue_description } = req.body;
+    try {
+        const existing = await dbGet(`SELECT * FROM workshop_lifts WHERE id = ?`, [id]);
+        if (!existing) {
+            return res.status(404).json({ message: "الرافعة غير موجودة" });
+        }
+        const newStatus = status !== undefined ? status : existing.status;
+        const newTech = technician_id !== undefined ? technician_id : existing.technician_id;
+        const newDesc = issue_description !== undefined ? issue_description : existing.issue_description;
+
+        await dbRun(`UPDATE workshop_lifts SET status = ?, technician_id = ?, issue_description = ?, last_updated = CURRENT_TIMESTAMP WHERE id = ?`,
+            [newStatus, newTech, newDesc, id]);
+        res.json({ message: "تم تحديث الرافعة بنجاح" });
+    } catch (error) {
+        console.error("Error updating lift:", error);
+        res.status(500).json({ message: "خطأ في تحديث الرافعة" });
+    }
+});
+
+app.post('/api/lifts/:id/release', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await dbRun(`UPDATE workshop_lifts SET status = 'idle', technician_id = NULL, issue_description = NULL, last_updated = CURRENT_TIMESTAMP WHERE id = ?`, [id]);
+        res.json({ message: "تم إخلاء الرافعة بنجاح" });
+    } catch (error) {
+        console.error("Error releasing lift:", error);
+        res.status(500).json({ message: "خطأ في إخلاء الرافعة" });
     }
 });
 
@@ -1832,6 +1461,19 @@ app.patch('/api/inspections/:id/status', async (req, res) => {
     }
 });
 
+// حفظ ملاحظات أمر العمل
+app.patch('/api/inspections/:id/notes', async (req, res) => {
+    const { id } = req.params;
+    const { notes } = req.body;
+    try {
+        await dbRun(`UPDATE inspections SET job_order_notes = ? WHERE id = ?`, [notes || '', id]);
+        res.json({ message: "تم حفظ ملاحظات أمر العمل بنجاح" });
+    } catch (error) {
+        console.error("Error saving job order notes:", error);
+        res.status(500).json({ message: "خطأ في حفظ الملاحظات" });
+    }
+});
+
 // تحويل تسعيرة مباشرة إلى أمر عمل
 app.post('/api/inspections/:id/convert-to-job', async (req, res) => {
     const { id } = req.params;
@@ -2269,7 +1911,7 @@ app.post('/api/services', async (req, res) => {
         const result = await dbRun(`INSERT INTO services (category, service_name, price) VALUES (?, ?, ?)`, [category, service_name, price || 0]);
         res.status(201).json({ message: "تمت إضافة الخدمة بنجاح", id: result.lastID });
     } catch (error) {
-        if (error.code === 'SQLITE_CONSTRAINT') {
+        if (error.code === 'SQLITE_CONSTRAINT' || error.code === 'ER_DUP_ENTRY' || error.errno === 1062) {
             return res.status(409).json({ message: "هذه الخدمة موجودة بالفعل في هذه الفئة" });
         }
         console.error("Add Service Error:", error);
@@ -2412,17 +2054,29 @@ app.delete('/api/inspection-bundles/:id', async (req, res) => {
 // ==========================
 
 // تحميل نسخة احتياطية
-app.get('/api/backup', (req, res) => {
-    const currentDbPath = path.join(__dirname, 'db.sqlite');
-    const date = new Date().toISOString().split('T')[0];
-    const filename = `backup_workshop_${date}.sqlite`;
-
-    res.download(currentDbPath, filename, (err) => {
-        if (err) {
-            console.error("Backup Download Error:", err);
-            res.status(500).send("Could not download backup");
+app.get('/api/backup', async (req, res) => {
+    try {
+        const date = new Date().toISOString().split('T')[0];
+        if (isMySQL) {
+            const backupData = await exportDatabaseJson();
+            const backupJson = JSON.stringify(backupData, null, 2);
+            res.setHeader('Content-disposition', `attachment; filename=backup_workshop_${date}.json`);
+            res.setHeader('Content-type', 'application/json');
+            return res.send(backupJson);
+        } else {
+            const currentDbPath = path.join(__dirname, 'db.sqlite');
+            const filename = `backup_workshop_${date}.sqlite`;
+            res.download(currentDbPath, filename, (err) => {
+                if (err) {
+                    console.error("Backup Download Error:", err);
+                    res.status(500).send("Could not download backup");
+                }
+            });
         }
-    });
+    } catch (err) {
+        console.error("Backup Download Error:", err);
+        res.status(500).send("Could not download backup: " + err.message);
+    }
 });
 
 // رفع واستعادة نسخة احتياطية
@@ -2433,12 +2087,33 @@ const restoreUpload = multer({
 
 app.post('/api/backup/restore', restoreUpload.single('backup_file'), async (req, res) => {
     if (!req.file) {
-        return res.status(400).json({ message: "الرجاء اختيار ملف قاعدة البيانات (.sqlite أو .db)" });
+        return res.status(400).json({ message: "الرجاء اختيار ملف قاعدة البيانات (.json أو .sqlite أو .db)" });
     }
 
     const uploadedPath = req.file.path;
     try {
-        // التحقق من صحة ملف SQLite (فحص الـ Header الأول)
+        // فحص ما إذا كان الملف المرفوع JSON
+        let isJson = false;
+        let jsonData = null;
+        try {
+            const fileContentSample = fs.readFileSync(uploadedPath, { encoding: 'utf8', flag: 'r' }).trim();
+            if (fileContentSample.startsWith('{') && fileContentSample.endsWith('}')) {
+                jsonData = JSON.parse(fileContentSample);
+                isJson = Boolean(jsonData && jsonData.tables);
+            }
+        } catch (e) { }
+
+        if (isJson) {
+            console.log('🔄 جاري استعادة البيانات من ملف JSON...');
+            await restoreDatabaseFromJson(jsonData);
+            if (fs.existsSync(uploadedPath)) fs.unlinkSync(uploadedPath);
+            return res.json({
+                success: true,
+                message: "تمت استعادة قاعدة البيانات بنجاح من ملف JSON 🚀"
+            });
+        }
+
+        // في حال كان ملف SQLite
         const buffer = Buffer.alloc(16);
         const fd = fs.openSync(uploadedPath, 'r');
         fs.readSync(fd, buffer, 0, 16, 0);
@@ -2447,45 +2122,73 @@ app.post('/api/backup/restore', restoreUpload.single('backup_file'), async (req,
         const headerStr = buffer.toString('utf8');
         if (!headerStr.startsWith('SQLite format 3')) {
             if (fs.existsSync(uploadedPath)) fs.unlinkSync(uploadedPath);
-            return res.status(400).json({ message: "الملف المرفوع ليس ملف قاعدة بيانات SQLite صالح!" });
+            return res.status(400).json({ message: "الملف المرفوع ليس ملف قاعدة بيانات صالح (.json أو .sqlite)!" });
         }
 
-        // إنشاء نسخة أمان احتياطية من القاعدة الحالية قبل الاستبدال
-        if (fs.existsSync(dbPath)) {
-            const safetyBackup = path.join(__dirname, `backup_auto_safety_${Date.now()}.sqlite`);
-            try { fs.copyFileSync(dbPath, safetyBackup); } catch (be) { console.warn("Safety backup copy error:", be); }
-        }
-
-        // إغلاق الاتصال الحالي بقاعدة البيانات
-        await new Promise((resolve) => {
-            db.close((err) => {
-                if (err) console.warn("Closing DB error:", err);
-                resolve();
+        if (isMySQL) {
+            console.log('🔄 جاري تحويل واستيراد ملف SQLite إلى قاعدة MySQL المدارة...');
+            const sqlite3 = require('sqlite3').verbose();
+            const srcDb = new sqlite3.Database(uploadedPath, sqlite3.OPEN_READONLY);
+            const sqliteGetAll = (query) => new Promise((resolve, reject) => {
+                srcDb.all(query, (err, rows) => err ? reject(err) : resolve(rows || []));
             });
-        });
 
-        // استبدال ملف قاعدة البيانات
-        fs.copyFileSync(uploadedPath, dbPath);
-        // تحديث ملف default_seed أيضاً لضمان المزامنة في بيئات الاستضافة
-        try { fs.copyFileSync(uploadedPath, defaultSeedPath); } catch (e) { }
+            const tablesToTransfer = [
+                'sections', 'employees', 'users', 'settings', 'branch_shifts',
+                'services', 'inspection_terms', 'inspection_bundles', 'inspection_bundle_items',
+                'clients', 'inspections', 'inspection_items', 'inspection_technicians',
+                'entries', 'withdrawals', 'absences', 'attendance', 'messages',
+                'sys_notifications', 'inspection_photos', 'workshop_lifts', 'work_schedule'
+            ];
 
-        // حذف الملف المؤقت المرفوع
-        if (fs.existsSync(uploadedPath)) fs.unlinkSync(uploadedPath);
+            const { pool } = require('./db');
+            if (pool) await pool.query('SET FOREIGN_KEY_CHECKS = 0');
 
-        // إعادة فتح الاتصال بقاعدة البيانات الجديدة وتهيئة الجداول
-        db = new sqlite3.Database(dbPath, (err) => {
-            if (err) {
-                console.error("Reopening DB error:", err);
-            } else {
-                console.log("✅ تم استعادة وإعادة فتح قاعدة البيانات بنجاح.");
-                initializeDatabase();
+            for (const tableName of tablesToTransfer) {
+                try {
+                    const tableExists = await sqliteGetAll(`SELECT name FROM sqlite_master WHERE type='table' AND name='${tableName}'`);
+                    if (!tableExists || tableExists.length === 0) continue;
+
+                    const rows = await sqliteGetAll(`SELECT * FROM ${tableName}`);
+                    if (!rows || rows.length === 0) continue;
+
+                    for (const row of rows) {
+                        const keys = Object.keys(row);
+                        const quotedKeys = keys.map(k => `\`${k}\``).join(', ');
+                        const placeholders = keys.map(() => '?').join(', ');
+                        const values = keys.map(k => row[k]);
+
+                        await dbRun(`REPLACE INTO \`${tableName}\` (${quotedKeys}) VALUES (${placeholders})`, values);
+                    }
+                } catch (tblErr) {
+                    console.warn(`⚠️ تعذر استيراد جدول ${tableName}:`, tblErr.message);
+                }
             }
-        });
 
-        res.json({
-            success: true,
-            message: "تمت استعادة قاعدة البيانات بنجاح واسترجاع كافة سجلات الموظفين والدخل والتسعيرات 🚀"
-        });
+            if (pool) await pool.query('SET FOREIGN_KEY_CHECKS = 1');
+            srcDb.close();
+            if (fs.existsSync(uploadedPath)) fs.unlinkSync(uploadedPath);
+
+            return res.json({
+                success: true,
+                message: "تم استيراد كافة بيانات SQLite إلى قاعدة بيانات MySQL بنجاح 🚀"
+            });
+        } else {
+            // بيئة SQLite المحلية
+            const dbPath = path.join(__dirname, 'db.sqlite');
+            if (fs.existsSync(dbPath)) {
+                const safetyBackup = path.join(__dirname, `backup_auto_safety_${Date.now()}.sqlite`);
+                try { fs.copyFileSync(dbPath, safetyBackup); } catch (be) { }
+            }
+            fs.copyFileSync(uploadedPath, dbPath);
+            if (fs.existsSync(uploadedPath)) fs.unlinkSync(uploadedPath);
+            await initDatabase();
+
+            return res.json({
+                success: true,
+                message: "تمت استعادة قاعدة بيانات SQLite المحلية بنجاح 🚀"
+            });
+        }
     } catch (error) {
         console.error("Restore DB Error:", error);
         if (fs.existsSync(uploadedPath)) fs.unlinkSync(uploadedPath);

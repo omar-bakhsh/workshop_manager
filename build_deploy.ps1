@@ -4,14 +4,45 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 $zipPath = Join-Path $PSScriptRoot "workshop_deploy.zip"
 if (Test-Path $zipPath) { Remove-Item -Force $zipPath }
 
-# List of files and folders to include
+# List of root files to include in deployment package
 $filesToInclude = @(
-    "server.js", "package.json", "package-lock.json", "db.js", "index.html",
-    "app-config.js", "script.js", "utils.js", "toast.js", "toast_helpers.js", "toast.css", "style.css",
-    "manifest.json", "sw.js", "favicon.ico", "icon-192.svg", "icon-512.svg", "car_diagram.png", "car_diagram.svg",
-    "admin.html", "employee.html", "inspector.html", "income_report.html", "inspections_list.html",
-    "job_order.html", "job_orders_list.html", "lifts.html", "login.html", "services_manager.html",
-    "settings.html", "shortcuts_manager.html", "track.html", "demo.html", "toast_demo.html"
+    "server.js",
+    "import_clients.js",
+    "db.js",
+    "package.json",
+    "package-lock.json",
+    ".env.example",
+    "index.html",
+    "login.html",
+    "admin.html",
+    "employee.html",
+    "inspector.html",
+    "income_report.html",
+    "inspections_list.html",
+    "job_order.html",
+    "job_orders_list.html",
+    "lifts.html",
+    "services_manager.html",
+    "settings.html",
+    "shortcuts_manager.html",
+    "clients_manager.html",
+    "track.html",
+    "demo.html",
+    "toast_demo.html",
+    "app-config.js",
+    "script.js",
+    "utils.js",
+    "toast.js",
+    "toast_helpers.js",
+    "toast.css",
+    "style.css",
+    "manifest.json",
+    "sw.js",
+    "favicon.ico",
+    "icon-192.svg",
+    "icon-512.svg",
+    "car_diagram.png",
+    "car_diagram.svg"
 )
 
 # Open zip stream
@@ -28,10 +59,12 @@ foreach ($fileName in $filesToInclude) {
         $fileStream.CopyTo($entryStream)
         $fileStream.Close()
         $entryStream.Close()
+    } else {
+        Write-Warning "File not found: $fileName"
     }
 }
 
-# 2. Add public directory files (using '/' forward slash for Linux compatibility)
+# 2. Add public directory files (using '/' forward slash for Linux/Unix hosting compatibility)
 $publicDir = Join-Path $PSScriptRoot "public"
 if (Test-Path $publicDir) {
     $pubFiles = Get-ChildItem -Path $publicDir -Recurse -File
@@ -47,12 +80,28 @@ if (Test-Path $publicDir) {
     }
 }
 
-# 3. Add uploads/inspection_photos directory entry
+# 3. Add server_parts directory if present
+$serverPartsDir = Join-Path $PSScriptRoot "server_parts"
+if (Test-Path $serverPartsDir) {
+    $spFiles = Get-ChildItem -Path $serverPartsDir -Recurse -File
+    foreach ($spf in $spFiles) {
+        $relPath = $spf.FullName.Substring($serverPartsDir.Length + 1).Replace("\", "/")
+        $entryName = "server_parts/" + $relPath
+        $entry = $archive.CreateEntry($entryName, [System.IO.Compression.CompressionLevel]::Optimal)
+        $entryStream = $entry.Open()
+        $fileStream = [System.IO.File]::Open($spf.FullName, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
+        $fileStream.CopyTo($entryStream)
+        $fileStream.Close()
+        $entryStream.Close()
+    }
+}
+
+# 4. Add uploads directory structure with placeholder
 $nullEntry = $archive.CreateEntry("uploads/inspection_photos/", [System.IO.Compression.CompressionLevel]::Optimal)
 $nullStream = $nullEntry.Open()
 $nullStream.Close()
 
-# 4. Add db.sqlite and default_seed.sqlite if present
+# 5. Add db.sqlite and default_seed.sqlite
 $dbFile = Join-Path $PSScriptRoot "db.sqlite"
 if (Test-Path $dbFile) {
     try {
@@ -79,5 +128,5 @@ $zipStream.Dispose()
 
 if (Test-Path $zipPath) {
     $size = (Get-Item $zipPath).Length / 1KB
-    Write-Host "BUILD_SUCCESS: workshop_deploy.zip created ($([math]::Round($size, 2)) KB)"
+    Write-Host "BUILD_SUCCESS: workshop_deploy.zip created successfully ($([math]::Round($size, 2)) KB)"
 }
