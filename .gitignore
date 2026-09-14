@@ -3,6 +3,8 @@ node_modules/
 
 *.log
 backup_*.sqlite
+db.sqlite
+workshop.db
 .DS_Store
 .env
 debug_*.js
