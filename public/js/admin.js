@@ -169,8 +169,8 @@ function renderSections() {
                     </thead>
                     <tbody>
                         ${sectionEmployees.map(emp => {
-                            const income = emp.total_income || 0;
-                            const target = emp.target || 0;
+                            const income = parseFloat(emp.total_income) || 0;
+                            const target = parseFloat(emp.target) || 0;
                             const percent = target > 0 ? Math.round((income / target) * 100) : 0;
                             return `
                             <tr>
@@ -178,10 +178,10 @@ function renderSections() {
                                     <div style="font-weight:800; font-size:14px;">${emp.name}</div>
                                     <div style="font-size:11px; color:var(--text-gray); font-weight:600;">${emp.username}</div>
                                 </td>
-                                <td data-label="الراتب الأساسي">${(emp.base_salary || 0).toLocaleString()} ﷼</td>
-                                <td data-label="التارقت">${(emp.target_amount || 0).toLocaleString()} ﷼</td>
-                                <td data-label="سحوبات اليوم" style="color:var(--danger); font-weight:800;">${(emp.total_withdrawals || 0).toLocaleString()} ﷼</td>
-                                <td data-label="راتب متبقي (إكسل)" style="background:#f7fff9; font-weight:900; color:#15803d;">${(emp.net_remaining || 0).toLocaleString()} ﷼</td>
+                                <td data-label="الراتب الأساسي">${(parseFloat(emp.base_salary) || 0).toLocaleString()} ﷼</td>
+                                <td data-label="التارقت">${(parseFloat(emp.target_amount) || 0).toLocaleString()} ﷼</td>
+                                <td data-label="سحوبات اليوم" style="color:var(--danger); font-weight:800;">${(parseFloat(emp.total_withdrawals) || 0).toLocaleString()} ﷼</td>
+                                <td data-label="راتب متبقي (إكسل)" style="background:#f7fff9; font-weight:900; color:#15803d;">${(parseFloat(emp.net_remaining) || 0).toLocaleString()} ﷼</td>
                                 <td data-label="الدخل المحلي" style="font-weight:800; color:var(--primary);">${income.toLocaleString()} ﷼</td>
                                 <td data-label="الإنجاز">
                                     <span style="font-weight:800; color:${getPercentColor(percent)};">${percent}%</span>
