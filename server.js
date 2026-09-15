@@ -2602,7 +2602,77 @@ app.listen(PORT, () => {
 });
 
 // ==========================
-// 📊 استيراد الرواتب من Excel
+// 📊 سحب الموظفين الجدد من ملف اكسل الرواتب نفسه (لأول مرة)
+// ==========================
+app.post('/api/employees/import-from-salary-sheet', upload.single('file'), async (req, res) => {
+    if (!req.file) return res.status(400).json({ message: "الرجاء اختيار ملف Excel." });
+    const filePath = req.file.path;
+    const ExcelJS = require('exceljs');
+    try {
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.readFile(filePath);
+        const worksheet = workbook.worksheets[0];
+        
+        let namesRow = worksheet.getRow(1);
+        let nameCount = 0;
+        namesRow.eachCell(c => { if (c.value && String(c.value).trim().length > 1) nameCount++; });
+        if (nameCount < 3) { // إذا كان الصف الأول فارغاً تقريباً، جرب الصف الثاني
+            namesRow = worksheet.getRow(2);
+        }
+
+        let added = 0, skipped = 0;
+        const allEmployees = await dbAll("SELECT id, name FROM employees");
+        const existingNames = allEmployees.map(e => String(e.name).toLowerCase().trim());
+        const existingUsernames = new Set((await dbAll("SELECT username FROM users")).map(u => String(u.username).toLowerCase()));
+
+        for (let i = 2; i <= 250; i++) { 
+            const cell = namesRow.getCell(i);
+            const rawVal = cell.value;
+            if (!rawVal) continue;
+            
+            let name = String(rawVal).trim();
+            if (name.length < 2 || name === 'التاريخ' || name.includes('تاريخ')) continue;
+            
+            if (existingNames.includes(name.toLowerCase())) {
+                skipped++;
+                continue;
+            }
+
+            let baseUsername = name.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/gi, '');
+            if (!baseUsername) baseUsername = 'user';
+            let username = baseUsername;
+            let counter = 1;
+            while (existingUsernames.has(username)) {
+                username = baseUsername + counter;
+                counter++;
+            }
+            existingUsernames.add(username);
+            
+            const empResult = await dbRun(
+                `INSERT IGNORE INTO employees (name, section_id, target, base_salary, hide_income, bank_name, is_active) VALUES (?, 1, 0, 0, 0, 'كاش', 1)`,
+                [name]
+            );
+            const employee_id = empResult.lastID || empResult.insertId;
+            if (employee_id) {
+                await dbRun(
+                    `INSERT IGNORE INTO users (employee_id, username, password, role) VALUES (?, ?, '1234', 'employee')`,
+                    [employee_id, username]
+                );
+                added++;
+                existingNames.push(name.toLowerCase());
+            }
+        }
+        
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        res.json({ success: true, message: `تم إضافة ${added} موظف جديد بنجاح${skipped > 0 ? ` (وتم تخطي ${skipped} موجودين مسبقاً)` : ''}.` });
+    } catch (error) {
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        res.status(500).json({ success: false, message: "خطأ: " + error.message });
+    }
+});
+
+// ==========================
+// 📊 استيراد وتحديث الرواتب من Excel
 // ==========================
 app.post('/api/employees/import-salaries', upload.single('file'), async (req, res) => {
     if (!req.file) return res.status(400).json({ message: "الرجاء اختيار ملف Excel." });

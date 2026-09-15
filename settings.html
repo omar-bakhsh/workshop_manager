@@ -178,6 +178,10 @@
                 <button type="button" class="btn" onclick="syncDefaultSeedData()" style="flex: 1; min-width: 170px; justify-content: center; background: #10b981; color: white; height: 42px; font-weight: 700;">
                     <span>🔄 مزامنة واستيراد الموظفين والعملاء</span>
                 </button>
+                <button type="button" class="btn" onclick="document.getElementById('importSalariesEmpInput').click()" style="flex: 1; min-width: 170px; justify-content: center; background: #8b5cf6; color: white; height: 42px; font-weight: 700;">
+                    <span>📊 سحب الموظفين من ملف الرواتب</span>
+                </button>
+                <input type="file" id="importSalariesEmpInput" style="display: none;" accept=".xlsx,.xls" onchange="importEmployeesFromSalarySheet(this)">
                 <input type="file" id="dbRestoreFileInput" style="display: none;" accept=".sqlite,.db,.json" onchange="uploadAndRestoreDatabase(this)">
             </div>
         </div>
@@ -384,6 +388,38 @@
             } catch (e) {
                 console.error(e);
                 alert('❌ تعذر الاتصال بالسيرفر للمزامنة');
+            }
+        }
+
+        async function importEmployeesFromSalarySheet(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            if (!confirm(`هل تريد استخراج الموظفين من ملف الرواتب (${file.name}) وإضافتهم للنظام؟\n(لن يتم تكرار الموظفين الموجودين مسبقاً)`)) {
+                input.value = '';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                alert('⏳ جاري معالجة الملف واستخراج الموظفين...');
+                const res = await fetch('/api/employees/import-from-salary-sheet', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await res.json();
+                if (res.ok && result.success) {
+                    alert('🎉 ' + result.message);
+                } else {
+                    alert('❌ خطأ: ' + (result.message || 'فشلت عملية الاستيراد'));
+                }
+            } catch (e) {
+                console.error(e);
+                alert('❌ حدث خطأ أثناء الاتصال بالسيرفر');
+            } finally {
+                input.value = '';
             }
         }
 
