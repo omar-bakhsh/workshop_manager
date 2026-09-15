@@ -219,6 +219,103 @@ app.get('/api/employees', async (req, res) => {
     }
 });
 
+// ==========================
+// 📊 استيراد الموظفين من ملف Excel
+// ==========================
+app.post('/api/employees/import-excel', upload.single('file'), async (req, res) => {
+    if (!req.file) return res.status(400).json({ message: 'الرجاء رفع ملف Excel.' });
+    const filePath = req.file.path;
+    const ExcelJS = require('exceljs');
+    try {
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.readFile(filePath);
+        const worksheet = workbook.worksheets[0];
+
+        const sections = await dbAll('SELECT id, name FROM sections');
+        const findSection = (name) => {
+            if (!name) return sections[0]?.id || 1;
+            const n = String(name).trim().toLowerCase();
+            const found = sections.find(s => s.name.toLowerCase().includes(n) || n.includes(s.name.toLowerCase()));
+            return found ? found.id : (sections[0]?.id || 1);
+        };
+
+        // قراءة رأس العمود الأول للتعرف على الأعمدة
+        const headerRow = worksheet.getRow(1);
+        const headers = {};
+        headerRow.eachCell((cell, colNum) => {
+            const v = String(cell.value || '').trim();
+            if (/اسم|name/i.test(v)) headers.name = colNum;
+            else if (/قسم|section|dept/i.test(v)) headers.section = colNum;
+            else if (/هدف|target/i.test(v)) headers.target = colNum;
+            else if (/راتب|salary/i.test(v)) headers.salary = colNum;
+            else if (/مستخدم|user/i.test(v)) headers.username = colNum;
+            else if (/كلمة.*مرور|password|pass/i.test(v)) headers.password = colNum;
+            else if (/بنك|bank/i.test(v)) headers.bank = colNum;
+        });
+
+        // إذا لم توجد أعمدة، نفترض ترتيباً افتراضياً: name, section, target, salary, username, password
+        if (!headers.name) headers.name = 1;
+        if (!headers.section) headers.section = 2;
+        if (!headers.target) headers.target = 3;
+        if (!headers.salary) headers.salary = 4;
+        if (!headers.username) headers.username = 5;
+        if (!headers.password) headers.password = 6;
+
+        let added = 0, skipped = 0, errors = [];
+        const totalRows = worksheet.rowCount;
+
+        for (let r = 2; r <= totalRows; r++) {
+            const row = worksheet.getRow(r);
+            const getCell = (col) => col ? String(row.getCell(col).value || '').trim() : '';
+
+            const name = getCell(headers.name);
+            if (!name || name.length < 2) continue;
+
+            const sectionName = getCell(headers.section);
+            const section_id = findSection(sectionName);
+            const target = parseInt(getCell(headers.target)) || 0;
+            const base_salary = parseInt(getCell(headers.salary)) || 0;
+            const bank_name = getCell(headers.bank) || 'كاش';
+
+            // توليد اسم مستخدم وكلمة مرور تلقائيين إذا لم يوجدا
+            let username = getCell(headers.username);
+            let password = getCell(headers.password);
+            if (!username) username = name.split(' ')[0].toLowerCase().replace(/\s+/g, '') + '_' + Date.now().toString().slice(-4);
+            if (!password) password = '1234';
+
+            try {
+                const empResult = await dbRun(
+                    `INSERT IGNORE INTO employees (name, section_id, target, base_salary, hide_income, bank_name, is_active) VALUES (?, ?, ?, ?, 0, ?, 1)`,
+                    [name, section_id, target, base_salary, bank_name]
+                );
+                const employee_id = empResult.lastID || empResult.insertId;
+                if (employee_id) {
+                    await dbRun(
+                        `INSERT IGNORE INTO users (employee_id, username, password, role) VALUES (?, ?, ?, 'employee')`,
+                        [employee_id, username, password]
+                    );
+                    added++;
+                } else {
+                    skipped++;
+                }
+            } catch (rowErr) {
+                errors.push(`الصف ${r} (${name}): ${rowErr.message}`);
+            }
+        }
+
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        res.json({
+            success: true,
+            message: `تم استيراد ${added} موظف بنجاح${skipped > 0 ? `، تم تخطي ${skipped} (مكرر)` : ''}.`,
+            added, skipped, errors: errors.slice(0, 10)
+        });
+    } catch (error) {
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        console.error('Import Employees Excel Error:', error);
+        res.status(500).json({ success: false, message: 'خطأ في قراءة الملف: ' + error.message });
+    }
+});
+
 // جلب جميع الأقسام
 app.get('/api/sections', async (req, res) => {
     try {

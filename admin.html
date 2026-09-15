@@ -330,9 +330,44 @@
                         <span>📤 رفع واستعادة نسخة سابقة (.sqlite)</span>
                     </button>
                     <input type="file" id="adminDbRestoreInput" style="display: none;" accept=".sqlite,.db" onchange="uploadAndRestoreDatabase(this)">
+                    <button class="btn" onclick="closeModal('backupModal'); openImportEmployeesModal()" style="padding: 12px; font-weight: 800; font-size: 13px; justify-content: center; background: #10b981; color: white;">
+                        <span>📊 استيراد موظفين من Excel</span>
+                    </button>
                 </div>
             </div>
             <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('backupModal')">إغلاق</button></div>
+        </div>
+    </div>
+
+    <!-- 📊 Import Employees from Excel Modal -->
+    <div class="modal" id="importEmployeesModal">
+        <div class="modal-content" style="max-width: 520px;">
+            <div class="modal-header">
+                <h3>📊 استيراد موظفين من Excel</h3>
+                <button class="close-btn" onclick="closeModal('importEmployeesModal')">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 14px; margin-bottom: 16px; font-size: 13px; color: #166534; line-height: 1.8;">
+                    <strong>📋 تعليمات:</strong><br>
+                    يجب أن يحتوي ملف Excel على الأعمدة التالية في الصف الأول:<br>
+                    <code style="background:#dcfce7; padding:2px 6px; border-radius:4px;">اسم | قسم | هدف | راتب | مستخدم | كلمة المرور</code><br>
+                    <em>• اسم المستخدم وكلمة المرور اختياريان — سيتم توليدهما تلقائياً إذا تُركا فارغَين (كلمة المرور الافتراضية: <strong>1234</strong>)</em><br>
+                    <em>• الأقسام المتاحة: مكانيكا، كهرباء، كشف، ادارة</em>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <button class="btn" onclick="downloadImportTemplate()" style="padding: 11px; font-weight: 700; background: #6366f1; color: white; justify-content: center;">
+                        ⬇️ تحميل قالب Excel الجاهز
+                    </button>
+                    <button class="btn btn-primary" onclick="document.getElementById('importEmpFileInput').click()" style="padding: 11px; font-weight: 700; justify-content: center;">
+                        📂 اختيار ملف Excel للاستيراد
+                    </button>
+                    <input type="file" id="importEmpFileInput" accept=".xlsx,.xls" style="display:none;" onchange="importEmployeesFromExcel(this)">
+                </div>
+                <div id="importEmpResult" style="margin-top:14px; display:none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('importEmployeesModal')">إغلاق</button>
+            </div>
         </div>
     </div>
 

@@ -797,6 +797,64 @@ async function importSalaries(input) {
     } catch(e) { smartAlert('❌ خطأ في الاتصال'); } finally { input.value = ''; }
 }
 
+// --- Excel Import Employees ---
+function openImportEmployeesModal() {
+    document.getElementById('importEmpResult').style.display = 'none';
+    document.getElementById('importEmpResult').innerHTML = '';
+    document.getElementById('importEmpFileInput').value = '';
+    document.getElementById('importEmployeesModal').style.display = 'flex';
+}
+
+async function importEmployeesFromExcel(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const resultDiv = document.getElementById('importEmpResult');
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = '<div style="color:#6366f1; font-weight:700; text-align:center; padding:10px;">⏳ جاري معالجة الملف...</div>';
+
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+        const res = await fetch('/api/employees/import-excel', { method: 'POST', body: fd });
+        const result = await res.json();
+        if (result.success) {
+            resultDiv.innerHTML = `
+                <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:14px;">
+                    <div style="color:#166534; font-weight:800; font-size:15px; margin-bottom:8px;">✅ ${result.message}</div>
+                    <div style="font-size:13px; color:#374151;">
+                        تم إضافة: <strong>${result.added}</strong> موظف
+                        ${result.skipped > 0 ? ` | تم تخطي: <strong>${result.skipped}</strong> (موجود مسبقاً)` : ''}
+                    </div>
+                    ${result.errors && result.errors.length > 0 ? `<div style="margin-top:8px; color:#b91c1c; font-size:12px;">${result.errors.join('<br>')}</div>` : ''}
+                </div>`;
+            loadData();
+        } else {
+            resultDiv.innerHTML = `<div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:14px; color:#b91c1c; font-weight:700;">❌ ${result.message}</div>`;
+        }
+    } catch(e) {
+        resultDiv.innerHTML = `<div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:14px; color:#b91c1c;">❌ تعذر الاتصال بالسيرفر</div>`;
+    } finally {
+        input.value = '';
+    }
+}
+
+function downloadImportTemplate() {
+    const rows = [
+        ['اسم', 'قسم', 'هدف', 'راتب', 'مستخدم', 'كلمة المرور', 'بنك'],
+        ['محمد علي', 'مكانيكا', '5000', '3000', 'mohammed', 'pass123', 'الاهلي'],
+        ['فهد أحمد', 'كهرباء', '4000', '2500', 'fahad', 'pass123', 'الراجحي'],
+        ['خالد سعد', 'كشف', '6000', '3500', '', '', 'كاش'],
+    ];
+    const csvContent = '\uFEFF' + rows.map(r => r.join('\t')).join('\n');
+    const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'نموذج_استيراد_موظفين.xls';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
 function toggleMobileSidebar(forceState) {
     const sb = document.getElementById('adminSidebar') || document.querySelector('.sidebar');
     const overlay = document.getElementById('sidebarOverlay');
