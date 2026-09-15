@@ -155,9 +155,9 @@ app.put('/api/employees/:id', async (req, res) => {
 
         // 2. تحديث بيانات المستخدم (اسم المستخدم وكلمة المرور)
         // التحقق مما إذا كان هناك مستخدم مرتبط لتجنب تحديث المدير
-        const userCheck = await dbGet('SELECT id FROM users WHERE employee_id = ?', [id]);
+        const userCheck = await dbGet('SELECT id FROM users WHERE employee_id = ? LIMIT 1', [id]);
         if (userCheck) {
-            await dbRun(`UPDATE users SET username = ?, password = ? WHERE employee_id = ?`, [username, password, id]);
+            await dbRun(`UPDATE users SET username = ?, password = ? WHERE id = ?`, [username, password, userCheck.id]);
         }
 
         res.json({ message: "تم تحديث بيانات الموظف بنجاح" });
