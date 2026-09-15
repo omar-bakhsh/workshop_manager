@@ -59,6 +59,7 @@ const {
     dbGet,
     dbAll,
     initDatabase,
+    autoMigrateFromSqliteIfEmpty,
     isMySQL,
     exportDatabaseJson,
     restoreDatabaseFromJson
@@ -67,6 +68,21 @@ const {
 // تهيئة الجداول وترحيل الحقول عند إقلاع التطبيق
 initDatabase().catch(err => {
     console.error('❌ خطأ في تهيئة قاعدة البيانات:', err);
+});
+
+// مسار مزامنة واسترجاع البيانات الأولية (الموظفين والعملاء والخدمات) من ملف SQLite
+app.post('/api/admin/sync-seed-data', async (req, res) => {
+    try {
+        if (isMySQL) {
+            await autoMigrateFromSqliteIfEmpty();
+            res.json({ success: true, message: "تمت مزامنة كافة بيانات الموظفين والعملاء بنجاح إلى MySQL 🚀" });
+        } else {
+            res.json({ success: true, message: "أنت تعمل بالفعل على قاعدة بيانات SQLite المحلية." });
+        }
+    } catch (e) {
+        console.error("Sync Error:", e);
+        res.status(500).json({ success: false, message: "خطأ في المزامنة: " + e.message });
+    }
 });
 
 // ==========================

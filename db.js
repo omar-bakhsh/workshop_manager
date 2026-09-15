@@ -682,10 +682,7 @@ async function initDatabase() {
 // ==========================
 async function autoMigrateFromSqliteIfEmpty() {
     try {
-        const usersCount = await dbGet('SELECT COUNT(*) as count FROM users');
-        if (usersCount && usersCount.count > 0) {
-            return; // قاعدة البيانات تحتوي بالفعل على مستخدمين، لا حاجة للهجرة
-        }
+        if (!isMySQL || !pool) return;
 
         const candidateSeedPaths = [
             path.join(__dirname, 'default_seed.sqlite'),
@@ -693,9 +690,11 @@ async function autoMigrateFromSqliteIfEmpty() {
         ];
 
         let seedPath = candidateSeedPaths.find(p => fs.existsSync(p));
-        if (!seedPath) return;
+        if (!seedPath) {
+            console.log('ℹ️ [Migration] لم يتم العثور على ملف seed أولي للهجرة.');
+            return;
+        }
 
-        console.log(`🔄 [Migration] قاعدة MySQL فارغة. تم العثور على ${path.basename(seedPath)}، جاري نقل البيانات تلقائياً...`);
         const sqlite3 = require('sqlite3').verbose();
         const srcDb = new sqlite3.Database(seedPath, sqlite3.OPEN_READONLY);
 
@@ -727,15 +726,32 @@ async function autoMigrateFromSqliteIfEmpty() {
 
         await pool.query('SET FOREIGN_KEY_CHECKS = 0');
 
+        let migratedAny = false;
         for (const tableName of tablesToTransfer) {
             try {
+                // فحص عدد السجلات الحالية في هذا الجدول داخل MySQL
+                let shouldMigrate = false;
+                try {
+                    const currentCount = await dbGet(`SELECT COUNT(*) as count FROM \`${tableName}\``);
+                    if (!currentCount || currentCount.count === 0) {
+                        shouldMigrate = true;
+                    } else if (tableName === 'users' && currentCount.count <= 1) {
+                        // في حال كان جدول المستخدمين يحتوي فقط على المدير الافتراضي، نضيف حسابات الموظفين
+                        shouldMigrate = true;
+                    }
+                } catch (ce) {
+                    shouldMigrate = true;
+                }
+
+                if (!shouldMigrate) continue;
+
                 const tableExists = await sqliteGetAll(`SELECT name FROM sqlite_master WHERE type='table' AND name='${tableName}'`);
                 if (!tableExists || tableExists.length === 0) continue;
 
                 const rows = await sqliteGetAll(`SELECT * FROM ${tableName}`);
                 if (!rows || rows.length === 0) continue;
 
-                console.log(`📥 نقل جدول ${tableName}: ${rows.length} سجل...`);
+                console.log(`📥 [Migration] نقل جدول ${tableName}: ${rows.length} سجل من ${path.basename(seedPath)} إلى MySQL...`);
                 for (const row of rows) {
                     const keys = Object.keys(row);
                     const quotedKeys = keys.map(k => `\`${k}\``).join(', ');
@@ -747,6 +763,7 @@ async function autoMigrateFromSqliteIfEmpty() {
                         values
                     );
                 }
+                migratedAny = true;
             } catch (tblErr) {
                 console.warn(`⚠️ تعذر نقل جدول ${tableName}:`, tblErr.message);
             }
@@ -754,7 +771,9 @@ async function autoMigrateFromSqliteIfEmpty() {
 
         await pool.query('SET FOREIGN_KEY_CHECKS = 1');
         srcDb.close();
-        console.log('🎉 [Migration] اكتملت الهجرة الأولية من SQLite إلى MySQL بنجاح!');
+        if (migratedAny) {
+            console.log('🎉 [Migration] اكتملت هجرة البيانات الأولية بنجاح إلى MySQL!');
+        }
     } catch (migErr) {
         console.warn('⚠️ [Migration] حدث خطأ أثناء فحص/تنفيذ الهجرة التلقائية:', migErr.message);
     }
@@ -1036,6 +1055,7 @@ module.exports = {
     dbGet,
     dbAll,
     initDatabase,
+    autoMigrateFromSqliteIfEmpty,
     exportDatabaseJson,
     restoreDatabaseFromJson
 };

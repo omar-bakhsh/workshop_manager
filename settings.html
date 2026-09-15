@@ -175,7 +175,10 @@
                 <button type="button" class="btn" onclick="document.getElementById('dbRestoreFileInput').click()" style="flex: 1; min-width: 170px; justify-content: center; background: #f59e0b; color: white; height: 42px; font-weight: 700;">
                     <span>📤 رفع واستعادة قاعدة البيانات</span>
                 </button>
-                <input type="file" id="dbRestoreFileInput" style="display: none;" accept=".sqlite,.db" onchange="uploadAndRestoreDatabase(this)">
+                <button type="button" class="btn" onclick="syncDefaultSeedData()" style="flex: 1; min-width: 170px; justify-content: center; background: #10b981; color: white; height: 42px; font-weight: 700;">
+                    <span>🔄 مزامنة واستيراد الموظفين والعملاء</span>
+                </button>
+                <input type="file" id="dbRestoreFileInput" style="display: none;" accept=".sqlite,.db,.json" onchange="uploadAndRestoreDatabase(this)">
             </div>
         </div>
 
@@ -365,6 +368,22 @@
                 alert('❌ حدث خطأ أثناء الاتصال بالسيرفر');
             } finally {
                 input.value = '';
+            }
+        }
+
+        async function syncDefaultSeedData() {
+            if (!confirm('هل تريد استيراد ومزامنة بيانات الموظفين والعملاء والخدمات الأساسية إلى قاعدة البيانات؟')) return;
+            try {
+                const res = await fetch('/api/admin/sync-seed-data', { method: 'POST' });
+                const result = await res.json();
+                if (res.ok && result.success) {
+                    alert('🎉 ' + result.message);
+                } else {
+                    alert('❌ خطأ: ' + (result.message || 'فشلت المزامنة'));
+                }
+            } catch (e) {
+                console.error(e);
+                alert('❌ تعذر الاتصال بالسيرفر للمزامنة');
             }
         }
 
