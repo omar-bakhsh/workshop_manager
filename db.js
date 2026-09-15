@@ -74,6 +74,9 @@ function normalizeQuery(sql) {
 
         // استبدال دوال التواريخ الخاصة بـ SQLite
         normalized = normalized.replace(/strftime\s*\(\s*'%Y-%m'\s*,\s*([a-zA-Z0-9_.]+)\s*\)/gi, "DATE_FORMAT($1, '%Y-%m')");
+
+        // تحويل أوامر بدء المعاملات إلى صيغة MySQL
+        normalized = normalized.replace(/\bBEGIN\s+TRANSACTION\b/gi, 'START TRANSACTION');
     } else {
         // تحويل أوامر MySQL إلى صيغ SQLite المتوافقة في البيئة المحلية
         normalized = normalized.replace(/INSERT\s+IGNORE\s+INTO/gi, 'INSERT OR IGNORE INTO');
@@ -86,6 +89,19 @@ function normalizeQuery(sql) {
 // ⚡ الدوال الأساسية لتنفيذ الاستعلامات
 // ==========================
 async function dbRun(sql, params = []) {
+    const trimmed = (sql || '').trim();
+
+    // في بيئة MySQL، أوامر المعاملات المنفردة عبر تجمع الاتصالات (Pool) تدار تلقائياً
+    // ويتم تجاوزها هنا لتجنب خطأ Prepared Statements أو اختلاف صياغة BEGIN TRANSACTION
+    if (isMySQL && /^\s*(BEGIN(\s+TRANSACTION)?|START\s+TRANSACTION|COMMIT|ROLLBACK)\s*;?$/i.test(trimmed)) {
+        return {
+            lastID: 0,
+            insertId: 0,
+            changes: 0,
+            affectedRows: 0
+        };
+    }
+
     const query = normalizeQuery(sql);
 
     if (isMySQL) {
