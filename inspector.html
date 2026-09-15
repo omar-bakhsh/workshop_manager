@@ -1551,7 +1551,9 @@
 
         async function saveInspection() {
             currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-            const inspectorId = currentUser.employee_id || currentUser.id || 1;
+            // employee_id هو المعرف الصحيح في جدول employees
+            // للمدير (admin) لا يوجد employee_id فيُرسل null ليختار السيرفر أول موظف نشط تلقائياً
+            const inspectorId = currentUser.employee_id || null;
 
             const items = [];
             document.querySelectorAll('#tableBody tr').forEach(tr => {

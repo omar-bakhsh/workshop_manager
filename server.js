@@ -1384,7 +1384,21 @@ app.post('/api/inspections', async (req, res) => {
     try {
         await dbRun('BEGIN TRANSACTION');
 
-        const effectiveInspectorId = inspector_id || (req.body.inspector ? req.body.inspector.id : 1);
+        let effectiveInspectorId = inspector_id || (req.body.inspector ? req.body.inspector.id : null);
+
+        // التحقق من أن inspector_id موجود فعلاً في جدول الموظفين
+        if (effectiveInspectorId) {
+            const empCheck = await dbGet('SELECT id FROM employees WHERE id = ? AND is_active = 1', [effectiveInspectorId]);
+            if (!empCheck) effectiveInspectorId = null;
+        }
+        // إذا لم يُحدد مفتش صالح، نأخذ أول موظف نشط في القاعدة
+        if (!effectiveInspectorId) {
+            const firstEmp = await dbGet('SELECT id FROM employees WHERE is_active = 1 ORDER BY id LIMIT 1');
+            effectiveInspectorId = firstEmp ? firstEmp.id : null;
+        }
+        if (!effectiveInspectorId) {
+            return res.status(400).json({ message: 'لا يوجد موظفون في النظام. الرجاء إضافة موظف واحد على الأقل قبل حفظ التسعيرة.' });
+        }
 
         const inspResult = await dbRun(`
             INSERT INTO inspections (
