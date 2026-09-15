@@ -304,8 +304,16 @@ async function handleAddEmployee(e) {
     const data = getFormData('addEmployeeForm');
     try {
         const res = await fetch('/api/employees', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-        if (res.ok) { smartAlert('✅ تمت الإضافة'); closeModal('addEmployeeModal'); e.target.reset(); loadData(); }
-    } catch (e) { console.error(e); }
+        if (res.ok) { 
+            smartAlert('✅ تمت الإضافة'); 
+            closeModal('addEmployeeModal'); 
+            e.target.reset(); 
+            loadData(); 
+        } else {
+            const errorData = await res.json();
+            smartAlert('❌ ' + (errorData.message || 'خطأ في الإضافة'));
+        }
+    } catch (e) { console.error(e); smartAlert('❌ خطأ في الاتصال'); }
 }
 
 async function handleEditEmployee(e) {
@@ -318,8 +326,11 @@ async function handleEditEmployee(e) {
             const extraInc = document.getElementById('editEmpNewIncome').value;
             if(extraInc) await fetch(`/api/employees/${id}/income`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ income: parseInt(extraInc), section_id: data.section_id }) });
             smartAlert('✅ تم التعديل'); closeModal('editEmployeeModal'); loadData();
+        } else {
+            const errorData = await res.json();
+            smartAlert('❌ ' + (errorData.message || 'خطأ في التعديل'));
         }
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error(e); smartAlert('❌ خطأ في الاتصال'); }
 }
 
 async function handleAddIncome(e) {
