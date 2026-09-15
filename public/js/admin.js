@@ -92,9 +92,9 @@ async function loadData() {
 }
 
 function updateDashboardKPIs() {
-    const totalIncome = employees.reduce((sum, e) => sum + (e.total_income || 0), 0);
-    const totalWithdrawals = employees.reduce((sum, e) => sum + (e.total_withdrawal || 0), 0);
-    const totalTarget = employees.reduce((sum, e) => sum + (e.target || 0), 0);
+    const totalIncome = employees.reduce((sum, e) => sum + (parseFloat(e.total_income) || 0), 0);
+    const totalWithdrawals = employees.reduce((sum, e) => sum + (parseFloat(e.total_withdrawal) || 0), 0);
+    const totalTarget = employees.reduce((sum, e) => sum + (parseFloat(e.target) || 0), 0);
     const overallAchievement = totalTarget > 0 ? Math.round((totalIncome / totalTarget) * 100) : 0;
 
     setText('totalEmployees', employees.length.toLocaleString());
@@ -128,7 +128,7 @@ function renderSections() {
     
     sections.forEach(section => {
         const sectionEmployees = employees.filter(emp => emp.section_id === section.id);
-        const sectionIncome = sectionEmployees.reduce((sum, emp) => sum + (emp.total_income || 0), 0);
+        const sectionIncome = sectionEmployees.reduce((sum, emp) => sum + (parseFloat(emp.total_income) || 0), 0);
         
         const card = document.createElement('div');
         card.className = 'section-card';
@@ -220,14 +220,18 @@ function renderSections() {
 function updateCharts() {
     const sectionData = sections.map(sec => ({
         name: sec.name,
-        income: employees.filter(e => e.section_id === sec.id).reduce((sum, e) => sum + (e.total_income || 0), 0)
+        income: employees.filter(e => e.section_id === sec.id).reduce((sum, e) => sum + (parseFloat(e.total_income) || 0), 0)
     }));
     renderIncomeChart(sectionData);
 
-    const achievementData = employees.map(emp => ({
-        name: emp.name,
-        percent: emp.target > 0 ? (emp.total_income / emp.target) * 100 : 0
-    })).sort((a,b) => b.percent - a.percent).slice(0, 5);
+    const achievementData = employees.map(emp => {
+        const income = parseFloat(emp.total_income) || 0;
+        const target = parseFloat(emp.target) || 0;
+        return {
+            name: emp.name,
+            percent: target > 0 ? (income / target) * 100 : 0
+        };
+    }).sort((a,b) => b.percent - a.percent).slice(0, 5);
     renderAchievementChart(achievementData);
 }
 
