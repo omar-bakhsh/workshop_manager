@@ -138,11 +138,12 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
     <div class="demo-container">
-        <h1>🔔 نظام الإشعارات</h1>
+        <h1><i class="fa-solid fa-bell"></i> نظام الإشعارات</h1>
         <p>اضغط على الأزرار لتجربة أنواع مختلفة من الإشعارات</p>
 
         <div class="button-grid">
@@ -153,7 +154,7 @@
                 ✕ خطأ
             </button>
             <button class="demo-btn btn-warning" onclick="showWarning('تحذير: يرجى التحقق من البيانات')">
-                ⚠ تحذير
+                <i class="fa-solid fa-triangle-exclamation"></i> تحذير
             </button>
             <button class="demo-btn btn-info" onclick="showInfo('معلومة: تم تحديث النظام')">
                 ℹ معلومة
@@ -161,7 +162,7 @@
         </div>
 
         <div class="code-section">
-            <h3>📝 كيفية الاستخدام:</h3>
+            <h3><i class="fa-solid fa-pen-to-square"></i> كيفية الاستخدام:</h3>
             <pre><code>// إشعار نجاح
 showSuccess('تم الحفظ بنجاح');
 

@@ -498,6 +498,7 @@
             color: var(--text-gray);
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
@@ -505,7 +506,7 @@
         <!-- Top Glass Header -->
         <div class="header-glass">
             <div class="header-title-group">
-                <div class="header-icon">👥</div>
+                <div class="header-icon"><i class="fa-solid fa-users"></i></div>
                 <div>
                     <h1>قاعدة بيانات العملاء</h1>
                     <p>استيراد وتصدير وإدارة سجلات العملاء والربط الفوري مع أوامر العمل</p>
@@ -517,7 +518,7 @@
                     <span>لوحة التحكم</span>
                 </a>
                 <a href="inspector.html" class="btn btn-secondary" style="background:#e0f2fe; color:#0369a1; border-color:#bae6fd;">
-                    <span>🛠️</span>
+                    <span><i class="fa-solid fa-screwdriver-wrench"></i></span>
                     <span>أوامر العمل</span>
                 </a>
             </div>
@@ -526,14 +527,14 @@
         <!-- KPI Cards -->
         <div class="kpi-grid">
             <div class="kpi-card">
-                <div class="kpi-icon-box" style="background: var(--primary-light); color: var(--primary);">📊</div>
+                <div class="kpi-icon-box" style="background: var(--primary-light); color: var(--primary);"><i class="fa-solid fa-chart-pie"></i></div>
                 <div class="kpi-content">
                     <h3>إجمالي العملاء في النظام</h3>
                     <div class="kpi-value" id="kpiTotal">0</div>
                 </div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-icon-box" style="background: var(--success-light); color: var(--success);">📱</div>
+                <div class="kpi-icon-box" style="background: var(--success-light); color: var(--success);"><i class="fa-solid fa-mobile-screen"></i></div>
                 <div class="kpi-content">
                     <h3>أرقام جوال مفعلة</h3>
                     <div class="kpi-value" id="kpiWithPhone">0</div>
@@ -551,7 +552,7 @@
         <!-- Toolbar -->
         <div class="toolbar-card">
             <div class="search-box">
-                <span class="search-icon">🔍</span>
+                <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
                 <input type="text" id="searchInput" placeholder="بحث فوري بالاسم أو برقم الجوال (05xxxxxxx)..." oninput="debounceSearch()">
             </div>
 
@@ -562,7 +563,7 @@
                 </button>
 
                 <button class="btn btn-secondary" onclick="openImportModal()" title="رفع ملف إكسل من جهازك">
-                    <span>📥</span>
+                    <span><i class="fa-solid fa-file-import"></i></span>
                     <span>استيراد ملف إكسل</span>
                 </button>
 
@@ -572,7 +573,7 @@
                 </button>
 
                 <button class="btn btn-primary" onclick="openAddModal()">
-                    <span>➕</span>
+                    <span><i class="fa-solid fa-plus"></i></span>
                     <span>إضافة عميل</span>
                 </button>
             </div>
@@ -619,13 +620,13 @@
     <div class="modal-overlay" id="clientModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="modalTitle">➕ إضافة عميل جديد</h2>
+                <h2 id="modalTitle"><i class="fa-solid fa-plus"></i> إضافة عميل جديد</h2>
                 <button class="close-btn" onclick="closeClientModal()">&times;</button>
             </div>
             <form id="clientForm" onsubmit="saveClient(event)">
                 <input type="hidden" id="clientId">
                 <div class="form-group">
-                    <label>👤 اسم العميل *</label>
+                    <label><i class="fa-solid fa-user"></i> اسم العميل *</label>
                     <input type="text" id="clientName" placeholder="الاسم الكريم" required>
                 </div>
                 <div class="form-group">
@@ -637,7 +638,7 @@
                     <input type="text" id="clientIntlPhone" placeholder="9665xxxxxxxx" dir="ltr">
                 </div>
                 <div class="form-group">
-                    <label>📝 ملاحظات إضافية</label>
+                    <label><i class="fa-solid fa-pen-to-square"></i> ملاحظات إضافية</label>
                     <textarea id="clientNotes" rows="2" placeholder="أي ملاحظات حول العميل"></textarea>
                 </div>
                 <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
@@ -652,7 +653,7 @@
     <div class="modal-overlay" id="importModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>📥 استيراد بيانات العملاء من ملف إكسل</h2>
+                <h2><i class="fa-solid fa-file-import"></i> استيراد بيانات العملاء من ملف إكسل</h2>
                 <button class="close-btn" onclick="closeImportModal()">&times;</button>
             </div>
             <div>
@@ -661,7 +662,7 @@
                 </p>
 
                 <div class="dropzone" id="dropzone" onclick="document.getElementById('excelFileInput').click()">
-                    <div class="dropzone-icon">📊</div>
+                    <div class="dropzone-icon"><i class="fa-solid fa-chart-pie"></i></div>
                     <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">اسحب وأفلت ملف الإكسل هنا أو انقر للاختيار</div>
                     <div style="font-size: 12px; color: var(--text-gray);" id="selectedFileName">يدعم ملفات .xls و .xlsx حتى 20 ميجابايت</div>
                     <input type="file" id="excelFileInput" accept=".xls,.xlsx" style="display: none;" onchange="handleFileSelected(event)">
@@ -706,14 +707,14 @@
                 totalRecords = data.total || 0;
 
                 // Update KPIs
-                document.getElementById('kpiTotal').textContent = Number(totalRecords).toLocaleString('ar-SA');
-                document.getElementById('kpiWithPhone').textContent = Number(totalRecords).toLocaleString('ar-SA');
+                document.getElementById('kpiTotal').textContent = Number(totalRecords).toLocaleString('en-GB');
+                document.getElementById('kpiWithPhone').textContent = Number(totalRecords).toLocaleString('en-GB');
 
                 renderTable(data.clients || []);
                 updatePagination(data);
             } catch (err) {
                 console.error(err);
-                tableBody.innerHTML = `<tr><td colspan="7" class="empty-state" style="color:red;">❌ حدث خطأ في تحميل البيانات</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="7" class="empty-state" style="color:red;"><i class="fa-solid fa-circle-xmark"></i> حدث خطأ في تحميل البيانات</td></tr>`;
             }
         }
 
@@ -726,7 +727,7 @@
 
             tableBody.innerHTML = clients.map((c, index) => {
                 const sn = (currentPage - 1) * pageSize + index + 1;
-                const dateStr = c.created_at ? new Date(c.created_at).toLocaleDateString('ar-SA') : '-';
+                const dateStr = c.created_at ? new Date(c.created_at).toLocaleDateString('en-GB') : '-';
                 return `
                     <tr>
                         <td style="color: var(--text-gray); font-weight: 700;">${sn}</td>
@@ -785,7 +786,7 @@
 
         // Add/Edit Modal
         function openAddModal() {
-            document.getElementById('modalTitle').textContent = '➕ إضافة عميل جديد';
+            document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-plus"></i> إضافة عميل جديد';
             document.getElementById('clientId').value = '';
             document.getElementById('clientName').value = '';
             document.getElementById('clientPhone').value = '';
@@ -909,7 +910,7 @@
             const files = e.target.files;
             if (files && files.length > 0) {
                 selectedFile = files[0];
-                document.getElementById('selectedFileName').textContent = `📄 تم اختيار: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(1)} KB)`;
+                document.getElementById('selectedFileName').innerHTML = `<i class="fa-solid fa-file-lines"></i> تم اختيار: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(1)} KB)`;
                 document.getElementById('startImportBtn').disabled = false;
             }
         }
@@ -935,7 +936,7 @@
                 const files = dt.files;
                 if (files && files.length > 0) {
                     selectedFile = files[0];
-                    document.getElementById('selectedFileName').textContent = `📄 تم اختيار: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(1)} KB)`;
+                    document.getElementById('selectedFileName').innerHTML = `<i class="fa-solid fa-file-lines"></i> تم اختيار: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(1)} KB)`;
                     document.getElementById('startImportBtn').disabled = false;
                 }
             }, false);

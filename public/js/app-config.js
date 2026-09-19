@@ -1,6 +1,6 @@
 /**
  * ====================================================================
- * 🚗 Atenza App - Central Application Configuration & Branding Manager
+ * <i class="fa-solid fa-car"></i> Atenza App - Central Application Configuration & Branding Manager
  * ====================================================================
  * 
  * To change the app name from ONE place:
@@ -146,7 +146,7 @@
     };
 
     /**
-     * 🛡️ Atenza App - Unified Role & Permissions Manager
+     * <i class="fa-solid fa-shield"></i> Atenza App - Unified Role & Permissions Manager
      * Enforces business rules across all pages
      */
     const APP_PERMISSIONS = {
@@ -319,7 +319,7 @@
             const isHomeActive = activePage === 'admin.html' || activePage.includes('employee.html');
             linksHtml += `
                 <a href="${this.getHomeUrl()}" class="nav-bar-link ${isHomeActive ? 'active' : ''}">
-                    <span>🏠</span> <span>الرئيسية</span>
+                    <span><i class="fa-solid fa-house"></i></span> <span>الرئيسية</span>
                 </a>
             `;
 
@@ -328,7 +328,7 @@
                 const isInspActive = activePage === 'inspector.html' && !window.location.search.includes('mode=job_order');
                 linksHtml += `
                     <a href="inspector.html" class="nav-bar-link ${isInspActive ? 'active' : ''}">
-                        <span>🔍</span> <span>تسعيرة جديدة</span>
+                        <span><i class="fa-solid fa-magnifying-glass"></i></span> <span>تسعيرة جديدة</span>
                     </a>
                 `;
             }
@@ -337,7 +337,7 @@
             if (canViewInsp) {
                 linksHtml += `
                     <a href="inspections_list.html" class="nav-bar-link ${activePage === 'inspections_list.html' ? 'active' : ''}">
-                        <span>📋</span> <span>سجل التسعيرات</span>
+                        <span><i class="fa-solid fa-clipboard-list"></i></span> <span>سجل التسعيرات</span>
                     </a>
                 `;
             }
@@ -347,7 +347,7 @@
                 const jobTitle = isTechOnly ? 'أوامر العمل المسندة إليّ' : 'أوامر العمل والسيارات';
                 linksHtml += `
                     <a href="job_orders_list.html" class="nav-bar-link ${activePage === 'job_orders_list.html' ? 'active' : ''}">
-                        <span>🚗</span> <span>${jobTitle}</span>
+                        <span><i class="fa-solid fa-car"></i></span> <span>${jobTitle}</span>
                     </a>
                 `;
             }
@@ -355,14 +355,17 @@
             // Admin extra pages
             if (user.role === 'admin') {
                 linksHtml += `
+                    <a href="employees_manager.html" class="nav-bar-link ${activePage === 'employees_manager.html' ? 'active' : ''}">
+                        <span><i class="fa-solid fa-user-tie"></i></span> <span>الموظفين</span>
+                    </a>
                     <a href="services_manager.html" class="nav-bar-link ${activePage === 'services_manager.html' ? 'active' : ''}">
-                        <span>🛠️</span> <span>الخدمات</span>
+                        <span><i class="fa-solid fa-screwdriver-wrench"></i></span> <span>الخدمات</span>
                     </a>
                     <a href="income_report.html" class="nav-bar-link ${activePage === 'income_report.html' ? 'active' : ''}">
-                        <span>📊</span> <span>التقارير</span>
+                        <span><i class="fa-solid fa-chart-pie"></i></span> <span>التقارير</span>
                     </a>
                     <a href="settings.html" class="nav-bar-link ${activePage === 'settings.html' ? 'active' : ''}">
-                        <span>⚙️</span> <span>الإعدادات</span>
+                        <span><i class="fa-solid fa-gear"></i></span> <span>الإعدادات</span>
                     </a>
                 `;
             }
@@ -374,7 +377,7 @@
                 <div class="atenza-global-navbar no-print">
                     <div class="atenza-nav-inner">
                         <div class="atenza-nav-brand" onclick="APP_NAV.goHome()">
-                            <span class="atenza-brand-icon">🚗</span>
+                            <span class="atenza-brand-icon"><i class="fa-solid fa-car"></i></span>
                             <span class="atenza-brand-text">${appName}</span>
                         </div>
 
@@ -391,7 +394,7 @@
                                 <span>🔙</span> <span>رجوع</span>
                             </button>
                             <button type="button" class="atenza-nav-btn atenza-btn-logout" onclick="APP_NAV.logout()" title="تسجيل الخروج">
-                                <span>🚪</span>
+                                <span><i class="fa-solid fa-arrow-right-from-bracket"></i></span>
                             </button>
                         </div>
                     </div>
@@ -403,7 +406,7 @@
     };
 
     /**
-     * 💬 WhatsApp Automation Helper (Atenza App)
+     * <i class="fa-solid fa-comment-dots"></i> WhatsApp Automation Helper (Atenza App)
      */
     const APP_WHATSAPP = {
         formatPhone: function (phone) {
@@ -445,7 +448,7 @@
             const plate = cust.plate_number ? `(لوحة: ${cust.plate_number})` : '';
             const total = cust.final_amount || cust.total_amount || 0;
 
-            const msg = `مرحباً بك أستاذ ${cust.customer_name || 'العميل العزيز'} 🌹\n\nنرفق لك كشف التسعيرة الفني لـ ${car} ${plate} من *${appName}*.\n\n💰 *إجمالي التسعيرة:* ${total} ريال\n\n📋 *لمعاينة بنود التسعيرة وتفاصيل الكشف أونلاين:*\n${trackUrl}\n\nنسعد بخدمتكم وتأكيد البدء بالعمل!`;
+            const msg = `مرحباً بك أستاذ ${cust.customer_name || 'العميل العزيز'} 🌹\n\nنرفق لك كشف التسعيرة الفني لـ ${car} ${plate} من *${appName}*.\n\n<i class="fa-solid fa-sack-dollar"></i> *إجمالي التسعيرة:* ${total} ريال\n\n<i class="fa-solid fa-clipboard-list"></i> *لمعاينة بنود التسعيرة وتفاصيل الكشف أونلاين:*\n${trackUrl}\n\nنسعد بخدمتكم وتأكيد البدء بالعمل!`;
             this.sendWhatsApp(cust.customer_phone, msg);
         },
 
@@ -455,7 +458,7 @@
             const car = `${cust.car_type || ''} ${cust.car_model || ''}`.trim() || 'السيارة';
             const plate = cust.plate_number ? `(لوحة: ${cust.plate_number})` : '';
 
-            const msg = `مرحباً أستاذ ${cust.customer_name || 'العميل العزيز'} ⚙️\n\nنفيدكم ببدء أعمال الصيانة على ${car} ${plate} لدى *${appName}*.\n\n🚗 *يمكنكم متابعة مرحلة صيانة سيارتكم والصور لحظة بلحظة عبر الرابط التالي:*\n${trackUrl}\n\nشكراً لثقتكم بنا!`;
+            const msg = `مرحباً أستاذ ${cust.customer_name || 'العميل العزيز'} <i class="fa-solid fa-gear"></i>\n\nنفيدكم ببدء أعمال الصيانة على ${car} ${plate} لدى *${appName}*.\n\n<i class="fa-solid fa-car"></i> *يمكنكم متابعة مرحلة صيانة سيارتكم والصور لحظة بلحظة عبر الرابط التالي:*\n${trackUrl}\n\nشكراً لثقتكم بنا!`;
             this.sendWhatsApp(cust.customer_phone, msg);
         },
 
@@ -466,7 +469,7 @@
             const plate = cust.plate_number ? `(لوحة: ${cust.plate_number})` : '';
             const remaining = cust.remaining_amount !== undefined ? cust.remaining_amount : (cust.final_amount || 0);
 
-            const msg = `يسعدنا إبلاغك أستاذ ${cust.customer_name || 'العميل العزيز'} بأن سيارتك ${car} ${plate} أصبحت *جاهزة للتسليم* ✅ في *${appName}*.\n\n💵 *المبلغ المتبقي:* ${remaining} ريال\n\n📄 *تقرير الفحص والصور النهائية:*\n${trackUrl}\n\nنسعد بزيارتكم لاستلام السيارة! 🚗💨`;
+            const msg = `يسعدنا إبلاغك أستاذ ${cust.customer_name || 'العميل العزيز'} بأن سيارتك ${car} ${plate} أصبحت *جاهزة للتسليم* <i class="fa-solid fa-circle-check"></i> في *${appName}*.\n\n<i class="fa-solid fa-money-bill"></i> *المبلغ المتبقي:* ${remaining} ريال\n\n<i class="fa-solid fa-file-lines"></i> *تقرير الفحص والصور النهائية:*\n${trackUrl}\n\nنسعد بزيارتكم لاستلام السيارة! <i class="fa-solid fa-car"></i><i class="fa-solid fa-wind"></i>`;
             this.sendWhatsApp(cust.customer_phone, msg);
         },
 
@@ -483,32 +486,32 @@
                 <div class="atenza-wa-backdrop" onclick="document.getElementById('atenzaWhatsAppModal').style.display='none'"></div>
                 <div class="atenza-wa-content">
                     <div class="atenza-wa-header">
-                        <h3>💬 أتمتة رسائل الواتساب للعميل</h3>
+                        <h3><i class="fa-solid fa-comment-dots"></i> أتمتة رسائل الواتساب للعميل</h3>
                         <button type="button" class="atenza-wa-close" onclick="document.getElementById('atenzaWhatsAppModal').style.display='none'">&times;</button>
                     </div>
                     <div class="atenza-wa-body">
                         <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px; margin-bottom:15px; font-size:13px;">
-                            <div>👤 العميل: <strong>${cust.customer_name || 'بدون اسم'}</strong></div>
-                            <div>📱 الجوال: <strong dir="ltr">${cust.customer_phone || 'غير مسجل'}</strong></div>
-                            <div>🚗 السيارة: <strong>${cust.car_type || ''} ${cust.car_model || ''} (${cust.plate_number || ''})</strong></div>
+                            <div><i class="fa-solid fa-user"></i> العميل: <strong>${cust.customer_name || 'بدون اسم'}</strong></div>
+                            <div><i class="fa-solid fa-mobile-screen"></i> الجوال: <strong dir="ltr">${cust.customer_phone || 'غير مسجل'}</strong></div>
+                            <div><i class="fa-solid fa-car"></i> السيارة: <strong>${cust.car_type || ''} ${cust.car_model || ''} (${cust.plate_number || ''})</strong></div>
                         </div>
                         <div class="atenza-wa-options">
                             <button type="button" class="atenza-wa-btn atenza-wa-quote" id="waBtnQuote">
-                                <span class="wa-icon">📋</span>
+                                <span class="wa-icon"><i class="fa-solid fa-clipboard-list"></i></span>
                                 <div class="wa-text">
                                     <strong>إرسال التسعيرة / الكشف</strong>
                                     <small>إرسال رابط التسعيرة والمبلغ الإجمالي</small>
                                 </div>
                             </button>
                             <button type="button" class="atenza-wa-btn atenza-wa-progress" id="waBtnProgress">
-                                <span class="wa-icon">⚙️</span>
+                                <span class="wa-icon"><i class="fa-solid fa-gear"></i></span>
                                 <div class="wa-text">
                                     <strong>إشعار بدء العمل ورابط المتابعة</strong>
                                     <small>إبلاغ العميل ببدء الصيانة ورابط البوابة</small>
                                 </div>
                             </button>
                             <button type="button" class="atenza-wa-btn atenza-wa-ready" id="waBtnReady">
-                                <span class="wa-icon">✅</span>
+                                <span class="wa-icon"><i class="fa-solid fa-circle-check"></i></span>
                                 <div class="wa-text">
                                     <strong>إشعار جاهزية السيارة للتسليم</strong>
                                     <small>إشعار باكتمال العمل والمبلغ المتبقي</small>
@@ -537,7 +540,7 @@
     };
 
     /**
-     * 🔔 Real-time Audio & Live Alert Manager (Atenza App)
+     * <i class="fa-solid fa-bell"></i> Real-time Audio & Live Alert Manager (Atenza App)
      */
     const APP_NOTIFIER = {
         audioCtx: null,
@@ -600,7 +603,7 @@
                         // Show Toast Alert
                         if (typeof Toast !== 'undefined' && Toast.show) {
                             Toast.show({
-                                title: newest.title || 'إشعار جديد 🔔',
+                                title: newest.title || 'إشعار جديد <i class="fa-solid fa-bell"></i>',
                                 message: newest.message || '',
                                 type: newest.type || 'info',
                                 duration: 8000

@@ -218,12 +218,13 @@
       }
     }
   </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
   <div class="login-container">
     <div class="logo-container">
-      <div class="logo">🔧</div>
+      <div class="logo"><i class="fa-solid fa-wrench"></i></div>
       <h1 class="app-name-text">Atenza App</h1>
       <p class="subtitle">مرحباً بك! الرجاء تسجيل الدخول للمتابعة</p>
     </div>
@@ -294,7 +295,7 @@
 
     installBtn.addEventListener('click', () => {
       if (isIos()) {
-        alert('لتثبيت التطبيق على iPhone:\n\n1. اضغط على زر المشاركة 📤\n2. اختر "إضافة إلى الشاشة الرئيسية" ➕\n3. اضغط "إضافة" ✅');
+        alert('لتثبيت التطبيق على iPhone:\n\n1. اضغط على زر المشاركة 📤\n2. اختر "إضافة إلى الشاشة الرئيسية" \n3. اضغط "إضافة" ');
       } else if (deferredPrompt) {
         installBtn.style.display = 'none';
         deferredPrompt.prompt();

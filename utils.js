@@ -265,7 +265,7 @@ const DateFormatter = {
   toArabic(date) {
     if (!date) return '';
     const d = new Date(date);
-    return new Intl.DateTimeFormat('ar-SA', {
+    return new Intl.DateTimeFormat('en-GB', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -277,7 +277,7 @@ const DateFormatter = {
   toShort(date) {
     if (!date) return '';
     const d = new Date(date);
-    return new Intl.DateTimeFormat('ar-SA', {
+    return new Intl.DateTimeFormat('en-GB', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit'
@@ -307,7 +307,7 @@ const DateFormatter = {
 const Currency = {
   format(amount) {
     if (amount == null || isNaN(amount)) return '0 ر.س';
-    return new Intl.NumberFormat('ar-SA', {
+    return new Intl.NumberFormat('en-GB', {
       style: 'currency',
       currency: 'SAR',
       minimumFractionDigits: 0,

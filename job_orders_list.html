@@ -633,6 +633,7 @@
             margin-bottom: 6px;
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
@@ -642,16 +643,16 @@
         <!-- Page Top Bar -->
         <div class="page-top-bar">
             <div>
-                <h1>🛠️ أوامر العمل والسيارات بالمركز</h1>
+                <h1><i class="fa-solid fa-screwdriver-wrench"></i> أوامر العمل والسيارات بالمركز</h1>
                 <p>متابعة وتحديث حالات سيارات الورشة وتعيين الفنيين لحظة بلحظة</p>
             </div>
             <div class="top-action-group">
                 <button class="btn-top btn-primary-top" id="newJobOrderBtn" onclick="window.location.href='inspector.html?mode=job_order'">
-                    <span>➕</span>
+                    <span><i class="fa-solid fa-plus"></i></span>
                     <span>أمر عمل جديد</span>
                 </button>
                 <button class="btn-top btn-secondary-top" onclick="window.location.href='inspections_list.html'">
-                    <span>📋</span>
+                    <span><i class="fa-solid fa-clipboard-list"></i></span>
                     <span>التسعيرات</span>
                 </button>
                 <button class="btn-top btn-secondary-top" onclick="goBackDashboard()">
@@ -665,28 +666,28 @@
         <div class="kpi-scroll-container">
             <div class="kpi-grid">
                 <div class="kpi-card" id="kpiCard-active_in_shop" onclick="filterByCarStatus('active_in_shop')">
-                    <div class="kpi-icon" style="background: #e0f2fe; color: #0284c7;">🚗</div>
+                    <div class="kpi-icon" style="background: #e0f2fe; color: #0284c7;"><i class="fa-solid fa-car"></i></div>
                     <div class="kpi-info">
                         <h3>بالمركز حالياً</h3>
                         <div class="val" id="kpiTotalInShop">0</div>
                     </div>
                 </div>
                 <div class="kpi-card" id="kpiCard-in_progress" onclick="filterByCarStatus('in_progress')">
-                    <div class="kpi-icon" style="background: #e0e7ff; color: #4338ca;">⚙️</div>
+                    <div class="kpi-icon" style="background: #e0e7ff; color: #4338ca;"><i class="fa-solid fa-gear"></i></div>
                     <div class="kpi-info">
                         <h3>جاري العمل</h3>
                         <div class="val" id="kpiInProgress">0</div>
                     </div>
                 </div>
                 <div class="kpi-card" id="kpiCard-waiting_parts" onclick="filterByCarStatus('waiting_parts')">
-                    <div class="kpi-icon" style="background: #ffedd5; color: #c2410c;">📦</div>
+                    <div class="kpi-icon" style="background: #ffedd5; color: #c2410c;"><i class="fa-solid fa-box"></i></div>
                     <div class="kpi-info">
                         <h3>بانتظار قطع</h3>
                         <div class="val" id="kpiWaitingParts">0</div>
                     </div>
                 </div>
                 <div class="kpi-card" id="kpiCard-ready" onclick="filterByCarStatus('ready')">
-                    <div class="kpi-icon" style="background: #dcfce7; color: #15803d;">✅</div>
+                    <div class="kpi-icon" style="background: #dcfce7; color: #15803d;"><i class="fa-solid fa-circle-check"></i></div>
                     <div class="kpi-info">
                         <h3>جاهزة للتسليم</h3>
                         <div class="val" id="kpiReady">0</div>
@@ -713,32 +714,32 @@
         <div class="filter-card">
             <div class="search-main-row">
                 <div class="search-input-wrap">
-                    <span class="search-icon-inside">🔍</span>
+                    <span class="search-icon-inside"><i class="fa-solid fa-magnifying-glass"></i></span>
                     <input type="text" id="searchInput" placeholder="بحث برقم الأمر، اسم العميل، الجوال، اللوحة..." oninput="debouncedLoadOrders()" onkeypress="if(event.key==='Enter') loadOrders()">
                 </div>
                 <button class="btn-filter-toggle" onclick="toggleAdvancedFilters()">
-                    <span>⚙️</span>
+                    <span><i class="fa-solid fa-gear"></i></span>
                     <span>تصفية</span>
                 </button>
             </div>
 
             <div class="advanced-filter-panel" id="advancedFilters">
                 <div class="filter-group">
-                    <label>🚗 تواجد السيارة</label>
+                    <label><i class="fa-solid fa-car"></i> تواجد السيارة</label>
                     <select id="presenceFilter" onchange="loadOrders()">
-                        <option value="active_in_shop" selected>🚗 متواجدة بالمركز حالياً</option>
+                        <option value="active_in_shop" selected>متواجدة بالمركز حالياً</option>
                         <option value="all">جميع أوامر العمل (الحالية والمسلمة)</option>
                         <option value="completed">🏁 سيارات تم تسليمها فقط</option>
                     </select>
                 </div>
                 <div class="filter-group">
-                    <label>⚙️ حالة العمل</label>
+                    <label><i class="fa-solid fa-gear"></i> حالة العمل</label>
                     <select id="carStatusFilter" onchange="loadOrders()">
                         <option value="all" selected>جميع الحالات</option>
                         <option value="pending">⏳ قيد الانتظار</option>
-                        <option value="in_progress">⚙️ جاري العمل</option>
-                        <option value="waiting_parts">📦 بانتظار قطع غيار</option>
-                        <option value="ready">✅ جاهزة للتسليم</option>
+                        <option value="in_progress">جاري العمل</option>
+                        <option value="waiting_parts">بانتظار قطع غيار</option>
+                        <option value="ready">جاهزة للتسليم</option>
                         <option value="completed">🏁 تم التسليم</option>
                     </select>
                 </div>
@@ -796,7 +797,7 @@
     <div id="assignModal" class="modal">
         <div class="modal-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <h2 style="margin: 0; font-size: 17px; font-weight: 800;">👥 تعيين الفنيين لأمر العمل #<span id="assignOrderId"></span></h2>
+                <h2 style="margin: 0; font-size: 17px; font-weight: 800;"><i class="fa-solid fa-users"></i> تعيين الفنيين لأمر العمل #<span id="assignOrderId"></span></h2>
                 <button onclick="closeAssignModal()" style="background:none; border:none; font-size:18px; cursor:pointer; color:var(--text-muted);">✕</button>
             </div>
             <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 12px;">حدد الفنيين المسؤولين عن إنجاز خدمات أمر العمل:</p>
@@ -807,7 +808,7 @@
 
             <div style="display:flex; justify-content:flex-end; gap:8px; margin-top: 14px;">
                 <button class="btn-top btn-secondary-top" onclick="closeAssignModal()">إلغاء</button>
-                <button class="btn-top btn-primary-top" onclick="saveAssignment()">حفظ التعيين ✅</button>
+                <button class="btn-top btn-primary-top" onclick="saveAssignment()">حفظ التعيين <i class="fa-solid fa-circle-check"></i></button>
             </div>
         </div>
     </div>
@@ -818,7 +819,7 @@
             window.location.href = 'login.html';
         }
 
-        // 🛡️ الصلاحيات
+        // <i class="fa-solid fa-shield"></i> الصلاحيات
         if (typeof APP_PERMISSIONS !== 'undefined' && !APP_PERMISSIONS.canViewJobOrders(currentUser)) {
             alert('عذراً، استعراض أوامر العمل متاح فقط لموظفي الإدارة، الكشف، أو الفنيين المعينين.');
             window.location.href = currentUser.role === 'admin' ? 'admin.html' : 'employee.html';
@@ -829,7 +830,7 @@
 
         if (isAssignedOnly) {
             const h1 = document.querySelector('.page-top-bar h1');
-            if (h1) h1.textContent = '🛠️ أوامر العمل المسندة إليّ';
+            if (h1) h1.innerHTML = '<i class="fa-solid fa-screwdriver-wrench"></i> أوامر العمل المسندة إليّ';
             const sub = document.querySelector('.page-top-bar p');
             if (sub) sub.textContent = 'متابعة كروت التشغيل والسيارات المسندة إليك لإنجاز العمل';
         }
@@ -945,8 +946,8 @@
                 renderViews(data);
             } catch (error) {
                 console.error(error);
-                const errHtml = `<div style="text-align:center; padding:30px; color:var(--danger);">❌ حدث خطأ: ${error.message}</div>`;
-                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:30px; color:var(--danger);">❌ حدث خطأ: ${error.message}</td></tr>`;
+                const errHtml = `<div style="text-align:center; padding:30px; color:var(--danger);"><i class="fa-solid fa-circle-xmark"></i> حدث خطأ: ${error.message}</div>`;
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:30px; color:var(--danger);"><i class="fa-solid fa-circle-xmark"></i> حدث خطأ: ${error.message}</td></tr>`;
                 mobileCards.innerHTML = errHtml;
             }
         }
@@ -954,11 +955,11 @@
         function getStatusLabel(st) {
             switch(st) {
                 case 'pending': return '⏳ قيد الانتظار';
-                case 'in_progress': return '⚙️ جاري العمل';
-                case 'waiting_parts': return '📦 بانتظار قطع';
-                case 'ready': return '✅ جاهزة للتسليم';
+                case 'in_progress': return '<i class="fa-solid fa-gear"></i> جاري العمل';
+                case 'waiting_parts': return '<i class="fa-solid fa-box"></i> بانتظار قطع';
+                case 'ready': return '<i class="fa-solid fa-circle-check"></i> جاهزة للتسليم';
                 case 'completed': return '🏁 تم التسليم';
-                default: return '⚙️ جاري العمل';
+                default: return '<i class="fa-solid fa-gear"></i> جاري العمل';
             }
         }
 
@@ -980,8 +981,8 @@
 
             data.forEach(item => {
                 const d = new Date(item.created_at || Date.now());
-                const dateStr = d.toLocaleDateString('ar-SA');
-                const timeStr = d.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+                const dateStr = d.toLocaleDateString('en-GB');
+                const timeStr = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
                 const currentStatus = item.car_status || 'in_progress';
                 const finalAmt = parseFloat(item.final_amount) || 0;
                 const techNames = item.technicians_names || 'غير محدد';
@@ -993,9 +994,9 @@
                     statusSelectOrBadge = `
                         <select class="status-select-inline status-${currentStatus}" onchange="updateCarStatus(${item.id}, this.value, this)">
                             <option value="pending" ${currentStatus === 'pending' ? 'selected' : ''}>⏳ قيد الانتظار</option>
-                            <option value="in_progress" ${currentStatus === 'in_progress' ? 'selected' : ''}>⚙️ جاري العمل</option>
-                            <option value="waiting_parts" ${currentStatus === 'waiting_parts' ? 'selected' : ''}>📦 بانتظار قطع</option>
-                            <option value="ready" ${currentStatus === 'ready' ? 'selected' : ''}>✅ جاهزة للتسليم</option>
+                            <option value="in_progress" ${currentStatus === 'in_progress' ? 'selected' : ''}>جاري العمل</option>
+                            <option value="waiting_parts" ${currentStatus === 'waiting_parts' ? 'selected' : ''}>بانتظار قطع</option>
+                            <option value="ready" ${currentStatus === 'ready' ? 'selected' : ''}>جاهزة للتسليم</option>
                             <option value="completed" ${currentStatus === 'completed' ? 'selected' : ''}>🏁 تم التسليم</option>
                         </select>
                     `;
@@ -1038,10 +1039,10 @@
                     <td><b>${finalAmt.toLocaleString()}</b> <small>ريال</small></td>
                     <td>
                         <div class="action-btns" style="justify-content: center;">
-                            <button class="btn-action-icon btn-card" onclick="openJobOrderCard(${item.id})" title="كرت التشغيل">📋 كرت العمل</button>
-                            <button class="btn-action-icon btn-whatsapp" onclick='openWhatsAppModalFor(${JSON.stringify(item).replace(/'/g, "&apos;")})' title="واتساب">💬 واتساب</button>
-                            ${canEditOrders ? `<button class="btn-action-icon btn-edit" onclick="openInspectionEditor(${item.id})" title="تعديل">📝</button>` : ''}
-                            ${canEditOrders ? `<button class="btn-action-icon btn-assign" onclick="openAssignModal(${item.id})" title="تعيين فني">👥</button>` : ''}
+                            <button class="btn-action-icon btn-card" onclick="openJobOrderCard(${item.id})" title="كرت التشغيل"><i class="fa-solid fa-clipboard-list"></i> كرت العمل</button>
+                            <button class="btn-action-icon btn-whatsapp" onclick='openWhatsAppModalFor(${JSON.stringify(item).replace(/'/g, "&apos;")})' title="واتساب"><i class="fa-solid fa-comment-dots"></i> واتساب</button>
+                            ${canEditOrders ? `<button class="btn-action-icon btn-edit" onclick="openInspectionEditor(${item.id})" title="تعديل"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
+                            ${canEditOrders ? `<button class="btn-action-icon btn-assign" onclick="openAssignModal(${item.id})" title="تعيين فني"><i class="fa-solid fa-users"></i></button>` : ''}
                             ${canDelete ? `<button class="btn-action-icon btn-delete" onclick="deleteOrder(${item.id})" title="حذف">🗑️</button>` : ''}
                         </div>
                     </td>
@@ -1064,14 +1065,14 @@
 
                     <div class="job-card-car-row">
                         <div class="job-car-title">
-                            🚗 ${item.car_type || ''} ${item.car_model || ''}
+                            <i class="fa-solid fa-car"></i> ${item.car_type || ''} ${item.car_model || ''}
                             ${item.car_color ? `<small style="color:var(--text-muted);">(${item.car_color})</small>` : ''}
                         </div>
                         ${item.plate_number ? `<span class="plate-box">${item.plate_number}</span>` : ''}
                     </div>
 
                     <div class="job-customer-row">
-                        <span class="job-cust-name">👤 ${item.customer_name || 'عميل نقدي'}</span>
+                        <span class="job-cust-name"><i class="fa-solid fa-user"></i> ${item.customer_name || 'عميل نقدي'}</span>
                         ${item.customer_phone ? `<a href="tel:${item.customer_phone}" class="job-phone-link">📞 ${item.customer_phone}</a>` : ''}
                     </div>
 
@@ -1089,20 +1090,20 @@
 
                     <div class="job-mobile-actions">
                         <button class="btn-card-touch btn-card" onclick="openJobOrderCard(${item.id})">
-                            <span>📋</span>
+                            <span><i class="fa-solid fa-clipboard-list"></i></span>
                             <span>كرت العمل</span>
                         </button>
                         <button class="btn-card-touch btn-whatsapp" onclick='openWhatsAppModalFor(${JSON.stringify(item).replace(/'/g, "&apos;")})'>
-                            <span>💬</span>
+                            <span><i class="fa-solid fa-comment-dots"></i></span>
                             <span>واتساب</span>
                         </button>
                         ${canEditOrders ? `
                             <button class="btn-card-touch btn-edit" onclick="openInspectionEditor(${item.id})">
-                                <span>📝</span>
+                                <span><i class="fa-solid fa-pen-to-square"></i></span>
                                 <span>تعديل</span>
                             </button>
                             <button class="btn-card-touch btn-assign" onclick="openAssignModal(${item.id})">
-                                <span>👥</span>
+                                <span><i class="fa-solid fa-users"></i></span>
                                 <span>فنيين</span>
                             </button>
                         ` : ''}
@@ -1127,7 +1128,7 @@
 
                 if (res.ok) {
                     if (typeof showSuccess === 'function') {
-                        showSuccess(`تم تحديث حالة السيارة للأمر #${id} بنجاح ✅`);
+                        showSuccess(`تم تحديث حالة السيارة للأمر #${id} بنجاح <i class="fa-solid fa-circle-check"></i>`);
                     }
                     if (selectEl) {
                         selectEl.className = `status-select-inline status-${newStatus}`;
@@ -1251,9 +1252,9 @@
 
                 if (putRes.ok) {
                     if (typeof showSuccess === 'function') {
-                        showSuccess('تم تعيين الفنيين بنجاح ✅');
+                        showSuccess('تم تعيين الفنيين بنجاح <i class="fa-solid fa-circle-check"></i>');
                     } else {
-                        alert('تم تعيين الفنيين بنجاح ✅');
+                        alert('تم تعيين الفنيين بنجاح ');
                     }
                     closeAssignModal();
                     loadOrders();

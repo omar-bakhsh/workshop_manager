@@ -678,45 +678,64 @@
                 display: none !important;
             }
 
+            body.print-quotation-mode #officialJobOrderPrintSheet {
+                display: none !important;
+            }
+
             /* ---------------- QUOTATION STYLES (Single Unified Services Table) ---------------- */
-            .ops-header { margin-bottom: 5px !important; }
-            .ops-header-top { text-align: center !important; }
-            .ops-title-ar { font-size: 21px !important; font-weight: 900 !important; margin-bottom: 2px !important; color: #000 !important; }
-            .ops-title-en { font-size: 14px !important; font-weight: 800 !important; margin-bottom: 2px !important; color: #222 !important; }
-            .ops-phones { font-size: 13px !important; font-weight: 700 !important; display: flex !important; justify-content: center !important; gap: 25px !important; direction: ltr !important; }
-            .ops-meta-row { display: flex !important; justify-content: space-between !important; align-items: center !important; margin-top: 6px !important; margin-bottom: 6px !important; font-size: 13px !important; font-weight: 700 !important; }
-            .ops-quote-badge { text-align: center !important; background: #e2e8f0 !important; padding: 3px 14px !important; border-radius: 4px !important; border: 1.5px solid #475569 !important; display: flex !important; flex-direction: column !important; align-items: center !important; line-height: 1.1 !important; }
-            .ops-quote-badge .badge-label { font-size: 11px !important; font-weight: 700 !important; }
-            .ops-quote-badge .badge-num { font-size: 17px !important; font-weight: 900 !important; }
-            .ops-customer-row { display: flex !important; justify-content: space-between !important; align-items: center !important; font-size: 13.5px !important; font-weight: 800 !important; margin-bottom: 4px !important; }
-            .ops-intro-text { font-size: 11.5px !important; font-weight: 700 !important; color: #222 !important; margin-bottom: 5px !important; }
+            .quotation-card-sheet {
+                border: 1.5px solid #000 !important;
+                padding: 6px 10px !important;
+                background: #fff !important;
+                height: auto !important;
+                min-height: 0 !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            .ops-header { display: block !important; margin-bottom: 4px !important; }
+            .ops-header-top { display: flex !important; justify-content: space-between !important; align-items: flex-start !important; margin-bottom: 4px !important; }
+            .ops-header-right { text-align: right !important; }
+            .ops-title-ar { font-size: 18px !important; font-weight: 900 !important; margin: 0 0 1px 0 !important; color: #000 !important; }
+            .ops-sub-ar { font-size: 11px !important; font-weight: 700 !important; margin: 1px 0 !important; color: #000 !important; }
+            .ops-phones-ar { font-size: 11px !important; font-weight: 700 !important; margin: 1px 0 !important; direction: ltr !important; text-align: right !important; }
             
-            .ops-car-table { width: 100% !important; border-collapse: collapse !important; border: 1.5px solid #000 !important; margin-bottom: 6px !important; text-align: center !important; }
-            .ops-car-table th { border: 1.2px solid #000 !important; background: #f1f5f9 !important; font-size: 12px !important; font-weight: 800 !important; padding: 4px 4px !important; color: #000 !important; }
-            .ops-car-table td { border: 1.2px solid #000 !important; font-size: 13px !important; font-weight: 800 !important; padding: 4px 4px !important; color: #000 !important; }
+            .ops-header-center { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; }
+            .ops-quote-badge { text-align: center !important; background: #f1f5f9 !important; padding: 2px 12px !important; border-radius: 4px !important; border: 1.5px solid #000 !important; line-height: 1.15 !important; }
+            .ops-quote-badge .badge-label { font-size: 11px !important; font-weight: 800 !important; color: #000 !important; }
+            .ops-quote-badge .badge-num { font-size: 16px !important; font-weight: 900 !important; color: #000 !important; }
+            
+            .ops-header-left { text-align: left !important; direction: ltr !important; }
+            .ops-title-en { font-size: 16px !important; font-weight: 900 !important; margin: 0 0 1px 0 !important; color: #000 !important; }
+            .ops-sub-en { font-size: 11px !important; font-weight: 700 !important; margin: 1px 0 !important; color: #000 !important; }
+            .ops-date-en { font-size: 11.5px !important; font-weight: 800 !important; margin: 1px 0 !important; color: #000 !important; }
+
+            .ops-info-table { display: table !important; width: 100% !important; border-collapse: collapse !important; border: 1.5px solid #000 !important; margin-bottom: 5px !important; }
+            .ops-info-table td { border: 1.2px solid #000 !important; padding: 3px 5px !important; font-size: 12px !important; height: 21px !important; vertical-align: middle !important; }
+            .ops-info-table .lbl { font-weight: 800 !important; background: #f1f5f9 !important; text-align: right !important; width: 22% !important; white-space: nowrap !important; color: #000 !important; font-size: 11px !important; }
+            .ops-info-table .val { font-weight: 800 !important; text-align: center !important; width: 28% !important; color: #000 !important; font-size: 12px !important; }
             
             /* Unified Full-Width Services Table */
-            .ops-unified-table { width: 100% !important; border-collapse: collapse !important; border: 1.5px solid #000 !important; margin-bottom: 8px !important; }
-            .ops-unified-table th { border: 1.2px solid #000 !important; background: #f8fafc !important; font-size: 13.5px !important; font-weight: 800 !important; padding: 5px 6px !important; text-align: center !important; color: #000 !important; }
-            .ops-unified-table td { border: 1px dashed #000 !important; font-size: 13px !important; font-weight: 700 !important; padding: 5px 6px !important; height: 26px !important; color: #000 !important; text-align: center !important; }
-            .ops-unified-table td.col-desc { text-align: right !important; padding-right: 10px !important; font-weight: 800 !important; font-size: 14px !important; }
+            .ops-unified-table { width: 100% !important; border-collapse: collapse !important; border: 1.5px solid #000 !important; margin-bottom: 5px !important; }
+            .ops-unified-table th { border: 1.2px solid #000 !important; background: #f8fafc !important; font-size: 11.5px !important; font-weight: 800 !important; padding: 3px 4px !important; text-align: center !important; color: #000 !important; line-height: 1.15 !important; }
+            .ops-unified-table td { border: 1px dashed #000 !important; font-size: 11.5px !important; font-weight: 700 !important; padding: 3px 4px !important; height: 21px !important; color: #000 !important; text-align: center !important; }
+            .ops-unified-table td.col-desc { text-align: right !important; padding-right: 6px !important; font-weight: 800 !important; font-size: 12px !important; }
             .ops-unified-table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
 
             /* 5-Columns Quotation Financial Summary Table */
-            .ops-totals-table { width: 100% !important; border-collapse: collapse !important; border: 1.5px solid #000 !important; margin-bottom: 8px !important; text-align: center !important; page-break-inside: avoid !important; break-inside: avoid !important; }
-            .ops-totals-table th { border: 1.2px solid #000 !important; background: #f1f5f9 !important; font-size: 13px !important; font-weight: 800 !important; padding: 4px 4px !important; line-height: 1.15 !important; color: #000 !important; }
-            .ops-totals-table td { border: 1.2px solid #000 !important; font-size: 14px !important; font-weight: 800 !important; padding: 5px 4px !important; height: 26px !important; color: #000 !important; }
-            .ops-grand-total-cell { background: #bbf7d0 !important; font-size: 17px !important; font-weight: 900 !important; }
+            .ops-totals-table { width: 100% !important; border-collapse: collapse !important; border: 1.5px solid #000 !important; margin-bottom: 5px !important; text-align: center !important; page-break-inside: avoid !important; break-inside: avoid !important; }
+            .ops-totals-table th { border: 1.2px solid #000 !important; background: #f1f5f9 !important; font-size: 11.5px !important; font-weight: 800 !important; padding: 3px 3px !important; line-height: 1.15 !important; color: #000 !important; }
+            .ops-totals-table td { border: 1.2px solid #000 !important; font-size: 12.5px !important; font-weight: 800 !important; padding: 3px 3px !important; height: 21px !important; color: #000 !important; }
+            .ops-grand-total-cell { background: #bbf7d0 !important; font-size: 14.5px !important; font-weight: 900 !important; }
 
-            .ops-footer { margin-top: 8px !important; font-size: 12px !important; page-break-inside: avoid !important; break-inside: avoid !important; }
-            .ops-notes-row { text-align: center !important; font-size: 12.5px !important; font-weight: 800 !important; color: #1e293b !important; margin-bottom: 4px !important; }
-            .ops-wishes-text { text-align: center !important; font-size: 13.5px !important; font-weight: 800 !important; border-top: 1.2px solid #000 !important; padding-top: 6px !important; margin-bottom: 8px !important; }
-            .ops-signatures-row { display: flex !important; justify-content: space-between !important; align-items: flex-end !important; padding: 0 20px !important; margin-top: 8px !important; }
-            .ops-stamp-box { text-align: center !important; font-size: 13.5px !important; font-weight: 800 !important; }
-            .ops-stamp-circle { width: 75px !important; height: 42px !important; border: 1.2px dashed #64748b !important; border-radius: 50% !important; margin-top: 3px !important; display: flex !important; align-items: center !important; justify-content: center !important; font-size: 11px !important; color: #475569 !important; }
-            .ops-manager-box { text-align: center !important; font-size: 13.5px !important; font-weight: 800 !important; }
-            .ops-sign-line { margin-top: 14px !important; font-size: 14px !important; letter-spacing: 2px !important; }
-            .ops-bottom-info { display: flex !important; justify-content: space-between !important; align-items: center !important; font-size: 12px !important; color: #1e293b !important; margin-top: 6px !important; border-top: 1px dotted #cbd5e1 !important; padding-top: 4px !important; }
+            .ops-footer { margin-top: 4px !important; font-size: 11px !important; page-break-inside: avoid !important; break-inside: avoid !important; }
+            .ops-notes-row { text-align: center !important; font-size: 11px !important; font-weight: 800 !important; color: #1e293b !important; margin-bottom: 2px !important; }
+            .ops-wishes-text { text-align: center !important; font-size: 12px !important; font-weight: 800 !important; border-top: 1.2px solid #000 !important; padding-top: 4px !important; margin-bottom: 4px !important; }
+            .ops-signatures-row { display: flex !important; justify-content: space-between !important; align-items: flex-end !important; padding: 0 15px !important; margin-top: 4px !important; }
+            .ops-stamp-box { text-align: center !important; font-size: 11.5px !important; font-weight: 800 !important; }
+            .ops-stamp-circle { width: 60px !important; height: 32px !important; border: 1.2px dashed #64748b !important; border-radius: 50% !important; margin-top: 2px !important; display: flex !important; align-items: center !important; justify-content: center !important; font-size: 9.5px !important; color: #475569 !important; }
+            .ops-manager-box { text-align: center !important; font-size: 11.5px !important; font-weight: 800 !important; }
+            .ops-sign-line { margin-top: 8px !important; font-size: 12px !important; letter-spacing: 2px !important; }
+            .ops-bottom-info { display: flex !important; justify-content: space-between !important; align-items: center !important; font-size: 10.5px !important; color: #1e293b !important; margin-top: 4px !important; border-top: 1px dotted #cbd5e1 !important; padding-top: 2px !important; }
 
             /* ---------------- CONTRACT JOB CARD STYLES ---------------- */
             .job-card-sheet {
@@ -1092,8 +1111,10 @@
         let pricingData = {};
         let allServicesList = [];
         let allBundles = [];
+        let appSettings = null;
 
         let currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        let currentInspection = null;
         let currentInspectionId = null;
         let currentDocType = 'new'; // 'new' (تسعيرة) or 'job_order' (أمر عمل)
 
@@ -1228,18 +1249,18 @@
             try {
                 const setRes = await fetch('/api/settings');
                 if (setRes.ok) {
-                    const settings = await setRes.json();
-                    if (settings.workshop_name || settings.app_name) {
-                        document.getElementById('inspectorShopName').textContent = settings.workshop_name || settings.app_name;
+                    appSettings = await setRes.json();
+                    if (appSettings.workshop_name || appSettings.app_name) {
+                        document.getElementById('inspectorShopName').textContent = appSettings.workshop_name || appSettings.app_name;
                     }
-                    if (settings.workshop_desc) {
-                        document.getElementById('inspectorShopDesc').textContent = settings.workshop_desc;
+                    if (appSettings.workshop_desc) {
+                        document.getElementById('inspectorShopDesc').textContent = appSettings.workshop_desc;
                     }
-                    if (settings.workshop_phone) {
-                        document.getElementById('inspectorShopPhone').textContent = '📞 ' + settings.workshop_phone;
+                    if (appSettings.workshop_phone) {
+                        document.getElementById('inspectorShopPhone').textContent = '📞 ' + appSettings.workshop_phone;
                     }
-                    if (settings.vat_number) {
-                        document.getElementById('inspectorShopVat').textContent = '📄 الرقم الضريبي: ' + settings.vat_number;
+                    if (appSettings.vat_number) {
+                        document.getElementById('inspectorShopVat').textContent = '📄 الرقم الضريبي: ' + appSettings.vat_number;
                     }
                 }
             } catch (e) {}
@@ -1261,6 +1282,30 @@
             }
             if (id) {
                 await loadInspection(id);
+            }
+
+            // Real-time bidirectional sync of print sheets whenever user edits fields
+            ['custName', 'custPhone', 'carType', 'carModel', 'carColor', 'vin', 'odometer', 'paidAmount', 'pL1', 'pL2', 'pL3', 'pN1', 'pN2', 'pN3', 'pN4'].forEach(fId => {
+                const el = document.getElementById(fId);
+                if (el) {
+                    el.addEventListener('input', () => {
+                        prepareOfficialQuotationSheet();
+                        prepareJobOrderSheet();
+                    });
+                    el.addEventListener('change', () => {
+                        prepareOfficialQuotationSheet();
+                        prepareJobOrderSheet();
+                    });
+                }
+            });
+
+            prepareOfficialQuotationSheet();
+            prepareJobOrderSheet();
+
+            if (urlParams.get('autoprint') === '1') {
+                setTimeout(() => {
+                    doPrint();
+                }, 500);
             }
         }
 
@@ -1547,6 +1592,10 @@
             document.getElementById('finalTotal').textContent = final.toFixed(2);
             document.getElementById('remainingAmount').textContent = remaining.toFixed(2);
             document.getElementById('mobileBottomFinalTotal').textContent = `${final.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ﷼`;
+
+            // Keep print sheets synchronized with totals
+            prepareOfficialQuotationSheet();
+            prepareJobOrderSheet();
         }
 
         async function saveInspection() {
@@ -1674,10 +1723,15 @@
                 const res = await fetch(`/api/inspections/${id}`);
                 if (!res.ok) throw new Error('المستند غير موجود');
                 const data = await res.json();
+                currentInspection = data;
                 currentInspectionId = data.id;
                 document.getElementById('inspectionIdDisplay').textContent = data.id;
                 document.getElementById('inspectionIdBadge').textContent = `#${data.id}`;
-                document.getElementById('currentDate').textContent = new Date(data.created_at).toLocaleDateString('ar-SA');
+                if (data.created_at) {
+                    try {
+                        document.getElementById('currentDate').textContent = new Date(data.created_at).toLocaleDateString('ar-SA');
+                    } catch(e) {}
+                }
                 document.getElementById('custName').value = data.customer_name || '';
                 document.getElementById('custPhone').value = data.customer_phone || '';
                 document.getElementById('carType').value = data.car_type || '';
@@ -1698,10 +1752,21 @@
 
                 // Load plate
                 if (data.plate_number) {
-                    const parts = data.plate_number.split(' ');
-                    if (parts.length === 2) {
+                    const plateStr = String(data.plate_number).trim();
+                    const parts = plateStr.split(/\s+/);
+                    if (parts.length >= 2) {
                         const letters = parts[0];
                         const numbers = parts[1];
+                        document.getElementById('pL1').value = letters[0] || '';
+                        document.getElementById('pL2').value = letters[1] || '';
+                        document.getElementById('pL3').value = letters[2] || '';
+                        document.getElementById('pN1').value = numbers[0] || '';
+                        document.getElementById('pN2').value = numbers[1] || '';
+                        document.getElementById('pN3').value = numbers[2] || '';
+                        document.getElementById('pN4').value = numbers[3] || '';
+                    } else {
+                        const letters = plateStr.replace(/[^ء-يa-zA-Z]/g, '');
+                        const numbers = plateStr.replace(/[^0-9]/g, '');
                         document.getElementById('pL1').value = letters[0] || '';
                         document.getElementById('pL2').value = letters[1] || '';
                         document.getElementById('pL3').value = letters[2] || '';
@@ -1729,6 +1794,8 @@
                 }
 
                 calculateTotals();
+                prepareOfficialQuotationSheet();
+                prepareJobOrderSheet();
 
                 const trackLink = document.getElementById('inspectorTrackLink');
                 if (trackLink && data.id) {
@@ -1805,18 +1872,25 @@
         
         
         function getSafeVal(elId, propName) {
+            const el = document.getElementById(elId);
+            if (el) {
+                if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
+                    const val = (el.value || '').trim();
+                    if (val && val !== '-' && val !== '---' && val !== 'غير محدد' && val !== 'جديد') {
+                        return val;
+                    }
+                } else {
+                    const txt = (el.textContent || '').trim();
+                    if (txt && txt !== '-' && txt !== '---' && txt !== 'غير محدد' && txt !== 'جديد' && txt !== '--/--/----') {
+                        return txt;
+                    }
+                }
+            }
             if (typeof currentInspection !== 'undefined' && currentInspection && currentInspection[propName] !== undefined && currentInspection[propName] !== null) {
                 const v = String(currentInspection[propName]).trim();
-                if (v && v !== '-' && v !== '---') return v;
+                if (v && v !== '-' && v !== '---' && v !== 'غير محدد' && v !== 'جديد') return v;
             }
-            const el = document.getElementById(elId);
-            if (!el) return '';
-            if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
-                return (el.value || '').trim();
-            }
-            const txt = (el.textContent || '').trim();
-            if (txt === '-' || txt === '---' || txt === 'غير محدد' || txt === 'جديد') return '';
-            return txt;
+            return '';
         }
 
         function escapeHtml(str) {
@@ -1829,36 +1903,25 @@
             if (!sheet) return;
 
             // 1. Dynamic Workshop Info from Settings / DOM
-            let shopName = '';
-            let shopDesc = '';
-            let shopPhone = '';
+            const shopName = appSettings?.workshop_name || 
+                             appSettings?.app_name || 
+                             (typeof settings !== 'undefined' && settings?.workshop_name) ||
+                             (window.APP_CONFIG?.settings?.workshop_name) ||
+                             document.getElementById('inspectorShopName')?.textContent?.trim() || 
+                             document.getElementById('shopName')?.textContent?.trim() || 
+                             'مركز صيانة السيارات';
 
-            try {
-                if (typeof settings !== 'undefined' && settings) {
-                    shopName = settings.workshop_name || settings.app_name || '';
-                    shopDesc = settings.workshop_desc || '';
-                    shopPhone = settings.workshop_phone || '';
-                } else if (window.APP_CONFIG && window.APP_CONFIG.settings) {
-                    const s = window.APP_CONFIG.settings;
-                    shopName = s.workshop_name || s.app_name || '';
-                    shopDesc = s.workshop_desc || '';
-                    shopPhone = s.workshop_phone || '';
-                }
-            } catch(e) {}
+            const shopDesc = appSettings?.workshop_desc || 
+                             (typeof settings !== 'undefined' && settings?.workshop_desc) ||
+                             (window.APP_CONFIG?.settings?.workshop_desc) ||
+                             document.getElementById('inspectorShopDesc')?.textContent?.replace(/^📍\s*/, '').trim() || 
+                             document.getElementById('shopDesc')?.textContent?.replace(/^📍\s*/, '').trim() || '';
 
-            if (!shopName) {
-                shopName = document.getElementById('shopName')?.textContent?.trim() || 
-                           document.getElementById('inspectorShopName')?.textContent?.trim() || 
-                           'مركز صيانة السيارات';
-            }
-            if (!shopDesc) {
-                shopDesc = document.getElementById('shopDesc')?.textContent?.trim() || 
-                           document.getElementById('inspectorShopDesc')?.textContent?.trim() || '';
-            }
-            if (!shopPhone) {
-                shopPhone = document.getElementById('shopPhone')?.textContent?.trim() || 
-                            document.getElementById('inspectorShopPhone')?.textContent?.trim() || '';
-            }
+            const shopPhone = appSettings?.workshop_phone || 
+                              (typeof settings !== 'undefined' && settings?.workshop_phone) ||
+                              (window.APP_CONFIG?.settings?.workshop_phone) ||
+                              document.getElementById('inspectorShopPhone')?.textContent?.replace(/[^0-9+ ]/g, '').trim() || 
+                              document.getElementById('shopPhone')?.textContent?.replace(/[^0-9+ ]/g, '').trim() || '';
 
             const jcShopName = document.getElementById('jcShopName');
             if (jcShopName) jcShopName.textContent = shopName;
@@ -1866,13 +1929,11 @@
             const jcShopDesc = document.getElementById('jcShopDesc');
             if (jcShopDesc) jcShopDesc.textContent = shopDesc;
 
-            if (shopPhone) {
-                const cleanPhone = shopPhone.replace(/📞|جوال:?/g, '').trim();
-                const jcShopPhones = document.getElementById('jcShopPhones');
-                if (jcShopPhones) jcShopPhones.textContent = cleanPhone;
-                const jcFooterContacts = document.getElementById('jcFooterContacts');
-                if (jcFooterContacts) jcFooterContacts.innerHTML = '<span>📞 ' + cleanPhone + '</span>';
-            }
+            const jcShopPhones = document.getElementById('jcShopPhones');
+            if (jcShopPhones) jcShopPhones.textContent = shopPhone;
+
+            const jcFooterContacts = document.getElementById('jcFooterContacts');
+            if (jcFooterContacts) jcFooterContacts.innerHTML = '<span>📞 ' + shopPhone + '</span>';
 
             // 2. Job Order ID & Dates
             let docId = getSafeVal('orderId', 'id') || 
@@ -2074,65 +2135,109 @@
             if (!sheet) return;
 
             // 1. Dynamic Workshop Info
-            let shopName = '';
-            let shopDesc = '';
-            let shopPhone = '';
+            const shopName = appSettings?.workshop_name || 
+                             appSettings?.app_name || 
+                             (typeof settings !== 'undefined' && settings?.workshop_name) ||
+                             (window.APP_CONFIG?.settings?.workshop_name) ||
+                             document.getElementById('inspectorShopName')?.textContent?.trim() || 
+                             document.getElementById('shopName')?.textContent?.trim() || 
+                             'مركز صيانة السيارات';
 
-            try {
-                if (typeof settings !== 'undefined' && settings) {
-                    shopName = settings.workshop_name || settings.app_name || '';
-                    shopDesc = settings.workshop_desc || '';
-                    shopPhone = settings.workshop_phone || '';
-                } else if (window.APP_CONFIG && window.APP_CONFIG.settings) {
-                    const s = window.APP_CONFIG.settings;
-                    shopName = s.workshop_name || s.app_name || '';
-                    shopDesc = s.workshop_desc || '';
-                    shopPhone = s.workshop_phone || '';
-                }
-            } catch(e) {}
+            const shopDesc = appSettings?.workshop_desc || 
+                             (typeof settings !== 'undefined' && settings?.workshop_desc) ||
+                             (window.APP_CONFIG?.settings?.workshop_desc) ||
+                             document.getElementById('inspectorShopDesc')?.textContent?.replace(/^📍\s*/, '').trim() || 
+                             document.getElementById('shopDesc')?.textContent?.replace(/^📍\s*/, '').trim() || '';
 
-            if (!shopName) {
-                shopName = document.getElementById('inspectorShopName')?.textContent?.trim() || 
-                           document.getElementById('shopName')?.textContent?.trim() || 
-                           'مركز صيانة السيارات';
-            }
-            if (!shopPhone) {
-                shopPhone = document.getElementById('inspectorShopPhone')?.textContent?.trim() || 
-                            document.getElementById('shopPhone')?.textContent?.trim() || '';
-            }
+            const shopPhone = appSettings?.workshop_phone || 
+                              (typeof settings !== 'undefined' && settings?.workshop_phone) ||
+                              (window.APP_CONFIG?.settings?.workshop_phone) ||
+                              document.getElementById('inspectorShopPhone')?.textContent?.replace(/[^0-9+ ]/g, '').trim() || 
+                              document.getElementById('shopPhone')?.textContent?.replace(/[^0-9+ ]/g, '').trim() || '';
 
             const opsWorkshopTitleAr = document.getElementById('opsWorkshopTitleAr');
-            if (opsWorkshopTitleAr && shopName !== 'Atenza App') {
-                opsWorkshopTitleAr.textContent = shopName;
-            }
-            if (shopPhone) {
-                const opsWorkshopPhones = document.getElementById('opsWorkshopPhones');
-                if (opsWorkshopPhones) {
-                    opsWorkshopPhones.innerHTML = '<span>' + shopPhone.replace(/[^0-9 ]/g, '').trim() + '</span>';
-                }
-            }
+            if (opsWorkshopTitleAr) opsWorkshopTitleAr.textContent = shopName;
+
+            const opsWorkshopDescEl = document.getElementById('opsWorkshopDesc');
+            if (opsWorkshopDescEl) opsWorkshopDescEl.textContent = shopDesc;
+
+            const opsWorkshopPhones = document.getElementById('opsWorkshopPhones');
+            if (opsWorkshopPhones) opsWorkshopPhones.textContent = shopPhone;
+
+            const opsFooterBrand = document.getElementById('opsFooterBrand');
+            if (opsFooterBrand) opsFooterBrand.textContent = shopName;
 
             // 2. Meta Information
-            const docId = String(currentInspectionId || document.getElementById('inspectionIdDisplay')?.textContent || '').replace(/[^0-9]/g, '') || '---';
-            document.getElementById('opsQuoteNo').textContent = docId;
+            let docId = getSafeVal('orderId', 'id') || 
+                        getSafeVal('inspectionIdDisplay', 'id') || 
+                        String(currentInspectionId || '').replace(/[^0-9]/g, '') || '---';
+            const opsQuoteNoEl = document.getElementById('opsQuoteNo');
+            if (opsQuoteNoEl) opsQuoteNoEl.textContent = docId;
 
-            const curDate = document.getElementById('currentDate')?.textContent || new Date().toLocaleDateString('ar-SA');
-            document.getElementById('opsDate').textContent = curDate;
+            let curDate = getSafeVal('orderDate', 'created_at') || 
+                          getSafeVal('currentDate', 'created_at') || 
+                          new Date().toLocaleDateString('en-GB');
+            if (curDate && curDate.includes('T')) {
+                try { curDate = new Date(curDate).toLocaleDateString('en-GB'); } catch(e){}
+            }
+            const opsDateEl = document.getElementById('opsDate');
+            if (opsDateEl) opsDateEl.textContent = curDate;
 
-            const custName = document.getElementById('custName')?.value || '---';
-            document.getElementById('opsCustomerName').textContent = custName;
+            // Customer Info
+            const custName = getSafeVal('custName', 'customer_name');
+            const opsCustEl = document.getElementById('opsCustomerName');
+            if (opsCustEl) opsCustEl.textContent = custName || '---';
 
-            document.getElementById('opsCarType').textContent = document.getElementById('carType')?.value || '---';
-            document.getElementById('opsCarModel').textContent = document.getElementById('carModel')?.value || '---';
+            const custPhone = getSafeVal('custPhone', 'customer_phone');
+            const opsPhoneEl = document.getElementById('opsCustomerPhone');
+            if (opsPhoneEl) opsPhoneEl.textContent = custPhone || '---';
 
-            const pL = [document.getElementById('pL1')?.value, document.getElementById('pL2')?.value, document.getElementById('pL3')?.value].filter(Boolean).join(' ');
-            const pN = [document.getElementById('pN1')?.value, document.getElementById('pN2')?.value, document.getElementById('pN3')?.value, document.getElementById('pN4')?.value].filter(Boolean).join('');
-            const plate = (pL || pN) ? (pL + ' ' + pN) : '---';
-            document.getElementById('opsPlateNo').textContent = plate;
-            document.getElementById('opsChassisNo').textContent = document.getElementById('vin')?.value || '';
+            // Vehicle Info
+            const carType = getSafeVal('carType', 'car_type');
+            const opsCarTypeEl = document.getElementById('opsCarType');
+            if (opsCarTypeEl) opsCarTypeEl.textContent = carType || '---';
 
-            let user = currentUser?.name || currentUser?.employee_name || currentUser?.username || 'ADMIN';
-            document.getElementById('opsUserName').textContent = user.toUpperCase();
+            let carModel = getSafeVal('carModel', 'car_model');
+            let carColor = getSafeVal('carColor', 'car_color');
+            if (!carColor) {
+                const modelColor = getSafeVal('carModelColor', 'car_model_color');
+                if (modelColor) carColor = modelColor;
+            }
+            const modelColor = [carModel, carColor].filter(Boolean).join(' / ') || '---';
+            const opsCarModelColorEl = document.getElementById('opsCarModelColor');
+            if (opsCarModelColorEl) opsCarModelColorEl.textContent = modelColor;
+
+            let plate = '';
+            const pL = [
+                document.getElementById('pL1')?.value || '',
+                document.getElementById('pL2')?.value || '',
+                document.getElementById('pL3')?.value || ''
+            ].filter(Boolean).join(' ');
+            const pN = [
+                document.getElementById('pN1')?.value || '',
+                document.getElementById('pN2')?.value || '',
+                document.getElementById('pN3')?.value || '',
+                document.getElementById('pN4')?.value || ''
+            ].filter(Boolean).join('');
+            if (pL || pN) {
+                plate = (pL + ' - ' + pN).trim();
+            } else if (typeof currentInspection !== 'undefined' && currentInspection && currentInspection.plate_number) {
+                plate = currentInspection.plate_number;
+            }
+            const opsPlateEl = document.getElementById('opsPlateNo');
+            if (opsPlateEl) opsPlateEl.textContent = plate || '---';
+
+            const vin = getSafeVal('vin', 'vin');
+            const opsChassisEl = document.getElementById('opsChassisNo');
+            if (opsChassisEl) opsChassisEl.textContent = vin || '---';
+
+            let user = getSafeVal('inspectorName', 'inspector_name');
+            if (!user && typeof currentUser !== 'undefined' && currentUser) {
+                user = currentUser.name || currentUser.employee_name || currentUser.username || '';
+            }
+            const inspectorName = document.getElementById('inspectorNameDisplay')?.textContent || (user || 'ADMIN');
+            const opsUserEl = document.getElementById('opsUserName');
+            if (opsUserEl) opsUserEl.textContent = inspectorName.toUpperCase();
 
             // 3. Populate Unified Services Table
             const tbody = document.getElementById('opsServicesTbody');
@@ -2211,20 +2316,6 @@
                 window.print();
             }, 60);
         }
-
-        // Auto-print support when opened from lists with ?autoprint=1
-        (function() {
-            const params = new URLSearchParams(window.location.search);
-            if (params.get('autoprint') === '1') {
-                const checkInterval = setInterval(() => {
-                    if (document.getElementById('custName')?.value || document.querySelectorAll('#tableBody tr').length > 0) {
-                        clearInterval(checkInterval);
-                        setTimeout(() => { doPrint(); }, 400);
-                    }
-                }, 100);
-                setTimeout(() => { clearInterval(checkInterval); }, 4000);
-            }
-        })();
 
         // ==========================================
         // 🔍 نظام الإكمال التلقائي الذكي للعملاء
@@ -2386,106 +2477,109 @@
     
     <!-- OFFICIAL QUOTATION PRINT SHEET (Single Unified Services Table) -->
     <div id="officialQuotationPrintSheet">
-        <header class="ops-header">
-            <div class="ops-header-top">
-                <h1 class="ops-title-ar" id="opsWorkshopTitleAr">مركز الصيانة</h1>
-                <div class="ops-title-en" id="opsWorkshopTitleEn">Mazda Service</div>
-                <div class="ops-phones" id="opsWorkshopPhones">
-                    <span>0556565135</span>
-                    <span>0566522351</span>
+        <div class="quotation-card-sheet">
+            <div class="ops-header">
+                <div class="ops-header-top">
+                    <div class="ops-header-right">
+                        <h2 class="ops-title-ar" id="opsWorkshopTitleAr">مركز الصيانة</h2>
+                        <p class="ops-sub-ar" id="opsWorkshopDesc">طريق مكة القديم مجمع كيلو 14</p>
+                        <p class="ops-phones-ar" id="opsWorkshopPhones">0556565135 &nbsp;&nbsp;&nbsp; 0566522351</p>
+                    </div>
+                    <div class="ops-header-center">
+                        <div class="ops-quote-badge">
+                            <span class="badge-label" id="opsBadgeTitle">تسعيرة أجور وإصلاح</span>
+                            <span class="badge-num" id="opsQuoteNo">---</span>
+                        </div>
+                    </div>
+                    <div class="ops-header-left">
+                        <h2 class="ops-title-en" id="opsWorkshopTitleEn">Mazda Service</h2>
+                        <p class="ops-sub-en" id="opsBranchName">Quotation / Price Estimate</p>
+                        <p class="ops-date-en">Date: <b id="opsDate" style="direction:ltr; display:inline-block;">--/--/----</b></p>
+                    </div>
                 </div>
+
+                <!-- Customer & Vehicle Info 3-Row Grid Table -->
+                <table class="ops-info-table">
+                    <tbody>
+                        <tr>
+                            <td class="lbl">اسم العميل Customer Name</td>
+                            <td class="val" id="opsCustomerName" style="font-weight: 800;">---</td>
+                            <td class="lbl">نوع السيارة Car Type</td>
+                            <td class="val" id="opsCarType">---</td>
+                        </tr>
+                        <tr>
+                            <td class="lbl">رقم الجوال Mobile No</td>
+                            <td class="val" id="opsCustomerPhone" style="direction: ltr;">---</td>
+                            <td class="lbl">الموديل / اللون Model / Color</td>
+                            <td class="val" id="opsCarModelColor">---</td>
+                        </tr>
+                        <tr>
+                            <td class="lbl">رقم اللوحة Plate No</td>
+                            <td class="val" id="opsPlateNo" style="font-weight: 900;">---</td>
+                            <td class="lbl">رقم الهيكل (الشاصيه) VIN</td>
+                            <td class="val" id="opsChassisNo" style="font-size: 11px; letter-spacing: 0.5px;">---</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            <div class="ops-meta-row">
-                <div><span>رقم المطالبة / Claim the No : </span><span id="opsClaimNo" style="font-weight: bold;"></span></div>
-                <div class="ops-quote-badge">
-                    <span class="badge-label" id="opsBadgeTitle">تسعيرة إصلاح رقم<br>priceing No</span>
-                    <span class="badge-num" id="opsQuoteNo">---</span>
-                </div>
-                <div><span>التاريخ / Date : </span><span id="opsDate" style="direction: ltr; font-family: inherit;">--/--/----</span></div>
-            </div>
-            <div class="ops-customer-row">
-                <div><span>السادة / </span><span id="opsCustomerName" style="font-weight: 800; font-size: 13px;"></span></div>
-                <div><span>Customer Name\</span></div>
-            </div>
-            <div class="ops-intro-text">
-                تقدم لكم نموذج تسعيرة إصلاح للمركبة المبين تفاصيلها أدناه ,,, A repair model for the vehicle details below
-            </div>
-            <table class="ops-car-table">
+
+            <!-- Unified Full-Width Services / Labor Table -->
+            <table class="ops-unified-table">
                 <thead>
                     <tr>
-                        <th style="width: 25%;">نوع السيارة<br><span style="font-weight: normal;">Type Car</span></th>
-                        <th style="width: 20%;">الموديل<br><span style="font-weight: normal;">Model</span></th>
-                        <th style="width: 25%;">رقم اللوحة<br><span style="font-weight: normal;">plate No</span></th>
-                        <th style="width: 30%;">رقم الشاص<br><span style="font-weight: normal;">Shass</span></th>
+                        <th style="width: 28px;">م<br>No</th>
+                        <th style="width: 100px;">القسم<br>Section</th>
+                        <th>تفصيل الإصلاح والخدمات المطلوبة<br>Description of Services & Reform</th>
+                        <th style="width: 40px;">العدد<br>Qty</th>
+                        <th style="width: 75px;">السعر<br>Price</th>
+                        <th style="width: 80px;">الإجمالي<br>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="opsServicesTbody"></tbody>
+            </table>
+
+            <!-- Quotation Totals Table -->
+            <table class="ops-totals-table">
+                <thead>
+                    <tr>
+                        <th style="width: 20%;">المبلغ قبل الضريبة<br>Subtotal</th>
+                        <th style="width: 20%;">الخصم<br>Discount</th>
+                        <th style="width: 20%;">المبلغ بعد الخصم<br>Taxable Amount</th>
+                        <th style="width: 20%;">القيمة المضافة 15%<br>VAT 15%</th>
+                        <th style="width: 20%;">الإجمالي النهائي<br>Grand Total</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td id="opsCarType">---</td>
-                        <td id="opsCarModel">---</td>
-                        <td id="opsPlateNo">---</td>
-                        <td id="opsChassisNo"></td>
+                        <td id="opsSubtotalVal">0.00</td>
+                        <td id="opsDiscountVal">0.00</td>
+                        <td id="opsAfterDiscVal">0.00</td>
+                        <td id="opsVatVal">0.00</td>
+                        <td id="opsGrandTotalVal" class="ops-grand-total-cell">0.00</td>
                     </tr>
                 </tbody>
             </table>
-        </header>
 
-        <!-- Unified Full-Width Services / Labor Table -->
-        <table class="ops-unified-table">
-            <thead>
-                <tr>
-                    <th style="width: 30px;">م<br>No</th>
-                    <th style="width: 110px;">القسم<br>Section</th>
-                    <th>تفصيل الإصلاح والخدمات المطلوبة<br>Description of Services & Reform</th>
-                    <th style="width: 45px;">العدد<br>Qty</th>
-                    <th style="width: 85px;">السعر<br>Price</th>
-                    <th style="width: 90px;">الإجمالي<br>Total</th>
-                </tr>
-            </thead>
-            <tbody id="opsServicesTbody"></tbody>
-        </table>
-
-        <!-- Quotation Totals Table -->
-        <table class="ops-totals-table">
-            <thead>
-                <tr>
-                    <th style="width: 20%;">المبلغ قبل الضريبة<br>Subtotal</th>
-                    <th style="width: 20%;">الخصم<br>Discount</th>
-                    <th style="width: 20%;">المبلغ بعد الخصم<br>Taxable Amount</th>
-                    <th style="width: 20%;">القيمة المضافة 15%<br>VAT 15%</th>
-                    <th style="width: 20%;">الإجمالي النهائي<br>Grand Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td id="opsSubtotalVal">0.00</td>
-                    <td id="opsDiscountVal">0.00</td>
-                    <td id="opsAfterDiscVal">0.00</td>
-                    <td id="opsVatVal">0.00</td>
-                    <td id="opsGrandTotalVal" class="ops-grand-total-cell">0.00</td>
-                </tr>
-            </tbody>
-        </table>
-
-        <footer class="ops-footer">
-            <div class="ops-notes-row"><span>اعمال بعد الفك Possible appear damage after jaw</span></div>
-            <div class="ops-wishes-text">نرجو أن ينال عرضنا هذا رضاكم وشاكرين حسن تعاونكم best wishes</div>
-            <div class="ops-signatures-row">
-                <div class="ops-stamp-box"><span>الختم Stamp</span><div class="ops-stamp-circle">ختم الورشة</div></div>
-                <div class="ops-manager-box"><span>توقيع المسؤول Manager Sign</span><div class="ops-sign-line">................................................</div></div>
-            </div>
-            <div class="ops-bottom-info">
-                <div><span>User Name : </span><b id="opsUserName">ADMIN</b><span style="margin-right: 4px;">اسم المستخدم</span></div>
-                <div><span id="opsFooterBrand">Atenza Service - Mazda Specialists</span></div>
-            </div>
-        </footer>
+            <footer class="ops-footer">
+                <div class="ops-notes-row"><span>اعمال بعد الفك Possible appear damage after jaw</span></div>
+                <div class="ops-wishes-text">نرجو أن ينال عرضنا هذا رضاكم وشاكرين حسن تعاونكم best wishes</div>
+                <div class="ops-signatures-row">
+                    <div class="ops-stamp-box"><span>الختم Stamp</span><div class="ops-stamp-circle">ختم الورشة</div></div>
+                    <div class="ops-manager-box"><span>توقيع المسؤول Manager Sign</span><div class="ops-sign-line">................................................</div></div>
+                </div>
+                <div class="ops-bottom-info">
+                    <div><span>User Name : </span><b id="opsUserName">ADMIN</b><span style="margin-right: 4px;">اسم المستخدم</span></div>
+                    <div><span id="opsFooterBrand">Atenza Service - Mazda Specialists</span></div>
+                </div>
+            </footer>
+        </div>
     </div>
 
 
     <!-- OFFICIAL CONTRACT JOB CARD PRINT SHEET -->
     <div id="officialJobOrderPrintSheet">
         <div class="job-card-sheet">
-            <header class="jc-header">
+            <div class="jc-header">
                 <div class="jc-header-right">
                     <h2 id="jcShopName">مركز الصيانة</h2>
                     <p id="jcShopDesc">طريق مكة القديم مجمع كيلو 14</p>
@@ -2496,7 +2590,7 @@
                     <p id="jcBranchName">kello 14</p>
                     <p>نسخه رقم &nbsp; <b>1</b> &nbsp; Copy No</p>
                 </div>
-            </header>
+            </div>
 
             <div class="jc-title-bar">
                 <span class="jc-main-title">Contract Job Card &nbsp;&nbsp;&nbsp; إتفاقية وأمر عمل</span>

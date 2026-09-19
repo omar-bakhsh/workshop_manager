@@ -105,7 +105,7 @@
     }
 
     /* =========================================================
-       📱 Top App Header (Mobile Optimized Bar)
+       <i class="fa-solid fa-mobile-screen"></i> Top App Header (Mobile Optimized Bar)
        ========================================================= */
     .app-topbar {
       position: sticky;
@@ -458,7 +458,7 @@
     }
 
     /* =========================================================
-       📊 Compact KPI Stats Cards
+       <i class="fa-solid fa-chart-pie"></i> Compact KPI Stats Cards
        ========================================================= */
     .kpi-stats-grid {
       display: grid;
@@ -550,7 +550,7 @@
     }
 
     /* =========================================================
-       📝 Forms & Requests (Touch-Friendly UI)
+       <i class="fa-solid fa-pen-to-square"></i> Forms & Requests (Touch-Friendly UI)
        ========================================================= */
     .form-card {
       background: var(--surface);
@@ -676,7 +676,7 @@
     .pill-rejected { background: #fee2e2; color: #991b1b; }
 
     /* =========================================================
-       💬 Modern Mobile Chat Room
+       <i class="fa-solid fa-comment-dots"></i> Modern Mobile Chat Room
        ========================================================= */
     .chat-container-card {
       background: var(--surface);
@@ -775,7 +775,7 @@
     }
 
     /* =========================================================
-       🔔 Notifications Panel Drawer
+       <i class="fa-solid fa-bell"></i> Notifications Panel Drawer
        ========================================================= */
     .notif-drawer {
       position: fixed;
@@ -826,7 +826,7 @@
     }
 
     /* =========================================================
-       📱 Fixed Bottom Navigation Bar
+       <i class="fa-solid fa-mobile-screen"></i> Fixed Bottom Navigation Bar
        ========================================================= */
     .bottom-navbar {
       position: fixed;
@@ -908,12 +908,13 @@
       display: none;
     }
   </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
 
   <!-- =========================================================
-       📱 Top Header Bar
+       <i class="fa-solid fa-mobile-screen"></i> Top Header Bar
        ========================================================= -->
   <header class="app-topbar">
     <div class="user-profile-summary">
@@ -935,13 +936,13 @@
 
       <!-- Notifications -->
       <button class="icon-btn" id="notifBtn" onclick="toggleNotif()" title="الإشعارات">
-        🔔
+        <i class="fa-solid fa-bell"></i>
         <span id="notifBadge" class="badge-count" style="display:none;">0</span>
       </button>
 
       <!-- Logout -->
       <button class="icon-btn" onclick="logout()" title="تسجيل الخروج" style="color: var(--danger);">
-        🚪
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
       </button>
     </div>
   </header>
@@ -949,7 +950,7 @@
   <!-- Notifications Drawer -->
   <div id="notifDrawer" class="notif-drawer">
     <div class="notif-drawer-header">
-      <h4 style="font-size: 14px; font-weight: 800;">🔔 مركز الإشعارات</h4>
+      <h4 style="font-size: 14px; font-weight: 800;"><i class="fa-solid fa-bell"></i> مركز الإشعارات</h4>
       <button onclick="markAllRead()" style="background:none; border:none; color:var(--primary); font-size:12px; font-weight:700; cursor:pointer;">تحديد الكل كمقروء</button>
     </div>
     <div id="notifList" class="notif-scroll-area">
@@ -963,7 +964,7 @@
   <main class="app-main">
 
     <!-- =========================================================
-         TAB 1: 🏠 الرئيسية (Dashboard & Smart Attendance)
+         TAB 1: <i class="fa-solid fa-house"></i> الرئيسية (Dashboard & Smart Attendance)
          ========================================================= -->
     <section id="tabHome" class="tab-view active">
       
@@ -1000,13 +1001,13 @@
 
       <!-- Quick KPI Summary -->
       <div class="section-headline">
-        <h3>📊 ملخص اليوم والراتب</h3>
+        <h3><i class="fa-solid fa-chart-pie"></i> ملخص اليوم والراتب</h3>
       </div>
       <div class="kpi-stats-grid">
         <div class="kpi-card highlight span-2">
           <div class="kpi-card-header">
             <span class="kpi-label">صافي الراتب المستحق</span>
-            <div class="kpi-icon" style="background: rgba(255,255,255,0.2);">💵</div>
+            <div class="kpi-icon" style="background: rgba(255,255,255,0.2);"><i class="fa-solid fa-money-bill"></i></div>
           </div>
           <div class="kpi-value" id="dashNetRemaining">0 ﷼</div>
         </div>
@@ -1014,7 +1015,7 @@
         <div class="kpi-card">
           <div class="kpi-card-header">
             <span class="kpi-label">الدخل المحقق</span>
-            <div class="kpi-icon" style="background:#dcfce7; color:#166534;">💰</div>
+            <div class="kpi-icon" style="background:#dcfce7; color:#166534;"><i class="fa-solid fa-sack-dollar"></i></div>
           </div>
           <div class="kpi-value" id="dashTotalIncome">0</div>
           <div id="dashIncomeHidden" style="display:none; font-size:12px; color:var(--text-muted); font-weight:700;">🔒 مخفي</div>
@@ -1035,14 +1036,14 @@
     </section>
 
     <!-- =========================================================
-         TAB 2: 📝 الطلبات (Requests Management)
+         TAB 2: <i class="fa-solid fa-pen-to-square"></i> الطلبات (Requests Management)
          ========================================================= -->
     <section id="tabRequests" class="tab-view">
 
       <!-- Fast Withdrawal Form -->
       <div class="form-card">
         <div class="form-card-title">
-          <span>💳</span>
+          <span><i class="fa-solid fa-credit-card"></i></span>
           <span>طلب سحب مبلغ مالي</span>
         </div>
         <form id="withdrawalRequestForm">
@@ -1107,7 +1108,7 @@
 
       <!-- Requests History -->
       <div class="section-headline">
-        <h3>📋 سجل الطلبات السابقة</h3>
+        <h3><i class="fa-solid fa-clipboard-list"></i> سجل الطلبات السابقة</h3>
       </div>
       <div id="requestHistory">
         <div style="padding: 20px; text-align: center; color: var(--text-muted);">جاري المزامنة...</div>
@@ -1116,7 +1117,7 @@
     </section>
 
     <!-- =========================================================
-         TAB 3: 📊 المالية والإنتاجية (Financials)
+         TAB 3: <i class="fa-solid fa-chart-pie"></i> المالية والإنتاجية (Financials)
          ========================================================= -->
     <section id="tabFinance" class="tab-view">
 
@@ -1133,7 +1134,7 @@
         <div class="kpi-card">
           <div class="kpi-card-header">
             <span class="kpi-label">إجمالي الدخل</span>
-            <div class="kpi-icon" style="background:#dcfce7; color:#166534;">💰</div>
+            <div class="kpi-icon" style="background:#dcfce7; color:#166534;"><i class="fa-solid fa-sack-dollar"></i></div>
           </div>
           <div class="kpi-value" id="finTotalIncome">0</div>
           <div id="finIncomeHidden" style="display:none; font-size:12px; color:var(--text-muted); font-weight:700;">🔒 مخفي</div>
@@ -1142,7 +1143,7 @@
         <div class="kpi-card">
           <div class="kpi-card-header">
             <span class="kpi-label">إجمالي السحوبات</span>
-            <div class="kpi-icon" style="background:#fee2e2; color:#991b1b;">💳</div>
+            <div class="kpi-icon" style="background:#fee2e2; color:#991b1b;"><i class="fa-solid fa-credit-card"></i></div>
           </div>
           <div class="kpi-value" id="finTotalWithdrawals">0</div>
         </div>
@@ -1150,7 +1151,7 @@
         <div class="kpi-card">
           <div class="kpi-card-header">
             <span class="kpi-label">الرصيد المتبقي</span>
-            <div class="kpi-icon" style="background:#e0f2fe; color:#0369a1;">💵</div>
+            <div class="kpi-icon" style="background:#e0f2fe; color:#0369a1;"><i class="fa-solid fa-money-bill"></i></div>
           </div>
           <div class="kpi-value" id="finRemainingBalance">0</div>
         </div>
@@ -1170,7 +1171,7 @@
       <!-- Income Operations Record -->
       <div id="incomeSection" class="form-card" style="display: none;">
         <div class="form-card-title">
-          <span>📈</span>
+          <span><i class="fa-solid fa-chart-line"></i></span>
           <span>سجل العمليات اليومية</span>
         </div>
         <div id="entriesContainer"></div>
@@ -1179,7 +1180,7 @@
     </section>
 
     <!-- =========================================================
-         TAB 4: 💬 المحادثة المباشرة (Chat Room)
+         TAB 4: <i class="fa-solid fa-comment-dots"></i> المحادثة المباشرة (Chat Room)
          ========================================================= -->
     <section id="tabChat" class="tab-view">
       <div class="chat-container-card">
@@ -1207,30 +1208,30 @@
   </main>
 
   <!-- =========================================================
-       📱 Fixed Bottom Navigation Bar
+       <i class="fa-solid fa-mobile-screen"></i> Fixed Bottom Navigation Bar
        ========================================================= -->
   <nav class="bottom-navbar">
     <button class="nav-tab-btn active" onclick="switchTab('tabHome')" id="navBtn-tabHome">
-      <div class="nav-tab-icon">🏠</div>
+      <div class="nav-tab-icon"><i class="fa-solid fa-house"></i></div>
       <span class="nav-tab-label">الرئيسية</span>
       <div class="nav-tab-dot"></div>
     </button>
 
     <button class="nav-tab-btn" onclick="switchTab('tabRequests')" id="navBtn-tabRequests">
-      <div class="nav-tab-icon">📝</div>
+      <div class="nav-tab-icon"><i class="fa-solid fa-pen-to-square"></i></div>
       <span class="nav-tab-label">الطلبات</span>
       <div class="nav-tab-dot"></div>
     </button>
 
     <button class="nav-tab-btn" onclick="switchTab('tabFinance')" id="navBtn-tabFinance">
-      <div class="nav-tab-icon">📊</div>
+      <div class="nav-tab-icon"><i class="fa-solid fa-chart-pie"></i></div>
       <span class="nav-tab-label">المالية</span>
       <div class="nav-tab-dot"></div>
     </button>
 
     <button class="nav-tab-btn" onclick="switchTab('tabChat')" id="navBtn-tabChat">
       <div class="nav-tab-icon">
-        💬
+        <i class="fa-solid fa-comment-dots"></i>
         <span class="tab-badge" id="chatTabBadge">0</span>
       </div>
       <span class="nav-tab-label">المحادثة</span>
@@ -1239,7 +1240,7 @@
   </nav>
 
   <!-- =========================================================
-       ⚙️ Application Logic & Handlers
+       <i class="fa-solid fa-gear"></i> Application Logic & Handlers
        ========================================================= -->
   <script>
     let employeeId = null;
@@ -1293,7 +1294,7 @@
     function updateClock() {
       const clockEl = document.getElementById('liveClock');
       if (clockEl) {
-        clockEl.textContent = new Date().toLocaleTimeString('ar-SA', { hour12: false });
+        clockEl.textContent = new Date().toLocaleTimeString('en-GB', { hour12: false });
       }
     }
 
@@ -1329,7 +1330,7 @@
       if (canEditQ) {
         navContainer.innerHTML += `
           <a href="inspector.html" class="quick-action-tile">
-            <div class="quick-action-icon" style="background:#eef2ff; color:#4f46e5;">🔍</div>
+            <div class="quick-action-icon" style="background:#eef2ff; color:#4f46e5;"><i class="fa-solid fa-magnifying-glass"></i></div>
             <div class="quick-action-title">كشف فني / تسعيرة</div>
           </a>
         `;
@@ -1338,17 +1339,17 @@
       if (canViewInspections) {
         navContainer.innerHTML += `
           <a href="inspections_list.html" class="quick-action-tile">
-            <div class="quick-action-icon" style="background:#e0f2fe; color:#0284c7;">📋</div>
+            <div class="quick-action-icon" style="background:#e0f2fe; color:#0284c7;"><i class="fa-solid fa-clipboard-list"></i></div>
             <div class="quick-action-title">سجل التسعيرات</div>
           </a>
         `;
       }
 
       if (canViewJobOrders) {
-        const title = isAssignedOnly ? 'أوامري المسندة 🛠️' : 'أوامر العمل والسيارات 🚗';
+        const title = isAssignedOnly ? 'أوامري المسندة <i class="fa-solid fa-screwdriver-wrench"></i>' : 'أوامر العمل والسيارات <i class="fa-solid fa-car"></i>';
         navContainer.innerHTML += `
           <a href="job_orders_list.html" class="quick-action-tile">
-            <div class="quick-action-icon" style="background:#dcfce7; color:#16a34a;">🛠️</div>
+            <div class="quick-action-icon" style="background:#dcfce7; color:#16a34a;"><i class="fa-solid fa-screwdriver-wrench"></i></div>
             <div class="quick-action-title">${title}</div>
           </a>
         `;
@@ -1402,7 +1403,7 @@
           if (checkOutBtn) checkOutBtn.style.display = 'none';
           if (delayAlert) delayAlert.style.display = 'none';
         } else {
-          stat.textContent = 'تم إثبات الحضور بنجاح ✅';
+          stat.innerHTML = 'تم إثبات الحضور بنجاح <i class="fa-solid fa-circle-check"></i>';
           btn.classList.remove('pulse-active');
           if (checkOutBtn && !data.check_out) checkOutBtn.style.display = 'inline-flex';
           if (checkOutBtn && data.check_out) checkOutBtn.style.display = 'none';
@@ -1411,7 +1412,7 @@
           let alertClass = 'alert-success';
 
           if (data.delay_minutes > 0) {
-            statusHTML += `<div>⚠️ تأخير عن موعد الحضور: ${(data.delay_minutes / 60).toFixed(1)} ساعة</div>`;
+            statusHTML += `<div><i class="fa-solid fa-triangle-exclamation"></i> تأخير عن موعد الحضور: ${(data.delay_minutes / 60).toFixed(1)} ساعة</div>`;
             alertClass = 'alert-warning';
           }
           if (data.early_departure_minutes > 0) {
@@ -1422,7 +1423,7 @@
             statusHTML += `<div>✨ ساعات إضافية: ${(data.overtime_minutes / 60).toFixed(1)} ساعة</div>`;
           }
           if (!statusHTML && data.check_in) {
-            statusHTML = '✅ حضور منتظم في الموعد';
+            statusHTML = '<i class="fa-solid fa-circle-check"></i> حضور منتظم في الموعد';
           }
           
           if (delayAlert) {
@@ -1516,7 +1517,7 @@
         }
 
         if (employeeData.last_sync_at) {
-          const syncDate = new Date(employeeData.last_sync_at).toLocaleString('ar-SA');
+          const syncDate = new Date(employeeData.last_sync_at).toLocaleString('en-GB');
           document.getElementById('lastSyncInfo').textContent = `🔄 آخر مزامنة مع الإكسل: ${syncDate}`;
         }
 
@@ -1538,7 +1539,7 @@
         <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border-color); font-size:13px;">
           <div>
             <div style="font-weight:700;">عملية دخل</div>
-            <div style="font-size:11px; color:var(--text-muted);">${new Date(item.created_at || Date.now()).toLocaleDateString('ar-SA')}</div>
+            <div style="font-size:11px; color:var(--text-muted);">${new Date(item.created_at || Date.now()).toLocaleDateString('en-GB')}</div>
           </div>
           <div style="font-weight:800; color:var(--success);">+${(item.income || 0).toLocaleString()} ﷼</div>
         </div>
@@ -1564,14 +1565,14 @@
 
         const statusMap = {
           'pending': { label: 'انتظار ⏳', class: 'pill-pending' },
-          'approved': { label: 'تم القبول ✅', class: 'pill-approved' },
-          'rejected': { label: 'تم الرفض ❌', class: 'pill-rejected' }
+          'approved': { label: 'تم القبول <i class="fa-solid fa-circle-check"></i>', class: 'pill-approved' },
+          'rejected': { label: 'تم الرفض <i class="fa-solid fa-circle-xmark"></i>', class: 'pill-rejected' }
         };
 
         container.innerHTML = data.map(item => {
-          const typeLabel = item.type === 'withdrawal' ? '💳 طلب سحب' : '🏖️ طلب إجازة';
+          const typeLabel = item.type === 'withdrawal' ? '<i class="fa-solid fa-credit-card"></i> طلب سحب' : '🏖️ طلب إجازة';
           const status = statusMap[item.status] || { label: item.status, class: 'pill-pending' };
-          const date = new Date(item.created_at).toLocaleDateString('ar-SA');
+          const date = new Date(item.created_at).toLocaleDateString('en-GB');
           
           return `
             <div class="history-card-item">
@@ -1601,7 +1602,7 @@
           body: JSON.stringify({ employee_id: employeeId, amount, reason, status: 'pending' })
         });
         if (typeof showSuccess === 'function') {
-          showSuccess('تم إرسال طلب السحب بنجاح 💳');
+          showSuccess('تم إرسال طلب السحب بنجاح <i class="fa-solid fa-credit-card"></i>');
         } else {
           alert('تم إرسال طلب السحب بنجاح');
         }
@@ -1657,7 +1658,7 @@
           <div class="chat-bubble ${m.sender === 'employee' ? 'mine' : 'admin'}">
             <div>${m.message}</div>
             <div style="font-size:9px; opacity:0.75; text-align:left; margin-top:4px;">
-              ${new Date(m.created_at || Date.now()).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}
+              ${new Date(m.created_at || Date.now()).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
             </div>
           </div>
         `).join('');
@@ -1738,9 +1739,9 @@
 
         list.innerHTML = notifs.map(n => `
           <div class="notif-single-item ${n.is_read === 0 ? 'unread' : ''}" onclick="markRead(${n.id}, this)">
-            <div style="font-weight:800; font-size:13px; margin-bottom:2px;">${n.title} ${n.is_read === 0 ? '🔴' : ''}</div>
+            <div style="font-weight:800; font-size:13px; margin-bottom:2px;">${n.title} ${n.is_read === 0 ? '<i class="fa-solid fa-circle" style="color: #ef4444;"></i>' : ''}</div>
             <div style="font-size:12px; color:var(--text-muted);">${n.message}</div>
-            <div style="font-size:10px; color:var(--text-sub); margin-top:4px;">${new Date(n.created_at).toLocaleString('ar-SA')}</div>
+            <div style="font-size:10px; color:var(--text-sub); margin-top:4px;">${new Date(n.created_at).toLocaleString('en-GB')}</div>
           </div>
         `).join('');
 

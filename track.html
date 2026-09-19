@@ -56,7 +56,7 @@
         }
 
         .track-hero::after {
-            content: "🚗";
+            content: "<i class="fa-solid fa-car"></i>";
             position: absolute;
             bottom: -20px;
             left: -15px;
@@ -376,6 +376,7 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
@@ -420,7 +421,7 @@
             </div>
 
             <div id="statusBanner" class="status-hero-banner status-in_progress">
-                <span id="statusBannerText">⚙️ جاري العمل على صيانة سيارتكم</span>
+                <span id="statusBannerText"><i class="fa-solid fa-gear"></i> جاري العمل على صيانة سيارتكم</span>
                 <span id="statusBannerSub" style="font-size:12px; opacity:0.8;">رقم الأمر: #---</span>
             </div>
         </div>
@@ -428,7 +429,7 @@
         <!-- Vehicle Details Card -->
         <div class="card">
             <div class="card-title">
-                <span>🚗</span>
+                <span><i class="fa-solid fa-car"></i></span>
                 <span>بيانات السيارة والعميل</span>
             </div>
             <div class="info-grid">
@@ -469,7 +470,7 @@
         <!-- Approved Services & Line Items -->
         <div class="card">
             <div class="card-title">
-                <span>📋</span>
+                <span><i class="fa-solid fa-clipboard-list"></i></span>
                 <span>تفاصيل الخدمات وحالة إنجازها</span>
             </div>
             <table class="table-custom">
@@ -513,7 +514,7 @@
                 <span>اتصال بالمركز</span>
             </a>
             <a id="btnWhatsAppWorkshop" href="https://api.whatsapp.com/send?phone=" target="_blank" class="btn-action btn-whatsapp">
-                <span>💬</span>
+                <span><i class="fa-solid fa-comment-dots"></i></span>
                 <span>محادثة واتساب</span>
             </a>
         </div>
@@ -533,7 +534,7 @@
             if (!inspectionId) {
                 document.querySelector('.track-container').innerHTML = `
                     <div class="card" style="text-align:center; padding: 50px 20px;">
-                        <h2 style="color: #ef4444; margin-bottom: 10px;">⚠️ لم يتم تحديد رقم أمر العمل</h2>
+                        <h2 style="color: #ef4444; margin-bottom: 10px;"><i class="fa-solid fa-triangle-exclamation"></i> لم يتم تحديد رقم أمر العمل</h2>
                         <p style="color: #64748b;">يرجى فتح الرابط المرسل إليكم عبر الواتساب أو التواصل مع إدارة المركز.</p>
                     </div>
                 `;
@@ -551,7 +552,7 @@
                 console.error(err);
                 document.querySelector('.track-container').innerHTML = `
                     <div class="card" style="text-align:center; padding: 50px 20px;">
-                        <h2 style="color: #ef4444; margin-bottom: 10px;">⚠️ تعذر جلب بيانات أمر العمل</h2>
+                        <h2 style="color: #ef4444; margin-bottom: 10px;"><i class="fa-solid fa-triangle-exclamation"></i> تعذر جلب بيانات أمر العمل</h2>
                         <p style="color: #64748b;">يرجى التأكد من صحة الرابط أو التواصل مع إدارة المركز.</p>
                     </div>
                 `;
@@ -584,8 +585,8 @@
                 tbody.innerHTML = items.map(item => {
                     const isDone = item.is_completed === 1 || item.is_completed === true;
                     const statusTag = isDone
-                        ? '<span style="display:inline-block; font-size:11px; background:#ecfdf5; color:#047857; border:1px solid #a7f3d0; padding:2px 8px; border-radius:12px; font-weight:800;">✅ تم الإنجاز</span>'
-                        : '<span style="display:inline-block; font-size:11px; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; padding:2px 8px; border-radius:12px; font-weight:800;">⚙️ قيد التنفيذ</span>';
+                        ? '<span style="display:inline-block; font-size:11px; background:#ecfdf5; color:#047857; border:1px solid #a7f3d0; padding:2px 8px; border-radius:12px; font-weight:800;"><i class="fa-solid fa-circle-check"></i> تم الإنجاز</span>'
+                        : '<span style="display:inline-block; font-size:11px; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; padding:2px 8px; border-radius:12px; font-weight:800;"><i class="fa-solid fa-gear"></i> قيد التنفيذ</span>';
 
                     return `
                         <tr>
@@ -619,27 +620,27 @@
             let activeStep = 2;
             let percent = '25%';
             let bannerClass = 'status-in_progress';
-            let bannerText = '⚙️ جاري العمل على صيانة سيارتكم';
+            let bannerText = '<i class="fa-solid fa-gear"></i> جاري العمل على صيانة سيارتكم';
 
             if (!isJob || carStatus === 'pending') {
                 activeStep = 2;
                 percent = '25%';
-                bannerText = '🔍 تم الفحص وإصدار كشف التسعيرة';
+                bannerText = '<i class="fa-solid fa-magnifying-glass"></i> تم الفحص وإصدار كشف التسعيرة';
                 bannerClass = 'status-in_progress';
             } else if (carStatus === 'waiting_parts') {
                 activeStep = 3;
                 percent = '50%';
-                bannerText = '📦 بانتظار توفير قطع الغيار المطلوبة';
+                bannerText = '<i class="fa-solid fa-box"></i> بانتظار توفير قطع الغيار المطلوبة';
                 bannerClass = 'status-waiting_parts';
             } else if (carStatus === 'in_progress') {
                 activeStep = 3;
                 percent = '50%';
-                bannerText = '⚙️ جاري العمل وتجهيز السيارة';
+                bannerText = '<i class="fa-solid fa-gear"></i> جاري العمل وتجهيز السيارة';
                 bannerClass = 'status-in_progress';
             } else if (carStatus === 'ready') {
                 activeStep = 4;
                 percent = '75%';
-                bannerText = '✅ سيارتكم جاهزة للتسليم الآن!';
+                bannerText = '<i class="fa-solid fa-circle-check"></i> سيارتكم جاهزة للتسليم الآن!';
                 bannerClass = 'status-ready';
             } else if (carStatus === 'completed') {
                 activeStep = 5;

@@ -4,14 +4,16 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>تقرير دخل الفنيين - Atenza App</title>
+    <title>تقرير دخل وأداء الموظفين - Atenza App</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
     <script src="public/js/app-config.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --primary: #4f46e5;
@@ -19,7 +21,7 @@
             --text-dark: #111827;
             --text-gray: #6b7280;
             --border-color: #e5e7eb;
-            --bg-gray: #f3f4f6;
+            --bg-gray: #f8fafc;
         }
 
         * {
@@ -36,52 +38,169 @@
             print-color-adjust: exact;
         }
 
-        .controls {
+        .controls-container {
             max-width: 210mm;
-            margin: 20px auto;
+            margin: 20px auto 10px;
+            padding: 0 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .controls-bar {
             display: flex;
             gap: 12px;
-            justify-content: flex-end;
-            padding: 0 20px;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            background: white;
+            padding: 14px 20px;
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .filter-section-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+            min-width: 320px;
+        }
+
+        .filter-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .filter-label {
+            font-size: 13px;
+            font-weight: 800;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .quick-action-btn {
+            padding: 3px 10px;
+            font-size: 11.5px;
+            font-weight: 700;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .quick-action-btn:hover {
+            background: #eef2ff;
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .section-filters {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-chip {
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1.5px solid #cbd5e1;
+            background: #f8fafc;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            user-select: none;
+        }
+
+        .filter-chip:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .filter-chip.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 2px 6px rgba(79, 70, 229, 0.35);
+        }
+
+        .filter-chip.inactive {
+            background: #f8fafc;
+            border-color: #e2e8f0;
+            color: #94a3b8;
+            opacity: 0.65;
+        }
+
+        .filter-chip.inactive:hover {
+            opacity: 0.9;
+            border-color: #94a3b8;
+            color: #475569;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+            align-items: center;
         }
 
         .btn {
-            padding: 10px 20px;
+            padding: 8px 16px;
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             font-weight: 700;
             cursor: pointer;
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             transition: all 0.2s;
-            font-size: 14px;
+            font-size: 13.5px;
             color: white;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
         }
 
         .btn-print { background: var(--primary); }
+        .btn-print:hover { background: var(--primary-hover); }
         .btn-image { background: #10b981; }
-        .btn-excel { background: #217346; }
+        .btn-image:hover { background: #059669; }
+        .btn-excel { background: #16a34a; }
+        .btn-excel:hover { background: #15803d; }
         .btn-back { background: white; color: var(--text-dark); border: 1.5px solid var(--border-color); box-shadow: none; }
+        .btn-back:hover { background: #f1f5f9; }
 
         .page {
             width: 210mm;
             min-height: 297mm;
-            padding: 20mm;
+            padding: 16mm 18mm;
             margin: 0 auto 40px;
             background: white;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
             position: relative;
+            border-radius: 4px;
         }
 
         .report-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 40px;
+            margin-bottom: 25px;
             border-bottom: 3px solid var(--primary);
-            padding-bottom: 30px;
+            padding-bottom: 20px;
         }
 
         .logo-section {
@@ -91,125 +210,188 @@
         }
 
         .logo-box {
-            width: 64px;
-            height: 64px;
-            background: var(--primary);
-            border-radius: 16px;
+            width: 58px;
+            height: 58px;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 32px;
+            font-size: 26px;
             color: white;
-            box-shadow: 0 8px 16px rgba(79, 70, 229, 0.2);
+            box-shadow: 0 6px 14px rgba(79, 70, 229, 0.25);
         }
 
         .title-text h1 {
-            font-size: 26px;
-            font-weight: 800;
+            font-size: 22px;
+            font-weight: 900;
             color: var(--text-dark);
-            margin: 0;
+            margin: 0 0 2px;
         }
 
         .title-text p {
             color: var(--text-gray);
-            font-size: 14px;
+            font-size: 13.5px;
             margin: 0;
+            font-weight: 700;
         }
 
         .report-meta {
             text-align: left;
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-gray);
-            font-weight: 600;
+            font-weight: 700;
+            line-height: 1.6;
         }
 
         .stats-summary {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
+            gap: 12px;
+            margin-bottom: 22px;
         }
 
         .mini-stat {
             background: #f8fafc;
-            padding: 15px;
-            border-radius: 12px;
+            padding: 12px 14px;
+            border-radius: 10px;
             border: 1px solid var(--border-color);
             text-align: center;
         }
 
-        .mini-stat .label { font-size: 12px; color: var(--text-gray); font-weight: 700; }
-        .mini-stat .value { font-size: 18px; color: var(--text-dark); font-weight: 800; }
+        .mini-stat .label { font-size: 11.5px; color: var(--text-gray); font-weight: 700; margin-bottom: 4px; }
+        .mini-stat .value { font-size: 17px; color: var(--text-dark); font-weight: 900; }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 30px;
+        .report-filter-badge-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            background: #eef2ff;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #3730a3;
         }
 
-        th {
-            background: #f8fafc;
-            padding: 15px;
+        table.report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+        }
+
+        table.report-table th {
+            background: #f1f5f9;
+            padding: 10px 12px;
             text-align: right;
             border-bottom: 2px solid var(--primary);
-            font-size: 13px;
+            font-size: 12.5px;
             font-weight: 800;
             color: var(--text-dark);
         }
 
-        td {
-            padding: 15px;
+        table.report-table td {
+            padding: 10px 12px;
             border-bottom: 1px solid var(--border-color);
-            font-size: 14px;
+            font-size: 13px;
+            vertical-align: middle;
         }
 
-        .rank-col { width: 60px; text-align: center; font-weight: 800; }
-        .amount-col { font-weight: 800; color: var(--primary); text-align: left; }
-        .target-col { text-align: center; font-weight: 700; }
+        table.report-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .rank-col { width: 45px; text-align: center !important; font-weight: 900; }
+        .amount-col { font-weight: 800; color: var(--primary); text-align: left !important; }
+        .target-col { text-align: center !important; font-weight: 700; }
+
+        /* Section styling badges */
+        .sec-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .sec-admin { background: #e0e7ff; color: #3730a3; }
+        .sec-mech { background: #fef3c7; color: #92400e; }
+        .sec-elec { background: #dcfce7; color: #166534; }
+        .sec-insp { background: #e0f2fe; color: #0369a1; }
+        .sec-other { background: #f1f5f9; color: #475569; }
 
         .footer {
-            position: absolute;
-            bottom: 20mm;
-            left: 20mm;
-            right: 20mm;
+            margin-top: 30px;
             text-align: center;
-            font-size: 12px;
+            font-size: 11.5px;
             color: var(--text-gray);
             border-top: 1px solid var(--border-color);
-            padding-top: 20px;
+            padding-top: 15px;
         }
 
         @media print {
-            body { background: white; }
-            .controls { display: none; }
-            .page { margin: 0; box-shadow: none; width: 100%; }
+            body { background: white !important; }
+            .controls-container, #atenzaNavbar { display: none !important; }
+            .page { margin: 0 !important; box-shadow: none !important; width: 100% !important; padding: 10mm !important; }
         }
     </style>
-    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
     <div id="atenzaNavbar"></div>
-    <div class="controls">
-        <button class="btn btn-back" onclick="APP_NAV.goBack('admin.html')">🔙 عودة</button>
-        <button class="btn btn-excel" onclick="exportToExcel()">📊 إكسل</button>
-        <button class="btn btn-image" onclick="exportToImage()">🖼️ صورة</button>
-        <button class="btn btn-print" onclick="window.print()">🖨️ طباعة</button>
+
+    <div class="controls-container no-print">
+        <div class="controls-bar">
+            <!-- Section Filter Multi-Select Chips -->
+            <div class="filter-section-wrapper">
+                <div class="filter-header-row">
+                    <span class="filter-label">
+                        <i class="fa-solid fa-filter" style="color:var(--primary);"></i>
+                        تصفية الأقسام (تحديد / استثناء):
+                    </span>
+                    <div style="display:flex; gap:6px;">
+                        <button type="button" class="quick-action-btn" onclick="selectAllSections()">
+                            <i class="fa-solid fa-check-double"></i> تحديد الكل
+                        </button>
+                        <button type="button" class="quick-action-btn" onclick="deselectAllSections()">
+                            <i class="fa-solid fa-square-minus"></i> إلغاء التحديد
+                        </button>
+                    </div>
+                </div>
+                <div class="section-filters" id="sectionFilters">
+                    <!-- Dynamic multi-select chips -->
+                </div>
+            </div>
+
+            <!-- Export Actions -->
+            <div class="action-btns">
+                <button class="btn btn-back" onclick="APP_NAV.goBack('admin.html')">🔙 عودة</button>
+                <button class="btn btn-excel" onclick="exportToExcel()"><i class="fa-solid fa-file-excel"></i> إكسل</button>
+                <button class="btn btn-image" onclick="exportToImage()">🖼️ صورة</button>
+                <button class="btn btn-print" onclick="window.print()">🖨️ طباعة</button>
+            </div>
+        </div>
     </div>
 
     <div class="page" id="reportPage">
         <div class="report-header">
             <div class="logo-section">
-                <div class="logo-box">💼</div>
+                <div class="logo-box"><i class="fa-solid fa-chart-line"></i></div>
                 <div class="title-text">
-                    <h1>تقرير أداء الفنيين</h1>
-                    <p id="reportWorkshopName" class="workshop-name-text">Atenza App</p>
+                    <h1 id="mainReportTitle">تقرير دخل وأداء الموظفين</h1>
+                    <p id="reportWorkshopName" class="workshop-name-text">مركز صيانة السيارات</p>
                 </div>
             </div>
             <div class="report-meta">
                 <p id="reportDate">التاريخ: --/--/----</p>
-                <p id="employeeCount">عدد الفنيين: 0</p>
+                <p id="employeeCount">عدد الموظفين: 0</p>
             </div>
+        </div>
+
+        <div class="report-filter-badge-bar">
+            <span>القسم المعروض: <b id="currentSectionTitle">كافة الأقسام (الإدارة، الفنيين، كشف، أخرى)</b></span>
+            <span id="filteredCountBadge">إجمالي السجلات: 0</span>
         </div>
 
         <div class="stats-summary">
@@ -222,125 +404,271 @@
                 <div class="value" id="summaryTotalIncomeWithTax" style="color:#7c3aed;">0 ﷼</div>
             </div>
             <div class="mini-stat">
-                <div class="label">متوسط الإنجاز</div>
+                <div class="label">متوسط نسبة الإنجاز</div>
                 <div class="value" id="summaryAvgAchievement">0%</div>
             </div>
             <div class="mini-stat">
-                <div class="label">أعلى دخل </div>
+                <div class="label">أعلى دخل محقق</div>
                 <div class="value" id="summaryTopIncome">0 ﷼</div>
             </div>
         </div>
 
-        <table>
+        <table class="report-table">
             <thead>
                 <tr>
                     <th class="rank-col">#</th>
                     <th>الاسم</th>
                     <th>القسم</th>
+                    <th style="text-align: center;">الهدف (Target)</th>
                     <th style="text-align: center;">نسبة الإنجاز</th>
                     <th style="text-align: left;">الدخل (بدون ضريبة)</th>
+                    <th style="text-align: left;">الدخل (شامل 15%)</th>
                 </tr>
             </thead>
             <tbody id="tableBody">
-                <!-- Data will be populated here -->
+                <!-- Rows populated dynamically -->
             </tbody>
         </table>
 
         <div class="footer">
-            <p>تم استخراج هذا التقرير تلقائياً من نظام <span class="app-name-text">Atenza App</span></p>
-            <p style="font-size: 10px; margin-top: 5px;">حقوق الطبع محفوظة © 2026</p>
+            <p>تم استخراج هذا التقرير تلقائياً من نظام <span class="app-name-text" id="reportFooterBrand">Atenza App</span></p>
+            <p style="font-size: 10.5px; margin-top: 4px;">جميع الحقوق محفوظة © 2026</p>
         </div>
     </div>
 
     <script>
-        let currentEmployees = [];
+        let allEmployees = [];
+        let allSections = [];
+        let selectedSectionIds = new Set();
+
+        function getSectionBadge(secName) {
+            const s = (secName || '').trim();
+            if (s.includes('ادارة') || s.includes('إدارة')) return `<span class="sec-badge sec-admin"><i class="fa-solid fa-user-tie"></i> ${s}</span>`;
+            if (s.includes('مكانيكا')) return `<span class="sec-badge sec-mech"><i class="fa-solid fa-wrench"></i> ${s}</span>`;
+            if (s.includes('كهرباء')) return `<span class="sec-badge sec-elec"><i class="fa-solid fa-bolt"></i> ${s}</span>`;
+            if (s.includes('كشف')) return `<span class="sec-badge sec-insp"><i class="fa-solid fa-magnifying-glass"></i> ${s}</span>`;
+            return `<span class="sec-badge sec-other"><i class="fa-solid fa-folder"></i> ${s || 'أخرى'}</span>`;
+        }
 
         async function loadReport() {
             try {
                 const now = new Date();
-                document.getElementById('reportDate').textContent = 'التاريخ: ' + now.toLocaleDateString('ar-SA');
+                document.getElementById('reportDate').textContent = 'التاريخ: ' + now.toLocaleDateString('en-GB');
 
                 try {
                     const setRes = await fetch('/api/settings');
                     if (setRes.ok) {
                         const settings = await setRes.json();
-                        if (settings.workshop_name || settings.app_name) {
-                            document.getElementById('reportWorkshopName').textContent = settings.workshop_name || settings.app_name;
+                        const shopName = settings.workshop_name || settings.app_name || '';
+                        if (shopName) {
+                            document.getElementById('reportWorkshopName').textContent = shopName;
+                            const footerBrand = document.getElementById('reportFooterBrand');
+                            if (footerBrand) footerBrand.textContent = shopName;
                         }
                     }
                 } catch(e) {}
 
+                // Fetch Sections
+                try {
+                    const secRes = await fetch('/api/sections');
+                    if (secRes.ok) {
+                        allSections = await secRes.json();
+                        // Initially select all section IDs
+                        selectedSectionIds = new Set(allSections.map(s => String(s.id)));
+                    }
+                } catch(e) {}
+
+                // Fetch Employees
                 const response = await fetch('/api/employees');
-                const employees = await response.json();
+                allEmployees = await response.json();
                 
-                employees.sort((a, b) => b.total_income - a.total_income);
-                currentEmployees = employees;
-
-                document.getElementById('employeeCount').textContent = `عدد الفنيين: ${employees.length}`;
-
-                const tbody = document.getElementById('tableBody');
-                tbody.innerHTML = '';
-
-                let totalIncome = 0;
-                let totalPercent = 0;
-                let topIncome = 0;
-
-                employees.forEach((emp, index) => {
-                    const percent = emp.target > 0 ? Math.round((emp.total_income / emp.target) * 100) : 0;
-                    totalIncome += emp.total_income;
-                    totalPercent += percent;
-                    if(emp.total_income > topIncome) topIncome = emp.total_income;
-
-                    let rankDisplay = index + 1;
-                    if (index === 0) rankDisplay = '🥇';
-                    else if (index === 1) rankDisplay = '🥈';
-                    else if (index === 2) rankDisplay = '🥉';
-
-                    const tr = document.createElement('tr');
-                    const incomeWithTax = Math.round(emp.total_income * 1.15);
-                    tr.innerHTML = `
-                        <td class="rank-col">${rankDisplay}</td>
-                        <td style="font-weight: 700;">${emp.name}</td>
-                        <td>${emp.section_name || '-'}</td>
-                        <td class="target-col" style="color: ${percent >= 100 ? '#059669' : percent >= 75 ? '#d97706' : '#dc2626'}">${percent}%</td>
-                        <td class="amount-col">${emp.total_income.toLocaleString()} ﷼</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-
-                document.getElementById('summaryTotalIncome').textContent = totalIncome.toLocaleString() + ' ﷼';
-                document.getElementById('summaryTotalIncomeWithTax').textContent = Math.round(totalIncome * 1.15).toLocaleString() + ' ﷼';
-                document.getElementById('summaryAvgAchievement').textContent = (employees.length > 0 ? Math.round(totalPercent / employees.length) : 0) + '%';
-                document.getElementById('summaryTopIncome').textContent = topIncome.toLocaleString() + ' ﷼';
+                renderSectionFilters();
+                renderTable();
 
             } catch (error) {
                 console.error('Error loading report:', error);
             }
         }
 
+        function renderSectionFilters() {
+            const container = document.getElementById('sectionFilters');
+            if (!container) return;
+
+            const isAllSelected = allSections.length > 0 && selectedSectionIds.size === allSections.length;
+
+            let html = `
+                <button type="button" class="filter-chip ${isAllSelected ? 'active' : 'inactive'}" onclick="toggleAllSections()">
+                    <i class="fa-solid ${isAllSelected ? 'fa-square-check' : 'fa-square'}"></i>
+                    <span>الكل</span>
+                </button>
+            `;
+
+            allSections.forEach(sec => {
+                const sId = String(sec.id);
+                const isSelected = selectedSectionIds.has(sId);
+                let icon = 'fa-folder';
+                if (sec.name.includes('ادارة') || sec.name.includes('إدارة')) icon = 'fa-user-tie';
+                else if (sec.name.includes('مكانيكا')) icon = 'fa-wrench';
+                else if (sec.name.includes('كهرباء')) icon = 'fa-bolt';
+                else if (sec.name.includes('كشف')) icon = 'fa-magnifying-glass';
+
+                html += `
+                    <button type="button" 
+                        class="filter-chip ${isSelected ? 'active' : 'inactive'}" 
+                        onclick="toggleSection('${sId}')"
+                        title="${isSelected ? 'انقر لإلغاء تحديد هذا القسم' : 'انقر لإضافة هذا القسم'}">
+                        <i class="fa-solid ${isSelected ? 'fa-square-check' : 'fa-square'}"></i>
+                        <span><i class="fa-solid ${icon}" style="font-size:11px; opacity:0.85; margin-left:2px;"></i> ${sec.name}</span>
+                    </button>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function toggleSection(secId) {
+            const sId = String(secId);
+            if (selectedSectionIds.has(sId)) {
+                selectedSectionIds.delete(sId);
+            } else {
+                selectedSectionIds.add(sId);
+            }
+            renderSectionFilters();
+            renderTable();
+        }
+
+        function toggleAllSections() {
+            if (selectedSectionIds.size === allSections.length) {
+                selectedSectionIds.clear();
+            } else {
+                selectedSectionIds = new Set(allSections.map(s => String(s.id)));
+            }
+            renderSectionFilters();
+            renderTable();
+        }
+
+        function selectAllSections() {
+            selectedSectionIds = new Set(allSections.map(s => String(s.id)));
+            renderSectionFilters();
+            renderTable();
+        }
+
+        function deselectAllSections() {
+            selectedSectionIds.clear();
+            renderSectionFilters();
+            renderTable();
+        }
+
+        function renderTable() {
+            // Filter employees whose section_id is in selectedSectionIds
+            let filtered = allEmployees.filter(emp => {
+                const sId = String(emp.section_id);
+                return selectedSectionIds.has(sId);
+            });
+
+            // Update badge bar text
+            const titleEl = document.getElementById('currentSectionTitle');
+            if (selectedSectionIds.size === allSections.length) {
+                titleEl.textContent = 'كافة الأقسام (الإدارة، الفنيين، كشف، أخرى)';
+            } else if (selectedSectionIds.size === 0) {
+                titleEl.textContent = 'لم يتم تحديد أي قسم (يرجى اختيار الأقسام المراد إظهارها من الأعلى)';
+            } else {
+                const selectedNames = allSections
+                    .filter(s => selectedSectionIds.has(String(s.id)))
+                    .map(s => s.name);
+                titleEl.textContent = `الأقسام المحددة: ${selectedNames.join('، ')}`;
+            }
+
+            // Sort by income descending
+            filtered.sort((a, b) => (parseFloat(b.total_income) || 0) - (parseFloat(a.total_income) || 0));
+
+            document.getElementById('employeeCount').textContent = `عدد الموظفين: ${filtered.length}`;
+            document.getElementById('filteredCountBadge').textContent = `إجمالي السجلات: ${filtered.length} موظف`;
+
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            let totalIncome = 0;
+            let totalPercent = 0;
+            let topIncome = 0;
+            let targetCount = 0;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 25px; color:#64748b; font-weight:700;">لا توجد بيانات للأقسام المحددة (تأكد من تفعيل الأقسام في الفلتر)</td></tr>`;
+            } else {
+                filtered.forEach((emp, index) => {
+                    const inc = parseFloat(emp.total_income) || 0;
+                    const tgt = parseFloat(emp.target) || 0;
+                    const percent = tgt > 0 ? Math.round((inc / tgt) * 100) : (inc > 0 ? 100 : 0);
+
+                    totalIncome += inc;
+                    if (tgt > 0) {
+                        totalPercent += percent;
+                        targetCount++;
+                    }
+                    if (inc > topIncome) topIncome = inc;
+
+                    let rankDisplay = index + 1;
+                    if (index === 0 && inc > 0) rankDisplay = '🥇';
+                    else if (index === 1 && inc > 0) rankDisplay = '🥈';
+                    else if (index === 2 && inc > 0) rankDisplay = '🥉';
+
+                    const incWithTax = Math.round(inc * 1.15);
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="rank-col">${rankDisplay}</td>
+                        <td style="font-weight: 800; color: #1e293b;">${emp.name}</td>
+                        <td>${getSectionBadge(emp.section_name)}</td>
+                        <td class="target-col" style="color: #64748b;">${tgt > 0 ? tgt.toLocaleString() + ' ﷼' : '-'}</td>
+                        <td class="target-col" style="font-weight:800; color: ${tgt > 0 ? (percent >= 100 ? '#059669' : percent >= 75 ? '#d97706' : '#dc2626') : '#475569'};">
+                            ${tgt > 0 ? percent + '%' : '-'}
+                        </td>
+                        <td class="amount-col">${inc.toLocaleString()} ﷼</td>
+                        <td style="text-align: left; font-weight:700; color: #6d28d9;">${incWithTax.toLocaleString()} ﷼</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            document.getElementById('summaryTotalIncome').textContent = totalIncome.toLocaleString() + ' ﷼';
+            document.getElementById('summaryTotalIncomeWithTax').textContent = Math.round(totalIncome * 1.15).toLocaleString() + ' ﷼';
+            document.getElementById('summaryAvgAchievement').textContent = (targetCount > 0 ? Math.round(totalPercent / targetCount) : '0') + '%';
+            document.getElementById('summaryTopIncome').textContent = topIncome.toLocaleString() + ' ﷼';
+        }
+
         function exportToImage() {
             const page = document.getElementById('reportPage');
             html2canvas(page, { scale: 2 }).then(canvas => {
                 const link = document.createElement('a');
-                link.download = `تقرير_الدخل_${new Date().toLocaleDateString()}.png`;
+                link.download = `تقرير_دخل_الموظفين_${new Date().toLocaleDateString('ar-SA').replace(/\//g, '-')}.png`;
                 link.href = canvas.toDataURL();
                 link.click();
             });
         }
 
         function exportToExcel() {
-            const data = currentEmployees.map((emp, index) => ({
-                'الترتيب': index + 1,
-                'الاسم': emp.name,
-                'القسم': emp.section_name,
-                'نسبة الإنجاز': (emp.target > 0 ? Math.round((emp.total_income / emp.target) * 100) : 0) + '%',
-                'الدخل (بدون ضريبة)': emp.total_income,
-               
-            }));
+            let filtered = allEmployees.filter(emp => selectedSectionIds.has(String(emp.section_id)));
+            filtered.sort((a, b) => (parseFloat(b.total_income) || 0) - (parseFloat(a.total_income) || 0));
+
+            const data = filtered.map((emp, index) => {
+                const inc = parseFloat(emp.total_income) || 0;
+                const tgt = parseFloat(emp.target) || 0;
+                const percent = tgt > 0 ? Math.round((inc / tgt) * 100) : 0;
+                return {
+                    'الترتيب': index + 1,
+                    'الاسم': emp.name,
+                    'القسم': emp.section_name || 'أخرى',
+                    'الهدف (Target)': tgt > 0 ? tgt : 0,
+                    'نسبة الإنجاز': tgt > 0 ? `${percent}%` : '-',
+                    'الدخل (بدون ضريبة)': inc,
+                    'الدخل (شامل ضريبة 15%)': Math.round(inc * 1.15)
+                };
+            });
+
             const ws = XLSX.utils.json_to_sheet(data);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "تقرير الدخل");
-            XLSX.writeFile(wb, `تقرير_الدخل_${new Date().toLocaleDateString()}.xlsx`);
+            XLSX.utils.book_append_sheet(wb, ws, "تقرير الدخل والأداء");
+            XLSX.writeFile(wb, `تقرير_الدخل_والأداء_${new Date().toLocaleDateString('ar-SA').replace(/\//g, '-')}.xlsx`);
         }
 
         loadReport();

@@ -90,18 +90,19 @@
             font-weight: bold;
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
     <div id="atenzaNavbar"></div>
     <div class="container">
         <div class="header">
-            <h1>⚙️ إعدادات النظام</h1>
+            <h1><i class="fa-solid fa-gear"></i> إعدادات النظام</h1>
             <button class="btn btn-secondary" onclick="APP_NAV.goBack('admin.html')">🔙 رجوع</button>
         </div>
 
         <div class="section-box">
-            <div class="section-title">📱 هوية واسم التطبيق (App Branding)</div>
+            <div class="section-title"><i class="fa-solid fa-mobile-screen"></i> هوية واسم التطبيق (App Branding)</div>
             <div class="form-group">
                 <label>اسم التطبيق العام (App Name)</label>
                 <input type="text" id="appName" placeholder="Atenza App">
@@ -170,7 +171,7 @@
 
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <button type="button" class="btn btn-primary" onclick="downloadDbBackup()" style="flex: 1; min-width: 170px; justify-content: center; height: 42px;">
-                    <span>📥 تحميل نسخة احتياطية</span>
+                    <span><i class="fa-solid fa-file-import"></i> تحميل نسخة احتياطية</span>
                 </button>
                 <button type="button" class="btn" onclick="document.getElementById('dbRestoreFileInput').click()" style="flex: 1; min-width: 170px; justify-content: center; background: #f59e0b; color: white; height: 42px; font-weight: 700;">
                     <span>📤 رفع واستعادة قاعدة البيانات</span>
@@ -179,7 +180,7 @@
                     <span>🔄 مزامنة واستيراد الموظفين والعملاء</span>
                 </button>
                 <button type="button" class="btn" onclick="document.getElementById('importSalariesEmpInput').click()" style="flex: 1; min-width: 170px; justify-content: center; background: #8b5cf6; color: white; height: 42px; font-weight: 700;">
-                    <span>📊 سحب الموظفين من ملف الرواتب</span>
+                    <span><i class="fa-solid fa-chart-pie"></i> سحب الموظفين من ملف الرواتب</span>
                 </button>
                 <input type="file" id="importSalariesEmpInput" style="display: none;" accept=".xlsx,.xls" onchange="importEmployeesFromSalarySheet(this)">
                 <input type="file" id="dbRestoreFileInput" style="display: none;" accept=".sqlite,.db,.json" onchange="uploadAndRestoreDatabase(this)">
@@ -259,7 +260,7 @@
                 li.style.cssText = 'background: white; padding: 10px; border-bottom: 1px solid #eee; display:flex; justify-content:space-between; align-items:center;';
                 li.innerHTML = `
                     <span>• ${term}</span>
-                    <button onclick="removeTerm(${index})" style="background:none; border:none; color:red; cursor:pointer;">❌</button>
+                    <button onclick="removeTerm(${index})" style="background:none; border:none; color:red; cursor:pointer;"><i class="fa-solid fa-circle-xmark"></i></button>
                 `;
                 list.appendChild(li);
             });
@@ -334,8 +335,8 @@
                     body: JSON.stringify({ schedule: currentSchedule })
                 });
 
-                alert('✅ تم حفظ كافة الإعدادات واسم التطبيق بنجاح');
-            } catch (e) { console.error(e); alert('❌ خطأ في الحفظ'); }
+                alert('تم حفظ كافة الإعدادات واسم التطبيق بنجاح');
+            } catch (e) { console.error(e); alert('خطأ في الحفظ'); }
         }
 
         function downloadDbBackup() {
@@ -346,7 +347,7 @@
             const file = input.files[0];
             if (!file) return;
 
-            if (!confirm(`⚠️ تحذير مهم:\nهل أنت متأكد من استعادة قاعدة البيانات من الملف (${file.name})؟\nسيتم استبدال البيانات الحالية على السيرفر بالبيانات الموجودة في هذا الملف.`)) {
+            if (!confirm(`<i class="fa-solid fa-triangle-exclamation"></i> تحذير مهم:\nهل أنت متأكد من استعادة قاعدة البيانات من الملف (${file.name})؟\nسيتم استبدال البيانات الحالية على السيرفر بالبيانات الموجودة في هذا الملف.`)) {
                 input.value = '';
                 return;
             }
@@ -365,11 +366,11 @@
                     alert('🎉 ' + result.message);
                     loadSettings();
                 } else {
-                    alert('❌ خطأ: ' + (result.message || 'فشلت عملية الاستعادة'));
+                    alert('خطأ: ' + (result.message || 'فشلت عملية الاستعادة'));
                 }
             } catch (e) {
                 console.error(e);
-                alert('❌ حدث خطأ أثناء الاتصال بالسيرفر');
+                alert('حدث خطأ أثناء الاتصال بالسيرفر');
             } finally {
                 input.value = '';
             }
@@ -383,11 +384,11 @@
                 if (res.ok && result.success) {
                     alert('🎉 ' + result.message);
                 } else {
-                    alert('❌ خطأ: ' + (result.message || 'فشلت المزامنة'));
+                    alert('خطأ: ' + (result.message || 'فشلت المزامنة'));
                 }
             } catch (e) {
                 console.error(e);
-                alert('❌ تعذر الاتصال بالسيرفر للمزامنة');
+                alert('تعذر الاتصال بالسيرفر للمزامنة');
             }
         }
 
@@ -413,11 +414,11 @@
                 if (res.ok && result.success) {
                     alert('🎉 ' + result.message);
                 } else {
-                    alert('❌ خطأ: ' + (result.message || 'فشلت عملية الاستيراد'));
+                    alert('خطأ: ' + (result.message || 'فشلت عملية الاستيراد'));
                 }
             } catch (e) {
                 console.error(e);
-                alert('❌ حدث خطأ أثناء الاتصال بالسيرفر');
+                alert('حدث خطأ أثناء الاتصال بالسيرفر');
             } finally {
                 input.value = '';
             }

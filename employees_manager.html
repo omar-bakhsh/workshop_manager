@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الموظفين | Atenza App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="toast.css?v=5.0">
+    <script src="toast.js?v=5.0"></script>
+    <script src="toast_helpers.js?v=5.0"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --bg-gray: #f8fafc;
+            --text-dark: #0f172a;
+            --border-color: #e2e8f0;
+            --glass: rgba(255, 255, 255, 0.95);
+        }
+        * { box-sizing: border-box; font-family: 'Cairo', sans-serif; margin: 0; padding: 0; }
+        body { background: var(--bg-gray); padding: 20px; }
+        .container { max-width: 1200px; margin: auto; }
+        .header { background: var(--glass); padding: 20px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .btn { background: var(--primary); color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .btn-danger { background: #ef4444; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        th, td { padding: 15px; text-align: right; border-bottom: 1px solid var(--border-color); }
+        th { background: #f1f5f9; font-weight: 700; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 100; }
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; }
+        .actions { display: flex; gap: 10px; }
+        .back-btn { text-decoration: none; color: var(--primary); font-weight: bold; }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1><i class="fa-solid fa-user-tie"></i> إدارة الموظفين</h1>
+                <a href="admin.html" class="back-btn">العودة للوحة التحكم</a>
+            </div>
+            <div>
+                <button class="btn" onclick="openModal('sectionsModal')" style="background:#f59e0b"><i class="fa-solid fa-building"></i> إدارة الأقسام</button>
+                <button class="btn" onclick="openModal('addModal')">+ إضافة موظف جديد</button>
+                <button class="btn" onclick="openModal('importModal')" style="background:#10b981"><i class="fa-solid fa-file-import"></i> استيراد من إكسيل</button>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>الاسم</th>
+                    <th>القسم</th>
+                    <th>الراتب الأساسي</th>
+                    <th>التارجت</th>
+                    <th>حساب الدخول</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody id="employeesTableBody">
+                <tr><td colspan="6" style="text-align:center">جاري التحميل...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Add Employee Modal -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <h2>إضافة موظف جديد</h2>
+            <br>
+            <form id="addEmployeeForm" onsubmit="saveEmployee(event)">
+                <div class="form-group">
+                    <label>الاسم</label>
+                    <input type="text" id="empName" required>
+                </div>
+                <div class="form-group">
+                    <label>القسم</label>
+                    <select id="empSection" required></select>
+                </div>
+                <div class="form-group">
+                    <label>الراتب الأساسي</label>
+                    <input type="number" id="empSalary" value="0">
+                </div>
+                <div class="form-group">
+                    <label>التارجت (الهدف)</label>
+                    <input type="number" id="empTarget" value="0">
+                </div>
+                <div class="form-group">
+                    <label>اسم المستخدم (الدخول)</label>
+                    <input type="text" id="empUsername">
+                </div>
+                <div class="form-group">
+                    <label>كلمة المرور</label>
+                    <input type="password" id="empPassword">
+                </div>
+                <div class="actions" style="margin-top: 20px">
+                    <button type="submit" class="btn">حفظ الموظف</button>
+                    <button type="button" class="btn btn-danger" onclick="closeModal('addModal')">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Employee Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2>تعديل بيانات الموظف</h2>
+            <br>
+            <form id="editEmployeeForm" onsubmit="updateEmployee(event)">
+                <input type="hidden" id="editEmpId">
+                <div class="form-group">
+                    <label>الاسم</label>
+                    <input type="text" id="editEmpName" required>
+                </div>
+                <div class="form-group">
+                    <label>القسم</label>
+                    <select id="editEmpSection" required></select>
+                </div>
+                <div class="form-group">
+                    <label>الراتب الأساسي</label>
+                    <input type="number" id="editEmpSalary" value="0">
+                </div>
+                <div class="form-group">
+                    <label>التارجت (الهدف)</label>
+                    <input type="number" id="editEmpTarget" value="0">
+                </div>
+                <div class="form-group">
+                    <label>اسم المستخدم (الدخول)</label>
+                    <input type="text" id="editEmpUsername">
+                </div>
+                <div class="form-group">
+                    <label>كلمة المرور الجديدة (اختياري)</label>
+                    <input type="password" id="editEmpPassword" placeholder="اتركه فارغاً لعدم التغيير">
+                </div>
+                <div class="actions" style="margin-top: 20px">
+                    <button type="submit" class="btn">حفظ التعديلات</button>
+                    <button type="button" class="btn btn-danger" onclick="closeModal('editModal')">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Manage Sections Modal -->
+    <div id="sectionsModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <h2>إدارة أقسام المركز</h2>
+            <br>
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <input type="text" id="newSectionName" placeholder="اسم القسم الجديد" style="flex: 1; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;">
+                <button class="btn" onclick="addSection()">+ إضافة قسم</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>الرقم</th>
+                        <th>اسم القسم</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="sectionsTableBody">
+                    <tr><td colspan="3" style="text-align:center">جاري التحميل...</td></tr>
+                </tbody>
+            </table>
+            <div class="actions" style="margin-top: 20px">
+                <button type="button" class="btn btn-danger" onclick="closeModal('sectionsModal')">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div id="importModal" class="modal">
+        <div class="modal-content">
+            <h2>استيراد الموظفين من ملف Excel</h2>
+            <br>
+            <input type="file" id="excelFile" accept=".xlsx,.xls">
+            <div class="actions" style="margin-top: 20px">
+                <button class="btn" onclick="uploadExcel()" style="background:#10b981">استيراد</button>
+                <button class="btn btn-danger" onclick="closeModal('importModal')">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        async function loadEmployees() {
+            try {
+                const res = await fetch('/api/employees');
+                const data = await res.json();
+                const tbody = document.getElementById('employeesTableBody');
+                tbody.innerHTML = '';
+                
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">لا يوجد موظفين</td></tr>';
+                    return;
+                }
+
+                data.forEach(emp => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${emp.name}</td>
+                        <td>${emp.section_name || '-'}</td>
+                        <td>${emp.base_salary || 0}</td>
+                        <td>${emp.target || 0}</td>
+                        <td>${emp.username || '-'}</td>
+                        <td>
+                            <div class="actions">
+                                <button class="btn" style="padding: 5px 10px; font-size: 12px; background: var(--primary)" onclick="openEditModal(${emp.id}, '${emp.name.replace(/'/g, "\\'")}', '${emp.section_id || ''}', ${emp.base_salary || 0}, ${emp.target || 0}, '${emp.username || ''}', '${emp.password || ''}')">تعديل</button>
+                                <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px" onclick="deleteEmployee(${emp.id})">حذف</button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function saveEmployee(e) {
+            e.preventDefault();
+            const payload = {
+                name: document.getElementById('empName').value,
+                section_id: document.getElementById('empSection').value,
+                base_salary: document.getElementById('empSalary').value || 0,
+                target: document.getElementById('empTarget').value || 0,
+                username: document.getElementById('empUsername').value,
+                password: document.getElementById('empPassword').value,
+                is_active: 1
+            };
+            
+            try {
+                const res = await fetch('/api/employees', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (res.ok) {
+                    closeModal('addModal');
+                    e.target.reset();
+                    loadEmployees();
+                    if(typeof showSuccess === 'function') showSuccess('تمت الإضافة بنجاح');
+                } else {
+                    const txt = await res.text();
+                    if(typeof showError === 'function') showError('فشل الحفظ: ' + txt);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function openEditModal(id, name, sectionId, salary, target, username, password) {
+            document.getElementById('editEmpId').value = id;
+            document.getElementById('editEmpName').value = name;
+            document.getElementById('editEmpSection').value = sectionId;
+            document.getElementById('editEmpSalary').value = salary;
+            document.getElementById('editEmpTarget').value = target;
+            document.getElementById('editEmpUsername').value = username;
+            document.getElementById('editEmpPassword').value = password; // May be hashed, but will send it or let it be changed
+            openModal('editModal');
+        }
+
+        async function updateEmployee(e) {
+            e.preventDefault();
+            const id = document.getElementById('editEmpId').value;
+            const payload = {
+                name: document.getElementById('editEmpName').value,
+                section_id: document.getElementById('editEmpSection').value,
+                base_salary: document.getElementById('editEmpSalary').value || 0,
+                target: document.getElementById('editEmpTarget').value || 0,
+                username: document.getElementById('editEmpUsername').value,
+                password: document.getElementById('editEmpPassword').value,
+                is_active: 1
+            };
+            
+            try {
+                const res = await fetch('/api/employees/' + id, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (res.ok) {
+                    closeModal('editModal');
+                    loadEmployees();
+                    if(typeof showSuccess === 'function') showSuccess('تم تعديل البيانات بنجاح');
+                } else {
+                    const txt = await res.text();
+                    if(typeof showError === 'function') showError('فشل التعديل: ' + txt);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function deleteEmployee(id) {
+            if (!confirm('هل أنت متأكد من حذف هذا الموظف؟ لن يمكن التراجع عن هذا الإجراء.')) return;
+            
+            try {
+                const res = await fetch('/api/employees/' + id, { method: 'DELETE' });
+                if (res.ok) {
+                    loadEmployees();
+                    if(typeof showSuccess === 'function') showSuccess('تم حذف الموظف بنجاح');
+                } else {
+                    const txt = await res.text();
+                    if(typeof showError === 'function') showError('فشل الحذف: ' + txt);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function uploadExcel() {
+            const fileInput = document.getElementById('excelFile');
+            if (!fileInput.files.length) {
+                alert('الرجاء اختيار ملف');
+                return;
+            }
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                // Using the salary sheet import as requested
+                const res = await fetch('/api/employees/import-from-salary-sheet', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    alert('تم الاستيراد بنجاح! تم استيراد ' + (data.imported || 0) + ' وتم تجاهل ' + (data.duplicates || 0) + ' موظف مكرر.');
+                    closeModal('importModal');
+                    loadEmployees();
+                } else {
+                    alert('خطأ: ' + (data.error || 'حدث خطأ غير معروف'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('فشل الاتصال بالخادم');
+            }
+        }
+
+        async function loadSections() {
+            try {
+                const res = await fetch('/api/sections');
+                const data = await res.json();
+                
+                // Populate selects
+                const addSel = document.getElementById('empSection');
+                const editSel = document.getElementById('editEmpSection');
+                const optionsHtml = '<option value="">اختر القسم...</option>' + data.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+                if(addSel) addSel.innerHTML = optionsHtml;
+                if(editSel) editSel.innerHTML = optionsHtml;
+
+                // Populate table
+                const tbody = document.getElementById('sectionsTableBody');
+                if(!tbody) return;
+                tbody.innerHTML = '';
+                if(data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center">لا يوجد أقسام</td></tr>';
+                    return;
+                }
+                data.forEach(sec => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${sec.id}</td>
+                        <td>${sec.name}</td>
+                        <td>
+                            <button class="btn" style="padding: 5px 10px; font-size: 12px; background: var(--primary)" onclick="editSection(${sec.id}, '${sec.name.replace(/'/g, "\\'")}')">تعديل</button>
+                            <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px" onclick="deleteSection(${sec.id})">حذف</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function addSection() {
+            const name = document.getElementById('newSectionName').value.trim();
+            if(!name) return alert('يرجى إدخال اسم القسم');
+            try {
+                const res = await fetch('/api/sections', {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({name})
+                });
+                if(res.ok) {
+                    document.getElementById('newSectionName').value = '';
+                    loadSections();
+                } else {
+                    alert('فشل إضافة القسم');
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        async function editSection(id, oldName) {
+            const newName = prompt('تعديل اسم القسم:', oldName);
+            if(!newName || newName.trim() === oldName || newName.trim() === '') return;
+            try {
+                const res = await fetch('/api/sections/' + id, {
+                    method: 'PUT',
+                    headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({name: newName.trim()})
+                });
+                if(res.ok) {
+                    loadSections();
+                    loadEmployees(); // update names in employees table
+                } else {
+                    alert('فشل تعديل القسم');
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        async function deleteSection(id) {
+            if(!confirm('هل أنت متأكد من حذف هذا القسم؟ لا يمكن الحذف إذا كان هناك موظفين مرتبطين به.')) return;
+            try {
+                const res = await fetch('/api/sections/' + id, { method: 'DELETE' });
+                if(res.ok) {
+                    loadSections();
+                } else {
+                    const txt = await res.json();
+                    alert(txt.message || 'فشل حذف القسم');
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        loadSections();
+        loadEmployees();
+    </script>
+</body>
+</html>

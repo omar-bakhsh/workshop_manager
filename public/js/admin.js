@@ -1,10 +1,10 @@
 /**
- * 💼 Workshop Manager - Admin Dashboard Logic
+ * <i class="fa-solid fa-briefcase"></i> Workshop Manager - Admin Dashboard Logic
  * Modularized and optimized for performance & maintainability.
  */
 
 // ==========================================
-// 📊 Global State
+// <i class="fa-solid fa-chart-pie"></i> Global State
 // ==========================================
 let employees = [];
 let sections = [];
@@ -87,7 +87,7 @@ async function loadData() {
         updateDashboardKPIs();
     } catch (err) {
         console.error('Data Load Error:', err);
-        if(container) container.innerHTML = '<div class="error">❌ فشل في تحميل البيانات</div>';
+        if(container) container.innerHTML = '<div class="error"><i class="fa-solid fa-circle-xmark"></i> فشل في تحميل البيانات</div>';
     }
 }
 
@@ -114,7 +114,7 @@ async function updateGlobalLimit(val) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ key: 'max_withdrawal_limit', value: val })
         });
-        smartAlert('✅ تم تحديث الحد الأعلى للسحب');
+        smartAlert('<i class="fa-solid fa-circle-check"></i> تم تحديث الحد الأعلى للسحب');
     } catch (e) { console.error('Limit update error:', e); }
 }
 
@@ -190,8 +190,8 @@ function renderSections() {
                                     <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
                                         <button class="action-btn-pill" style="background:#fef2f2; color:var(--danger);" onclick="deleteEmployee(${emp.id})" title="حذف">🗑️</button>
                                         <button class="action-btn-pill" style="background:#f0f9ff; color:var(--primary);" onclick="openEditModal(${emp.id})" title="تعديل">✏️</button>
-                                        <button class="action-btn-pill" style="background:#f0fdf4; color:var(--success);" onclick="openIncomeModal(${emp.id})" title="إيداع">💰</button>
-                                        <button class="action-btn-pill" style="background:#fffbeb; color:var(--warning);" onclick="openWithdrawalModal(${emp.id})" title="سحب">💳</button>
+                                        <button class="action-btn-pill" style="background:#f0fdf4; color:var(--success);" onclick="openIncomeModal(${emp.id})" title="إيداع"><i class="fa-solid fa-sack-dollar"></i></button>
+                                        <button class="action-btn-pill" style="background:#fffbeb; color:var(--warning);" onclick="openWithdrawalModal(${emp.id})" title="سحب"><i class="fa-solid fa-credit-card"></i></button>
                                     </div>
                                 </td>
                             </tr>`;
@@ -207,15 +207,15 @@ function renderSections() {
     const footerBtns = document.createElement('div');
     footerBtns.style = "display: flex; justify-content: center; gap: 15px; margin-top: 25px; padding-bottom: 50px;";
     footerBtns.innerHTML = `
-        <button class="btn btn-primary" onclick="openModal('addEmployeeModal')">➕ إضافة موظف</button>
-        <button class="btn btn-success" onclick="document.getElementById('salary-file').click()">📊 استيراد إكسل</button>
+        <button class="btn btn-primary" onclick="openModal('addEmployeeModal')"><i class="fa-solid fa-plus"></i> إضافة موظف</button>
+        <button class="btn btn-success" onclick="document.getElementById('salary-file').click()"><i class="fa-solid fa-chart-pie"></i> استيراد إكسل</button>
         <input type="file" id="salary-file" style="display: none;" accept=".xlsx, .xls" onchange="importSalaries(this)">
     `;
     container.appendChild(footerBtns);
 }
 
 // ==========================================
-// 📉 Charting & Data Viz
+// <i class="fa-solid fa-arrow-trend-down"></i> Charting & Data Viz
 // ==========================================
 function updateCharts() {
     const sectionData = sections.map(sec => ({
@@ -309,15 +309,15 @@ async function handleAddEmployee(e) {
     try {
         const res = await fetch('/api/employees', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
         if (res.ok) { 
-            smartAlert('✅ تمت الإضافة'); 
+            smartAlert('<i class="fa-solid fa-circle-check"></i> تمت الإضافة'); 
             closeModal('addEmployeeModal'); 
             e.target.reset(); 
             loadData(); 
         } else {
             const errorData = await res.json();
-            smartAlert('❌ ' + (errorData.message || 'خطأ في الإضافة'));
+            smartAlert('<i class="fa-solid fa-circle-xmark"></i> ' + (errorData.message || 'خطأ في الإضافة'));
         }
-    } catch (e) { console.error(e); smartAlert('❌ خطأ في الاتصال'); }
+    } catch (e) { console.error(e); smartAlert('<i class="fa-solid fa-circle-xmark"></i> خطأ في الاتصال'); }
 }
 
 async function handleEditEmployee(e) {
@@ -329,12 +329,12 @@ async function handleEditEmployee(e) {
         if (res.ok) {
             const extraInc = document.getElementById('editEmpNewIncome').value;
             if(extraInc) await fetch(`/api/employees/${id}/income`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ income: parseInt(extraInc), section_id: data.section_id }) });
-            smartAlert('✅ تم التعديل'); closeModal('editEmployeeModal'); loadData();
+            smartAlert('<i class="fa-solid fa-circle-check"></i> تم التعديل'); closeModal('editEmployeeModal'); loadData();
         } else {
             const errorData = await res.json();
-            smartAlert('❌ ' + (errorData.message || 'خطأ في التعديل'));
+            smartAlert('<i class="fa-solid fa-circle-xmark"></i> ' + (errorData.message || 'خطأ في التعديل'));
         }
-    } catch (e) { console.error(e); smartAlert('❌ خطأ في الاتصال'); }
+    } catch (e) { console.error(e); smartAlert('<i class="fa-solid fa-circle-xmark"></i> خطأ في الاتصال'); }
 }
 
 async function handleAddIncome(e) {
@@ -347,7 +347,7 @@ async function handleAddIncome(e) {
     };
     try {
         const res = await fetch(`/api/employees/${empId}/income`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-        if (res.ok) { smartAlert('✅ تم الإيداع'); closeModal('addIncomeModal'); loadData(); }
+        if (res.ok) { smartAlert('<i class="fa-solid fa-circle-check"></i> تم الإيداع'); closeModal('addIncomeModal'); loadData(); }
     } catch (e) { console.error(e); }
 }
 
@@ -357,7 +357,7 @@ async function handleAddWithdrawal(e) {
     const data = { employee_id: empId, amount: document.getElementById('withdrawalAmount').value, reason: document.getElementById('withdrawalReason').value, status: 'approved' };
     try {
         const res = await fetch('/api/withdrawals', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-        if (res.ok) { smartAlert('✅ تم تسجيل السحب'); closeModal('addWithdrawalModal'); loadData(); }
+        if (res.ok) { smartAlert('<i class="fa-solid fa-circle-check"></i> تم تسجيل السحب'); closeModal('addWithdrawalModal'); loadData(); }
     } catch (e) { console.error(e); }
 }
 
@@ -401,8 +401,8 @@ async function loadAttendanceReport(type = 'date') {
         if (data.length === 0) { tbody.innerHTML = '<tr><td colspan="9">لا توجد بيانات</td></tr>'; return; }
 
         tbody.innerHTML = data.map(row => {
-            const checkIn = row.check_in ? new Date(row.check_in).toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'}) : '---';
-            const checkOut = row.check_out ? new Date(row.check_out).toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'}) : '---';
+            const checkIn = row.check_in ? new Date(row.check_in).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'}) : '---';
+            const checkOut = row.check_out ? new Date(row.check_out).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'}) : '---';
             return `
                 <tr>
                     <td>${row.date}</td>
@@ -416,7 +416,7 @@ async function loadAttendanceReport(type = 'date') {
                     <td><span class="badge-status badge-status-${row.check_in ? 'success' : 'danger'}">${row.check_in ? 'حاضر' : 'غائب'}</span></td>
                 </tr>`;
         }).join('');
-    } catch (e) { tbody.innerHTML = '<tr><td colspan="9">❌ خطأ في التحميل</td></tr>'; }
+    } catch (e) { tbody.innerHTML = '<tr><td colspan="9"><i class="fa-solid fa-circle-xmark"></i> خطأ في التحميل</td></tr>'; }
 }
 
 async function openShiftModal() {
@@ -454,12 +454,12 @@ async function updateBranchShift(day) {
     const data = { shift_start: val(`start-${day}`), shift_end: val(`end-${day}`), is_closed: !!document.getElementById(`close-${day}`).checked };
     try {
         const res = await fetch(`/api/branch-shifts/${day}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-        if(res.ok) smartAlert('✅ تم تحديث الموعد');
+        if(res.ok) smartAlert('<i class="fa-solid fa-circle-check"></i> تم تحديث الموعد');
     } catch (e) { alert('خطأ'); }
 }
 
 // ==========================================
-// 🔔 Management Alerts (Withdrawals/Leaves)
+// <i class="fa-solid fa-bell"></i> Management Alerts (Withdrawals/Leaves)
 // ==========================================
 async function loadPendingRequests() {
     const container = document.getElementById('pendingContainer');
@@ -481,7 +481,7 @@ async function loadPendingRequests() {
             card.className = 'stat-card';
             card.style.borderRight = '4px solid var(--warning)';
             card.innerHTML = `
-                <div class="stat-header"><div class="stat-icon-box" style="--card-bg:#fffbeb; --card-accent:var(--warning);">💳</div><span class="badge-status badge-status-warning">سحب معلق</span></div>
+                <div class="stat-header"><div class="stat-icon-box" style="--card-bg:#fffbeb; --card-accent:var(--warning);"><i class="fa-solid fa-credit-card"></i></div><span class="badge-status badge-status-warning">سحب معلق</span></div>
                 <div style="font-weight:700;">${w.employee_name}</div>
                 <div class="stat-value" style="font-size:22px; color:var(--danger);">${w.amount} ﷼</div>
                 <div class="stat-label">${w.reason || 'بدون سبب'}</div>
@@ -568,11 +568,11 @@ async function printWithdrawalList() {
         win.document.write(`<html><head><link href="https://fonts.googleapis.com/css2?family=Cairo&display=swap" rel="stylesheet"></head><body>${html}</body></html>`);
         win.document.close();
         setTimeout(() => win.print(), 600);
-    } catch(e) { smartAlert('❌ فشل إعداد التقرير'); }
+    } catch(e) { smartAlert('<i class="fa-solid fa-circle-xmark"></i> فشل إعداد التقرير'); }
 }
 
 // ==========================================
-// 💬 Employee Chat Panel
+// <i class="fa-solid fa-comment-dots"></i> Employee Chat Panel
 // ==========================================
 function toggleAdminChat() {
     const w = document.getElementById('adminChatWidget');
@@ -585,7 +585,7 @@ async function updateChatEmployeeSelect() {
     const current = s.value;
     s.innerHTML = '<option value="">-- اختر موظفاً --</option>' + employees.map(e => {
         const ur = unreadCounts[e.id] || 0;
-        return `<option value="${e.id}">${e.name} ${ur > 0 ? '🔴' : ''}</option>`;
+        return `<option value="${e.id}">${e.name} ${ur > 0 ? '<i class="fa-solid fa-circle" style="color: #ef4444;"></i>' : ''}</option>`;
     }).join('');
     s.value = current;
 }
@@ -627,7 +627,7 @@ async function checkUnreadMessages() {
 }
 
 // ==========================================
-// 🛠️ Helpers & Utilities
+// <i class="fa-solid fa-screwdriver-wrench"></i> Helpers & Utilities
 // ==========================================
 function setupEventListeners() {
     listen('addEmployeeForm', 'submit', handleAddEmployee);
@@ -640,7 +640,7 @@ function setupEventListeners() {
 function toggleSection(id) { document.getElementById(id).classList.toggle('collapsed'); }
 function updateDateHeader() {
     const now = new Date();
-    setText('currentDateDisplay', now.toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
+    setText('currentDateDisplay', now.toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
 }
 
 function openModal(id) { document.getElementById(id).style.display = 'flex'; }
@@ -653,7 +653,7 @@ async function uploadAndRestoreDatabase(input) {
     const file = input.files[0];
     if (!file) return;
 
-    if (!confirm(`⚠️ تحذير مهم:\nهل أنت متأكد من استعادة قاعدة البيانات من الملف (${file.name})؟\nسيتم استبدال البيانات الحالية على السيرفر بالبيانات الموجودة في هذا الملف واسترجاع كافة سجلات الموظفين والدخل.`)) {
+    if (!confirm(`<i class="fa-solid fa-triangle-exclamation"></i> تحذير مهم:\nهل أنت متأكد من استعادة قاعدة البيانات من الملف (${file.name})؟\nسيتم استبدال البيانات الحالية على السيرفر بالبيانات الموجودة في هذا الملف واسترجاع كافة سجلات الموظفين والدخل.`)) {
         input.value = '';
         return;
     }
@@ -673,11 +673,11 @@ async function uploadAndRestoreDatabase(input) {
             closeModal('backupModal');
             location.reload();
         } else {
-            alert('❌ خطأ: ' + (result.message || 'فشلت عملية الاستعادة'));
+            alert('خطأ: ' + (result.message || 'فشلت عملية الاستعادة'));
         }
     } catch (e) {
         console.error(e);
-        alert('❌ حدث خطأ أثناء الاتصال بالسيرفر');
+        alert('حدث خطأ أثناء الاتصال بالسيرفر');
     } finally {
         input.value = '';
     }
@@ -741,20 +741,20 @@ async function loadAdminNotifications() {
 
         list.innerHTML = notifs.map(n => `
             <div style="padding: 15px; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.2s; background: ${n.is_read === 0 ? '#eff6ff' : 'transparent'};" onclick="markAdminRead(${n.id}, this)">
-                <div style="font-weight: 700; font-size: 13px; color: ${n.type==='warning'?'#d97706':'#1e293b'}; margin-bottom: 4px;">${n.title} ${n.is_read===0?'🔴':''}</div>
+                <div style="font-weight: 700; font-size: 13px; color: ${n.type==='warning'?'#d97706':'#1e293b'}; margin-bottom: 4px;">${n.title} ${n.is_read===0?'<i class="fa-solid fa-circle" style="color: #ef4444;"></i>':''}</div>
                 <div style="font-size: 12px; color: #64748b;">${n.message}</div>
-                <div style="font-size: 10px; color: #94a3b8; margin-top: 5px; text-align: left;">${new Date(n.created_at).toLocaleString('ar-SA')}</div>
+                <div style="font-size: 10px; color: #94a3b8; margin-top: 5px; text-align: left;">${new Date(n.created_at).toLocaleString('en-GB')}</div>
             </div>
         `).join('');
     } catch(e) {}
 }
 
 async function markAdminRead(id, element) {
-    if(!element.innerHTML.includes('🔴')) return;
+    if(!element.innerHTML.includes('<i class="fa-solid fa-circle" style="color: #ef4444;"></i>')) return;
     try {
         await fetch(`/api/sys_notifications/${id}/read`, { method: 'PUT' });
         element.style.background = 'transparent';
-        element.innerHTML = element.innerHTML.replace('🔴', '');
+        element.innerHTML = element.innerHTML.replace('<i class="fa-solid fa-circle" style="color: #ef4444;"></i>', '');
         
         unreadAdminCount--;
         const badge = document.getElementById('notifBadgeDot');
@@ -809,7 +809,7 @@ async function importSalaries(input) {
         const result = await res.json();
         smartAlert(result.message);
         loadData();
-    } catch(e) { smartAlert('❌ خطأ في الاتصال'); } finally { input.value = ''; }
+    } catch(e) { smartAlert('<i class="fa-solid fa-circle-xmark"></i> خطأ في الاتصال'); } finally { input.value = ''; }
 }
 
 // --- Excel Import Employees ---
@@ -835,7 +835,7 @@ async function importEmployeesFromExcel(input) {
         if (result.success) {
             resultDiv.innerHTML = `
                 <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:14px;">
-                    <div style="color:#166534; font-weight:800; font-size:15px; margin-bottom:8px;">✅ ${result.message}</div>
+                    <div style="color:#166534; font-weight:800; font-size:15px; margin-bottom:8px;"><i class="fa-solid fa-circle-check"></i> ${result.message}</div>
                     <div style="font-size:13px; color:#374151;">
                         تم إضافة: <strong>${result.added}</strong> موظف
                         ${result.skipped > 0 ? ` | تم تخطي: <strong>${result.skipped}</strong> (موجود مسبقاً)` : ''}
@@ -844,10 +844,10 @@ async function importEmployeesFromExcel(input) {
                 </div>`;
             loadData();
         } else {
-            resultDiv.innerHTML = `<div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:14px; color:#b91c1c; font-weight:700;">❌ ${result.message}</div>`;
+            resultDiv.innerHTML = `<div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:14px; color:#b91c1c; font-weight:700;"><i class="fa-solid fa-circle-xmark"></i> ${result.message}</div>`;
         }
     } catch(e) {
-        resultDiv.innerHTML = `<div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:14px; color:#b91c1c;">❌ تعذر الاتصال بالسيرفر</div>`;
+        resultDiv.innerHTML = `<div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:14px; color:#b91c1c;"><i class="fa-solid fa-circle-xmark"></i> تعذر الاتصال بالسيرفر</div>`;
     } finally {
         input.value = '';
     }

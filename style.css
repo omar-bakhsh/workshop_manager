@@ -189,7 +189,7 @@ tr:hover { background-color: #f1f5f9; }
    ========================================= */
 @media print {
   body { background: white; }
-  .no-print, nav, header, button, .actions-col {
+  .no-print, nav, button, .actions-col, .app-topbar, .top-bar, .site-header {
     display: none !important;
   }
   .card {

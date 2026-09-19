@@ -12,6 +12,7 @@
     <script src="toast.js?v=5.0"></script>
     <script src="toast_helpers.js?v=5.0"></script>
     <script src="public/js/app-config.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
@@ -22,13 +23,13 @@
         <!-- Sidebar -->
         <aside class="sidebar" id="adminSidebar">
             <div class="sidebar-header">
-                <div class="sidebar-logo">🚗</div>
+                <div class="sidebar-logo"><i class="fa-solid fa-car"></i></div>
                 <div class="sidebar-title app-name-text">Atenza App</div>
                 <button class="sidebar-close-btn" onclick="toggleMobileSidebar()" title="إغلاق">✕</button>
             </div>
             <nav class="sidebar-nav">
                 <a href="#" class="nav-item active" onclick="showView('overview'); toggleMobileSidebar(false);">
-                    <span class="nav-icon">📊</span>
+                    <span class="nav-icon"><i class="fa-solid fa-chart-pie"></i></span>
                     <span>لوحة التحكم </span>
                 </a>
                 <a href="#" class="nav-item" onclick="openAttendanceModal(); toggleMobileSidebar(false);">
@@ -44,20 +45,24 @@
                     <span>مواعيد العمل</span>
                 </a>
                 <a href="inspector.html" class="nav-item">
-                    <span class="nav-icon">🔍</span>
+                    <span class="nav-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
                     <span>تسعيرة / كشف جديد</span>
                 </a>
                 <a href="inspections_list.html" class="nav-item">
-                    <span class="nav-icon">📋</span>
+                    <span class="nav-icon"><i class="fa-solid fa-clipboard-list"></i></span>
                     <span>سجل التسعيرات</span>
                 </a>
                 <a href="job_orders_list.html" class="nav-item">
-                    <span class="nav-icon">🚗</span>
+                    <span class="nav-icon"><i class="fa-solid fa-car"></i></span>
                     <span>أوامر العمل والسيارات</span>
                 </a>
                 <div class="nav-separator">الإدارة والإعدادات</div>
+                <a href="employees_manager.html" class="nav-item">
+                    <span class="nav-icon"><i class="fa-solid fa-user-tie"></i></span>
+                    <span>إدارة الموظفين</span>
+                </a>
                 <a href="services_manager.html" class="nav-item">
-                    <span class="nav-icon">🛠️</span>
+                    <span class="nav-icon"><i class="fa-solid fa-screwdriver-wrench"></i></span>
                     <span>إدارة الخدمات</span>
                 </a>
                 <a href="shortcuts_manager.html" class="nav-item">
@@ -65,11 +70,11 @@
                     <span> باقات الصيانة</span>
                 </a>
                 <a href="clients_manager.html" class="nav-item">
-                    <span class="nav-icon">👥</span>
+                    <span class="nav-icon"><i class="fa-solid fa-users"></i></span>
                     <span>إدارة العملاء</span>
                 </a>
                 <a href="income_report.html" class="nav-item">
-                    <span class="nav-icon">📄</span>
+                    <span class="nav-icon"><i class="fa-solid fa-file-lines"></i></span>
                     <span>تقارير الدخل المفصلة</span>
                 </a>
                 <a href="#" class="nav-item" onclick="backupDatabase(); toggleMobileSidebar(false);">
@@ -78,7 +83,7 @@
                 </a>
             </nav>
             <div class="sidebar-footer">
-                <button class="logout-btn" onclick="logout()">🚪 تسجيل الخروج</button>
+                <button class="logout-btn" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> تسجيل الخروج</button>
             </div>
         </aside>
 
@@ -112,19 +117,19 @@
 
                     <!-- Settings Button -->
                     <button class="action-icon-btn btn-settings-accent" onclick="window.location.href='settings.html'" title="إعدادات النظام">
-                        <span>⚙️</span>
+                        <span><i class="fa-solid fa-gear"></i></span>
                         <span class="btn-desktop-text">الإعدادات</span>
                     </button>
 
                     <!-- Notification Bell with Dropdown -->
                     <div class="notif-wrapper">
                         <button class="action-icon-btn notif-bell-btn" onclick="toggleAdminNotif()" title="الإشعارات الداخلية">
-                            <span>🔔</span>
+                            <span><i class="fa-solid fa-bell"></i></span>
                             <span id="notifBadgeDot" class="badge-dot-admin" style="display:none;">0</span>
                         </button>
                         <div id="adminNotifDropdown" class="admin-notif-popover" style="display: none;">
                             <div class="notif-popover-header">
-                                <h4>🔔 إشعارات النظام</h4>
+                                <h4><i class="fa-solid fa-bell"></i> إشعارات النظام</h4>
                                 <button onclick="markAllAdminRead()" class="btn-mark-read">تحديد الكل كمقروء</button>
                             </div>
                             <div id="adminNotifList" class="notif-popover-body">
@@ -139,22 +144,22 @@
                 <!-- Stats Grid -->
                 <div class="stats-grid">
                     <div class="stat-card" style="--card-accent: var(--primary); --card-bg: #e0e7ff;">
-                        <div class="stat-icon-box">👥</div>
+                        <div class="stat-icon-box"><i class="fa-solid fa-users"></i></div>
                         <div class="stat-value" id="totalEmployees">0</div>
                         <div class="stat-label">الموظفين النشطين</div>
                     </div>
                     <div class="stat-card" style="--card-accent: var(--success); --card-bg: #dcfce7;">
-                        <div class="stat-icon-box">💰</div>
+                        <div class="stat-icon-box"><i class="fa-solid fa-sack-dollar"></i></div>
                         <div class="stat-value" id="totalIncome">0</div>
                         <div class="stat-label">دخل اليوم (بدون ضريبة)</div>
                     </div>
                     <div class="stat-card" style="--card-accent: #7c3aed; --card-bg: #ede9fe;">
-                        <div class="stat-icon-box">💰</div>
+                        <div class="stat-icon-box"><i class="fa-solid fa-sack-dollar"></i></div>
                         <div class="stat-value" id="totalIncomeWithTax" style="color:#7c3aed;">0</div>
                         <div class="stat-label">دخل اليوم (مع ضريبة 15%)</div>
                     </div>
                     <div class="stat-card" style="--card-accent: var(--danger); --card-bg: #fee2e2;">
-                        <div class="stat-icon-box">💳</div>
+                        <div class="stat-icon-box"><i class="fa-solid fa-credit-card"></i></div>
                         <div class="stat-value" id="totalWithdrawals">0</div>
                         <div class="stat-label">سحبيات اليوم</div>
                     </div>
@@ -166,7 +171,7 @@
                 </div>
 
                 <div id="pendingRequestsSection" style="display: none; margin-bottom: 32px;">
-                    <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 16px;">🔔 الطلبات المعلقة</h2>
+                    <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 16px;"><i class="fa-solid fa-bell"></i> الطلبات المعلقة</h2>
                     <div class="stats-grid" id="pendingContainer"></div>
                 </div>
 
@@ -192,7 +197,7 @@
     <!-- Add Employee Modal -->
     <div class="modal" id="addEmployeeModal">
         <div class="modal-content">
-            <div class="modal-header"><h3>➕ إضافة موظف جديد</h3></div>
+            <div class="modal-header"><h3><i class="fa-solid fa-plus"></i> إضافة موظف جديد</h3></div>
             <div class="modal-body">
                 <form id="addEmployeeForm">
                     <div class="form-grid">
@@ -246,11 +251,11 @@
     </div>
 
     <!-- Income & Withdrawal Modals (Minimal) -->
-    <div class="modal" id="addIncomeModal"><div class="modal-content"><div class="modal-header"><h3>💰 استبدال دخل الموظف</h3></div><div class="modal-body"><form id="addIncomeForm"><input type="hidden" id="incomeEmpId"><div class="form-group"><label>الدخل الجديد</label><input type="number" id="incomeAmount" required /></div><div class="form-group"><label>التفاصيل</label><textarea id="incomeDetails"></textarea></div></form></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('addIncomeModal')">إلغاء</button><button class="btn btn-success" type="submit" form="addIncomeForm">حفظ</button></div></div></div>
-    <div class="modal" id="addWithdrawalModal"><div class="modal-content"><div class="modal-header"><h3>💳 تسجيل سحب مالي</h3></div><div class="modal-body"><form id="addWithdrawalForm"><input type="hidden" id="withdrawalEmpId"><div class="form-group"><label>المبلغ</label><input type="number" id="withdrawalAmount" required /></div><div class="form-group"><label>السبب</label><textarea id="withdrawalReason"></textarea></div></form></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('addWithdrawalModal')">إلغاء</button><button class="btn btn-warning" type="submit" form="addWithdrawalForm">حفظ</button></div></div></div>
+    <div class="modal" id="addIncomeModal"><div class="modal-content"><div class="modal-header"><h3><i class="fa-solid fa-sack-dollar"></i> استبدال دخل الموظف</h3></div><div class="modal-body"><form id="addIncomeForm"><input type="hidden" id="incomeEmpId"><div class="form-group"><label>الدخل الجديد</label><input type="number" id="incomeAmount" required /></div><div class="form-group"><label>التفاصيل</label><textarea id="incomeDetails"></textarea></div></form></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('addIncomeModal')">إلغاء</button><button class="btn btn-success" type="submit" form="addIncomeForm">حفظ</button></div></div></div>
+    <div class="modal" id="addWithdrawalModal"><div class="modal-content"><div class="modal-header"><h3><i class="fa-solid fa-credit-card"></i> تسجيل سحب مالي</h3></div><div class="modal-body"><form id="addWithdrawalForm"><input type="hidden" id="withdrawalEmpId"><div class="form-group"><label>المبلغ</label><input type="number" id="withdrawalAmount" required /></div><div class="form-group"><label>السبب</label><textarea id="withdrawalReason"></textarea></div></form></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('addWithdrawalModal')">إلغاء</button><button class="btn btn-warning" type="submit" form="addWithdrawalForm">حفظ</button></div></div></div>
 
     <!-- Chat Widget -->
-    <div class="chat-toggle-btn" onclick="toggleAdminChat()" style="position:fixed; bottom:30px; left:30px; width:60px; height:60px; background:var(--primary); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:1000;">💬<span id="chatBadge" style="display:none; position:absolute; top:0; right:0; background:red; color:white; border-radius:50%; width:20px; height:20px; font-size:12px; text-align:center;">0</span></div>
+    <div class="chat-toggle-btn" onclick="toggleAdminChat()" style="position:fixed; bottom:30px; left:30px; width:60px; height:60px; background:var(--primary); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:1000;"><i class="fa-solid fa-comment-dots"></i><span id="chatBadge" style="display:none; position:absolute; top:0; right:0; background:red; color:white; border-radius:50%; width:20px; height:20px; font-size:12px; text-align:center;">0</span></div>
     <div class="chat-widget" id="adminChatWidget" style="display:none; position:fixed; bottom:100px; left:30px; width:350px; height:500px; background:white; border-radius:20px; box-shadow:0 10px 30px rgba(0,0,0,0.1); flex-direction:column; z-index:1001; overflow:hidden;">
         <div style="background:var(--primary); color:white; padding:15px; font-weight:bold;">محادثات الموظفين</div>
         <div style="padding:10px;"><select id="chatEmployeeSelect" onchange="loadAdminChat(this.value)" style="width:100%;"><option value="">-- اختر موظفاً --</option></select></div>
@@ -324,14 +329,14 @@
                 </p>
                 <div style="display: flex; flex-direction: column; gap: 12px;">
                     <button class="btn btn-primary" onclick="downloadDbBackup()" style="padding: 12px; font-weight: 800; font-size: 13px; justify-content: center;">
-                        <span>📥 تحميل نسخة احتياطية من السيرفر</span>
+                        <span><i class="fa-solid fa-file-import"></i> تحميل نسخة احتياطية من السيرفر</span>
                     </button>
                     <button class="btn" onclick="document.getElementById('adminDbRestoreInput').click()" style="padding: 12px; font-weight: 800; font-size: 13px; justify-content: center; background: #f59e0b; color: white;">
                         <span>📤 رفع واستعادة نسخة سابقة (.sqlite)</span>
                     </button>
                     <input type="file" id="adminDbRestoreInput" style="display: none;" accept=".sqlite,.db" onchange="uploadAndRestoreDatabase(this)">
                     <button class="btn" onclick="closeModal('backupModal'); openImportEmployeesModal()" style="padding: 12px; font-weight: 800; font-size: 13px; justify-content: center; background: #10b981; color: white;">
-                        <span>📊 استيراد موظفين من Excel</span>
+                        <span><i class="fa-solid fa-chart-pie"></i> استيراد موظفين من Excel</span>
                     </button>
                 </div>
             </div>
@@ -339,16 +344,16 @@
         </div>
     </div>
 
-    <!-- 📊 Import Employees from Excel Modal -->
+    <!-- <i class="fa-solid fa-chart-pie"></i> Import Employees from Excel Modal -->
     <div class="modal" id="importEmployeesModal">
         <div class="modal-content" style="max-width: 520px;">
             <div class="modal-header">
-                <h3>📊 استيراد موظفين من Excel</h3>
+                <h3><i class="fa-solid fa-chart-pie"></i> استيراد موظفين من Excel</h3>
                 <button class="close-btn" onclick="closeModal('importEmployeesModal')">&times;</button>
             </div>
             <div class="modal-body" style="padding: 20px;">
                 <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 14px; margin-bottom: 16px; font-size: 13px; color: #166534; line-height: 1.8;">
-                    <strong>📋 تعليمات:</strong><br>
+                    <strong><i class="fa-solid fa-clipboard-list"></i> تعليمات:</strong><br>
                     يجب أن يحتوي ملف Excel على الأعمدة التالية في الصف الأول:<br>
                     <code style="background:#dcfce7; padding:2px 6px; border-radius:4px;">اسم | قسم | هدف | راتب | مستخدم | كلمة المرور</code><br>
                     <em>• اسم المستخدم وكلمة المرور اختياريان — سيتم توليدهما تلقائياً إذا تُركا فارغَين (كلمة المرور الافتراضية: <strong>1234</strong>)</em><br>

@@ -191,6 +191,60 @@ app.delete('/api/employees/:id', async (req, res) => {
 });
 
 // جلب جميع الموظفين مع ملخص الأداء
+// ==========================================
+// SECTIONS MANAGEMENT ENDPOINTS
+// ==========================================
+
+app.get('/api/sections', async (req, res) => {
+    try {
+        const sections = await dbAll('SELECT * FROM sections ORDER BY id ASC');
+        res.json(sections);
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Failed to fetch sections' });
+    }
+});
+
+app.post('/api/sections', async (req, res) => {
+    try {
+        const { name } = req.body;
+        if (!name) return res.status(400).json({ error: 'Name is required' });
+        await dbRun('INSERT INTO sections (name) VALUES (?)', [name]);
+        res.json({ success: true });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Failed to create section' });
+    }
+});
+
+app.put('/api/sections/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name } = req.body;
+        if (!name) return res.status(400).json({ error: 'Name is required' });
+        await dbRun('UPDATE sections SET name = ? WHERE id = ?', [name, id]);
+        res.json({ success: true });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Failed to update section' });
+    }
+});
+
+app.delete('/api/sections/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const inUse = await dbGet('SELECT COUNT(*) as count FROM employees WHERE section_id = ?', [id]);
+        if (inUse && inUse.count > 0) {
+            return res.status(400).json({ message: 'لا يمكن حذف القسم لوجود موظفين مرتبطين به' });
+        }
+        await dbRun('DELETE FROM sections WHERE id = ?', [id]);
+        res.json({ success: true });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Failed to delete section' });
+    }
+});
+
 app.get('/api/employees', async (req, res) => {
     try {
         const employees = await dbAll(`
@@ -264,12 +318,22 @@ app.post('/api/employees/import-excel', upload.single('file'), async (req, res) 
         let added = 0, skipped = 0, errors = [];
         const totalRows = worksheet.rowCount;
 
+        const allEmployees = await dbAll("SELECT id, name FROM employees");
+        const existingNames = allEmployees.map(e => String(e.name).toLowerCase().replace(/\s+/g, ' '));
+        const existingUsernames = new Set((await dbAll("SELECT username FROM users")).map(u => String(u.username).toLowerCase()));
+
         for (let r = 2; r <= totalRows; r++) {
             const row = worksheet.getRow(r);
             const getCell = (col) => col ? String(row.getCell(col).value || '').trim() : '';
 
-            const name = getCell(headers.name);
+            let name = getCell(headers.name);
             if (!name || name.length < 2) continue;
+            
+            const normalizedName = name.toLowerCase().replace(/\s+/g, ' ');
+            if (existingNames.includes(normalizedName)) {
+                skipped++;
+                continue;
+            }
 
             const sectionName = getCell(headers.section);
             const section_id = findSection(sectionName);
@@ -280,7 +344,17 @@ app.post('/api/employees/import-excel', upload.single('file'), async (req, res) 
             // توليد اسم مستخدم وكلمة مرور تلقائيين إذا لم يوجدا
             let username = getCell(headers.username);
             let password = getCell(headers.password);
-            if (!username) username = name.split(' ')[0].toLowerCase().replace(/\s+/g, '') + '_' + Date.now().toString().slice(-4);
+            if (!username) {
+                let baseUsername = name.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/gi, '');
+                if (!baseUsername) baseUsername = 'user';
+                username = baseUsername;
+                let counter = 1;
+                while (existingUsernames.has(username)) {
+                    username = baseUsername + counter;
+                    counter++;
+                }
+            }
+            existingUsernames.add(username.toLowerCase());
             if (!password) password = '1234';
 
             try {
@@ -295,6 +369,7 @@ app.post('/api/employees/import-excel', upload.single('file'), async (req, res) 
                         [employee_id, username, password]
                     );
                     added++;
+                    existingNames.push(normalizedName);
                 } else {
                     skipped++;
                 }
@@ -2622,7 +2697,7 @@ app.post('/api/employees/import-from-salary-sheet', upload.single('file'), async
 
         let added = 0, skipped = 0;
         const allEmployees = await dbAll("SELECT id, name FROM employees");
-        const existingNames = allEmployees.map(e => String(e.name).toLowerCase().trim());
+        const existingNames = allEmployees.map(e => String(e.name).toLowerCase().replace(/\s+/g, ' '));
         const existingUsernames = new Set((await dbAll("SELECT username FROM users")).map(u => String(u.username).toLowerCase()));
 
         for (let i = 2; i <= 250; i++) { 
@@ -2633,7 +2708,8 @@ app.post('/api/employees/import-from-salary-sheet', upload.single('file'), async
             let name = String(rawVal).trim();
             if (name.length < 2 || name === 'التاريخ' || name.includes('تاريخ')) continue;
             
-            if (existingNames.includes(name.toLowerCase())) {
+            const normalizedName = name.toLowerCase().replace(/\s+/g, ' ');
+            if (existingNames.includes(normalizedName)) {
                 skipped++;
                 continue;
             }
@@ -2659,7 +2735,7 @@ app.post('/api/employees/import-from-salary-sheet', upload.single('file'), async
                     [employee_id, username]
                 );
                 added++;
-                existingNames.push(name.toLowerCase());
+                existingNames.push(normalizedName);
             }
         }
         

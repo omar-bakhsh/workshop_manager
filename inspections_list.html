@@ -570,7 +570,7 @@
         <!-- Page Top Bar -->
         <div class="page-top-bar">
             <div>
-                <h1>📋 سجل التسعيرات والكشوفات</h1>
+                <h1><i class="fa-solid fa-clipboard-list"></i> سجل التسعيرات والكشوفات</h1>
                 <p>استعراض وطباعة وتحويل التسعيرات إلى أوامر عمل بسهولة</p>
             </div>
             <div class="top-action-group">
@@ -606,7 +606,7 @@
                 </div>
             </div>
             <div class="kpi-card">
-                <div class="kpi-icon" style="background: #fef3c7; color: #d97706;">🛠️</div>
+                <div class="kpi-icon" style="background: #fef3c7; color: #d97706;"><i class="fa-solid fa-screwdriver-wrench"></i></div>
                 <div class="kpi-info">
                     <h3>تحولت لأمر عمل</h3>
                     <div class="val" id="kpiConverted">0</div>
@@ -618,11 +618,11 @@
         <div class="filter-card">
             <div class="search-main-row">
                 <div class="search-input-wrap">
-                    <span class="search-icon-inside">🔍</span>
-                    <input type="text" id="searchInput" placeholder="بحث برقم الكشف، اسم العميل، الجوال، اللوحة..." oninput="debouncedLoadInspections()" onkeypress="if(event.key==='Enter') loadInspections()">
+                    <span class="search-icon-inside"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" id="searchInput" placeholder="🔍 بحث برقم الكشف، اسم العميل، الجوال، اللوحة..." oninput="debouncedLoadInspections()" onkeypress="if(event.key==='Enter') loadInspections()">
                 </div>
                 <button class="btn-filter-toggle" onclick="toggleAdvancedFilters()">
-                    <span>⚙️</span>
+                    <span><i class="fa-solid fa-gear"></i></span>
                     <span>تصفية</span>
                 </button>
             </div>
@@ -641,8 +641,8 @@
                     <label>📄 نوع المستند</label>
                     <select id="statusFilter" onchange="loadInspections()">
                         <option value="all">الكل (تسعيرات + أوامر عمل)</option>
-                        <option value="new" selected>📋 تسعيرات فقط</option>
-                        <option value="job_order">🛠️ أوامر عمل فقط</option>
+                        <option value="new" selected>تسعيرات فقط</option>
+                        <option value="job_order">أوامر عمل فقط</option>
                     </select>
                 </div>
                 <div class="filter-group">
@@ -850,7 +850,7 @@
                 const timeStr = d.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
 
                 const badgeClass = isJobOrder ? 'job_order' : 'quotation';
-                const badgeLabel = isJobOrder ? '🛠️ أمر عمل' : '📋 تسعيرة';
+                const badgeLabel = isJobOrder ? '<i class="fa-solid fa-screwdriver-wrench"></i> أمر عمل' : '<i class="fa-solid fa-clipboard-list"></i> تسعيرة';
                 const editBtnText = canEdit ? '📝 تعديل' : '👁️ معاينة';
 
                 // 1. Render Desktop Table Row
@@ -880,7 +880,7 @@
                             <button class="btn-action-icon btn-edit" onclick="openInspection(${item.id})" title="${editBtnText}">${editBtnText}</button>
                             <button class="btn-action-icon btn-print" onclick="printInspectionDirect(${item.id})" title="طباعة">🖨️</button>
                             <button class="btn-action-icon btn-whatsapp" onclick='openWhatsAppModalFor(${JSON.stringify(item).replace(/'/g, "&apos;")})' title="واتساب">💬</button>
-                            ${!isJobOrder && canEdit ? `<button class="btn-action-icon btn-convert" onclick="convertToJobOrder(${item.id})" title="تحويل لأمر عمل">🛠️ تحويل</button>` : ''}
+                            ${!isJobOrder && canEdit ? `<button class="btn-action-icon btn-convert" onclick="convertToJobOrder(${item.id})" title="تحويل لأمر عمل"><i class="fa-solid fa-screwdriver-wrench"></i> تحويل</button>` : ''}
                             ${canDelete ? `<button class="btn-action-icon btn-delete" onclick="deleteInspection(${item.id})" title="حذف">🗑️</button>` : ''}
                         </div>
                     </td>
@@ -936,7 +936,7 @@
                         </button>
                         ${!isJobOrder && canEdit ? `
                             <button class="btn-touch-action btn-convert" onclick="convertToJobOrder(${item.id})">
-                                <span>🛠️ تحويل</span>
+                                <span><i class="fa-solid fa-screwdriver-wrench"></i> تحويل</span>
                             </button>
                         ` : ''}
                         ${canDelete ? `
@@ -979,9 +979,9 @@
                 const res = await fetch(`/api/inspections/${id}/convert-to-job`, { method: 'POST' });
                 if (res.ok) {
                     if (typeof showSuccess === 'function') {
-                        showSuccess(`تم تحويل التسعيرة #${id} إلى أمر عمل بنجاح 🛠️`);
+                        showSuccess(`تم تحويل التسعيرة #${id} إلى أمر عمل بنجاح <i class="fa-solid fa-screwdriver-wrench"></i>`);
                     } else {
-                        alert(`تم تحويل التسعيرة #${id} إلى أمر عمل بنجاح 🛠️`);
+                        alert(`تم تحويل التسعيرة #${id} إلى أمر عمل بنجاح `);
                     }
                     loadInspections();
                 } else {

@@ -174,6 +174,7 @@
     <link rel="stylesheet" href="toast.css">
     <script src="toast.js"></script>
     <script src="toast_helpers.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
@@ -183,7 +184,7 @@
             <h1>🚀 إدارة اختصارات الكشف (الباقات)</h1>
             <div style="display: flex; gap: 10px;">
                 <button class="btn btn-secondary" onclick="APP_NAV.goBack('admin.html')">🔙 رجوع</button>
-                <button class="btn btn-primary" onclick="showAddModal()">إضافة باقة جديدة ➕</button>
+                <button class="btn btn-primary" onclick="showAddModal()">إضافة باقة جديدة <i class="fa-solid fa-plus"></i></button>
             </div>
         </div>
 
@@ -218,7 +219,7 @@
                     </div>
                     <button type="button" class="btn btn-primary" onclick="addItemRow()"
                         style="margin-top:10px; width:100%; background:#eef2ff; color:var(--primary); border:1px dashed var(--primary);">إضافة
-                        خدمة للباقة ➕</button>
+                        خدمة للباقة <i class="fa-solid fa-plus"></i></button>
                 </div>
 
                 <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 30px;">
@@ -265,7 +266,7 @@
             container.innerHTML = bundles.map(b => `
                 <div class="card">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:10px;">
-                        <h3 style="font-size:18px;">${b.icon || '📦'} ${b.name}</h3>
+                        <h3 style="font-size:18px;">${b.icon || '<i class="fa-solid fa-box"></i>'} ${b.name}</h3>
                         <div style="display:flex; gap:10px;">
                             <button class="btn btn-primary" style="padding:5px 15px; font-size:12px;" onclick="editBundle(${b.id})">تعديل ✏️</button>
                             <button class="btn btn-danger" style="padding:5px 15px; font-size:12px;" onclick="deleteBundle(${b.id})">حذف 🗑️</button>
@@ -347,7 +348,7 @@
 
             const data = {
                 name: document.getElementById('bundleName').value,
-                icon: document.getElementById('bundleIcon').value || '📦',
+                icon: document.getElementById('bundleIcon').value || '<i class="fa-solid fa-box"></i>',
                 items: items
             };
 
