@@ -22,10 +22,12 @@ $filesToInclude = @(
     "job_order.html",
     "job_orders_list.html",
     "lifts.html",
+    "employees_manager.html",
     "services_manager.html",
     "settings.html",
     "shortcuts_manager.html",
     "clients_manager.html",
+    "marketing.html",
     "track.html",
     "demo.html",
     "toast_demo.html",
@@ -42,6 +44,7 @@ $filesToInclude = @(
     "icon-192.svg",
     "icon-512.svg",
     "car_diagram.png",
+    "car_diagram.jpg",
     "car_diagram.svg"
 )
 
