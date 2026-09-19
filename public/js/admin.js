@@ -16,6 +16,7 @@ let unreadCounts = {};
 // ==========================================
 async function init() {
     checkAuth();
+    initSidebarCollapseState();
     setupEventListeners();
     updateDateHeader();
     
@@ -886,6 +887,35 @@ function toggleMobileSidebar(forceState) {
     } else {
         sb.classList.toggle('open');
         if (overlay) overlay.classList.toggle('open');
+    }
+}
+
+function toggleSidebarCollapse() {
+    const sb = document.getElementById('adminSidebar') || document.querySelector('.sidebar');
+    const layout = document.querySelector('.app-layout');
+    if (!sb) return;
+
+    const isCollapsed = sb.classList.toggle('collapsed');
+    if (layout) layout.classList.toggle('sidebar-collapsed', isCollapsed);
+    localStorage.setItem('adminSidebarCollapsed', isCollapsed ? '1' : '0');
+
+    const toggleBtnIcon = document.querySelector('#desktopSidebarToggle i');
+    if (toggleBtnIcon) {
+        toggleBtnIcon.className = isCollapsed ? 'fa-solid fa-angles-left' : 'fa-solid fa-angles-right';
+    }
+}
+
+function initSidebarCollapseState() {
+    const saved = localStorage.getItem('adminSidebarCollapsed');
+    if (saved === '1' && window.innerWidth > 768) {
+        const sb = document.getElementById('adminSidebar') || document.querySelector('.sidebar');
+        const layout = document.querySelector('.app-layout');
+        if (sb) sb.classList.add('collapsed');
+        if (layout) layout.classList.add('sidebar-collapsed');
+        const toggleBtnIcon = document.querySelector('#desktopSidebarToggle i');
+        if (toggleBtnIcon) {
+            toggleBtnIcon.className = 'fa-solid fa-angles-left';
+        }
     }
 }
 

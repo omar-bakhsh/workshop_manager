@@ -1052,10 +1052,35 @@
                 </button>
             </div>
 
+            <!-- Promo Code / Coupon Section -->
+            <div class="promo-coupon-section no-print" style="background:#f8fafc; border:1.5px dashed #cbd5e1; border-radius:10px; padding:12px 16px; margin: 15px 0; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px;">
+                <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:260px;">
+                    <span style="font-size:13px; font-weight:800; color:#334155; display:flex; align-items:center; gap:6px;">
+                        <i class="fa-solid fa-ticket" style="color:var(--primary);"></i> كود الخصم:
+                    </span>
+                    <input type="text" id="promoCodeInput" placeholder="أدخل رمز الكود..." style="text-transform:uppercase; font-weight:800; padding:6px 12px; border:1.5px solid #cbd5e1; border-radius:6px; width:150px; font-size:13px;" onkeypress="if(event.key==='Enter'){event.preventDefault(); applyPromoCode();}">
+                    <button type="button" class="btn-action-top" onclick="applyPromoCode()" style="background:var(--primary); color:white; font-weight:800; padding:6px 14px; border-radius:6px; font-size:12.5px; border:none; cursor:pointer;">
+                        تطبيق 🏷️
+                    </button>
+                    <button type="button" id="removePromoBtn" class="btn-action-top" onclick="removePromoCode()" style="display:none; background:#fee2e2; color:#b91c1c; font-weight:700; padding:6px 10px; border-radius:6px; font-size:12px; border:1px solid #fca5a5; cursor:pointer;">
+                        إلغاء ✕
+                    </button>
+                </div>
+                <div id="promoMessageBadge" style="display:none; font-size:12.5px; font-weight:700; padding:5px 12px; border-radius:6px;"></div>
+            </div>
+
             <!-- Totals Grid -->
-            <div class="totals-grid">
+            <div class="totals-grid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
                 <div class="total-box">
-                    <span class="total-label">المبلغ قبل الضريبة</span>
+                    <span class="total-label">المبلغ قبل الخصم</span>
+                    <span class="total-val" id="rawSubTotal">0.00</span>
+                </div>
+                <div class="total-box" id="discountBoxDisplay" style="display:none; background:#fef3c7; border-color:#fde68a;">
+                    <span class="total-label" style="color:#92400e;">الخصم المطبق <span id="discountBadgeLabel"></span></span>
+                    <span class="total-val" id="discountVal" style="color:#b45309;">-0.00</span>
+                </div>
+                <div class="total-box">
+                    <span class="total-label">المبلغ بعد الخصم</span>
                     <span class="total-val" id="subTotal">0.00</span>
                 </div>
                 <div class="total-box">
@@ -1117,6 +1142,13 @@
         let currentInspection = null;
         let currentInspectionId = null;
         let currentDocType = 'new'; // 'new' (تسعيرة) or 'job_order' (أمر عمل)
+        let appliedPromo = null; // Holds applied promo code data
+
+        function isDiscountExemptCategory(category) {
+            if (!category) return false;
+            const cat = String(category).trim().toLowerCase();
+            return cat.includes('مخرطة') || cat.includes('أخرى') || cat.includes('قطع غيار') || cat.includes('قطع') || cat.includes('مخارط');
+        }
 
         function changeDocType(type) {
             currentDocType = type;
@@ -1577,25 +1609,177 @@
         }
 
         function calculateTotals() {
-            let subtotal = 0;
-            document.querySelectorAll('.row-total').forEach(td => {
-                subtotal += parseFloat(td.textContent) || 0;
+            let rawSubtotal = 0;
+            let eligibleSubtotal = 0;
+            let exemptSubtotal = 0;
+
+            document.querySelectorAll('#tableBody tr').forEach(tr => {
+                const service = tr.querySelector('.service-input')?.value?.trim();
+                const total = parseFloat(tr.querySelector('.row-total')?.textContent) || 0;
+                const cat = tr.querySelector('.cat-select')?.value || '';
+
+                if (service || total > 0) {
+                    rawSubtotal += total;
+                    if (isDiscountExemptCategory(cat)) {
+                        exemptSubtotal += total;
+                    } else {
+                        eligibleSubtotal += total;
+                    }
+                }
             });
 
-            const vat = subtotal * 0.15;
-            const final = subtotal + vat;
-            const paid = parseFloat(document.getElementById('paidAmount').value) || 0;
-            const remaining = final - paid;
+            let discountAmount = 0;
+            if (appliedPromo) {
+                if (appliedPromo.discount_type === 'percentage') {
+                    discountAmount = eligibleSubtotal * (appliedPromo.discount_value / 100);
+                } else {
+                    discountAmount = Math.min(eligibleSubtotal, appliedPromo.discount_value);
+                }
+                discountAmount = Math.round(discountAmount * 100) / 100;
+                appliedPromo.discount_amount = discountAmount;
 
-            document.getElementById('subTotal').textContent = subtotal.toFixed(2);
-            document.getElementById('vatTotal').textContent = vat.toFixed(2);
-            document.getElementById('finalTotal').textContent = final.toFixed(2);
-            document.getElementById('remainingAmount').textContent = remaining.toFixed(2);
-            document.getElementById('mobileBottomFinalTotal').textContent = `${final.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ﷼`;
+                const discBox = document.getElementById('discountBoxDisplay');
+                if (discBox) {
+                    discBox.style.display = 'flex';
+                    const discValEl = document.getElementById('discountVal');
+                    if (discValEl) discValEl.textContent = `-${discountAmount.toFixed(2)}`;
+                    const discLblEl = document.getElementById('discountBadgeLabel');
+                    if (discLblEl) {
+                        const labelType = appliedPromo.discount_type === 'percentage' ? `${appliedPromo.discount_value}%` : `${appliedPromo.discount_value} ﷼`;
+                        discLblEl.textContent = `(${appliedPromo.code}: ${labelType})`;
+                    }
+                }
+            } else {
+                const discBox = document.getElementById('discountBoxDisplay');
+                if (discBox) discBox.style.display = 'none';
+            }
+
+            const subtotalAfterDiscount = Math.max(0, (eligibleSubtotal - discountAmount) + exemptSubtotal);
+            const vat = +(subtotalAfterDiscount * 0.15).toFixed(2);
+            const final = +(subtotalAfterDiscount + vat).toFixed(2);
+            const paid = parseFloat(document.getElementById('paidAmount')?.value) || 0;
+            const remaining = +(final - paid).toFixed(2);
+
+            const rawSubTotalEl = document.getElementById('rawSubTotal');
+            if (rawSubTotalEl) rawSubTotalEl.textContent = rawSubtotal.toFixed(2);
+
+            const subTotalEl = document.getElementById('subTotal');
+            if (subTotalEl) subTotalEl.textContent = subtotalAfterDiscount.toFixed(2);
+
+            const vatTotalEl = document.getElementById('vatTotal');
+            if (vatTotalEl) vatTotalEl.textContent = vat.toFixed(2);
+
+            const finalTotalEl = document.getElementById('finalTotal');
+            if (finalTotalEl) finalTotalEl.textContent = final.toFixed(2);
+
+            const remainingAmountEl = document.getElementById('remainingAmount');
+            if (remainingAmountEl) remainingAmountEl.textContent = remaining.toFixed(2);
+
+            const mobileFinalEl = document.getElementById('mobileBottomFinalTotal');
+            if (mobileFinalEl) mobileFinalEl.textContent = `${final.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ﷼`;
 
             // Keep print sheets synchronized with totals
             prepareOfficialQuotationSheet();
             prepareJobOrderSheet();
+        }
+
+        async function applyPromoCode() {
+            const codeInput = document.getElementById('promoCodeInput');
+            const code = (codeInput?.value || '').trim().toUpperCase();
+            if (!code) {
+                if (typeof showWarning === 'function') showWarning('يرجى كتابة رمز كود الخصم');
+                else alert('يرجى كتابة رمز كود الخصم');
+                return;
+            }
+
+            // Collect current items
+            const items = [];
+            document.querySelectorAll('#tableBody tr').forEach(tr => {
+                const service = tr.querySelector('.service-input')?.value?.trim();
+                if (service) {
+                    items.push({
+                        category: tr.querySelector('.cat-select')?.value || 'عام',
+                        service_description: service,
+                        quantity: parseInt(tr.querySelector('.qty-input')?.value) || 1,
+                        price: parseFloat(tr.querySelector('.price-input')?.value) || 0,
+                        total: parseFloat(tr.querySelector('.row-total')?.textContent) || 0
+                    });
+                }
+            });
+
+            if (items.length === 0) {
+                if (typeof showWarning === 'function') showWarning('يرجى إضافة خدمات أولاً قبل تطبيق كود الخصم');
+                else alert('يرجى إضافة خدمات أولاً قبل تطبيق كود الخصم');
+                return;
+            }
+
+            const phone = document.getElementById('custPhone')?.value?.trim() || '';
+
+            try {
+                const res = await fetch('/api/promo-codes/validate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, customer_phone: phone, items })
+                });
+                const result = await res.json();
+
+                if (res.ok && result.valid) {
+                    appliedPromo = {
+                        code: result.code,
+                        discount_amount: result.discount_amount,
+                        discount_type: result.discount_type,
+                        discount_value: result.discount_value,
+                        description: result.description
+                    };
+
+                    const msgBadge = document.getElementById('promoMessageBadge');
+                    if (msgBadge) {
+                        msgBadge.style.display = 'inline-block';
+                        msgBadge.style.background = '#dcfce7';
+                        msgBadge.style.color = '#15803d';
+                        msgBadge.textContent = `✅ تم تطبيق الكود: ${result.code} (خصم ${result.discount_amount} ﷼)`;
+                    }
+                    const removeBtn = document.getElementById('removePromoBtn');
+                    if (removeBtn) removeBtn.style.display = 'inline-block';
+
+                    calculateTotals();
+                    if (typeof showSuccess === 'function') showSuccess(`تم تطبيق كود الخصم (${result.code}) بنجاح! تم خصم ${result.discount_amount} ﷼`);
+                } else {
+                    appliedPromo = null;
+                    const msgBadge = document.getElementById('promoMessageBadge');
+                    if (msgBadge) {
+                        msgBadge.style.display = 'inline-block';
+                        msgBadge.style.background = '#fee2e2';
+                        msgBadge.style.color = '#b91c1c';
+                        msgBadge.textContent = `❌ ${result.message || 'كود غير صالح'}`;
+                    }
+                    const removeBtn = document.getElementById('removePromoBtn');
+                    if (removeBtn) removeBtn.style.display = 'none';
+
+                    calculateTotals();
+                    if (typeof showError === 'function') showError(result.message || 'كود الخصم غير صالح أو منتهي');
+                }
+            } catch (e) {
+                console.error('Error applying promo code:', e);
+                if (typeof showError === 'function') showError('حدث خطأ أثناء فحص كود الخصم');
+            }
+        }
+
+        function removePromoCode() {
+            appliedPromo = null;
+            const codeInput = document.getElementById('promoCodeInput');
+            if (codeInput) codeInput.value = '';
+            const removeBtn = document.getElementById('removePromoBtn');
+            if (removeBtn) removeBtn.style.display = 'none';
+            const msgBadge = document.getElementById('promoMessageBadge');
+            if (msgBadge) {
+                msgBadge.style.display = 'none';
+                msgBadge.textContent = '';
+            }
+            const discountBox = document.getElementById('discountBoxDisplay');
+            if (discountBox) discountBox.style.display = 'none';
+            calculateTotals();
+            if (typeof showInfo === 'function') showInfo('تمت إزالة كود الخصم');
         }
 
         async function saveInspection() {
@@ -1644,6 +1828,10 @@
                 final_amount: parseFloat(document.getElementById('finalTotal').textContent) || 0,
                 paid_amount: parseFloat(document.getElementById('paidAmount').value) || 0,
                 remaining_amount: parseFloat(document.getElementById('remainingAmount').textContent) || 0,
+                discount_code: appliedPromo ? appliedPromo.code : null,
+                discount_amount: appliedPromo ? (appliedPromo.discount_amount || 0) : 0,
+                discount_type: appliedPromo ? appliedPromo.discount_type : null,
+                discount_value: appliedPromo ? appliedPromo.discount_value : 0,
                 status: currentDocType,
                 car_status: carStatusEl ? carStatusEl.value : 'in_progress',
                 items: items
@@ -1791,6 +1979,35 @@
                     });
                 } else {
                     generateRows(15);
+                }
+
+                // Restore promo discount if exists
+                if (data.discount_code && (parseFloat(data.discount_amount) > 0 || parseFloat(data.discount_value) > 0)) {
+                    appliedPromo = {
+                        code: data.discount_code,
+                        discount_amount: parseFloat(data.discount_amount) || 0,
+                        discount_type: data.discount_type || 'percentage',
+                        discount_value: parseFloat(data.discount_value) || 0
+                    };
+                    const codeInput = document.getElementById('promoCodeInput');
+                    if (codeInput) codeInput.value = data.discount_code;
+                    const removeBtn = document.getElementById('removePromoBtn');
+                    if (removeBtn) removeBtn.style.display = 'inline-block';
+                    const msgBadge = document.getElementById('promoMessageBadge');
+                    if (msgBadge) {
+                        msgBadge.style.display = 'inline-block';
+                        msgBadge.style.background = '#dcfce7';
+                        msgBadge.style.color = '#15803d';
+                        msgBadge.textContent = `✅ كود الخصم: ${data.discount_code} (خصم ${appliedPromo.discount_amount} ﷼)`;
+                    }
+                } else {
+                    appliedPromo = null;
+                    const codeInput = document.getElementById('promoCodeInput');
+                    if (codeInput) codeInput.value = '';
+                    const removeBtn = document.getElementById('removePromoBtn');
+                    if (removeBtn) removeBtn.style.display = 'none';
+                    const msgBadge = document.getElementById('promoMessageBadge');
+                    if (msgBadge) msgBadge.style.display = 'none';
                 }
 
                 calculateTotals();
@@ -2100,7 +2317,12 @@
                 }
 
                 // 6. Financial Summary Table
-                const discount = 0.00;
+                let discount = 0.00;
+                if (appliedPromo && appliedPromo.discount_amount) {
+                    discount = parseFloat(appliedPromo.discount_amount) || 0;
+                } else if (typeof currentInspection !== 'undefined' && currentInspection && currentInspection.discount_amount) {
+                    discount = parseFloat(currentInspection.discount_amount) || 0;
+                }
                 const afterDiscount = Math.max(0, rawSubtotal - discount);
                 const vat = +(afterDiscount * 0.15).toFixed(2);
                 let paid = 0.00;
@@ -2270,7 +2492,12 @@
                 }
 
                 // 4. Quotation Totals
-                const discount = 0.00;
+                let discount = 0.00;
+                if (appliedPromo && appliedPromo.discount_amount) {
+                    discount = parseFloat(appliedPromo.discount_amount) || 0;
+                } else if (typeof currentInspection !== 'undefined' && currentInspection && currentInspection.discount_amount) {
+                    discount = parseFloat(currentInspection.discount_amount) || 0;
+                }
                 const afterDiscount = Math.max(0, rawSubtotal - discount);
                 const vat = +(afterDiscount * 0.15).toFixed(2);
                 const grandTotal = +(afterDiscount + vat).toFixed(2);

@@ -61,34 +61,6 @@
             border: 1px solid #cbd5e1;
             border-radius: 6px;
         }
-
-        .tags-input {
-            width: 100%;
-            padding: 5px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            background: #fff;
-            min-height: 40px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-        }
-
-        .tag {
-            background: var(--primary);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .tag span {
-            cursor: pointer;
-            font-weight: bold;
-        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -131,6 +103,22 @@
             </div>
         </div>
 
+        <!-- Marketing & Promo Codes Settings Card -->
+        <div class="section-box" style="border: 2px solid #6366f1; background: #fdfefe;">
+            <div class="section-title" style="color: #4f46e5; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span>🏷️</span>
+                    <span>إعدادات التسويق وأكواد الخصم</span>
+                </div>
+                <a href="marketing.html" class="btn btn-primary" style="font-size: 13px; text-decoration: none; padding: 6px 14px; background:#4f46e5; color:white; border-radius:8px;">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> إدارة أكواد الخصم والحملات
+                </a>
+            </div>
+            <p style="font-size:12.5px; color:var(--text-gray); margin-bottom:10px; line-height: 1.6;">
+                يمكنك إنشاء وتوليد كوبونات وأكواد الخصم للحملات التسويقية بنسبة مئوية (%) أو مبلغ ثابت (﷼)، وتحديد تواريخ الصلاحية وحدود الاستخدام. يراعي النظام استثناء بنود المخرطة وقطع الغيار تلقائياً.
+            </p>
+        </div>
+
         <!-- Work Schedule Settings -->
         <div class="section-box">
             <div class="section-title">⏱️ مواعيد الدوام الإسبوعية</div>
@@ -150,16 +138,22 @@
             </table>
         </div>
 
+        <!-- Terms & Conditions Settings -->
         <div class="section-box">
             <div class="section-title">📜 الشروط والأحكام</div>
-            <p style="font-size:12px; color:#666; margin-bottom:10px;">أضف الشروط التي ستظهر في أسفل ورقة الكشف وأمر
-                العمل.</p>
+            <p style="font-size:12px; color:#666; margin-bottom:10px;">أضف الشروط التي ستظهر في أسفل ورقة الكشف وأمر العمل.</p>
 
             <div class="form-group">
                 <input type="text" id="newTerm" placeholder="اكتب الشرط واضغط Enter..." onkeypress="addTerm(event)">
                 <button class="btn btn-primary" onclick="addTermManual()" style="margin-top:5px;">إضافة شرط</button>
             </div>
 
+            <ul id="termsList" style="list-style:none; padding:0;">
+                <!-- Terms loaded here -->
+            </ul>
+        </div>
+
+        <!-- Database Backup and Restore -->
         <div class="section-box" style="border: 2px solid var(--primary); background: #f8fafc;">
             <div class="section-title" style="color: var(--primary); display: flex; align-items: center; gap: 8px;">
                 <span>💾</span>
@@ -292,103 +286,121 @@
             renderTerms(currentTerms);
         }
 
+        // Save All Settings
         async function saveAllSettings() {
+            const settings = {
+                app_name: document.getElementById('appName').value,
+                public_app_url: document.getElementById('publicAppUrl').value.trim().replace(/\/+$/, ''),
+                workshop_name: document.getElementById('workshopName').value,
+                workshop_desc: document.getElementById('workshopDesc').value,
+                workshop_phone: document.getElementById('workshopPhone').value,
+                vat_number: document.getElementById('vatNumber').value
+            };
+
             try {
-                const appNameVal = document.getElementById('appName').value.trim() || 'Atenza App';
-                const publicAppUrlVal = document.getElementById('publicAppUrl').value.trim();
-                const workshopNameVal = document.getElementById('workshopName').value.trim() || 'Atenza App';
-                
-                const settingsPayload = {
-                    app_name: appNameVal,
-                    public_app_url: publicAppUrlVal,
-                    workshop_name: workshopNameVal,
-                    workshop_desc: document.getElementById('workshopDesc').value,
-                    workshop_phone: document.getElementById('workshopPhone').value,
-                    vat_number: document.getElementById('vatNumber').value
-                };
-                await fetch('/api/settings', {
+                // Save Settings
+                const res = await fetch('/api/settings', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(settingsPayload)
+                    body: JSON.stringify(settings)
                 });
 
-                if (window.APP_CONFIG) {
-                    window.APP_CONFIG.setAppName(appNameVal);
-                    window.APP_CONFIG.setWorkshopName(workshopNameVal);
-                    window.APP_CONFIG.setPublicAppUrl(publicAppUrlVal);
-                    window.APP_CONFIG.applyToDOM(appNameVal, workshopNameVal);
-                } else {
-                    localStorage.setItem('app_name', appNameVal);
-                    localStorage.setItem('workshop_name', workshopNameVal);
-                    localStorage.setItem('public_app_url', publicAppUrlVal);
-                }
-
+                // Save Terms
                 await fetch('/api/terms', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ terms: currentTerms })
                 });
 
+                // Save Schedule
                 await fetch('/api/work-schedule', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ schedule: currentSchedule })
                 });
 
-                alert('تم حفظ كافة الإعدادات واسم التطبيق بنجاح');
-            } catch (e) { console.error(e); alert('خطأ في الحفظ'); }
+                if (res.ok) {
+                    alert('✅ تم حفظ كافة الإعدادات والشروط ومواعيد العمل بنجاح!');
+                    if (window.APP_CONFIG && APP_CONFIG.initBranding) {
+                        APP_CONFIG.initBranding();
+                    }
+                } else {
+                    alert('❌ حدث خطأ أثناء حفظ الإعدادات');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('❌ تعذر الاتصال بالسيرفر');
+            }
         }
 
-        function downloadDbBackup() {
-            window.location.href = '/api/backup';
+        // ==========================
+        // 💾 وظائف النسخ الاحتياطي والاستعادة ومزامنة البذر
+        // ==========================
+        async function downloadDbBackup() {
+            try {
+                const res = await fetch('/api/backup/download-json');
+                if (!res.ok) throw new Error('فشل جلب ملف النسخة الاحتياطية');
+                const data = await res.json();
+                
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const now = new Date().toISOString().slice(0, 10);
+                a.download = `atenza_backup_${now}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                alert('خطأ أثناء تحميل النسخة الاحتياطية: ' + error.message);
+            }
         }
 
         async function uploadAndRestoreDatabase(input) {
             const file = input.files[0];
             if (!file) return;
 
-            if (!confirm(`<i class="fa-solid fa-triangle-exclamation"></i> تحذير مهم:\nهل أنت متأكد من استعادة قاعدة البيانات من الملف (${file.name})؟\nسيتم استبدال البيانات الحالية على السيرفر بالبيانات الموجودة في هذا الملف.`)) {
+            if (!confirm(`⚠️ تحذير هـام جداً:\nأنت على وشك استعادة قاعدة البيانات من الملف (${file.name}).\nقد يؤدي هذا إلى استبدال أو دمج السجلات الحالية. هل تود المتابعة؟`)) {
                 input.value = '';
                 return;
             }
 
             const formData = new FormData();
-            formData.append('backup_file', file);
+            formData.append('backupFile', file);
 
             try {
-                if (typeof showSuccess === 'function') showSuccess('⏳ جاري رفع واستعادة قاعدة البيانات...');
-                const res = await fetch('/api/backup/restore', {
+                const res = await fetch('/api/backup/restore-file', {
                     method: 'POST',
                     body: formData
                 });
                 const result = await res.json();
                 if (res.ok) {
-                    alert('🎉 ' + result.message);
-                    loadSettings();
+                    alert('✅ ' + (result.message || 'تمت استعادة قاعدة البيانات بنجاح!'));
+                    window.location.reload();
                 } else {
-                    alert('خطأ: ' + (result.message || 'فشلت عملية الاستعادة'));
+                    alert('❌ خطأ في الاستعادة: ' + (result.message || 'فشلت العملية'));
                 }
-            } catch (e) {
-                console.error(e);
-                alert('حدث خطأ أثناء الاتصال بالسيرفر');
+            } catch (error) {
+                alert('❌ تعذر رفع الملف أو استعادة البيانات: ' + error.message);
             } finally {
                 input.value = '';
             }
         }
 
         async function syncDefaultSeedData() {
-            if (!confirm('هل تريد استيراد ومزامنة بيانات الموظفين والعملاء والخدمات الأساسية إلى قاعدة البيانات؟')) return;
+            if (!confirm('هل تريد مزامنة واستيراد الموظفين والبيانات الأساسية الافتراضية الآن؟')) return;
             try {
-                const res = await fetch('/api/admin/sync-seed-data', { method: 'POST' });
+                const res = await fetch('/api/backup/sync-seed', { method: 'POST' });
                 const result = await res.json();
-                if (res.ok && result.success) {
-                    alert('🎉 ' + result.message);
+                if (res.ok) {
+                    alert('✅ ' + (result.message || 'تمت مزامنة البيانات الأساسية بنجاح!'));
+                    window.location.reload();
                 } else {
-                    alert('خطأ: ' + (result.message || 'فشلت المزامنة'));
+                    alert('❌ خطأ في المزامنة: ' + (result.message || 'فشلت العملية'));
                 }
-            } catch (e) {
-                console.error(e);
-                alert('تعذر الاتصال بالسيرفر للمزامنة');
+            } catch (error) {
+                alert('❌ تعذر إتمام المزامنة: ' + error.message);
             }
         }
 
@@ -396,7 +408,7 @@
             const file = input.files[0];
             if (!file) return;
 
-            if (!confirm(`هل تريد استخراج الموظفين من ملف الرواتب (${file.name}) وإضافتهم للنظام؟\n(لن يتم تكرار الموظفين الموجودين مسبقاً)`)) {
+            if (!confirm(`هل أنت متأكد من رغبتك في سحب وتحديث الموظفين من ملف الرواتب:\n(${file.name})؟\nسيتم إضافة الموظفين الجدد وتحديث رواتب ومستهدفات الموظفين الحاليين.`)) {
                 input.value = '';
                 return;
             }
@@ -405,20 +417,22 @@
             formData.append('file', file);
 
             try {
-                alert('⏳ جاري معالجة الملف واستخراج الموظفين...');
                 const res = await fetch('/api/employees/import-from-salary-sheet', {
                     method: 'POST',
                     body: formData
                 });
-                const result = await res.json();
-                if (res.ok && result.success) {
-                    alert('🎉 ' + result.message);
+                const data = await res.json();
+                if (res.ok) {
+                    let msg = `✅ ${data.message}\n• الموظفون المضافون الجدد: ${data.inserted_count}\n• الموظفون المحدثون: ${data.updated_count}`;
+                    if (data.created_sections && data.created_sections.length > 0) {
+                        msg += `\n• تم إنشاء أقسام جديدة: ${data.created_sections.join('، ')}`;
+                    }
+                    alert(msg);
                 } else {
-                    alert('خطأ: ' + (result.message || 'فشلت عملية الاستيراد'));
+                    alert('❌ ' + (data.message || 'فشل استيراد موظفي مسير الرواتب'));
                 }
             } catch (e) {
-                console.error(e);
-                alert('حدث خطأ أثناء الاتصال بالسيرفر');
+                alert('❌ تعذر رفع ملف الرواتب: ' + e.message);
             } finally {
                 input.value = '';
             }

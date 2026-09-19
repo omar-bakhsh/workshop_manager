@@ -1452,8 +1452,8 @@ app.post('/api/inspections', async (req, res) => {
     const {
         inspector_id, customer_name, customer_phone, car_type, car_color, car_model,
         plate_number, odometer, vin, items, total_amount, vat_amount, final_amount,
-        paid_amount, remaining_amount, status, car_status, job_order_notes,
-        car_defects_diagram, technician_ids
+        paid_amount, remaining_amount, discount_code, discount_amount, discount_type, discount_value,
+        status, car_status, job_order_notes, car_defects_diagram, technician_ids
     } = req.body;
 
     try {
@@ -1479,9 +1479,10 @@ app.post('/api/inspections', async (req, res) => {
             INSERT INTO inspections (
                 inspector_id, customer_name, customer_phone, car_type, car_color, car_model,
                 plate_number, odometer, vin, total_amount, vat_amount, final_amount,
-                paid_amount, remaining_amount, status, car_status, job_order_notes, car_defects_diagram
+                paid_amount, remaining_amount, discount_code, discount_amount, discount_type, discount_value,
+                status, car_status, job_order_notes, car_defects_diagram
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `, [
             effectiveInspectorId,
             customer_name || '',
@@ -1497,6 +1498,10 @@ app.post('/api/inspections', async (req, res) => {
             final_amount || 0,
             paid_amount || 0,
             remaining_amount || 0,
+            discount_code || null,
+            discount_amount || 0,
+            discount_type || null,
+            discount_value || 0,
             status || 'new',
             car_status || (status === 'job_order' ? 'in_progress' : 'pending'),
             job_order_notes || '',
@@ -1526,6 +1531,11 @@ app.post('/api/inspections', async (req, res) => {
             }
         }
 
+        // تحديث عداد مرات استخدام كود الخصم
+        if (discount_code) {
+            await dbRun(`UPDATE promo_codes SET times_used = times_used + 1 WHERE UPPER(code) = UPPER(?)`, [discount_code]);
+        }
+
         await dbRun('COMMIT');
         
         // مزامنة تلقائية لبيانات العميل في جدول العملاء
@@ -1547,7 +1557,8 @@ app.put('/api/inspections/:id', async (req, res) => {
     const {
         customer_name, customer_phone, car_type, car_color, car_model,
         plate_number, odometer, vin, items, total_amount, vat_amount, final_amount,
-        paid_amount, remaining_amount, status, car_status, job_order_notes,
+        paid_amount, remaining_amount, discount_code, discount_amount, discount_type, discount_value,
+        status, car_status, job_order_notes,
         car_defects_diagram, technician_ids
     } = req.body;
 
@@ -1559,6 +1570,7 @@ app.put('/api/inspections/:id', async (req, res) => {
             SET customer_name = ?, customer_phone = ?, car_type = ?, car_color = ?, car_model = ?, 
                 plate_number = ?, odometer = ?, vin = ?, total_amount = ?, vat_amount = ?, final_amount = ?, 
                 paid_amount = ?, remaining_amount = ?,
+                discount_code = ?, discount_amount = ?, discount_type = ?, discount_value = ?,
                 status = COALESCE(?, status),
                 car_status = COALESCE(?, car_status),
                 job_order_notes = COALESCE(?, job_order_notes),
@@ -1578,6 +1590,10 @@ app.put('/api/inspections/:id', async (req, res) => {
             final_amount || 0,
             paid_amount || 0,
             remaining_amount || 0,
+            discount_code || null,
+            discount_amount || 0,
+            discount_type || null,
+            discount_value || 0,
             status || null,
             car_status || null,
             job_order_notes !== undefined ? job_order_notes : null,
@@ -2835,5 +2851,297 @@ app.post('/api/employees/import-salaries', upload.single('file'), async (req, re
     } catch (error) {
         if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
         res.status(500).json({ message: "خطأ: " + error.message });
+    }
+});
+
+// ==========================================
+// 🏷️ إدارة أكواد الخصم والتسويق (PROMO CODES & MARKETING)
+// ==========================================
+
+// دالة مساعدة لتحديد الأقسام والبنود المستثناة من الخصم (مخرطة وأخرى / قطع غيار)
+function isDiscountExemptCategory(category) {
+    if (!category) return false;
+    const cat = String(category).trim().toLowerCase();
+    return cat.includes('مخرطة') || cat.includes('أخرى') || cat.includes('قطع غيار') || cat.includes('قطع');
+}
+
+// 1. جلب كافة أكواد الخصم
+app.get('/api/promo-codes', async (req, res) => {
+    try {
+        const codes = await dbAll(`
+            SELECT * FROM promo_codes 
+            ORDER BY id DESC
+        `);
+        res.json(codes);
+    } catch (error) {
+        console.error("Fetch Promo Codes Error:", error);
+        res.status(500).json({ message: "خطأ في جلب أكواد الخصم: " + error.message });
+    }
+});
+
+// 2. إضافة كود خصم جديد
+app.post('/api/promo-codes', async (req, res) => {
+    const {
+        code, discount_type, discount_value, min_order_amount,
+        max_discount_amount, usage_limit, is_active, start_date,
+        end_date, description
+    } = req.body;
+
+    if (!code || !code.trim()) {
+        return res.status(400).json({ message: "رمز كود الخصم مطلوب" });
+    }
+
+    const cleanCode = code.trim().toUpperCase();
+    const type = discount_type === 'fixed' ? 'fixed' : 'percentage';
+    const value = parseFloat(discount_value) || 0;
+
+    if (value <= 0) {
+        return res.status(400).json({ message: "قيمة الخصم يجب أن تكون أكبر من الصفر" });
+    }
+
+    if (type === 'percentage' && (value <= 0 || value > 100)) {
+        return res.status(400).json({ message: "نسبة الخصم يجب أن تكون بين 1% و 100%" });
+    }
+
+    try {
+        // التحقق من عدم تكرار الكود
+        const existing = await dbGet('SELECT id FROM promo_codes WHERE UPPER(code) = ?', [cleanCode]);
+        if (existing) {
+            return res.status(400).json({ message: `كود الخصم (${cleanCode}) مسجل مسبقاً` });
+        }
+
+        const result = await dbRun(`
+            INSERT INTO promo_codes (
+                code, discount_type, discount_value, min_order_amount,
+                max_discount_amount, usage_limit, times_used, is_active,
+                start_date, end_date, description
+            )
+            VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
+        `, [
+            cleanCode,
+            type,
+            value,
+            parseFloat(min_order_amount) || 0,
+            max_discount_amount ? parseFloat(max_discount_amount) : null,
+            usage_limit ? parseInt(usage_limit) : null,
+            is_active !== undefined ? (is_active ? 1 : 0) : 1,
+            start_date || null,
+            end_date || null,
+            description || ''
+        ]);
+
+        res.status(201).json({ 
+            message: "تم إنشاء كود الخصم بنجاح 🎉", 
+            id: result.lastID,
+            code: cleanCode 
+        });
+    } catch (error) {
+        console.error("Create Promo Code Error:", error);
+        res.status(500).json({ message: "خطأ في إنشاء كود الخصم: " + error.message });
+    }
+});
+
+// 3. تعديل كود خصم
+app.put('/api/promo-codes/:id', async (req, res) => {
+    const { id } = req.params;
+    const {
+        code, discount_type, discount_value, min_order_amount,
+        max_discount_amount, usage_limit, is_active, start_date,
+        end_date, description
+    } = req.body;
+
+    if (!code || !code.trim()) {
+        return res.status(400).json({ message: "رمز كود الخصم مطلوب" });
+    }
+
+    const cleanCode = code.trim().toUpperCase();
+    const type = discount_type === 'fixed' ? 'fixed' : 'percentage';
+    const value = parseFloat(discount_value) || 0;
+
+    if (value <= 0) {
+        return res.status(400).json({ message: "قيمة الخصم يجب أن تكون أكبر من الصفر" });
+    }
+
+    if (type === 'percentage' && (value <= 0 || value > 100)) {
+        return res.status(400).json({ message: "نسبة الخصم يجب أن تكون بين 1% و 100%" });
+    }
+
+    try {
+        // التحقق من عدم التكرار مع كود آخر
+        const existing = await dbGet('SELECT id FROM promo_codes WHERE UPPER(code) = ? AND id != ?', [cleanCode, id]);
+        if (existing) {
+            return res.status(400).json({ message: `كود الخصم (${cleanCode}) مستخدم لكود آخر` });
+        }
+
+        await dbRun(`
+            UPDATE promo_codes
+            SET code = ?,
+                discount_type = ?,
+                discount_value = ?,
+                min_order_amount = ?,
+                max_discount_amount = ?,
+                usage_limit = ?,
+                is_active = ?,
+                start_date = ?,
+                end_date = ?,
+                description = ?
+            WHERE id = ?
+        `, [
+            cleanCode,
+            type,
+            value,
+            parseFloat(min_order_amount) || 0,
+            max_discount_amount ? parseFloat(max_discount_amount) : null,
+            usage_limit ? parseInt(usage_limit) : null,
+            is_active ? 1 : 0,
+            start_date || null,
+            end_date || null,
+            description || '',
+            id
+        ]);
+
+        res.json({ message: "تم تحديث كود الخصم بنجاح ✅" });
+    } catch (error) {
+        console.error("Update Promo Code Error:", error);
+        res.status(500).json({ message: "خطأ في تعديل كود الخصم: " + error.message });
+    }
+});
+
+// 4. تفعيل / تعطيل كود الخصم
+app.patch('/api/promo-codes/:id/toggle', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const promo = await dbGet('SELECT is_active FROM promo_codes WHERE id = ?', [id]);
+        if (!promo) return res.status(404).json({ message: "كود الخصم غير موجود" });
+
+        const newState = promo.is_active ? 0 : 1;
+        await dbRun('UPDATE promo_codes SET is_active = ? WHERE id = ?', [newState, id]);
+
+        res.json({ message: newState ? "تم تفعيل كود الخصم 🟢" : "تم تعطيل كود الخصم 🔴", is_active: newState });
+    } catch (error) {
+        console.error("Toggle Promo Code Error:", error);
+        res.status(500).json({ message: "خطأ في تغيير حالة الكود: " + error.message });
+    }
+});
+
+// 5. حذف كود خصم
+app.delete('/api/promo-codes/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await dbRun('DELETE FROM promo_codes WHERE id = ?', [id]);
+        res.json({ message: "تم حذف كود الخصم بنجاح 🗑️" });
+    } catch (error) {
+        console.error("Delete Promo Code Error:", error);
+        res.status(500).json({ message: "خطأ في حذف كود الخصم: " + error.message });
+    }
+});
+
+// 6. فحص وتطبيق كود الخصم (مع استثناء أقسام المخرطة وأخرى/قطع غيار)
+app.post('/api/promo-codes/validate', async (req, res) => {
+    try {
+        const { code, items } = req.body;
+        if (!code || typeof code !== 'string') {
+            return res.status(400).json({ valid: false, message: 'الرجاء إدخال كود الخصم' });
+        }
+
+        const cleanCode = code.trim().toUpperCase();
+        const promo = await dbGet('SELECT * FROM promo_codes WHERE UPPER(code) = ?', [cleanCode]);
+
+        if (!promo) {
+            return res.status(404).json({ valid: false, message: `كود الخصم (${cleanCode}) غير صحيح أو غير موجود` });
+        }
+
+        if (!promo.is_active) {
+            return res.status(400).json({ valid: false, message: 'كود الخصم غير مفعّل حالياً' });
+        }
+
+        const now = new Date();
+        const todayStr = now.toISOString().split('T')[0];
+
+        if (promo.start_date && promo.start_date > todayStr) {
+            return res.status(400).json({ valid: false, message: `كود الخصم لم يبدأ تفعيله بعد (يبدأ في ${promo.start_date})` });
+        }
+
+        if (promo.end_date && promo.end_date < todayStr) {
+            return res.status(400).json({ valid: false, message: `عذراً، كود الخصم انتهت صلاحيته في (${promo.end_date})` });
+        }
+
+        if (promo.usage_limit !== null && promo.usage_limit !== undefined && promo.usage_limit > 0) {
+            if (promo.times_used >= promo.usage_limit) {
+                return res.status(400).json({ valid: false, message: 'تم استنفاد الحد الأقصى لمرات استخدام هذا الكود' });
+            }
+        }
+
+        // احتساب المبالغ الخاضعة للخصم والمستثناة (مخرطة وأخرى / قطع غيار)
+        let rawSubtotal = 0;
+        let eligibleSubtotal = 0;
+        let exemptSubtotal = 0;
+        let exemptItemsCount = 0;
+        const itemsList = Array.isArray(items) ? items : [];
+
+        itemsList.forEach(item => {
+            const price = parseFloat(item.price) || 0;
+            const qty = parseFloat(item.quantity) || 1;
+            const rowTotal = parseFloat(item.total) || (price * qty);
+            rawSubtotal += rowTotal;
+
+            if (isDiscountExemptCategory(item.category)) {
+                exemptSubtotal += rowTotal;
+                exemptItemsCount++;
+            } else {
+                eligibleSubtotal += rowTotal;
+            }
+        });
+
+        if (promo.min_order_amount && rawSubtotal < promo.min_order_amount) {
+            return res.status(400).json({ 
+                valid: false, 
+                message: `الحد الأدنى لقيمة الفاتورة لتطبيق هذا الكود هو ${promo.min_order_amount} ﷼ (الإجمالي الحالي: ${rawSubtotal.toFixed(2)} ﷼)` 
+            });
+        }
+
+        if (eligibleSubtotal <= 0) {
+            return res.status(400).json({
+                valid: false,
+                message: 'لا توجد خدمات خاضعة للخصم (الخصم لا يشمل بنود المخرطة وقطع الغيار)'
+            });
+        }
+
+        let discountAmount = 0;
+        if (promo.discount_type === 'percentage') {
+            discountAmount = +(eligibleSubtotal * (promo.discount_value / 100)).toFixed(2);
+            if (promo.max_discount_amount && discountAmount > promo.max_discount_amount) {
+                discountAmount = promo.max_discount_amount;
+            }
+        } else {
+            // Fixed amount discount
+            discountAmount = Math.min(eligibleSubtotal, promo.discount_value);
+        }
+
+        discountAmount = +discountAmount.toFixed(2);
+        const subtotalAfterDiscount = +(Math.max(0, rawSubtotal - discountAmount)).toFixed(2);
+        const vatAmount = +(subtotalAfterDiscount * 0.15).toFixed(2);
+        const finalAmount = +(subtotalAfterDiscount + vatAmount).toFixed(2);
+
+        res.json({
+            valid: true,
+            code: promo.code,
+            description: promo.description || '',
+            discount_type: promo.discount_type,
+            discount_value: promo.discount_value,
+            raw_subtotal: rawSubtotal,
+            eligible_subtotal: eligibleSubtotal,
+            exempt_subtotal: exemptSubtotal,
+            exempt_items_count: exemptItemsCount,
+            discount_amount: discountAmount,
+            subtotal_after_discount: subtotalAfterDiscount,
+            vat_amount: vatAmount,
+            final_amount: finalAmount,
+            message: `تم تطبيق كود (${promo.code}) بنجاح! خصم: ${promo.discount_type === 'percentage' ? promo.discount_value + '%' : promo.discount_value + ' ﷼'} ${exemptSubtotal > 0 ? `(تم استثناء ${exemptSubtotal.toFixed(2)} ﷼ مخرطة/قطع)` : ''}`
+        });
+
+    } catch (error) {
+        console.error('Validate Promo Code Error:', error);
+        res.status(500).json({ valid: false, message: 'خطأ في فحص كود الخصم: ' + error.message });
     }
 });

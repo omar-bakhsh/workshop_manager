@@ -7,8 +7,8 @@
     <title>Atenza App | لوحة تحكم المدير</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="toast.css?v=5.0">
-    <link rel="stylesheet" href="public/css/admin.css?v=5.0">
+    <link rel="stylesheet" href="toast.css?v=5.2">
+    <link rel="stylesheet" href="public/css/admin.css?v=5.3">
     <script src="toast.js?v=5.0"></script>
     <script src="toast_helpers.js?v=5.0"></script>
     <script src="public/js/app-config.js"></script>
@@ -25,65 +25,85 @@
             <div class="sidebar-header">
                 <div class="sidebar-logo"><i class="fa-solid fa-car"></i></div>
                 <div class="sidebar-title app-name-text">Atenza App</div>
+                <button class="sidebar-toggle-btn" id="desktopSidebarToggle" onclick="toggleSidebarCollapse()" title="طي / فتح القائمة الجانبية">
+                    <i class="fa-solid fa-angles-right"></i>
+                </button>
                 <button class="sidebar-close-btn" onclick="toggleMobileSidebar()" title="إغلاق">✕</button>
             </div>
             <nav class="sidebar-nav">
-                <a href="#" class="nav-item active" onclick="showView('overview'); toggleMobileSidebar(false);">
+                <div class="nav-separator">لوحة المتابعة والتشغيل</div>
+                <a href="#" class="nav-item active" onclick="showView('overview'); toggleMobileSidebar(false);" title="لوحة التحكم الرئيسية">
                     <span class="nav-icon"><i class="fa-solid fa-chart-pie"></i></span>
-                    <span>لوحة التحكم </span>
+                    <span>لوحة التحكم الرئيسية</span>
                 </a>
-                <a href="#" class="nav-item" onclick="openAttendanceModal(); toggleMobileSidebar(false);">
-                    <span class="nav-icon">📅</span>
+                <a href="#" class="nav-item" onclick="openAttendanceModal(); toggleMobileSidebar(false);" title="سجل الحضور الذكي">
+                    <span class="nav-icon"><i class="fa-solid fa-calendar-check"></i></span>
                     <span>سجل الحضور الذكي</span>
                 </a>
-                <a href="#" class="nav-item" onclick="openLeaveModal(); toggleMobileSidebar(false);">
-                    <span class="nav-icon">🏝️</span>
+                <a href="#" class="nav-item" onclick="openLeaveModal(); toggleMobileSidebar(false);" title="إدارة الإجازات">
+                    <span class="nav-icon"><i class="fa-solid fa-umbrella-beach"></i></span>
                     <span>إدارة الإجازات</span>
                 </a>
-                <a href="#" class="nav-item" onclick="openShiftModal(); toggleMobileSidebar(false);">
-                    <span class="nav-icon">🕒</span>
-                    <span>مواعيد العمل</span>
+                <a href="#" class="nav-item" onclick="openShiftModal(); toggleMobileSidebar(false);" title="مواعيد العمل">
+                    <span class="nav-icon"><i class="fa-solid fa-clock"></i></span>
+                    <span>مواعيد العمل والورديات</span>
                 </a>
-                <a href="inspector.html" class="nav-item">
-                    <span class="nav-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
-                    <span>تسعيرة / كشف جديد</span>
+
+                <div class="nav-separator">العمليات والورشة</div>
+                <a href="inspector.html" class="nav-item" title="كشف فني وتسعيرة جديدة">
+                    <span class="nav-icon"><i class="fa-solid fa-file-circle-plus"></i></span>
+                    <span>كشف فني وتسعيرة جديدة</span>
                 </a>
-                <a href="inspections_list.html" class="nav-item">
+                <a href="inspections_list.html" class="nav-item" title="سجل التسعيرات والفحوصات">
                     <span class="nav-icon"><i class="fa-solid fa-clipboard-list"></i></span>
-                    <span>سجل التسعيرات</span>
+                    <span>سجل التسعيرات والفحوصات</span>
                 </a>
-                <a href="job_orders_list.html" class="nav-item">
-                    <span class="nav-icon"><i class="fa-solid fa-car"></i></span>
-                    <span>أوامر العمل والسيارات</span>
+                <a href="job_orders_list.html" class="nav-item" title="أوامر العمل وحالات السيارات">
+                    <span class="nav-icon"><i class="fa-solid fa-car-burst"></i></span>
+                    <span>أوامر العمل وحالات السيارات</span>
                 </a>
-                <div class="nav-separator">الإدارة والإعدادات</div>
-                <a href="employees_manager.html" class="nav-item">
-                    <span class="nav-icon"><i class="fa-solid fa-user-tie"></i></span>
-                    <span>إدارة الموظفين</span>
+                <a href="shortcuts_manager.html" class="nav-item" title="باقات الصيانة السريعة">
+                    <span class="nav-icon"><i class="fa-solid fa-bolt"></i></span>
+                    <span>باقات الصيانة السريعة</span>
                 </a>
-                <a href="services_manager.html" class="nav-item">
-                    <span class="nav-icon"><i class="fa-solid fa-screwdriver-wrench"></i></span>
-                    <span>إدارة الخدمات</span>
-                </a>
-                <a href="shortcuts_manager.html" class="nav-item">
-                    <span class="nav-icon">🚀</span>
-                    <span> باقات الصيانة</span>
-                </a>
-                <a href="clients_manager.html" class="nav-item">
+
+                <div class="nav-separator">العملاء والتسويق</div>
+                <a href="clients_manager.html" class="nav-item" title="قاعدة بيانات العملاء">
                     <span class="nav-icon"><i class="fa-solid fa-users"></i></span>
-                    <span>إدارة العملاء</span>
+                    <span>قاعدة بيانات العملاء</span>
                 </a>
-                <a href="income_report.html" class="nav-item">
-                    <span class="nav-icon"><i class="fa-solid fa-file-lines"></i></span>
+                <a href="marketing.html" class="nav-item" title="التسويق وأكواد الخصم">
+                    <span class="nav-icon"><i class="fa-solid fa-ticket"></i></span>
+                    <span>التسويق وأكواد الخصم</span>
+                </a>
+
+                <div class="nav-separator">الإدارة والتقارير</div>
+                <a href="employees_manager.html" class="nav-item" title="إدارة فريق العمل والموظفين">
+                    <span class="nav-icon"><i class="fa-solid fa-user-tie"></i></span>
+                    <span>إدارة فريق العمل والموظفين</span>
+                </a>
+                <a href="services_manager.html" class="nav-item" title="دليل الخدمات والأسعار">
+                    <span class="nav-icon"><i class="fa-solid fa-list-check"></i></span>
+                    <span>دليل الخدمات والأسعار</span>
+                </a>
+                <a href="income_report.html" class="nav-item" title="تقارير الدخل المفصلة">
+                    <span class="nav-icon"><i class="fa-solid fa-chart-line"></i></span>
                     <span>تقارير الدخل المفصلة</span>
                 </a>
-                <a href="#" class="nav-item" onclick="backupDatabase(); toggleMobileSidebar(false);">
-                    <span class="nav-icon">💾</span>
-                    <span>النسخ الاحتياطي</span>
+                <a href="settings.html" class="nav-item" title="إعدادات النظام العامة">
+                    <span class="nav-icon"><i class="fa-solid fa-gear"></i></span>
+                    <span>إعدادات النظام العامة</span>
+                </a>
+                <a href="#" class="nav-item" onclick="backupDatabase(); toggleMobileSidebar(false);" title="النسخ الاحتياطي للنظام">
+                    <span class="nav-icon"><i class="fa-solid fa-database"></i></span>
+                    <span>النسخ الاحتياطي للنظام</span>
                 </a>
             </nav>
             <div class="sidebar-footer">
-                <button class="logout-btn" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> تسجيل الخروج</button>
+                <button class="logout-btn" onclick="logout()" title="تسجيل الخروج">
+                    <span class="logout-icon"><i class="fa-solid fa-arrow-right-from-bracket"></i></span>
+                    <span>تسجيل الخروج</span>
+                </button>
             </div>
         </aside>
 
@@ -115,12 +135,6 @@
                         <span class="btn-desktop-text">كشف السحبيات</span>
                     </button>
 
-                    <!-- Settings Button -->
-                    <button class="action-icon-btn btn-settings-accent" onclick="window.location.href='settings.html'" title="إعدادات النظام">
-                        <span><i class="fa-solid fa-gear"></i></span>
-                        <span class="btn-desktop-text">الإعدادات</span>
-                    </button>
-
                     <!-- Notification Bell with Dropdown -->
                     <div class="notif-wrapper">
                         <button class="action-icon-btn notif-bell-btn" onclick="toggleAdminNotif()" title="الإشعارات الداخلية">
@@ -143,6 +157,7 @@
             <div class="content-container">
                 <!-- Stats Grid -->
                 <div class="stats-grid">
+
                     <div class="stat-card" style="--card-accent: var(--primary); --card-bg: #e0e7ff;">
                         <div class="stat-icon-box"><i class="fa-solid fa-users"></i></div>
                         <div class="stat-value" id="totalEmployees">0</div>
@@ -377,6 +392,6 @@
     </div>
 
     <!-- Scripts -->
-    <script src="public/js/admin.js?v=5.1"></script>
+    <script src="public/js/admin.js?v=5.3"></script>
 </body>
 </html>

@@ -368,6 +368,7 @@
             <div class="info-item"><label>رقم اللوحة</label><span id="plateNum">-</span></div>
             <div class="info-item"><label>الموديل/اللون</label><span id="carModelColor">-</span></div>
             <div class="info-item"><label>المسؤول</label><span id="inspectorName">-</span></div>
+            <div class="info-item" id="promoInfoItem" style="display:none;"><label>كود الخصم المطبق</label><span id="promoCodeVal" style="color:#b45309; font-weight:800;">-</span></div>
         </div>
 
         <div class="section-title">📋 قائمة الخدمات المطلوبة</div>
@@ -715,6 +716,17 @@
                     });
                 }
 
+                const promoItem = document.getElementById('promoInfoItem');
+                const promoVal = document.getElementById('promoCodeVal');
+                if (promoItem && promoVal) {
+                    if (data.discount_code && (parseFloat(data.discount_amount) > 0 || parseFloat(data.discount_value) > 0)) {
+                        promoItem.style.display = 'block';
+                        promoVal.textContent = `${data.discount_code} (خصم ${parseFloat(data.discount_amount || 0).toFixed(2)} ﷼)`;
+                    } else {
+                        promoItem.style.display = 'none';
+                    }
+                }
+
                 prepareJobOrderSheet();
 
             } catch (e) {
@@ -959,7 +971,10 @@
                 }
 
                 // 6. Financial Summary Table
-                const discount = 0.00;
+                let discount = 0.00;
+                if (typeof currentInspection !== 'undefined' && currentInspection && currentInspection.discount_amount) {
+                    discount = parseFloat(currentInspection.discount_amount) || 0;
+                }
                 const afterDiscount = Math.max(0, rawSubtotal - discount);
                 const vat = +(afterDiscount * 0.15).toFixed(2);
                 let paid = 0.00;

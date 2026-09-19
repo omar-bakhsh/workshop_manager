@@ -432,39 +432,56 @@ async function initDatabase() {
             start_time VARCHAR(20),
             end_time VARCHAR(20),
             is_closed TINYINT DEFAULT 0
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+
+        `CREATE TABLE IF NOT EXISTS promo_codes (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            code VARCHAR(50) UNIQUE NOT NULL,
+            discount_type VARCHAR(20) NOT NULL DEFAULT 'percentage',
+            discount_value DOUBLE NOT NULL DEFAULT 0,
+            min_order_amount DOUBLE DEFAULT 0,
+            max_discount_amount DOUBLE DEFAULT NULL,
+            usage_limit INT DEFAULT NULL,
+            times_used INT DEFAULT 0,
+            is_active TINYINT DEFAULT 1,
+            start_date DATE NULL,
+            end_date DATE NULL,
+            description VARCHAR(255) NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`
     ];
 
     const sqliteTables = [
         `CREATE TABLE IF NOT EXISTS sections (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE NOT NULL,
-            shift_start TEXT DEFAULT '08:00',
-            shift_end TEXT DEFAULT '18:00'
+            name TEXT NOT NULL
         )`,
         `CREATE TABLE IF NOT EXISTS employees (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             section_id INTEGER,
-            target INTEGER NOT NULL DEFAULT 0,
-            base_salary INTEGER DEFAULT 0,
+            target REAL DEFAULT 0,
+            base_salary REAL DEFAULT 0,
             target_amount REAL DEFAULT 0,
             deposit_amount REAL DEFAULT 0,
             total_withdrawals REAL DEFAULT 0,
             remaining_salary REAL DEFAULT 0,
             net_remaining REAL DEFAULT 0,
-            bank_name TEXT DEFAULT 'كاش',
-            last_sync_at TIMESTAMP,
-            is_active INTEGER DEFAULT 1,
             hide_income INTEGER DEFAULT 0,
-            FOREIGN KEY (section_id) REFERENCES sections(id)
+            bank_name TEXT DEFAULT 'كاش',
+            is_active INTEGER DEFAULT 1,
+            last_sync_at TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (section_id) REFERENCES sections(id) ON DELETE SET NULL
         )`,
         `CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            employee_id INTEGER,
             username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
-            role TEXT NOT NULL CHECK (role IN ('admin', 'employee'))
+            role TEXT NOT NULL DEFAULT 'employee',
+            employee_id INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
         )`,
         `CREATE TABLE IF NOT EXISTS settings (
             key TEXT PRIMARY KEY,
@@ -474,77 +491,79 @@ async function initDatabase() {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             employee_id INTEGER NOT NULL,
             section_id INTEGER NOT NULL,
-            income INTEGER NOT NULL,
-            details TEXT,
+            date DATE NOT NULL,
+            income REAL NOT NULL DEFAULT 0,
+            notes TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (employee_id) REFERENCES employees(id),
-            FOREIGN KEY (section_id) REFERENCES sections(id)
+            FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
+            FOREIGN KEY (section_id) REFERENCES sections(id) ON DELETE CASCADE
         )`,
         `CREATE TABLE IF NOT EXISTS withdrawals (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             employee_id INTEGER NOT NULL,
-            amount INTEGER NOT NULL,
-            reason TEXT,
+            amount REAL NOT NULL,
+            reason TEXT NOT NULL,
+            date DATE NOT NULL,
+            notes TEXT,
             status TEXT DEFAULT 'pending',
-            admin_note TEXT,
-            date DATE DEFAULT CURRENT_DATE,
-            payment_method TEXT DEFAULT 'cash',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (employee_id) REFERENCES employees(id)
+            FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
         )`,
         `CREATE TABLE IF NOT EXISTS absences (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             employee_id INTEGER NOT NULL,
             date DATE NOT NULL,
             reason TEXT,
+            is_excused INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (employee_id) REFERENCES employees(id)
+            FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
         )`,
         `CREATE TABLE IF NOT EXISTS leave_requests (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             employee_id INTEGER NOT NULL,
-            leave_type TEXT DEFAULT 'annual',
-            start_date TEXT NOT NULL,
-            end_date TEXT NOT NULL,
+            leave_type TEXT NOT NULL,
+            start_date DATE NOT NULL,
+            end_date DATE NOT NULL,
             days_count INTEGER NOT NULL,
             reason TEXT,
             status TEXT DEFAULT 'pending',
             admin_notes TEXT,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (employee_id) REFERENCES employees(id)
+            reviewed_by INTEGER,
+            reviewed_at DATETIME,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
         )`,
         `CREATE TABLE IF NOT EXISTS branch_shifts (
-            day_of_week INTEGER PRIMARY KEY,
-            shift_start TEXT DEFAULT '08:00',
-            shift_end TEXT DEFAULT '18:00',
-            is_closed INTEGER DEFAULT 0
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            start_time TEXT NOT NULL,
+            end_time TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )`,
         `CREATE TABLE IF NOT EXISTS attendance (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             employee_id INTEGER NOT NULL,
-            date DATE DEFAULT CURRENT_DATE,
-            check_in TIMESTAMP,
-            check_out TIMESTAMP,
+            date DATE NOT NULL,
+            check_in_time TEXT,
+            check_out_time TEXT,
             status TEXT DEFAULT 'present',
             delay_minutes INTEGER DEFAULT 0,
-            late_minutes INTEGER DEFAULT 0,
             early_departure_minutes INTEGER DEFAULT 0,
-            early_leaving_minutes INTEGER DEFAULT 0,
             overtime_minutes INTEGER DEFAULT 0,
-            total_hours REAL DEFAULT 0,
             shift_start TEXT,
             shift_end TEXT,
-            FOREIGN KEY (employee_id) REFERENCES employees(id)
+            notes TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
         )`,
         `CREATE TABLE IF NOT EXISTS messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            employee_id INTEGER NOT NULL,
-            sender TEXT NOT NULL,
+            sender_id INTEGER NOT NULL,
+            recipient_id INTEGER,
             message TEXT NOT NULL,
+            is_broadcast INTEGER DEFAULT 0,
             is_read INTEGER DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (employee_id) REFERENCES employees(id)
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )`,
         `CREATE TABLE IF NOT EXISTS inspections (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -562,13 +581,17 @@ async function initDatabase() {
             final_amount REAL DEFAULT 0,
             paid_amount REAL DEFAULT 0,
             remaining_amount REAL DEFAULT 0,
+            discount_code TEXT,
+            discount_amount REAL DEFAULT 0,
+            discount_type TEXT,
+            discount_value REAL DEFAULT 0,
             status TEXT DEFAULT 'new',
             car_status TEXT DEFAULT 'in_progress',
             assigned_technician_id INTEGER,
             job_order_notes TEXT,
             car_defects_diagram TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (inspector_id) REFERENCES employees(id)
+            FOREIGN KEY (inspector_id) REFERENCES employees(id) ON DELETE CASCADE
         )`,
         `CREATE TABLE IF NOT EXISTS sys_notifications (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -591,23 +614,25 @@ async function initDatabase() {
             is_completed INTEGER DEFAULT 0,
             completed_at DATETIME,
             completed_by TEXT,
-            FOREIGN KEY (inspection_id) REFERENCES inspections(id)
+            FOREIGN KEY (inspection_id) REFERENCES inspections(id) ON DELETE CASCADE
         )`,
         `CREATE TABLE IF NOT EXISTS inspection_terms (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            term TEXT UNIQUE NOT NULL
+            term TEXT NOT NULL
         )`,
         `CREATE TABLE IF NOT EXISTS services (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             category TEXT NOT NULL,
             service_name TEXT NOT NULL,
-            price REAL DEFAULT 0,
-            UNIQUE(category, service_name)
+            price REAL NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )`,
         `CREATE TABLE IF NOT EXISTS inspection_bundles (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE NOT NULL,
-            icon TEXT
+            name TEXT NOT NULL,
+            category TEXT,
+            description TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )`,
         `CREATE TABLE IF NOT EXISTS inspection_bundle_items (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -641,8 +666,39 @@ async function initDatabase() {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )`,
+        `CREATE TABLE IF NOT EXISTS workshop_lifts (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            status TEXT DEFAULT 'idle',
+            technician_id INTEGER,
+            issue_description TEXT,
+            last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`,
+        `CREATE TABLE IF NOT EXISTS work_schedule (
+            id INTEGER PRIMARY KEY,
+            day_of_week TEXT NOT NULL,
+            start_time TEXT,
+            end_time TEXT,
+            is_closed INTEGER DEFAULT 0
+        )`,
+        `CREATE TABLE IF NOT EXISTS promo_codes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            code TEXT UNIQUE NOT NULL,
+            discount_type TEXT NOT NULL DEFAULT 'percentage',
+            discount_value REAL NOT NULL DEFAULT 0,
+            min_order_amount REAL DEFAULT 0,
+            max_discount_amount REAL DEFAULT NULL,
+            usage_limit INTEGER DEFAULT NULL,
+            times_used INTEGER DEFAULT 0,
+            is_active INTEGER DEFAULT 1,
+            start_date TEXT,
+            end_date TEXT,
+            description TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`,
         `CREATE INDEX IF NOT EXISTS idx_clients_phone ON clients(phone)`,
-        `CREATE INDEX IF NOT EXISTS idx_clients_name ON clients(name)`
+        `CREATE INDEX IF NOT EXISTS idx_clients_name ON clients(name)`,
+        `CREATE INDEX IF NOT EXISTS idx_promo_code ON promo_codes(code)`
     ];
 
     const tablesToRun = isMySQL ? mysqlTables : sqliteTables;
@@ -678,6 +734,10 @@ async function initDatabase() {
     await safeAddColumn('inspections', 'car_defects_diagram', "LONGTEXT NULL");
     await safeAddColumn('inspections', 'odometer', "VARCHAR(50) NULL");
     await safeAddColumn('inspections', 'vin', "VARCHAR(100) NULL");
+    await safeAddColumn('inspections', 'discount_code', "VARCHAR(100) NULL");
+    await safeAddColumn('inspections', 'discount_amount', "DOUBLE DEFAULT 0");
+    await safeAddColumn('inspections', 'discount_type', "VARCHAR(50) NULL");
+    await safeAddColumn('inspections', 'discount_value', "DOUBLE DEFAULT 0");
     await safeAddColumn('inspection_items', 'is_completed', "TINYINT DEFAULT 0");
     await safeAddColumn('inspection_items', 'completed_at', "DATETIME NULL");
     await safeAddColumn('inspection_items', 'completed_by', "VARCHAR(191) NULL");
@@ -1010,7 +1070,8 @@ async function exportDatabaseJson() {
         'sys_notifications',
         'inspection_photos',
         'workshop_lifts',
-        'work_schedule'
+        'work_schedule',
+        'promo_codes'
     ];
 
     const backupData = {

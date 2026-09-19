@@ -358,6 +358,9 @@
                     <a href="services_manager.html" class="nav-bar-link ${activePage === 'services_manager.html' ? 'active' : ''}">
                         <span>🛠️</span> <span>الخدمات</span>
                     </a>
+                    <a href="marketing.html" class="nav-bar-link ${activePage === 'marketing.html' ? 'active' : ''}">
+                        <span>🏷️</span> <span>التسويق والخصومات</span>
+                    </a>
                     <a href="income_report.html" class="nav-bar-link ${activePage === 'income_report.html' ? 'active' : ''}">
                         <span>📊</span> <span>التقارير</span>
                     </a>
