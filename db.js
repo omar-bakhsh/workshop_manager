@@ -789,8 +789,16 @@ async function initDatabase() {
     await safeAddColumn('sections', 'can_manage_parts', "TINYINT DEFAULT 0");
     await safeAddColumn('sections', 'permissions', "TEXT NULL");
     await safeAddColumn('employees', 'bank_name', "VARCHAR(100) DEFAULT 'كاش'");
+    await safeAddColumn('attendance', 'check_in', "DATETIME NULL");
+    await safeAddColumn('attendance', 'check_out', "DATETIME NULL");
+    await safeAddColumn('attendance', 'check_in_time', "VARCHAR(50) NULL");
+    await safeAddColumn('attendance', 'check_out_time', "VARCHAR(50) NULL");
+    await safeAddColumn('attendance', 'delay_minutes', "INT DEFAULT 0");
+    await safeAddColumn('attendance', 'late_minutes', "INT DEFAULT 0");
     await safeAddColumn('attendance', 'early_departure_minutes', "INT DEFAULT 0");
+    await safeAddColumn('attendance', 'early_leaving_minutes', "INT DEFAULT 0");
     await safeAddColumn('attendance', 'overtime_minutes', "INT DEFAULT 0");
+    await safeAddColumn('attendance', 'total_hours', "DOUBLE DEFAULT 0");
     await safeAddColumn('attendance', 'shift_start', "VARCHAR(20) NULL");
     await safeAddColumn('attendance', 'shift_end', "VARCHAR(20) NULL");
     await safeAddColumn('inspections', 'status', "VARCHAR(50) DEFAULT 'new'");
