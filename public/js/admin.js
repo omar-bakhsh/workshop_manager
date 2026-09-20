@@ -894,6 +894,22 @@ function setupEventListeners() {
     listen('addIncomeForm', 'submit', handleAddIncome);
     listen('addWithdrawalForm', 'submit', handleAddWithdrawal);
     listen('adminChatInput', 'keypress', (e) => { if (e.key === 'Enter') sendAdminMessage(); });
+
+    // Close modals on clicking backdrop overlay
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+        }
+    });
 }
 
 function toggleSection(id) { document.getElementById(id).classList.toggle('collapsed'); }

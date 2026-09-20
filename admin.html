@@ -244,61 +244,65 @@
 
     <!-- Section Permissions & Settings Modal -->
     <div id="sectionPermissionsModal" class="modal">
-        <div class="modal-content" style="max-width: 520px;">
+        <div class="modal-content" style="max-width: 540px;">
             <div class="modal-header">
                 <h2><i class="fa-solid fa-sliders" style="color: var(--primary);"></i> صلاحيات وإعدادات القسم</h2>
-                <button class="close-btn" onclick="closeModal('sectionPermissionsModal')">&times;</button>
+                <button type="button" class="close-btn" onclick="closeModal('sectionPermissionsModal')">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
             <form id="sectionPermissionsForm" onsubmit="saveSectionPermissions(event)">
-                <input type="hidden" id="permSectionId">
-                <div class="form-group" style="margin-top: 15px;">
-                    <label>اسم القسم</label>
-                    <input type="text" id="permSectionName" required style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
-                </div>
-
-                <div style="margin-top: 15px; font-weight: 800; font-size: 14px; color: var(--text-dark);">
-                    <i class="fa-solid fa-shield-halved"></i> صلاحيات موظفي هذا القسم:
-                </div>
-                <div class="perm-card-grid">
-                    <label class="perm-checkbox-item">
-                        <input type="checkbox" id="permCanViewIncome">
-                        <span>عرض دخل اليوم والأهداف</span>
-                    </label>
-                    <label class="perm-checkbox-item">
-                        <input type="checkbox" id="permCanWithdraw">
-                        <span>طلب سحب مالي</span>
-                    </label>
-                    <label class="perm-checkbox-item">
-                        <input type="checkbox" id="permCanInspect">
-                        <span>إجراء كشف فني وتسعيرة</span>
-                    </label>
-                    <label class="perm-checkbox-item">
-                        <input type="checkbox" id="permCanManageParts">
-                        <span>إدارة وبحث قطع الغيار</span>
-                    </label>
-                </div>
-
-                <div style="margin-top: 15px; font-weight: 800; font-size: 14px; color: var(--text-dark);">
-                    <i class="fa-solid fa-clock"></i> ساعات الدوام الرسمي للقسم:
-                </div>
-                <div class="time-range-group">
+                <div class="modal-body">
+                    <input type="hidden" id="permSectionId">
                     <div class="form-group">
-                        <label style="font-size:12px; color:var(--text-gray);">وقت الحضور (بداية الوردية)</label>
-                        <input type="time" id="permShiftStart" style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:8px;">
+                        <label><i class="fa-solid fa-folder-open"></i> اسم القسم</label>
+                        <input type="text" id="permSectionName" required placeholder="مثال: كهرباء، كشف...">
                     </div>
-                    <div class="form-group">
-                        <label style="font-size:12px; color:var(--text-gray);">وقت الانصراف (نهاية الوردية)</label>
-                        <input type="time" id="permShiftEnd" style="width:100%; padding:8px; border:1px solid var(--border-color); border-radius:8px;">
+
+                    <div style="margin-top: 20px; font-weight: 800; font-size: 13.5px; color: var(--text-dark); display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-shield-halved" style="color: var(--primary);"></i> صلاحيات موظفي هذا القسم:
+                    </div>
+                    <div class="perm-card-grid">
+                        <label class="perm-checkbox-item">
+                            <input type="checkbox" id="permCanViewIncome">
+                            <span>عرض دخل اليوم والأهداف</span>
+                        </label>
+                        <label class="perm-checkbox-item">
+                            <input type="checkbox" id="permCanWithdraw">
+                            <span>طلب سحب مالي</span>
+                        </label>
+                        <label class="perm-checkbox-item">
+                            <input type="checkbox" id="permCanInspect">
+                            <span>إجراء كشف فني وتسعيرة</span>
+                        </label>
+                        <label class="perm-checkbox-item">
+                            <input type="checkbox" id="permCanManageParts">
+                            <span>إدارة وبحث قطع الغيار</span>
+                        </label>
+                    </div>
+
+                    <div style="margin-top: 15px; font-weight: 800; font-size: 13.5px; color: var(--text-dark); display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-clock" style="color: #6366f1;"></i> ساعات الدوام الرسمي للقسم:
+                    </div>
+                    <div class="time-range-group">
+                        <div class="form-group" style="margin:0;">
+                            <label style="font-size:12px; color:var(--text-gray);">وقت الحضور (بداية الوردية)</label>
+                            <input type="time" id="permShiftStart">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label style="font-size:12px; color:var(--text-gray);">وقت الانصراف (نهاية الوردية)</label>
+                            <input type="time" id="permShiftEnd">
+                        </div>
                     </div>
                 </div>
 
-                <div class="modal-footer" style="display:flex; justify-content:space-between; margin-top:20px;">
-                    <button type="button" class="btn btn-danger" onclick="deleteCurrentSection()" style="background:#ef4444; color:white;">
-                        <i class="fa-solid fa-trash"></i> حذف القسم
+                <div class="modal-footer" style="justify-content: space-between;">
+                    <button type="button" class="btn btn-danger-outline" onclick="deleteCurrentSection()">
+                        <i class="fa-solid fa-trash-can"></i> حذف القسم
                     </button>
                     <div style="display:flex; gap:10px;">
                         <button type="button" class="btn btn-secondary" onclick="closeModal('sectionPermissionsModal')">إلغاء</button>
-                        <button type="submit" class="btn btn-primary">حفظ التغييرات</button>
+                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> حفظ التغييرات</button>
                     </div>
                 </div>
             </form>
@@ -307,19 +311,23 @@
 
     <!-- New Section Modal -->
     <div id="newSectionModal" class="modal">
-        <div class="modal-content" style="max-width: 440px;">
+        <div class="modal-content" style="max-width: 450px;">
             <div class="modal-header">
                 <h2><i class="fa-solid fa-folder-plus" style="color: var(--primary);"></i> إضافة قسم جديد</h2>
-                <button class="close-btn" onclick="closeModal('newSectionModal')">&times;</button>
+                <button type="button" class="close-btn" onclick="closeModal('newSectionModal')">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
             <form id="newSectionForm" onsubmit="createNewSection(event)">
-                <div class="form-group" style="margin-top: 15px;">
-                    <label>اسم القسم الجديد</label>
-                    <input type="text" id="newSectionName" placeholder="مثال: سمكرة، فحص كمبيوتر..." required style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-folder"></i> اسم القسم الجديد</label>
+                        <input type="text" id="newSectionName" placeholder="مثال: سمكرة، فحص كمبيوتر..." required>
+                    </div>
                 </div>
-                <div class="modal-footer" style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
+                <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('newSectionModal')">إلغاء</button>
-                    <button type="submit" class="btn btn-primary">إضافة القسم</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-plus"></i> إضافة القسم</button>
                 </div>
             </form>
         </div>
@@ -327,47 +335,51 @@
 
     <!-- Add Employee Modal -->
     <div id="addEmployeeModal" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-content" style="max-width: 520px;">
             <div class="modal-header">
                 <h2><i class="fa-solid fa-user-plus" style="color: var(--primary);"></i> إضافة موظف جديد</h2>
-                <button class="close-btn" onclick="closeModal('addEmployeeModal')">&times;</button>
+                <button type="button" class="close-btn" onclick="closeModal('addEmployeeModal')">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
             <form id="addEmployeeForm">
-                <div class="form-group" style="margin-top: 10px;">
-                    <label>الاسم الكامل</label>
-                    <input type="text" id="addEmpName" required style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
-                </div>
-                <div class="form-group" style="margin-top: 10px;">
-                    <label>القسم</label>
-                    <select id="addEmpSection" required style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;"></select>
-                </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+                <div class="modal-body">
                     <div class="form-group">
-                        <label>الراتب الأساسي</label>
-                        <input type="number" id="addEmpBaseSalary" value="0" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
+                        <label><i class="fa-solid fa-user"></i> الاسم الكامل</label>
+                        <input type="text" id="addEmpName" placeholder="أدخل اسم الموظف" required>
                     </div>
                     <div class="form-group">
-                        <label>التارجت (الهدف)</label>
-                        <input type="number" id="addEmpTarget" value="0" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
+                        <label><i class="fa-solid fa-building"></i> القسم</label>
+                        <select id="addEmpSection" required></select>
                     </div>
-                </div>
-                <div class="form-group" style="margin-top: 10px;">
-                    <label>جهة الصرف / البنك</label>
-                    <select id="addEmpBank" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;"></select>
-                </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-money-bill-wave"></i> الراتب الأساسي</label>
+                            <input type="number" id="addEmpBaseSalary" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-bullseye"></i> التارجت (الهدف)</label>
+                            <input type="number" id="addEmpTarget" value="0">
+                        </div>
+                    </div>
                     <div class="form-group">
-                        <label>اسم المستخدم (اختياري)</label>
-                        <input type="text" id="addEmpUsername" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
+                        <label><i class="fa-solid fa-building-columns"></i> جهة الصرف / البنك</label>
+                        <select id="addEmpBank"></select>
                     </div>
-                    <div class="form-group">
-                        <label>كلمة المرور</label>
-                        <input type="password" id="addEmpPassword" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-at"></i> اسم المستخدم (اختياري)</label>
+                            <input type="text" id="addEmpUsername" placeholder="مثال: ahmed">
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-lock"></i> كلمة المرور</label>
+                            <input type="password" id="addEmpPassword" placeholder="كلمة المرور">
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer" style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
+                <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('addEmployeeModal')">إلغاء</button>
-                    <button type="submit" class="btn btn-primary">حفظ الموظف</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> حفظ الموظف</button>
                 </div>
             </form>
         </div>
@@ -375,48 +387,52 @@
 
     <!-- Edit Employee Modal -->
     <div id="editEmployeeModal" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-content" style="max-width: 520px;">
             <div class="modal-header">
                 <h2><i class="fa-solid fa-user-pen" style="color: var(--primary);"></i> تعديل بيانات الموظف</h2>
-                <button class="close-btn" onclick="closeModal('editEmployeeModal')">&times;</button>
+                <button type="button" class="close-btn" onclick="closeModal('editEmployeeModal')">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
             <form id="editEmployeeForm">
-                <input type="hidden" id="editEmpId">
-                <div class="form-group" style="margin-top: 10px;">
-                    <label>الاسم الكامل</label>
-                    <input type="text" id="editEmpName" required style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
-                </div>
-                <div class="form-group" style="margin-top: 10px;">
-                    <label>القسم</label>
-                    <select id="editEmpSection" required style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;"></select>
-                </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+                <div class="modal-body">
+                    <input type="hidden" id="editEmpId">
                     <div class="form-group">
-                        <label>الراتب الأساسي</label>
-                        <input type="number" id="editEmpBaseSalary" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
+                        <label><i class="fa-solid fa-user"></i> الاسم الكامل</label>
+                        <input type="text" id="editEmpName" required>
                     </div>
                     <div class="form-group">
-                        <label>التارجت (الهدف)</label>
-                        <input type="number" id="editEmpTarget" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
+                        <label><i class="fa-solid fa-building"></i> القسم</label>
+                        <select id="editEmpSection" required></select>
                     </div>
-                </div>
-                <div class="form-group" style="margin-top: 10px;">
-                    <label>جهة الصرف / البنك</label>
-                    <select id="editEmpBank" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;"></select>
-                </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-money-bill-wave"></i> الراتب الأساسي</label>
+                            <input type="number" id="editEmpBaseSalary">
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-bullseye"></i> التارجت (الهدف)</label>
+                            <input type="number" id="editEmpTarget">
+                        </div>
+                    </div>
                     <div class="form-group">
-                        <label>اسم المستخدم</label>
-                        <input type="text" id="editEmpUsername" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
+                        <label><i class="fa-solid fa-building-columns"></i> جهة الصرف / البنك</label>
+                        <select id="editEmpBank"></select>
                     </div>
-                    <div class="form-group">
-                        <label>كلمة المرور (اتركه فارغاً للتخطي)</label>
-                        <input type="password" id="editEmpPassword" placeholder="تغيير كلمة المرور" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-at"></i> اسم المستخدم</label>
+                            <input type="text" id="editEmpUsername">
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-lock"></i> كلمة المرور (اتركه فارغاً للتخطي)</label>
+                            <input type="password" id="editEmpPassword" placeholder="تغيير كلمة المرور">
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer" style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
+                <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('editEmployeeModal')">إلغاء</button>
-                    <button type="submit" class="btn btn-primary">حفظ التعديلات</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> حفظ التعديلات</button>
                 </div>
             </form>
         </div>
@@ -424,24 +440,28 @@
 
     <!-- Add Income Modal -->
     <div id="addIncomeModal" class="modal">
-        <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-content" style="max-width: 440px;">
             <div class="modal-header">
                 <h2><i class="fa-solid fa-sack-dollar" style="color: var(--success);"></i> إضافة دخل للموظف</h2>
-                <button class="close-btn" onclick="closeModal('addIncomeModal')">&times;</button>
+                <button type="button" class="close-btn" onclick="closeModal('addIncomeModal')">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
             <form id="addIncomeForm">
-                <input type="hidden" id="incomeEmpId">
-                <div class="form-group" style="margin-top: 15px;">
-                    <label>المبلغ (بدون ضريبة)</label>
-                    <input type="number" step="any" id="incomeAmount" required style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
+                <div class="modal-body">
+                    <input type="hidden" id="incomeEmpId">
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-money-bill-wave"></i> المبلغ (بدون ضريبة)</label>
+                        <input type="number" step="any" id="incomeAmount" placeholder="0.00 ﷼" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-comment-dots"></i> ملاحظة / وصف العمل</label>
+                        <input type="text" id="incomeNote" placeholder="اختياري">
+                    </div>
                 </div>
-                <div class="form-group" style="margin-top: 10px;">
-                    <label>ملاحظة / وصف العمل</label>
-                    <input type="text" id="incomeNote" placeholder="اختياري" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
-                </div>
-                <div class="modal-footer" style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
+                <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('addIncomeModal')">إلغاء</button>
-                    <button type="submit" class="btn btn-success">إيداع الدخل</button>
+                    <button type="submit" class="btn btn-success"><i class="fa-solid fa-check"></i> إيداع الدخل</button>
                 </div>
             </form>
         </div>
@@ -449,24 +469,28 @@
 
     <!-- Add Withdrawal Modal -->
     <div id="addWithdrawalModal" class="modal">
-        <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-content" style="max-width: 440px;">
             <div class="modal-header">
                 <h2><i class="fa-solid fa-credit-card" style="color: var(--danger);"></i> تسجيل سحب للموظف</h2>
-                <button class="close-btn" onclick="closeModal('addWithdrawalModal')">&times;</button>
+                <button type="button" class="close-btn" onclick="closeModal('addWithdrawalModal')">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
             <form id="addWithdrawalForm">
-                <input type="hidden" id="withdrawalEmpId">
-                <div class="form-group" style="margin-top: 15px;">
-                    <label>مبلغ السحب</label>
-                    <input type="number" step="any" id="withdrawalAmount" required style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
+                <div class="modal-body">
+                    <input type="hidden" id="withdrawalEmpId">
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-money-bill-transfer"></i> مبلغ السحب</label>
+                        <input type="number" step="any" id="withdrawalAmount" placeholder="0.00 ﷼" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-comment-dots"></i> سبب / ملاحظة السحب</label>
+                        <input type="text" id="withdrawalNote" placeholder="اختياري">
+                    </div>
                 </div>
-                <div class="form-group" style="margin-top: 10px;">
-                    <label>سبب / ملاحظة السحب</label>
-                    <input type="text" id="withdrawalNote" placeholder="اختياري" style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:8px;">
-                </div>
-                <div class="modal-footer" style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
+                <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('addWithdrawalModal')">إلغاء</button>
-                    <button type="submit" class="btn btn-danger" style="background:#ef4444; color:white;">تسجيل السحب</button>
+                    <button type="submit" class="btn btn-danger"><i class="fa-solid fa-credit-card"></i> تسجيل السحب</button>
                 </div>
             </form>
         </div>
@@ -477,31 +501,35 @@
         <div class="modal-content" style="max-width: 580px;">
             <div class="modal-header">
                 <h2><i class="fa-solid fa-file-excel" style="color: var(--success);"></i> استيراد ملف موظفين / رواتب (Excel)</h2>
-                <button class="close-btn" onclick="closeModal('importEmployeesModal')">&times;</button>
+                <button type="button" class="close-btn" onclick="closeModal('importEmployeesModal')">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
-            <div style="margin-top: 15px; font-size: 13px; line-height: 1.7; color: var(--text-gray); background: #f8fafc; padding: 14px; border-radius: 10px; border: 1px solid var(--border-color);">
-                <div style="font-weight: 800; color: var(--text-dark); margin-bottom: 6px;">
-                    ⚡ يدعم النظام الآن الكشف التلقائي الذكي لكافة صيغ Excel:
+            <div class="modal-body">
+                <div style="font-size: 13px; line-height: 1.7; color: var(--text-gray); background: #f8fafc; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 16px;">
+                    <div style="font-weight: 800; color: var(--text-dark); margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--primary);"></i> يدعم النظام الكشف التلقائي الذكي لكافة صيغ Excel:
+                    </div>
+                    <ul style="padding-right: 18px; margin: 0;">
+                        <li><strong>كشف رواتب مصفوفي (مثل Salaries-9.xlsx):</strong> يستخرج أسماء الموظفين، الرواتب، السحبيات، والصافي المتبقي تلقائياً.</li>
+                        <li><strong>جدول موظفين مباشر (مثل موظفين.xlsx):</strong> يستخرج الاسم، القسم، التارجت، وحسابات الدخول.</li>
+                    </ul>
                 </div>
-                <ul style="padding-right: 20px; margin: 0;">
-                    <li><strong>كشف رواتب مصفوفي (مثل Salaries-9.xlsx):</strong> يستخرج أسماء الموظفين، الرواتب، السحبيات، والصافي المتبقي تلقائياً.</li>
-                    <li><strong>جدول موظفين مباشر (مثل موظفين.xlsx):</strong> يستخرج الاسم، القسم (مع إنشاء الأقسام غير الموجودة تلقائياً)، التارجت، وحسابات الدخول.</li>
-                </ul>
+
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                    <button class="btn" onclick="downloadImportTemplate()" style="padding: 12px; font-weight: 700; background: #6366f1; color: white;">
+                        <i class="fa-solid fa-download"></i> تحميل نموذج Excel الاسترشادي
+                    </button>
+                    <button class="btn btn-primary" onclick="document.getElementById('importEmpFileInput').click()" style="padding: 12px; font-weight: 700; background: #10b981;">
+                        <i class="fa-solid fa-folder-open"></i> اختيار ملف Excel للرفع والمعالجة
+                    </button>
+                    <input type="file" id="importEmpFileInput" accept=".xlsx,.xls" style="display:none;" onchange="importEmployeesFromExcel(this)">
+                </div>
+
+                <div id="importEmpResult" style="margin-top:14px; display:none;"></div>
             </div>
 
-            <div style="display:flex; flex-direction:column; gap:12px; margin-top:20px;">
-                <button class="btn" onclick="downloadImportTemplate()" style="padding: 12px; font-weight: 700; background: #6366f1; color: white; justify-content: center;">
-                    <i class="fa-solid fa-download"></i> تحميل نموذج Excel الاسترشادي
-                </button>
-                <button class="btn btn-primary" onclick="document.getElementById('importEmpFileInput').click()" style="padding: 12px; font-weight: 700; justify-content: center; background: #10b981;">
-                    <i class="fa-solid fa-folder-open"></i> اختيار ملف Excel للرفع والمعالجة
-                </button>
-                <input type="file" id="importEmpFileInput" accept=".xlsx,.xls" style="display:none;" onchange="importEmployeesFromExcel(this)">
-            </div>
-
-            <div id="importEmpResult" style="margin-top:14px; display:none;"></div>
-
-            <div class="modal-footer" style="margin-top:20px; display:flex; justify-content:flex-end;">
+            <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeModal('importEmployeesModal')">إغلاق</button>
             </div>
         </div>
@@ -512,21 +540,25 @@
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
                 <h2><i class="fa-solid fa-database" style="color: var(--primary);"></i> النسخ الاحتياطي والاستعادة</h2>
-                <button class="close-btn" onclick="closeModal('backupModal')">&times;</button>
-            </div>
-            <div style="margin-top: 15px; font-size: 13px; color: var(--text-gray); line-height: 1.6;">
-                يمكنك تحميل نسخة احتياطية من قاعدة البيانات بصيغة JSON أو SQLite، أو استعادة نسخة سابقة في أي وقت.
-            </div>
-            <div style="display:flex; flex-direction:column; gap:12px; margin-top:20px;">
-                <button class="btn btn-primary" onclick="downloadDbBackup()" style="padding:12px; justify-content:center;">
-                    <i class="fa-solid fa-cloud-arrow-down"></i> تحميل نسخة احتياطية (Download Backup)
+                <button type="button" class="close-btn" onclick="closeModal('backupModal')">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
-                <button class="btn btn-secondary" onclick="document.getElementById('restoreFileInput').click()" style="padding:12px; justify-content:center;">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> استعادة قاعدة بيانات (Restore Backup)
-                </button>
-                <input type="file" id="restoreFileInput" accept=".sqlite,.db,.json" style="display:none;" onchange="uploadAndRestoreDatabase(this)">
             </div>
-            <div class="modal-footer" style="margin-top:20px; display:flex; justify-content:flex-end;">
+            <div class="modal-body">
+                <div style="font-size: 13.5px; color: var(--text-gray); line-height: 1.6; margin-bottom: 16px;">
+                    يمكنك تحميل نسخة احتياطية من قاعدة البيانات بصيغة JSON أو SQLite، أو استعادة نسخة سابقة في أي وقت.
+                </div>
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                    <button class="btn btn-primary" onclick="downloadDbBackup()" style="padding:12px;">
+                        <i class="fa-solid fa-cloud-arrow-down"></i> تحميل نسخة احتياطية (Download Backup)
+                    </button>
+                    <button class="btn btn-secondary" onclick="document.getElementById('restoreFileInput').click()" style="padding:12px;">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> استعادة قاعدة بيانات (Restore Backup)
+                    </button>
+                    <input type="file" id="restoreFileInput" accept=".sqlite,.db,.json" style="display:none;" onchange="uploadAndRestoreDatabase(this)">
+                </div>
+            </div>
+            <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeModal('backupModal')">إغلاق</button>
             </div>
         </div>
