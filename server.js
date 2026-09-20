@@ -851,7 +851,7 @@ app.get('/api/employee/:id/assigned-jobs', async (req, res) => {
             FROM inspections i
             WHERE i.assigned_technician_id = ?
                OR i.inspector_id = ?
-               OR EXISTS (SELECT 1 FROM inspection_technicians it WHERE it.inspection_id = i.id AND it.employee_id = ?)
+               OR EXISTS (SELECT 1 FROM inspection_technicians it WHERE it.inspection_id = i.id AND it.technician_id = ?)
             ORDER BY i.created_at DESC
             LIMIT 30
         `, [id, id, id]);
