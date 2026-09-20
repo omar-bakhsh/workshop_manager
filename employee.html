@@ -13,30 +13,19 @@
   
   <title>بوابة الموظف - Atenza App</title>
   
-  <!-- Fonts -->
+  <!-- Fonts & FontAwesome -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <!-- Core Scripts & Toast -->
   <script src="public/js/app-config.js"></script>
-  <script>
-    const APP_VERSION = '5.5';
-    if (localStorage.getItem('app_version') !== APP_VERSION) {
-        localStorage.setItem('app_version', APP_VERSION);
-        if ('serviceWorker' in navigator) {
-            caches.keys().then(names => { for (let name of names) caches.delete(name); });
-        }
-    }
-  </script>
   <link rel="stylesheet" href="toast.css?v=5.5">
   <script src="toast.js?v=5.5"></script>
   <script src="toast_helpers.js?v=5.5"></script>
 
   <style>
-    /* =========================================================
-       🎨 Mobile-First Design Tokens & Theme Variables
-       ========================================================= */
     :root {
       --primary: #4f46e5;
       --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
@@ -58,7 +47,7 @@
       --text-muted: #64748b;
       --text-sub: #94a3b8;
       --border-color: #e2e8f0;
-      --glass-bg: rgba(255, 255, 255, 0.85);
+      --glass-bg: rgba(255, 255, 255, 0.88);
       --glass-border: rgba(255, 255, 255, 0.6);
       --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
       --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
@@ -78,7 +67,7 @@
       --text-muted: #94a3b8;
       --text-sub: #64748b;
       --border-color: #1e293b;
-      --glass-bg: rgba(19, 27, 46, 0.85);
+      --glass-bg: rgba(19, 27, 46, 0.88);
       --glass-border: rgba(255, 255, 255, 0.08);
       --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
       --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
@@ -104,9 +93,7 @@
       transition: background-color 0.3s ease, color 0.3s ease;
     }
 
-    /* =========================================================
-       <i class="fa-solid fa-mobile-screen"></i> Top App Header (Mobile Optimized Bar)
-       ========================================================= */
+    /* Top App Header */
     .app-topbar {
       position: sticky;
       top: 0;
@@ -148,32 +135,33 @@
     }
 
     .user-status-dot {
-      position: absolute;
-      bottom: -2px;
-      right: -2px;
-      width: 13px;
-      height: 13px;
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
       background: var(--success);
+      position: absolute;
+      bottom: -1px;
+      right: -1px;
       border: 2px solid var(--surface);
     }
 
     .user-details h1 {
       font-size: 15px;
       font-weight: 800;
-      color: var(--text-main);
       line-height: 1.2;
+      color: var(--text-main);
     }
 
     .user-details .role-badge {
+      display: inline-block;
       font-size: 11px;
-      font-weight: 600;
-      color: var(--primary);
-      background: rgba(79, 70, 229, 0.1);
+      font-weight: 700;
+      color: var(--text-muted);
+      background: var(--surface-hover);
       padding: 2px 8px;
       border-radius: var(--radius-full);
-      display: inline-block;
-      margin-top: 3px;
+      margin-top: 2px;
+      border: 1px solid var(--border-color);
     }
 
     .topbar-actions {
@@ -183,9 +171,9 @@
     }
 
     .icon-btn {
-      width: 38px;
-      height: 38px;
-      border-radius: 12px;
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
       border: 1px solid var(--border-color);
       background: var(--surface);
       color: var(--text-main);
@@ -193,86 +181,67 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-size: 16px;
       position: relative;
-      transition: all 0.2s ease;
+      transition: all 0.2s;
     }
 
     .icon-btn:active {
       transform: scale(0.92);
+      background: var(--surface-hover);
     }
 
     .badge-count {
       position: absolute;
       top: -4px;
-      left: -4px;
+      right: -4px;
       background: var(--danger);
-      color: #fff;
+      color: white;
       font-size: 10px;
       font-weight: 800;
+      border-radius: var(--radius-full);
       min-width: 18px;
       height: 18px;
-      border-radius: var(--radius-full);
+      padding: 0 4px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border: 2px solid var(--surface);
+      box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
     }
 
-    /* =========================================================
-       📲 Main Container & View Management
-       ========================================================= */
+    /* Main Container & Tabs */
     .app-main {
       flex: 1;
-      max-width: 900px;
-      width: 100%;
-      margin: 0 auto;
       padding: 16px;
+      max-width: 600px;
+      margin: 0 auto;
+      width: 100%;
     }
 
     .tab-view {
       display: none;
-      animation: fadeInView 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      animation: fadeIn 0.25s ease-out;
     }
 
     .tab-view.active {
       display: block;
     }
 
-    @keyframes fadeInView {
-      from {
-        opacity: 0;
-        transform: translateY(6px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    /* =========================================================
-       🪪 Hero Biometric Attendance Card
-       ========================================================= */
+    /* Hero Attendance Card */
     .hero-attendance-card {
       background: var(--surface);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
       padding: 20px 16px;
-      text-align: center;
-      box-shadow: var(--shadow-md);
       margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+      text-align: center;
       position: relative;
       overflow: hidden;
-    }
-
-    .hero-attendance-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: var(--primary-gradient);
     }
 
     .shift-info-pill {
@@ -280,90 +249,77 @@
       align-items: center;
       gap: 6px;
       background: var(--surface-hover);
-      padding: 6px 14px;
+      border: 1px solid var(--border-color);
+      padding: 5px 14px;
       border-radius: var(--radius-full);
       font-size: 12px;
       font-weight: 700;
       color: var(--text-muted);
-      border: 1px solid var(--border-color);
       margin-bottom: 12px;
     }
 
     .digital-clock-display {
-      font-size: 38px;
+      font-size: 34px;
       font-weight: 900;
-      letter-spacing: 2px;
       color: var(--text-main);
       font-variant-numeric: tabular-nums;
-      margin-bottom: 18px;
-      line-height: 1;
+      letter-spacing: -0.5px;
+      margin-bottom: 14px;
     }
 
     .biometric-touch-wrap {
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
-      gap: 16px;
-      margin-bottom: 16px;
+      justify-content: center;
+      gap: 12px;
     }
 
     .fingerprint-touch-btn {
-      width: 100px;
-      height: 100px;
+      width: 86px;
+      height: 86px;
       border-radius: 50%;
-      background: var(--surface);
-      border: 4px solid #fff;
+      background: var(--primary-gradient);
+      color: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 46px;
+      font-size: 36px;
       cursor: pointer;
-      box-shadow: 0 10px 25px rgba(79, 70, 229, 0.2);
-      position: relative;
-      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4);
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
       user-select: none;
     }
 
-    body.dark-mode .fingerprint-touch-btn {
-      background: #1c2640;
-      border-color: #2a385b;
-    }
-
     .fingerprint-touch-btn:active {
-      transform: scale(0.92);
+      transform: scale(0.9);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
     }
 
     .fingerprint-touch-btn.pulse-active {
-      animation: bioPulse 2s infinite;
-      box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.5);
+      animation: pulseGlow 2s infinite;
     }
 
-    @keyframes bioPulse {
-      0% {
-        box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.5);
-      }
-      70% {
-        box-shadow: 0 0 0 20px rgba(79, 70, 229, 0);
-      }
-      100% {
-        box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
-      }
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.5); }
+      70% { box-shadow: 0 0 0 16px rgba(79, 70, 229, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
     }
 
     .btn-checkout-mobile {
-      padding: 12px 22px;
-      border-radius: var(--radius-md);
       background: var(--danger-gradient);
       color: white;
       border: none;
+      padding: 9px 20px;
+      border-radius: var(--radius-full);
       font-weight: 800;
-      font-size: 14px;
+      font-size: 13px;
+      cursor: pointer;
       display: none;
       align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3);
-      transition: all 0.2s;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+      transition: transform 0.2s;
     }
 
     .btn-checkout-mobile:active {
@@ -371,28 +327,26 @@
     }
 
     .attendance-status-label {
-      font-size: 14px;
+      margin-top: 12px;
+      font-size: 13px;
       font-weight: 800;
-      color: var(--text-muted);
+      color: var(--text-main);
     }
 
     .attendance-alert-box {
-      margin-top: 14px;
+      margin-top: 12px;
       padding: 10px 14px;
-      border-radius: var(--radius-md);
-      font-size: 13px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
       font-weight: 700;
       display: none;
-      border: 1px solid transparent;
     }
 
-    .alert-success { background: #dcfce7; color: #15803d; border-color: #bbf7d0; }
-    .alert-warning { background: #fef3c7; color: #b45309; border-color: #fde68a; }
-    .alert-danger  { background: #fee2e2; color: #b91c1c; border-color: #fecaca; }
+    .alert-warning { background: rgba(245, 158, 11, 0.12); color: var(--warning); }
+    .alert-danger { background: rgba(239, 68, 68, 0.12); color: var(--danger); }
+    .alert-success { background: rgba(16, 185, 129, 0.12); color: var(--success); }
 
-    /* =========================================================
-       🚀 Quick Action Cards (Workshop Field Shortcuts)
-       ========================================================= */
+    /* Section Headlines */
     .section-headline {
       display: flex;
       justify-content: space-between;
@@ -410,6 +364,7 @@
       gap: 6px;
     }
 
+    /* Quick Action Grid */
     .quick-actions-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
@@ -430,7 +385,6 @@
       cursor: pointer;
       transition: all 0.2s ease;
       box-shadow: var(--shadow-sm);
-      position: relative;
       text-decoration: none;
       color: var(--text-main);
     }
@@ -457,9 +411,7 @@
       line-height: 1.3;
     }
 
-    /* =========================================================
-       <i class="fa-solid fa-chart-pie"></i> Compact KPI Stats Cards
-       ========================================================= */
+    /* KPI Stats */
     .kpi-stats-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -479,9 +431,7 @@
       position: relative;
     }
 
-    .kpi-card.span-2 {
-      grid-column: span 2;
-    }
+    .kpi-card.span-2 { grid-column: span 2; }
 
     .kpi-card.highlight {
       background: var(--primary-gradient);
@@ -537,9 +487,7 @@
       margin-top: 8px;
     }
 
-    body.dark-mode .progress-track {
-      background: #1e293b;
-    }
+    body.dark-mode .progress-track { background: #1e293b; }
 
     .progress-bar-fill {
       height: 100%;
@@ -549,429 +497,7 @@
       transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    /* =========================================================
-       <i class="fa-solid fa-pen-to-square"></i> Forms & Requests (Touch-Friendly UI)
-       ========================================================= */
-    .form-card {
-      background: var(--surface);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      padding: 18px;
-      margin-bottom: 20px;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .form-card-title {
-      font-size: 16px;
-      font-weight: 800;
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .input-field-group {
-      margin-bottom: 14px;
-    }
-
-    .input-field-group label {
-      display: block;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-    }
-
-    .touch-input {
-      width: 100%;
-      padding: 12px 14px;
-      border-radius: var(--radius-sm);
-      border: 1.5px solid var(--border-color);
-      background: var(--surface);
-      color: var(--text-main);
-      font-family: inherit;
-      font-size: 14px;
-      font-weight: 600;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-
-    .touch-input:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
-    }
-
-    .quick-chips-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 8px;
-    }
-
-    .chip-btn {
-      padding: 6px 12px;
-      border-radius: var(--radius-full);
-      border: 1px solid var(--border-color);
-      background: var(--surface-hover);
-      color: var(--text-main);
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-
-    .chip-btn:active, .chip-btn.selected {
-      background: var(--primary);
-      color: #fff;
-      border-color: var(--primary);
-      transform: scale(0.95);
-    }
-
-    .btn-submit-main {
-      width: 100%;
-      padding: 14px;
-      border-radius: var(--radius-md);
-      border: none;
-      font-weight: 800;
-      font-size: 15px;
-      color: #fff;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.2s;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .btn-submit-main:active {
-      transform: scale(0.98);
-    }
-
-    /* =========================================================
-       📜 Request History & Timeline Cards
-       ========================================================= */
-    .history-card-item {
-      background: var(--surface);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 14px;
-      margin-bottom: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: background-color 0.2s;
-    }
-
-    .status-badge-pill {
-      padding: 4px 10px;
-      border-radius: var(--radius-full);
-      font-size: 11px;
-      font-weight: 800;
-      white-space: nowrap;
-    }
-
-    .pill-pending { background: #fef3c7; color: #92400e; }
-    .pill-approved { background: #dcfce7; color: #166534; }
-    .pill-rejected { background: #fee2e2; color: #991b1b; }
-
-    /* =========================================================
-       <i class="fa-solid fa-comment-dots"></i> Modern Mobile Chat Room
-       ========================================================= */
-    .chat-container-card {
-      background: var(--surface);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      height: calc(100vh - 180px);
-      min-height: 420px;
-      box-shadow: var(--shadow-md);
-    }
-
-    .chat-header-bar {
-      padding: 14px 16px;
-      background: var(--surface-hover);
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .chat-messages-area {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      background: var(--bg-body);
-    }
-
-    .chat-bubble {
-      max-width: 82%;
-      padding: 10px 14px;
-      border-radius: 16px;
-      font-size: 13px;
-      line-height: 1.4;
-      position: relative;
-      word-break: break-word;
-    }
-
-    .chat-bubble.mine {
-      align-self: flex-end;
-      background: var(--primary-gradient);
-      color: #fff;
-      border-bottom-left-radius: 4px;
-      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
-    }
-
-    .chat-bubble.admin {
-      align-self: flex-start;
-      background: var(--surface);
-      color: var(--text-main);
-      border: 1px solid var(--border-color);
-      border-bottom-right-radius: 4px;
-    }
-
-    .chat-input-bar {
-      padding: 12px 14px;
-      background: var(--surface);
-      border-top: 1px solid var(--border-color);
-      display: flex;
-      gap: 8px;
-    }
-
-    .chat-text-input {
-      flex: 1;
-      padding: 10px 16px;
-      border-radius: var(--radius-full);
-      border: 1.5px solid var(--border-color);
-      background: var(--surface-hover);
-      color: var(--text-main);
-      font-family: inherit;
-      font-size: 13px;
-      outline: none;
-    }
-
-    .chat-send-btn {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      background: var(--primary-gradient);
-      color: #fff;
-      border: none;
-      gap: 8px;
-    }
-
-    .input-field-group {
-      margin-bottom: 14px;
-    }
-
-    .input-field-group label {
-      display: block;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-    }
-
-    .touch-input {
-      width: 100%;
-      padding: 12px 14px;
-      border-radius: var(--radius-sm);
-      border: 1.5px solid var(--border-color);
-      background: var(--surface);
-      color: var(--text-main);
-      font-family: inherit;
-      font-size: 14px;
-      font-weight: 600;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-
-    .touch-input:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
-    }
-
-    .quick-chips-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 8px;
-    }
-
-    .chip-btn {
-      padding: 6px 12px;
-      border-radius: var(--radius-full);
-      border: 1px solid var(--border-color);
-      background: var(--surface-hover);
-      color: var(--text-main);
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-
-    .chip-btn:active, .chip-btn.selected {
-      background: var(--primary);
-      color: #fff;
-      border-color: var(--primary);
-      transform: scale(0.95);
-    }
-
-    .btn-submit-main {
-      width: 100%;
-      padding: 14px;
-      border-radius: var(--radius-md);
-      border: none;
-      font-weight: 800;
-      font-size: 15px;
-      color: #fff;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.2s;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .btn-submit-main:active {
-      transform: scale(0.98);
-    }
-
-    /* =========================================================
-       📜 Request History & Timeline Cards
-       ========================================================= */
-    .history-card-item {
-      background: var(--surface);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 14px;
-      margin-bottom: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: background-color 0.2s;
-    }
-
-    .status-badge-pill {
-      padding: 4px 10px;
-      border-radius: var(--radius-full);
-      font-size: 11px;
-      font-weight: 800;
-      white-space: nowrap;
-    }
-
-    .pill-pending { background: #fef3c7; color: #92400e; }
-    .pill-approved { background: #dcfce7; color: #166534; }
-    .pill-rejected { background: #fee2e2; color: #991b1b; }
-
-    /* =========================================================
-       <i class="fa-solid fa-comment-dots"></i> Modern Mobile Chat Room
-       ========================================================= */
-    .chat-container-card {
-      background: var(--surface);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      height: calc(100vh - 180px);
-      min-height: 420px;
-      box-shadow: var(--shadow-md);
-    }
-
-    .chat-header-bar {
-      padding: 14px 16px;
-      background: var(--surface-hover);
-      border-bottom: 1px solid var(--border-color);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .chat-messages-area {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      background: var(--bg-body);
-    }
-
-    .chat-bubble {
-      max-width: 82%;
-      padding: 10px 14px;
-      border-radius: 16px;
-      font-size: 13px;
-      line-height: 1.4;
-      position: relative;
-      word-break: break-word;
-    }
-
-    .chat-bubble.mine {
-      align-self: flex-end;
-      background: var(--primary-gradient);
-      color: #fff;
-      border-bottom-left-radius: 4px;
-      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
-    }
-
-    .chat-bubble.admin {
-      align-self: flex-start;
-      background: var(--surface);
-      color: var(--text-main);
-      border: 1px solid var(--border-color);
-      border-bottom-right-radius: 4px;
-    }
-
-    .chat-input-bar {
-      padding: 12px 14px;
-      background: var(--surface);
-      border-top: 1px solid var(--border-color);
-      display: flex;
-      gap: 8px;
-    }
-
-    .chat-text-input {
-      flex: 1;
-      padding: 10px 16px;
-      border-radius: var(--radius-full);
-      border: 1.5px solid var(--border-color);
-      background: var(--surface-hover);
-      color: var(--text-main);
-      font-family: inherit;
-      font-size: 13px;
-      outline: none;
-    }
-
-    .chat-send-btn {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      background: var(--primary-gradient);
-      color: #fff;
-      border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 16px;
-      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-    }
-
-    .chat-send-btn:active {
-      transform: scale(0.9);
-    }
-
-    /* =========================================================
-       🚗 Assigned Job Orders & Live Work Cards
-       ========================================================= */
+    /* Live Assigned Jobs */
     .assigned-jobs-grid {
       display: flex;
       flex-direction: column;
@@ -1012,9 +538,7 @@
       color: var(--text-main);
     }
 
-    body.dark-mode .job-car-badge {
-      background: #1e293b;
-    }
+    body.dark-mode .job-car-badge { background: #1e293b; }
 
     .job-status-pill {
       font-size: 11px;
@@ -1030,6 +554,123 @@
     .job-status-in-progress { background: #e0f2fe; color: #0284c7; }
     .job-status-completed { background: #dcfce7; color: #166534; }
 
+    /* Forms & Cards */
+    .form-card {
+      background: var(--surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .form-card-title {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .input-field-group {
+      margin-bottom: 14px;
+    }
+
+    .input-field-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .touch-input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border-color);
+      background: var(--surface);
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .touch-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    }
+
+    .quick-chips-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .chip-btn {
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-color);
+      background: var(--surface-hover);
+      color: var(--text-main);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .chip-btn:active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .btn-submit-main {
+      width: 100%;
+      padding: 14px;
+      border-radius: var(--radius-md);
+      border: none;
+      font-weight: 800;
+      font-size: 14.5px;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-submit-main:active {
+      transform: scale(0.98);
+    }
+
+    .btn-print-action {
+      background: var(--surface);
+      color: var(--text-main);
+      border: 1.5px solid var(--border-color);
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn-print-action:hover {
+      background: var(--surface-hover);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
     .permission-lock-notice {
       background: rgba(245, 158, 11, 0.1);
       border: 1.5px dashed var(--warning);
@@ -1044,9 +685,162 @@
       margin-bottom: 16px;
     }
 
-    /* =========================================================
-       <i class="fa-solid fa-bell"></i> Notifications Panel Drawer
-       ========================================================= */
+    /* History Cards */
+    .history-card-item {
+      background: var(--surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .status-badge-pill {
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .pill-pending { background: #fef3c7; color: #92400e; }
+    .pill-approved { background: #dcfce7; color: #166534; }
+    .pill-rejected { background: #fee2e2; color: #991b1b; }
+
+    /* Chat System */
+    .chat-container-card {
+      background: var(--surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 180px);
+      min-height: 420px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .chat-header-bar {
+      padding: 14px 16px;
+      background: var(--surface-hover);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chat-messages-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: var(--bg-body);
+    }
+
+    .chat-bubble-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      max-width: 86%;
+    }
+
+    .chat-bubble-wrap.mine {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .chat-bubble-wrap.admin {
+      align-self: flex-start;
+    }
+
+    .chat-bubble {
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: 13.5px;
+      line-height: 1.4;
+      position: relative;
+      word-break: break-word;
+    }
+
+    .chat-bubble-wrap.mine .chat-bubble {
+      background: var(--primary-gradient);
+      color: #fff;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    }
+
+    .chat-bubble-wrap.admin .chat-bubble {
+      background: var(--surface);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      border-bottom-right-radius: 4px;
+    }
+
+    .btn-msg-del {
+      opacity: 0;
+      background: none;
+      border: none;
+      color: var(--text-sub);
+      cursor: pointer;
+      font-size: 11px;
+      padding: 4px;
+      transition: opacity 0.2s, color 0.2s;
+    }
+
+    .chat-bubble-wrap:hover .btn-msg-del {
+      opacity: 1;
+    }
+
+    .btn-msg-del:hover {
+      color: var(--danger);
+    }
+
+    .chat-input-bar {
+      padding: 12px 14px;
+      background: var(--surface);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      gap: 8px;
+    }
+
+    .chat-text-input {
+      flex: 1;
+      padding: 10px 16px;
+      border-radius: var(--radius-full);
+      border: 1.5px solid var(--border-color);
+      background: var(--surface-hover);
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 13.5px;
+      outline: none;
+    }
+
+    .chat-send-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--primary-gradient);
+      color: #fff;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+      flex-shrink: 0;
+    }
+
+    .chat-send-btn:active {
+      transform: scale(0.9);
+    }
+
+    /* Notifications Panel Drawer */
     .notif-drawer {
       position: fixed;
       top: 60px;
@@ -1095,9 +889,7 @@
       background: rgba(79, 70, 229, 0.05);
     }
 
-    /* =========================================================
-       <i class="fa-solid fa-mobile-screen"></i> Fixed Bottom Navigation Bar
-       ========================================================= */
+    /* Fixed Bottom Navbar */
     .bottom-navbar {
       position: fixed;
       bottom: 0;
@@ -1177,8 +969,691 @@
       padding: 1px 5px;
       display: none;
     }
+
+    /* Print Template Overlay & Styling */
+    #printArea {
+      display: none;
+    }
+
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #printArea, #printArea * {
+        visibility: visible;
+      }
+      #printArea {
+        display: block !important;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: #fff !important;
+        color: #000 !important;
+        padding: 20px;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
   </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+  <!-- Top Header Bar -->
+  <header class="app-topbar">
+    <div class="user-profile-summary">
+      <div class="user-avatar-wrap">
+        <div class="user-avatar" id="headerAvatar">--</div>
+        <div class="user-status-dot"></div>
+      </div>
+      <div class="user-details">
+        <h1 id="welcomeName">مرحباً...</h1>
+        <span class="role-badge" id="roleName">بوابة الموظف</span>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <!-- Dark Mode Toggle -->
+      <button class="icon-btn" onclick="toggleDarkMode()" title="المظهر">
+        <span id="darkModeIcon">🌙</span>
+      </button>
+
+      <!-- Notifications -->
+      <button class="icon-btn" id="notifBtn" onclick="toggleNotif()" title="الإشعارات">
+        <i class="fa-solid fa-bell"></i>
+        <span id="notifBadge" class="badge-count" style="display:none;">0</span>
+      </button>
+
+      <!-- Logout -->
+      <button class="icon-btn" onclick="logout()" title="تسجيل الخروج" style="color: var(--danger);">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Notifications Drawer -->
+  <div id="notifDrawer" class="notif-drawer">
+    <div class="notif-drawer-header">
+      <h4 style="font-size: 14px; font-weight: 800;"><i class="fa-solid fa-bell"></i> مركز الإشعارات</h4>
+      <button onclick="markAllRead()" style="background:none; border:none; color:var(--primary); font-size:12px; font-weight:700; cursor:pointer;">تحديد الكل كمقروء</button>
+    </div>
+    <div id="notifList" class="notif-scroll-area">
+      <div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px;">لا توجد إشعارات</div>
+    </div>
+  </div>
+
+  <!-- Main Content Tabs -->
+  <main class="app-main">
+
+    <!-- =========================================================
+         TAB 1: الرئيسية (Dashboard, Attendance, Assigned Jobs)
+         ========================================================= -->
+    <section id="tabHome" class="tab-view active">
+      
+      <!-- Biometric Attendance Hero -->
+      <div class="hero-attendance-card">
+        <div class="shift-info-pill" id="shiftTimeLabel">
+          <span>⏱️</span>
+          <span>جاري تحميل أوقات الدوام...</span>
+        </div>
+
+        <div class="digital-clock-display" id="liveClock">00:00:00</div>
+
+        <div class="biometric-touch-wrap">
+          <div id="fingerprintBtn" class="fingerprint-touch-btn pulse-active" onclick="handleFingerprintClick()" title="اضغط لتسجيل الحضور">
+            🖐️
+          </div>
+          <button id="checkOutBtn" class="btn-checkout-mobile" onclick="checkOut()">
+            <span>انصراف</span>
+            <span>🏃</span>
+          </button>
+        </div>
+
+        <div class="attendance-status-label" id="fingerprintStatus">بصمة حضور 🖐️</div>
+        <div id="delayAlert" class="attendance-alert-box"></div>
+      </div>
+
+      <!-- Quick Action Cards (Workshop Field Operations) -->
+      <div class="section-headline">
+        <h3>⚡ إجراءات الورشة السريعة</h3>
+      </div>
+      <div id="quickNavContainer" class="quick-actions-grid">
+        <!-- Dynamically injected based on permissions -->
+      </div>
+
+      <!-- Quick KPI Summary -->
+      <div id="dashKpiSection" class="section-headline">
+        <h3><i class="fa-solid fa-chart-pie"></i> ملخص اليوم والراتب</h3>
+      </div>
+      <div id="dashKpiGrid" class="kpi-stats-grid">
+        <div class="kpi-card highlight span-2">
+          <div class="kpi-card-header">
+            <span class="kpi-label">صافي الراتب المستحق</span>
+            <div class="kpi-icon" style="background: rgba(255,255,255,0.2);"><i class="fa-solid fa-money-bill"></i></div>
+          </div>
+          <div class="kpi-value" id="dashNetRemaining">0 ﷼</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span class="kpi-label">الدخل المحقق</span>
+            <div class="kpi-icon" style="background:#dcfce7; color:#166534;"><i class="fa-solid fa-sack-dollar"></i></div>
+          </div>
+          <div class="kpi-value" id="dashTotalIncome">0</div>
+          <div id="dashIncomeHidden" style="display:none; font-size:12px; color:var(--text-muted); font-weight:700;">🔒 مخفي</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span class="kpi-label">نسبة الإنجاز</span>
+            <div class="kpi-icon" style="background:#fef3c7; color:#92400e;">🎯</div>
+          </div>
+          <div class="kpi-value" id="dashTargetPercent">0%</div>
+          <div class="progress-track">
+            <div class="progress-bar-fill" id="dashProgressFill"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Assigned Job Orders & Tasks -->
+      <div class="section-headline" style="margin-top: 10px;">
+        <h3><i class="fa-solid fa-car-side" style="color: var(--secondary);"></i> أوامر العمل والسيارات المسندة</h3>
+      </div>
+      <div id="assignedJobsContainer" class="assigned-jobs-grid">
+        <div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px;">جاري فحص المهام المسندة...</div>
+      </div>
+
+    </section>
+
+    <!-- =========================================================
+         TAB 2: الطلبات (Withdrawals & Leave Requests with Print)
+         ========================================================= -->
+    <section id="tabRequests" class="tab-view">
+
+      <!-- Fast Withdrawal Form -->
+      <div class="form-card" id="withdrawalFormCard">
+        <div class="form-card-title">
+          <span><i class="fa-solid fa-credit-card" style="color:var(--primary);"></i> طلب سحب مبلغ مالي</span>
+          <button type="button" class="btn-print-action" onclick="printCurrentWithdrawalForm()">
+            <i class="fa-solid fa-print"></i> طباعة نموذج يدوي
+          </button>
+        </div>
+        <div id="withdrawalLockNotice" class="permission-lock-notice" style="display: none;">
+          <i class="fa-solid fa-lock" style="font-size: 16px;"></i>
+          <span>خاصية طلبات السحب غير مفعّلة لقسمك حالياً. يمكنك تقديم طلب إجازة كالمعتاد.</span>
+        </div>
+        <form id="withdrawalRequestForm">
+          <div class="input-field-group">
+            <label>المبلغ المطلوب (ريال)</label>
+            <input type="number" id="withdrawalAmount" class="touch-input" required placeholder="0" min="1" step="any">
+            <div class="quick-chips-group">
+              <button type="button" class="chip-btn" onclick="setQuickWithdrawalAmount(50)">50 ﷼</button>
+              <button type="button" class="chip-btn" onclick="setQuickWithdrawalAmount(100)">100 ﷼</button>
+              <button type="button" class="chip-btn" onclick="setQuickWithdrawalAmount(200)">200 ﷼</button>
+              <button type="button" class="chip-btn" onclick="setQuickWithdrawalAmount(500)">500 ﷼</button>
+              <button type="button" class="chip-btn" onclick="setQuickWithdrawalAmount(1000)">1000 ﷼</button>
+            </div>
+          </div>
+
+          <div class="input-field-group">
+            <label>السبب / ملاحظات السحب</label>
+            <input type="text" id="withdrawalReason" class="touch-input" placeholder="اختياري (سلفة، مصاريف، ...)">
+          </div>
+
+          <button type="submit" class="btn-submit-main" style="background: var(--primary-gradient);">
+            <span>إرسال طلب السحب للإدارة</span>
+            <span>📤</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Leave Request Form -->
+      <div class="form-card">
+        <div class="form-card-title">
+          <span>🏖️ تقديم طلب إجازة رسمية</span>
+          <button type="button" class="btn-print-action" onclick="printCurrentLeaveForm()">
+            <i class="fa-solid fa-print"></i> طباعة نموذج يدوي
+          </button>
+        </div>
+        <form id="leaveRequestForm">
+          <div class="input-field-group">
+            <label>نوع الإجازة</label>
+            <select id="leaveType" class="touch-input">
+              <option value="annual">🏖️ إجازة سنوية</option>
+              <option value="sick">🩺 إجازة مرضية</option>
+              <option value="emergency">🚨 إجازة طارئة</option>
+              <option value="unpaid">⏳ إجازة بدون راتب</option>
+            </select>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div class="input-field-group">
+              <label>تاريخ البدء (من)</label>
+              <input type="date" id="leaveStartDate" class="touch-input" required>
+            </div>
+            <div class="input-field-group">
+              <label>تاريخ الانتهاء (إلى)</label>
+              <input type="date" id="leaveEndDate" class="touch-input" required>
+            </div>
+          </div>
+
+          <div class="input-field-group">
+            <label>سبب الإجازة / ملاحظات</label>
+            <input type="text" id="leaveReason" class="touch-input" placeholder="اكتب سبب طلب الإجازة...">
+          </div>
+
+          <button type="submit" class="btn-submit-main" style="background: var(--success-gradient);">
+            <span>إرسال طلب الإجازة للإدارة</span>
+            <span>🌴</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Requests History -->
+      <div class="section-headline">
+        <h3><i class="fa-solid fa-clipboard-list"></i> سجل الطلبات السابقة والردود</h3>
+      </div>
+      <div id="requestHistory">
+        <div style="padding: 20px; text-align: center; color: var(--text-muted);">جاري المزامنة...</div>
+      </div>
+
+    </section>
+
+    <!-- =========================================================
+         TAB 3: المالية والإنتاجية (Financials)
+         ========================================================= -->
+    <section id="tabFinance" class="tab-view">
+
+      <div class="kpi-stats-grid">
+        <div class="kpi-card highlight span-2">
+          <div class="kpi-card-header">
+            <span class="kpi-label">الراتب المتبقي المحسوب</span>
+            <div class="kpi-icon" style="background: rgba(255,255,255,0.2);">✨</div>
+          </div>
+          <div class="kpi-value" id="finNetRemaining">0 ﷼</div>
+          <div id="lastSyncInfo" style="font-size: 11px; color: rgba(255,255,255,0.8); margin-top: 6px;"></div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span class="kpi-label">إجمالي الدخل</span>
+            <div class="kpi-icon" style="background:#dcfce7; color:#166534;"><i class="fa-solid fa-sack-dollar"></i></div>
+          </div>
+          <div class="kpi-value" id="finTotalIncome">0</div>
+          <div id="finIncomeHidden" style="display:none; font-size:12px; color:var(--text-muted); font-weight:700;">🔒 مخفي</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span class="kpi-label">إجمالي السحوبات</span>
+            <div class="kpi-icon" style="background:#fee2e2; color:#991b1b;"><i class="fa-solid fa-credit-card"></i></div>
+          </div>
+          <div class="kpi-value" id="finTotalWithdrawals">0</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span class="kpi-label">الرصيد المتبقي</span>
+            <div class="kpi-icon" style="background:#e0f2fe; color:#0369a1;"><i class="fa-solid fa-money-bill"></i></div>
+          </div>
+          <div class="kpi-value" id="finRemainingBalance">0</div>
+        </div>
+
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span class="kpi-label">نسبة الإنجاز</span>
+            <div class="kpi-icon" style="background:#fef3c7; color:#92400e;">🎯</div>
+          </div>
+          <div class="kpi-value" id="finTargetAchievement">0%</div>
+          <div class="progress-track">
+            <div class="progress-bar-fill" id="finProgressFill"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Income Operations Record -->
+      <div id="incomeSection" class="form-card" style="display: none;">
+        <div class="form-card-title">
+          <span><i class="fa-solid fa-chart-line"></i> سجل العمليات اليومية</span>
+        </div>
+        <div id="entriesContainer"></div>
+      </div>
+
+    </section>
+
+    <!-- =========================================================
+         TAB 4: المحادثة المباشرة (Chat Room with Deletion)
+         ========================================================= -->
+    <section id="tabChat" class="tab-view">
+      <div class="chat-container-card">
+        <div class="chat-header-bar">
+          <div style="width: 10px; height: 10px; border-radius: 50%; background: var(--success);"></div>
+          <div>
+            <div style="font-size: 14px; font-weight: 800;">محادثة الإدارة المباشرة</div>
+            <div style="font-size: 11px; color: var(--text-muted);">تواصل فوري ومباشر مع المشرفين</div>
+          </div>
+        </div>
+
+        <div class="chat-messages-area" id="chatBody">
+          <!-- Populated dynamically -->
+        </div>
+
+        <div class="chat-input-bar">
+          <input type="text" id="chatInput" class="chat-text-input" placeholder="اكتب رسالتك للإدارة..." onkeypress="if(event.key==='Enter')sendMessage()">
+          <button class="chat-send-btn" onclick="sendMessage()" title="إرسال">
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="bottom-navbar">
+    <button class="nav-tab-btn active" onclick="switchTab('tabHome')" id="navBtn-tabHome">
+      <div class="nav-tab-icon"><i class="fa-solid fa-house"></i></div>
+      <span class="nav-tab-label">الرئيسية</span>
+      <div class="nav-tab-dot"></div>
+    </button>
+
+    <button class="nav-tab-btn" onclick="switchTab('tabRequests')" id="navBtn-tabRequests">
+      <div class="nav-tab-icon"><i class="fa-solid fa-file-signature"></i></div>
+      <span class="nav-tab-label">الطلبات</span>
+      <div class="nav-tab-dot"></div>
+    </button>
+
+    <button class="nav-tab-btn" onclick="switchTab('tabFinance')" id="navBtn-tabFinance">
+      <div class="nav-tab-icon"><i class="fa-solid fa-chart-pie"></i></div>
+      <span class="nav-tab-label">المالية</span>
+      <div class="nav-tab-dot"></div>
+    </button>
+
+    <button class="nav-tab-btn" onclick="switchTab('tabChat')" id="navBtn-tabChat">
+      <div class="nav-tab-icon">
+        <i class="fa-solid fa-comment-dots"></i>
+        <span class="tab-badge" id="chatTabBadge">0</span>
+      </div>
+      <span class="nav-tab-label">المحادثة</span>
+      <div class="nav-tab-dot"></div>
+    </button>
+  </nav>
+
+  <!-- Printable Voucher / Receipt Container -->
+  <div id="printArea"></div>
+
+  <!-- Application Logic -->
+  <script>
+    let employeeId = null;
+    let employeeData = null;
+    let currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    let unreadCount = 0;
+    let isFirstNotifLoad = true;
+    let loadedRequestsList = [];
+
+    /* --- Auth & Initialization --- */
+    function checkAuth() {
+      if (!localStorage.getItem('token') || currentUser.role !== 'employee') {
+        window.location.href = 'login.html';
+        return;
+      }
+      employeeId = currentUser.employee_id || currentUser.id;
+      
+      const welcomeEl = document.getElementById('welcomeName');
+      const avatarEl = document.getElementById('headerAvatar');
+      if (welcomeEl) welcomeEl.innerText = `مرحباً، ${currentUser.employee_name || currentUser.name || 'الموظف'}`;
+      if (avatarEl) avatarEl.innerText = getInitials(currentUser.employee_name || currentUser.name);
+
+      if (window.APP_CONFIG) {
+        window.APP_CONFIG.initBranding();
+      }
+
+      // Check Dark Mode
+      if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+        document.getElementById('darkModeIcon').textContent = '☀️';
+      }
+
+      // Set default leave dates
+      const today = new Date().toISOString().split('T')[0];
+      const startInp = document.getElementById('leaveStartDate');
+      const endInp = document.getElementById('leaveEndDate');
+      if (startInp) startInp.value = today;
+      if (endInp) endInp.value = today;
+
+      renderQuickNavButtons();
+      loadEmployeeData();
+      loadRequestHistory();
+      loadAssignedJobs();
+      updateClock();
+      loadNotifications();
+      loadAttendance();
+      checkUnreadMessages();
+      
+      setInterval(updateClock, 1000);
+      setInterval(loadRequestHistory, 15000);
+      setInterval(loadAssignedJobs, 20000);
+      setInterval(loadNotifications, 45000);
+      setInterval(checkUnreadMessages, 6000);
+    }
+
+    function getInitials(name) {
+      if (!name) return '--';
+      return name.trim().split(' ').map(n => n[0]).slice(0, 2).join('');
+    }
+
+    function updateClock() {
+      const clockEl = document.getElementById('liveClock');
+      if (clockEl) {
+        clockEl.textContent = new Date().toLocaleTimeString('en-GB', { hour12: false });
+      }
+    }
+
+    /* --- Tab Navigation --- */
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-view').forEach(view => view.classList.remove('active'));
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.classList.remove('active'));
+
+      const targetView = document.getElementById(tabId);
+      const targetBtn = document.getElementById(`navBtn-${tabId}`);
+
+      if (targetView) targetView.classList.add('active');
+      if (targetBtn) targetBtn.classList.add('active');
+
+      if (tabId === 'tabChat') {
+        loadMessages();
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* --- Quick Action Buttons (Workshop Operations) --- */
+    function renderQuickNavButtons() {
+      const navContainer = document.getElementById('quickNavContainer');
+      if (!navContainer) return;
+      navContainer.innerHTML = '';
+
+      const perms = (employeeData && employeeData.permissions) ? employeeData.permissions : {};
+      const canInspect = perms.can_inspect !== undefined ? perms.can_inspect : (typeof APP_PERMISSIONS !== 'undefined' ? APP_PERMISSIONS.canViewInspections(currentUser) : true);
+      const canManageParts = perms.can_manage_parts !== undefined ? perms.can_manage_parts : false;
+      const isAssignedOnly = typeof APP_PERMISSIONS !== 'undefined' ? APP_PERMISSIONS.isAssignedOnlyTechnician(currentUser) : false;
+
+      if (canInspect) {
+        navContainer.innerHTML += `
+          <a href="inspector.html" class="quick-action-tile">
+            <div class="quick-action-icon" style="background:#eef2ff; color:#4f46e5;"><i class="fa-solid fa-magnifying-glass"></i></div>
+            <div class="quick-action-title">كشف فني / تسعيرة</div>
+          </a>
+          <a href="inspections_list.html" class="quick-action-tile">
+            <div class="quick-action-icon" style="background:#e0f2fe; color:#0284c7;"><i class="fa-solid fa-clipboard-list"></i></div>
+            <div class="quick-action-title">سجل التسعيرات</div>
+          </a>
+        `;
+      }
+
+      const jobTitle = isAssignedOnly ? 'أوامري المسندة <i class="fa-solid fa-screwdriver-wrench"></i>' : 'أوامر العمل والسيارات <i class="fa-solid fa-car"></i>';
+      navContainer.innerHTML += `
+        <a href="job_orders_list.html" class="quick-action-tile">
+          <div class="quick-action-icon" style="background:#dcfce7; color:#16a34a;"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+          <div class="quick-action-title">${jobTitle}</div>
+        </a>
+      `;
+
+      if (canManageParts) {
+        navContainer.innerHTML += `
+          <a href="services_manager.html" class="quick-action-tile">
+            <div class="quick-action-icon" style="background:#fef3c7; color:#d97706;"><i class="fa-solid fa-box-open"></i></div>
+            <div class="quick-action-title">الخدمات وقطع الغيار</div>
+          </a>
+        `;
+      }
+    }
+
+    /* --- Biometric Attendance --- */
+    async function handleFingerprintClick() {
+      try {
+        const res = await fetch('/api/attendance/check-in', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ employee_id: employeeId })
+        });
+        const data = await res.json();
+        
+        if (typeof showSuccess === 'function') {
+          showSuccess(data.message || 'تم تسجيل الحضور بنجاح');
+        } else {
+          alert(data.message);
+        }
+        loadAttendance();
+      } catch (err) {
+        if (typeof showError === 'function') {
+          showError('تعذر تسجيل الحضور');
+        } else {
+          alert('تعذر تسجيل الحضور');
+        }
+      }
+    }
+
+    async function loadAttendance() {
+      try {
+        const res = await fetch(`/api/attendance/status/${employeeId}`);
+        const data = await res.json();
+        const stat = document.getElementById('fingerprintStatus');
+        const btn = document.getElementById('fingerprintBtn');
+        const checkOutBtn = document.getElementById('checkOutBtn');
+        const shiftLabel = document.getElementById('shiftTimeLabel');
+        const delayAlert = document.getElementById('delayAlert');
+        
+        if (data.shift_start) {
+          shiftLabel.innerHTML = `<span>⏱️</span> <span>دوام اليوم: ${data.shift_start} - ${data.shift_end}</span>`;
+        } else {
+          shiftLabel.innerHTML = `<span>⏱️</span> <span>دوام اليوم غير محدد</span>`;
+        }
+
+        if (data.status === 'not_marked') {
+          stat.textContent = 'بصمة حضور 🖐️';
+          btn.classList.add('pulse-active');
+          if (checkOutBtn) checkOutBtn.style.display = 'none';
+          if (delayAlert) delayAlert.style.display = 'none';
+        } else {
+          stat.innerHTML = 'تم إثبات الحضور بنجاح <i class="fa-solid fa-circle-check"></i>';
+          btn.classList.remove('pulse-active');
+          if (checkOutBtn && !data.check_out) checkOutBtn.style.display = 'inline-flex';
+          if (checkOutBtn && data.check_out) checkOutBtn.style.display = 'none';
+          
+          let statusHTML = '';
+          let alertClass = 'alert-success';
+
+          if (data.delay_minutes > 0) {
+            statusHTML += `<div><i class="fa-solid fa-triangle-exclamation"></i> تأخير عن موعد الحضور: ${(data.delay_minutes / 60).toFixed(1)} ساعة</div>`;
+            alertClass = 'alert-warning';
+          }
+          if (data.early_departure_minutes > 0) {
+            statusHTML += `<div>🏃 انصراف مبكر: ${(data.early_departure_minutes / 60).toFixed(1)} ساعة</div>`;
+            alertClass = 'alert-danger';
+          }
+          if (data.overtime_minutes > 0) {
+            statusHTML += `<div>✨ ساعات إضافية: ${(data.overtime_minutes / 60).toFixed(1)} ساعة</div>`;
+          }
+          if (!statusHTML && data.check_in) {
+            statusHTML = '<i class="fa-solid fa-circle-check"></i> حضور منتظم في الموعد';
+          }
+          
+          if (delayAlert) {
+            delayAlert.className = `attendance-alert-box ${alertClass}`;
+            delayAlert.innerHTML = statusHTML;
+            delayAlert.style.display = 'block';
+          }
+        }
+      } catch (e) {
+        console.error('Attendance Load Error:', e);
+      }
+    }
+
+    async function checkOut() {
+      if (typeof showConfirm === 'function') {
+        showConfirm('هل أنت متأكد من تسجيل الانصراف الآن؟', async () => {
+          await executeCheckOut();
+        });
+      } else {
+        if (!confirm('هل أنت متأكد من تسجيل الانصراف؟')) return;
+        await executeCheckOut();
+      }
+    }
+
+    async function executeCheckOut() {
+      try {
+        const res = await fetch('/api/attendance/check-out', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ employee_id: employeeId })
+        });
+        const data = await res.json();
+        if (typeof showSuccess === 'function') {
+          showSuccess(data.message || 'تم تسجيل الانصراف بنجاح');
+        } else {
+          alert('تم تسجيل الانصراف بنجاح');
+        }
+        loadAttendance();
+      } catch (err) {
+        if (typeof showError === 'function') showError('تعذر تسجيل الانصراف');
+      }
+    }
+
+    /* --- Financials & Stats --- */
+    async function loadEmployeeData() {
+      try {
+        const res = await fetch(`/api/employee-stats/${employeeId}`);
+        employeeData = await res.json();
+        
+        if (document.getElementById('welcomeName')) {
+          document.getElementById('welcomeName').textContent = `مرحباً، ${employeeData.info.name}`;
+        }
+        if (document.getElementById('roleName')) {
+          document.getElementById('roleName').textContent = employeeData.info.section_name || 'بوابة الموظف';
+        }
+
+        renderQuickNavButtons();
+
+        const perms = employeeData.permissions || {};
+        const canViewIncome = perms.can_view_income !== false && !employeeData.income_hidden;
+        const canWithdraw = perms.can_withdraw !== false;
+
+        // Finance Tab visibility
+        const finNavBtn = document.getElementById('navBtn-tabFinance');
+        if (finNavBtn) {
+          if (!canViewIncome) {
+            finNavBtn.style.display = 'none';
+            if (document.getElementById('tabFinance').classList.contains('active')) {
+              switchTab('tabHome');
+            }
+          } else {
+            finNavBtn.style.display = 'flex';
+          }
+        }
+
+        // Withdrawal form locking
+        const withdrawalForm = document.getElementById('withdrawalRequestForm');
+        const lockNotice = document.getElementById('withdrawalLockNotice');
+        if (withdrawalForm && lockNotice) {
+          if (!canWithdraw) {
+            lockNotice.style.display = 'flex';
+            Array.from(withdrawalForm.elements).forEach(el => el.disabled = true);
+          } else {
+            lockNotice.style.display = 'none';
+            Array.from(withdrawalForm.elements).forEach(el => el.disabled = false);
+          }
+        }
+
+        const base = Number(employeeData.base_salary) || 0;
+        const bonus = Number(employeeData.target_amount) || 0;
+        const withdrawals = Number(employeeData.total_withdrawal) || Number(employeeData.total_withdrawals) || 0;
+        const deposit = Number(employeeData.deposit_amount) || 0;
+        const remaining = (base + bonus) - (withdrawals + deposit);
+        const netRemainingVal = Number(employeeData.net_remaining) || remaining || 0;
+
+        // Dashboard Tab Values
+        document.getElementById('dashNetRemaining').textContent = `${netRemainingVal.toLocaleString()} ﷼`;
+        document.getElementById('finNetRemaining').textContent = `${netRemainingVal.toLocaleString()} ﷼`;
+        document.getElementById('finTotalWithdrawals').textContent = withdrawals.toLocaleString();
+        document.getElementById('finRemainingBalance').textContent = remaining.toLocaleString();
+
+        if (!canViewIncome) {
+          document.getElementById('dashTotalIncome').style.display = 'none';
+          document.getElementById('dashIncomeHidden').style.display = 'block';
+          document.getElementById('finTotalIncome').style.display = 'none';
+          document.getElementById('finIncomeHidden').style.display = 'block';
+          document.getElementById('incomeSection').style.display = 'none';
+        } else {
+          const totalInc = (employeeData.total_income || 0).toLocaleString();
+          document.getElementById('dashTotalIncome').textContent = totalInc;
+          document.getElementById('finTotalIncome').textContent = totalInc;
+          
+          const target = employeeData.info.target || 1;
+          const achievement = Math.min(((employeeData.total_income / target) * 100), 100).toFixed(1);
+          
           document.getElementById('dashTargetPercent').textContent = achievement + '%';
           document.getElementById('finTargetAchievement').textContent = achievement + '%';
           document.getElementById('dashProgressFill').style.width = achievement + '%';
@@ -1218,7 +1693,69 @@
       `).join('');
     }
 
-    /* --- Requests Management --- */
+    /* --- Live Assigned Jobs --- */
+    async function loadAssignedJobs() {
+      const container = document.getElementById('assignedJobsContainer');
+      if (!container || !employeeId) return;
+
+      try {
+        const res = await fetch(`/api/employee/${employeeId}/assigned-jobs`);
+        const jobs = await res.json();
+
+        if (!jobs || jobs.length === 0) {
+          container.innerHTML = `
+            <div style="padding: 24px; text-align: center; color: var(--text-muted); background: var(--surface); border: 1.5px dashed var(--border-color); border-radius: var(--radius-md);">
+              <i class="fa-solid fa-car-tunnel" style="font-size: 28px; margin-bottom: 8px; display: block; color: var(--text-sub);"></i>
+              <div style="font-weight: 700; font-size: 13px;">لا توجد سيارات أو مهام مسندة إليك حالياً</div>
+              <div style="font-size: 11px; margin-top: 3px;">ستظهر هنا أي سيارة يتم إسنادها لك من قبل المشرف تلقائياً</div>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = jobs.map(job => {
+          const carPlate = job.plate_number || 'بدون لوحة';
+          const carModel = `${job.car_type || ''} ${job.model_year || ''}`.trim() || 'سيارة عميل';
+          const customerName = job.customer_name || 'عميل الورشة';
+          
+          let statusLabel = 'قيد الانتظار';
+          let statusClass = 'job-status-pending';
+          if (job.status === 'in_progress' || job.status === 'approved' || job.status === 'converted') {
+            statusLabel = 'قيد العمل ⚙️';
+            statusClass = 'job-status-in-progress';
+          } else if (job.status === 'completed') {
+            statusLabel = 'مكتملة ✅';
+            statusClass = 'job-status-completed';
+          }
+
+          const targetUrl = `inspector.html?id=${job.id}`;
+
+          return `
+            <a href="${targetUrl}" class="assigned-job-card">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="job-car-badge">
+                  <i class="fa-solid fa-car" style="color: var(--primary);"></i>
+                  <span>${carPlate}</span>
+                </div>
+                <div>
+                  <div style="font-weight: 800; font-size: 13.5px; color: var(--text-main);">${carModel}</div>
+                  <div style="font-size: 11.5px; color: var(--text-muted);">${customerName} • رقم #${job.id}</div>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="job-status-pill ${statusClass}">${statusLabel}</span>
+                <i class="fa-solid fa-chevron-left" style="color: var(--text-sub); font-size: 12px;"></i>
+              </div>
+            </a>
+          `;
+        }).join('');
+
+      } catch (err) {
+        console.error('Assigned jobs error:', err);
+      }
+    }
+
+    /* --- Requests Management & Printing --- */
     function setQuickWithdrawalAmount(val) {
       document.getElementById('withdrawalAmount').value = val;
     }
@@ -1227,33 +1764,45 @@
       try {
         const res = await fetch(`/api/employee/${employeeId}/requests`);
         const data = await res.json();
+        loadedRequestsList = Array.isArray(data) ? data : [];
         const container = document.getElementById('requestHistory');
         if (!container) return;
 
-        if (!data || data.length === 0) {
-          container.innerHTML = '<div style="text-align:center; padding:25px; color:var(--text-muted); font-size:13px;">لا توجد طلبات سابقة</div>';
+        if (loadedRequestsList.length === 0) {
+          container.innerHTML = '<div style="text-align:center; padding:25px; color:var(--text-muted); font-size:13px; background:var(--surface); border-radius:var(--radius-md); border:1px dashed var(--border-color);">لا توجد طلبات سابقة</div>';
           return;
         }
 
         const statusMap = {
-          'pending': { label: 'انتظار ⏳', class: 'pill-pending' },
-          'approved': { label: 'تم القبول <i class="fa-solid fa-circle-check"></i>', class: 'pill-approved' },
-          'rejected': { label: 'تم الرفض <i class="fa-solid fa-circle-xmark"></i>', class: 'pill-rejected' }
+          'pending': { label: 'قيد المراجعة ⏳', class: 'pill-pending' },
+          'approved': { label: 'تم القبول ✅', class: 'pill-approved' },
+          'rejected': { label: 'تم الرفض ❌', class: 'pill-rejected' }
         };
 
-        container.innerHTML = data.map(item => {
-          const typeLabel = item.type === 'withdrawal' ? '<i class="fa-solid fa-credit-card"></i> طلب سحب' : '🏖️ طلب إجازة';
+        container.innerHTML = loadedRequestsList.map((item, idx) => {
+          const isWithdrawal = item.type === 'withdrawal';
+          const typeLabel = isWithdrawal ? `<i class="fa-solid fa-credit-card" style="color:var(--primary);"></i> سحب مالي (${item.amount} ﷼)` : `🏖️ إجازة (${item.amount || item.leave_type || 'رسمية'})`;
           const status = statusMap[item.status] || { label: item.status, class: 'pill-pending' };
-          const date = new Date(item.created_at).toLocaleDateString('en-GB');
+          const date = new Date(item.created_at || Date.now()).toLocaleDateString('en-GB');
           
+          let durationText = '';
+          if (!isWithdrawal && item.start_date && item.end_date) {
+            durationText = `من ${item.start_date} إلى ${item.end_date} (${item.days_count || 1} يوم) • `;
+          }
+
           return `
             <div class="history-card-item">
-              <div>
-                <div style="font-weight:800; font-size:14px; margin-bottom:2px;">${typeLabel}: ${item.amount || ''}</div>
-                <div style="font-size:12px; color:var(--text-muted);">${item.reason || 'بدون تفاصيل'} • ${date}</div>
-                ${item.admin_note ? `<div style="font-size:12px; color:var(--primary); font-weight:700; margin-top:4px;">💡 رد الإدارة: ${item.admin_note}</div>` : ''}
+              <div style="flex:1;">
+                <div style="font-weight:800; font-size:14px; margin-bottom:3px;">${typeLabel}</div>
+                <div style="font-size:12px; color:var(--text-muted);">${durationText}${item.reason || 'بدون تفاصيل'} • ${date}</div>
+                ${item.admin_note ? `<div style="font-size:12px; color:var(--primary); font-weight:800; margin-top:5px; background:var(--surface-hover); padding:4px 8px; border-radius:6px;"><i class="fa-solid fa-comment-dots"></i> رد الإدارة: ${item.admin_note}</div>` : ''}
               </div>
-              <span class="status-badge-pill ${status.class}">${status.label}</span>
+              <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+                <span class="status-badge-pill ${status.class}">${status.label}</span>
+                <button type="button" class="btn-print-action" onclick="printSavedRequest(${idx})" title="طباعة سند أو نموذج الطلب">
+                  <i class="fa-solid fa-print"></i> طباعة
+                </button>
+              </div>
             </div>
           `;
         }).join('');
@@ -1268,20 +1817,25 @@
       const reason = document.getElementById('withdrawalReason').value;
 
       try {
-        await fetch('/api/withdrawals', {
+        const res = await fetch('/api/withdrawals', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ employee_id: employeeId, amount, reason, status: 'pending' })
         });
-        if (typeof showSuccess === 'function') {
-          showSuccess('تم إرسال طلب السحب بنجاح <i class="fa-solid fa-credit-card"></i>');
+        const data = await res.json();
+        if (res.ok) {
+          if (typeof showSuccess === 'function') {
+            showSuccess(data.message || 'تم إرسال طلب السحب بنجاح للإدارة');
+          } else {
+            alert('تم إرسال طلب السحب بنجاح');
+          }
+          e.target.reset();
+          loadRequestHistory();
         } else {
-          alert('تم إرسال طلب السحب بنجاح');
+          if (typeof showError === 'function') showError(data.message || 'فشل إرسال الطلب');
         }
-        e.target.reset();
-        loadRequestHistory();
       } catch (err) {
-        if (typeof showError === 'function') showError('تعذر إرسال الطلب');
+        if (typeof showError === 'function') showError('تعذر الاتصال بالسيرفر');
       }
     };
 
@@ -1291,7 +1845,8 @@
         employee_id: employeeId,
         leave_type: document.getElementById('leaveType').value,
         start_date: document.getElementById('leaveStartDate').value,
-        end_date: document.getElementById('leaveEndDate').value
+        end_date: document.getElementById('leaveEndDate').value,
+        reason: document.getElementById('leaveReason').value
       };
 
       try {
@@ -1301,19 +1856,219 @@
           body: JSON.stringify(data)
         });
         const result = await res.json();
-        if (typeof showSuccess === 'function') {
-          showSuccess(result.message || 'تم إرسال طلب الإجازة بنجاح 🌴');
+        if (res.ok) {
+          if (typeof showSuccess === 'function') {
+            showSuccess(result.message || 'تم إرسال طلب الإجازة بنجاح 🌴');
+          } else {
+            alert(result.message);
+          }
+          e.target.reset();
+          loadRequestHistory();
         } else {
-          alert(result.message);
+          if (typeof showError === 'function') showError(result.message || 'فشل إرسال طلب الإجازة');
         }
-        e.target.reset();
-        loadRequestHistory();
       } catch (err) {
         if (typeof showError === 'function') showError('تعذر إرسال الطلب');
       }
     };
 
-    /* --- Chat Room --- */
+    /* --- Printable Voucher Templates (Handmade / System) --- */
+    function printCurrentWithdrawalForm() {
+      const amount = document.getElementById('withdrawalAmount').value || '_____';
+      const reason = document.getElementById('withdrawalReason').value || 'سلفة / مصاريف شخصية';
+      const empName = (employeeData && employeeData.info) ? employeeData.info.name : (currentUser.employee_name || 'الموظف');
+      const sectionName = (employeeData && employeeData.info) ? (employeeData.info.section_name || 'عام') : 'عام';
+      const bankName = (employeeData && employeeData.info) ? (employeeData.info.bank_name || 'كاش') : 'كاش';
+      const dateStr = new Date().toLocaleDateString('ar-SA') + ' م (' + new Date().toLocaleDateString('en-GB') + ')';
+
+      renderAndPrintVoucher({
+        title: 'سند طلب سحب مالي يدوي',
+        docType: 'withdrawal',
+        empName,
+        sectionName,
+        bankName,
+        amount: `${amount} ﷼`,
+        reason,
+        dateStr,
+        status: 'مسودة للتوقيع والاعتماد اليدوي'
+      });
+    }
+
+    function printCurrentLeaveForm() {
+      const leaveType = document.getElementById('leaveType').value;
+      const leaveTypesMap = { 'annual': 'إجازة سنوية', 'sick': 'إجازة مرضية', 'emergency': 'إجازة طارئة', 'unpaid': 'إجازة بدون راتب' };
+      const startDate = document.getElementById('leaveStartDate').value || '____/__/__';
+      const endDate = document.getElementById('leaveEndDate').value || '____/__/__';
+      const reason = document.getElementById('leaveReason').value || 'بدون ملاحظات إضافية';
+      const empName = (employeeData && employeeData.info) ? employeeData.info.name : (currentUser.employee_name || 'الموظف');
+      const sectionName = (employeeData && employeeData.info) ? (employeeData.info.section_name || 'عام') : 'عام';
+      const dateStr = new Date().toLocaleDateString('ar-SA') + ' م (' + new Date().toLocaleDateString('en-GB') + ')';
+
+      renderAndPrintVoucher({
+        title: 'نموذج طلب إجازة رسمية',
+        docType: 'leave',
+        empName,
+        sectionName,
+        leaveType: leaveTypesMap[leaveType] || leaveType,
+        startDate,
+        endDate,
+        reason,
+        dateStr,
+        status: 'مسودة للتوقيع والاعتماد اليدوي'
+      });
+    }
+
+    function printSavedRequest(idx) {
+      const req = loadedRequestsList[idx];
+      if (!req) return;
+
+      const empName = req.employee_name || (employeeData?.info?.name) || currentUser.employee_name || 'الموظف';
+      const sectionName = req.section_name || (employeeData?.info?.section_name) || 'عام';
+      const bankName = req.bank_name || (employeeData?.info?.bank_name) || 'كاش';
+      const dateStr = new Date(req.created_at || Date.now()).toLocaleDateString('en-GB');
+
+      if (req.type === 'withdrawal') {
+        renderAndPrintVoucher({
+          title: 'سند طلب سحب مالي',
+          docType: 'withdrawal',
+          reqId: req.id,
+          empName,
+          sectionName,
+          bankName,
+          amount: `${req.amount} ﷼`,
+          reason: req.reason || 'بدون تفاصيل',
+          adminNote: req.admin_note,
+          status: req.status === 'approved' ? 'معتمد ومقبول ✅' : req.status === 'rejected' ? 'مرفوض ❌' : 'قيد المراجعة ⏳',
+          dateStr
+        });
+      } else {
+        renderAndPrintVoucher({
+          title: 'نموذج طلب إجازة رسمية',
+          docType: 'leave',
+          reqId: req.id,
+          empName,
+          sectionName,
+          leaveType: req.leave_type || req.amount || 'إجازة',
+          startDate: req.start_date || '-',
+          endDate: req.end_date || '-',
+          daysCount: req.days_count,
+          reason: req.reason || 'بدون تفاصيل',
+          adminNote: req.admin_note,
+          status: req.status === 'approved' ? 'معتمد ومقبول ✅' : req.status === 'rejected' ? 'مرفوض ❌' : 'قيد المراجعة ⏳',
+          dateStr
+        });
+      }
+    }
+
+    function renderAndPrintVoucher(data) {
+      const printArea = document.getElementById('printArea');
+      if (!printArea) return;
+
+      const workshopName = (window.APP_CONFIG && window.APP_CONFIG.workshop_name) ? window.APP_CONFIG.workshop_name : 'مركز أتينزا لصيانة السيارات';
+
+      let detailsHtml = '';
+      if (data.docType === 'withdrawal') {
+        detailsHtml = `
+          <tr>
+            <td style="font-weight:bold; padding:8px; border:1px solid #000; width:30%; background:#f5f5f5;">المبلغ المطلوب سحبه:</td>
+            <td style="padding:8px; border:1px solid #000; font-size:16px; font-weight:bold; color:#000;">${data.amount}</td>
+          </tr>
+          <tr>
+            <td style="font-weight:bold; padding:8px; border:1px solid #000; background:#f5f5f5;">جهة الصرف / البنك:</td>
+            <td style="padding:8px; border:1px solid #000;">${data.bankName || 'كاش'}</td>
+          </tr>
+          <tr>
+            <td style="font-weight:bold; padding:8px; border:1px solid #000; background:#f5f5f5;">السبب / الملاحظات:</td>
+            <td style="padding:8px; border:1px solid #000;">${data.reason || 'سلفة / مصاريف'}</td>
+          </tr>
+        `;
+      } else {
+        detailsHtml = `
+          <tr>
+            <td style="font-weight:bold; padding:8px; border:1px solid #000; width:30%; background:#f5f5f5;">نوع الإجازة:</td>
+            <td style="padding:8px; border:1px solid #000; font-size:15px; font-weight:bold;">${data.leaveType}</td>
+          </tr>
+          <tr>
+            <td style="font-weight:bold; padding:8px; border:1px solid #000; background:#f5f5f5;">الفترة الزمنية:</td>
+            <td style="padding:8px; border:1px solid #000;">من تاريخ: <strong>${data.startDate}</strong> إلى تاريخ: <strong>${data.endDate}</strong> ${data.daysCount ? `(${data.daysCount} يوم)` : ''}</td>
+          </tr>
+          <tr>
+            <td style="font-weight:bold; padding:8px; border:1px solid #000; background:#f5f5f5;">السبب / المبرر:</td>
+            <td style="padding:8px; border:1px solid #000;">${data.reason || 'بدون تفاصيل'}</td>
+          </tr>
+        `;
+      }
+
+      printArea.innerHTML = `
+        <div style="font-family:'Cairo', sans-serif; direction:rtl; max-width:800px; margin:0 auto; padding:20px; border:2px solid #333; border-radius:8px;">
+          <!-- Header -->
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #333; padding-bottom:14px; margin-bottom:16px;">
+            <div>
+              <h2 style="font-size:18px; margin:0; font-weight:900;">${workshopName}</h2>
+              <div style="font-size:12px; color:#555; margin-top:3px;">إدارة الموارد البشرية وشؤون الموظفين</div>
+            </div>
+            <div style="text-align:left;">
+              <div style="font-size:12px;"><strong>التاريخ:</strong> ${data.dateStr}</div>
+              ${data.reqId ? `<div style="font-size:12px;"><strong>رقم السند:</strong> #${data.reqId}</div>` : ''}
+            </div>
+          </div>
+
+          <!-- Title -->
+          <div style="text-align:center; background:#f0f0f0; padding:10px; border-radius:6px; margin-bottom:16px; border:1px solid #ddd;">
+            <h3 style="margin:0; font-size:18px; font-weight:900;">${data.title}</h3>
+          </div>
+
+          <!-- Employee Info Table -->
+          <table style="width:100%; border-collapse:collapse; margin-bottom:16px; font-size:13.5px;">
+            <tr>
+              <td style="font-weight:bold; padding:8px; border:1px solid #000; width:30%; background:#f5f5f5;">اسم الموظف:</td>
+              <td style="padding:8px; border:1px solid #000; font-weight:bold;">${data.empName}</td>
+            </tr>
+            <tr>
+              <td style="font-weight:bold; padding:8px; border:1px solid #000; background:#f5f5f5;">القسم التابع له:</td>
+              <td style="padding:8px; border:1px solid #000;">${data.sectionName}</td>
+            </tr>
+            ${detailsHtml}
+            <tr>
+              <td style="font-weight:bold; padding:8px; border:1px solid #000; background:#f5f5f5;">حالة الطلب:</td>
+              <td style="padding:8px; border:1px solid #000; font-weight:bold;">${data.status}</td>
+            </tr>
+            ${data.adminNote ? `
+            <tr>
+              <td style="font-weight:bold; padding:8px; border:1px solid #000; background:#f5f5f5;">ملاحظات الإدارة:</td>
+              <td style="padding:8px; border:1px solid #000; color:#1e40af;">${data.adminNote}</td>
+            </tr>` : ''}
+          </table>
+
+          <!-- Signatures Section -->
+          <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px; margin-top:40px; text-align:center;">
+            <div style="border-top:1px dashed #000; padding-top:8px;">
+              <div style="font-weight:bold; font-size:13px;">توقيع مقدم الطلب (الموظف)</div>
+              <div style="height:45px;"></div>
+              <div style="font-size:12px; color:#555;">.......................................</div>
+            </div>
+
+            <div style="border-top:1px dashed #000; padding-top:8px;">
+              <div style="font-weight:bold; font-size:13px;">توقيع المشرف المباشر</div>
+              <div style="height:45px;"></div>
+              <div style="font-size:12px; color:#555;">.......................................</div>
+            </div>
+
+            <div style="border-top:1px dashed #000; padding-top:8px;">
+              <div style="font-weight:bold; font-size:13px;">اعتماد المدير العام والختم</div>
+              <div style="height:45px;"></div>
+              <div style="font-size:12px; color:#555;">.......................................</div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      setTimeout(() => {
+        window.print();
+      }, 150);
+    }
+
+    /* --- Live Chat System --- */
     async function loadMessages() {
       if (!employeeId) return;
       try {
@@ -1322,16 +2077,21 @@
         const chatBody = document.getElementById('chatBody');
         
         if (!msgs || msgs.length === 0) {
-          chatBody.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted); font-size:12px;">ابدأ المحادثة مع الإدارة مباشرة...</div>';
+          chatBody.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted); font-size:13px;"><i class="fa-regular fa-comments" style="font-size:28px; margin-bottom:8px; display:block;"></i>ابدأ المحادثة مع الإدارة مباشرة...</div>';
           return;
         }
 
         chatBody.innerHTML = msgs.map(m => `
-          <div class="chat-bubble ${m.sender === 'employee' ? 'mine' : 'admin'}">
-            <div>${m.message}</div>
-            <div style="font-size:9px; opacity:0.75; text-align:left; margin-top:4px;">
-              ${new Date(m.created_at || Date.now()).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+          <div class="chat-bubble-wrap ${m.sender === 'employee' ? 'mine' : 'admin'}">
+            <div class="chat-bubble">
+              <div>${m.message}</div>
+              <div style="font-size:9.5px; opacity:0.75; text-align:left; margin-top:4px;">
+                ${new Date(m.created_at || Date.now()).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+              </div>
             </div>
+            <button class="btn-msg-del" onclick="deleteMessage(${m.id})" title="حذف الرسالة">
+              <i class="fa-solid fa-trash"></i>
+            </button>
           </div>
         `).join('');
 
@@ -1356,6 +2116,19 @@
         loadMessages();
       } catch (err) {
         if (typeof showError === 'function') showError('تعذر إرسال الرسالة');
+      }
+    }
+
+    async function deleteMessage(msgId) {
+      if (!confirm('هل أنت متأكد من حذف هذه الرسالة؟')) return;
+      try {
+        const res = await fetch(`/api/messages/${msgId}`, { method: 'DELETE' });
+        if (res.ok) {
+          loadMessages();
+          if (typeof showSuccess === 'function') showSuccess('تم حذف الرسالة');
+        }
+      } catch (err) {
+        console.error('Delete message error:', err);
       }
     }
 

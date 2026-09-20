@@ -1509,21 +1509,6 @@ app.get('/api/attendance/status/:employee_id', async (req, res) => {
     }
 });
 
-// consolidated history for employee
-app.get('/api/employee/:id/requests', async (req, res) => {
-    const { id } = req.params;
-    try {
-        const withdrawals = await dbAll(`SELECT 'withdrawal' as type, amount, status, date as created_at FROM withdrawals WHERE employee_id = ? ORDER BY date DESC`, [id]);
-        const leaves = await dbAll(`SELECT 'leave' as type, leave_type as amount, status, created_at FROM leave_requests WHERE employee_id = ? ORDER BY created_at DESC`, [id]);
-        
-        // combine and sort
-        const all = [...withdrawals, ...leaves].sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
-        res.json(all);
-    } catch (error) {
-        res.status(500).json({ message: 'Server Error' });
-    }
-});
-
 // ==========================
 // 🧩 إعدادات النظام
 // ==========================
@@ -1720,15 +1705,66 @@ app.get('/api/messages/unread/employee/:id', async (req, res) => {
     }
 });
 
+// حذف رسالة محادثة
+app.delete('/api/messages/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await dbRun(`DELETE FROM messages WHERE id = ?`, [id]);
+        res.json({ success: true, message: "تم حذف الرسالة بنجاح 🗑️" });
+    } catch (error) {
+        console.error("Delete Message Error:", error);
+        res.status(500).json({ message: "خطأ في حذف الرسالة" });
+    }
+});
+
 // ==========================
-// 🔔 نظام الإشعارات
+// 🔔 نظام الإشعارات وسجل الطلبات
 // ==========================
-// جلب إشعارات وسجل طلبات الموظف
+// جلب إشعارات وسجل طلبات الموظف كاملة مع تفاصيل الطباعة
 app.get('/api/employee/:id/requests', async (req, res) => {
     const { id } = req.params;
     try {
-        const withdrawals = await dbAll(`SELECT 'withdrawal' as type, amount, reason, status, admin_note, created_at FROM withdrawals WHERE employee_id = ? ORDER BY created_at DESC LIMIT 10`, [id]);
-        const leaves = await dbAll(`SELECT 'leave' as type, leave_type as amount, reason, status, admin_notes as admin_note, created_at FROM leave_requests WHERE employee_id = ? ORDER BY created_at DESC LIMIT 10`, [id]);
+        const withdrawals = await dbAll(`
+            SELECT 
+                'withdrawal' as type, 
+                w.id, 
+                w.amount, 
+                w.reason, 
+                w.status, 
+                w.admin_note, 
+                w.date, 
+                w.created_at,
+                e.name as employee_name,
+                e.bank_name,
+                s.name as section_name
+            FROM withdrawals w
+            JOIN employees e ON w.employee_id = e.id
+            LEFT JOIN sections s ON e.section_id = s.id
+            WHERE w.employee_id = ? 
+            ORDER BY w.created_at DESC LIMIT 30
+        `, [id]);
+
+        const leaves = await dbAll(`
+            SELECT 
+                'leave' as type, 
+                lr.id, 
+                lr.leave_type as amount, 
+                lr.leave_type, 
+                lr.start_date, 
+                lr.end_date, 
+                lr.days_count, 
+                lr.reason, 
+                lr.status, 
+                lr.admin_notes as admin_note, 
+                lr.created_at,
+                e.name as employee_name,
+                s.name as section_name
+            FROM leave_requests lr
+            JOIN employees e ON lr.employee_id = e.id
+            LEFT JOIN sections s ON e.section_id = s.id
+            WHERE lr.employee_id = ? 
+            ORDER BY lr.created_at DESC LIMIT 30
+        `, [id]);
         
         let all = [...withdrawals, ...leaves].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         res.json(all);

@@ -770,7 +770,8 @@ async function loadPendingRequests() {
 }
 
 async function handleWithdrawalAction(id, status) {
-    const note = status === 'rejected' ? prompt('سبب الرفض:') : null;
+    const note = prompt(status === 'rejected' ? 'سبب الرفض (اختياري):' : 'ملاحظة للإدارة / الموظف (اختياري):');
+    if (status === 'rejected' && note === null) return;
     try {
         const res = await fetch(`/api/withdrawals/${id}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status, admin_note: note || '' }) });
         if (res.ok) { loadPendingRequests(); loadData(); }
@@ -778,7 +779,8 @@ async function handleWithdrawalAction(id, status) {
 }
 
 async function handleLeaveAction(id, status) {
-    const note = status === 'rejected' ? prompt('سبب الرفض:') : null;
+    const note = prompt(status === 'rejected' ? 'سبب الرفض (اختياري):' : 'ملاحظة للإدارة / الموظف (اختياري):');
+    if (status === 'rejected' && note === null) return;
     try {
         const res = await fetch(`/api/leave-requests/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status, admin_notes: note || '' }) });
         if (res.ok) { loadPendingRequests(); loadData(); if(isVisible('leaveModal')) loadAllLeaveRequests(); }
@@ -857,11 +859,29 @@ async function loadAdminChat(empId) {
         const msgs = await fetch(`/api/messages/${empId}`).then(r => r.json());
         const body = document.getElementById('adminChatBody');
         body.innerHTML = msgs.map(m => `
-            <div style="align-self: ${m.sender === 'admin' ? 'flex-end' : 'flex-start'}; background: ${m.sender === 'admin' ? 'var(--primary)' : '#f1f5f9'}; color: ${m.sender === 'admin' ? 'white' : 'black'}; padding: 8px 12px; border-radius: 10px; max-width: 80%; font-size: 14px; margin-bottom: 5px;">
-                ${m.message}
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px; flex-direction:${m.sender === 'admin' ? 'row-reverse' : 'row'};">
+                <div style="background: ${m.sender === 'admin' ? 'var(--primary)' : '#f1f5f9'}; color: ${m.sender === 'admin' ? 'white' : 'black'}; padding: 8px 12px; border-radius: 10px; max-width: 80%; font-size: 13.5px;">
+                    <div>${m.message}</div>
+                    <div style="font-size:9.5px; opacity:0.75; text-align:left; margin-top:3px;">${new Date(m.created_at || Date.now()).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'})}</div>
+                </div>
+                <button style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size:11px;" onclick="deleteAdminChatMessage(${m.id}, ${empId})" title="حذف الرسالة">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
             </div>`).join('');
         body.scrollTop = body.scrollHeight;
     } catch(e) { console.error(e); }
+}
+
+async function deleteAdminChatMessage(msgId, empId) {
+    if (!confirm('هل تريد حذف هذه الرسالة؟')) return;
+    try {
+        const res = await fetch(`/api/messages/${msgId}`, { method: 'DELETE' });
+        if (res.ok) {
+            loadAdminChat(empId);
+        }
+    } catch (e) {
+        console.error(e);
+    }
 }
 
 async function sendAdminMessage() {
