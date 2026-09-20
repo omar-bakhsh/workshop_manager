@@ -402,8 +402,13 @@
                             <input type="text" id="addEmpUsername" placeholder="مثال: ahmed">
                         </div>
                         <div class="form-group">
-                            <label><i class="fa-solid fa-lock"></i> كلمة المرور</label>
-                            <input type="password" id="addEmpPassword" placeholder="كلمة المرور">
+                            <label><i class="fa-solid fa-lock"></i> رمز الدخول / كلمة المرور</label>
+                            <div style="position:relative; display:flex; align-items:center;">
+                                <input type="text" id="addEmpPassword" placeholder="مثال: 1234" value="1234" style="padding-left:36px;">
+                                <button type="button" onclick="const p=document.getElementById('addEmpPassword'); p.type = p.type==='password'?'text':'password';" style="position:absolute; left:8px; background:transparent; border:none; color:var(--text-gray); cursor:pointer; padding:6px;" title="إظهار / إخفاء">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -455,8 +460,13 @@
                             <input type="text" id="editEmpUsername">
                         </div>
                         <div class="form-group">
-                            <label><i class="fa-solid fa-lock"></i> كلمة المرور (اتركه فارغاً للتخطي)</label>
-                            <input type="password" id="editEmpPassword" placeholder="تغيير كلمة المرور">
+                            <label><i class="fa-solid fa-lock"></i> رمز الدخول / كلمة المرور</label>
+                            <div style="position:relative; display:flex; align-items:center;">
+                                <input type="text" id="editEmpPassword" placeholder="مثال: 1234" style="padding-left:36px;">
+                                <button type="button" onclick="const p=document.getElementById('editEmpPassword'); p.type = p.type==='password'?'text':'password';" style="position:absolute; left:8px; background:transparent; border:none; color:var(--text-gray); cursor:pointer; padding:6px;" title="إظهار / إخفاء">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -1137,8 +1137,13 @@
                         <input type="text" id="empFormUsername" placeholder="mohammed">
                     </div>
                     <div class="form-group">
-                        <label><i class="fa-solid fa-lock"></i> كلمة المرور</label>
-                        <input type="password" id="empFormPassword" placeholder="اتركه فارغاً للتخطي">
+                        <label><i class="fa-solid fa-lock"></i> رمز الدخول / كلمة المرور</label>
+                        <div style="position:relative; display:flex; align-items:center;">
+                            <input type="text" id="empFormPassword" placeholder="مثال: 1234" style="padding-left:36px;">
+                            <button type="button" onclick="const p=document.getElementById('empFormPassword'); p.type = p.type==='password'?'text':'password';" style="position:absolute; left:8px; background:transparent; border:none; color:var(--text-muted); cursor:pointer; padding:6px; font-size:14px;" title="إظهار / إخفاء">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -1444,7 +1449,12 @@
                                 <div class="emp-avatar">${initials}</div>
                                 <div class="emp-info-wrap">
                                     <div class="emp-name-text">${emp.name}</div>
-                                    <div class="emp-user-text">@${emp.username || 'بدون حساب'}</div>
+                                    <div class="emp-user-text" style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:2px;">
+                                        <span>@${emp.username || 'بدون حساب'}</span>
+                                        <span class="badge-pill" style="background:#eef2ff; color:#4f46e5; font-size:11px; font-weight:700; padding:1px 6px; border:1px solid #c7d2fe;" title="رمز الدخول">
+                                            <i class="fa-solid fa-key" style="font-size:9px;"></i> ${emp.password || '1234'}
+                                        </span>
+                                    </div>
                                 </div>
                                 <span class="badge-pill mobile-status-badge ${isActive ? 'badge-active' : 'badge-inactive'}">
                                     ${isActive ? '● نشط' : '○ متوقف'}
@@ -1520,6 +1530,7 @@
             document.getElementById('employeeForm').reset();
             document.getElementById('empFormSalary').value = 0;
             document.getElementById('empFormTarget').value = 0;
+            document.getElementById('empFormPassword').value = '1234';
             openModal('employeeModal');
         }
 
@@ -1534,7 +1545,7 @@
             document.getElementById('empFormSalary').value = emp.base_salary || 0;
             document.getElementById('empFormTarget').value = emp.target || 0;
             document.getElementById('empFormUsername').value = emp.username || '';
-            document.getElementById('empFormPassword').value = '';
+            document.getElementById('empFormPassword').value = emp.password || '1234';
             document.getElementById('empFormBank').value = emp.bank_name || (allBanks[0]?.name || 'كاش');
             
             openModal('employeeModal');

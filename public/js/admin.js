@@ -492,7 +492,7 @@ function openEditModal(empId) {
     document.getElementById('editEmpTarget').value = emp.target || emp.target_amount || 0;
     document.getElementById('editEmpBaseSalary').value = emp.base_salary || 0;
     document.getElementById('editEmpUsername').value = emp.username || '';
-    document.getElementById('editEmpPassword').value = '';
+    document.getElementById('editEmpPassword').value = emp.password || '1234';
     
     if(document.getElementById('editEmpBank')) {
         document.getElementById('editEmpBank').value = emp.bank_name || (banks[0]?.name || 'كاش');
