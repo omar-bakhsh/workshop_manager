@@ -938,9 +938,70 @@ function updateDateHeader() {
     setText('currentDateDisplay', now.toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
 }
 
-function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-function openLeaveModal() { openModal('leaveModal'); }
+function openModal(id) { 
+    const el = document.getElementById(id);
+    if (el) {
+        el.style.display = 'flex';
+    } else {
+        console.warn(`[Modal] Element with ID "${id}" was not found.`);
+    }
+}
+
+function closeModal(id) { 
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none'; 
+}
+
+function openLeaveModal() { 
+    loadAllLeaveRequests();
+    openModal('leaveModal'); 
+}
+
+async function loadAllLeaveRequests(filterStatus = '') {
+    const tbody = document.getElementById('leaveTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px;">⏳ جاري تحميل طلبات الإجازة...</td></tr>';
+    
+    let url = '/api/leave-requests';
+    if (filterStatus) url += `?status=${filterStatus}`;
+    
+    try {
+        const res = await fetch(url);
+        const leaves = await res.json();
+        if (!leaves || leaves.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-gray);">لا توجد طلبات إجازة مسجلة</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = leaves.map(l => {
+            const statusBadge = l.status === 'approved'
+                ? '<span class="badge-status badge-status-success">مقبول</span>'
+                : (l.status === 'rejected' ? '<span class="badge-status badge-status-danger">مرفوض</span>' : '<span class="badge-status badge-status-warning">معلق</span>');
+            
+            const actions = l.status === 'pending' ? `
+                <div style="display:flex; gap:6px; justify-content:center;">
+                    <button class="btn btn-success" style="padding:4px 8px; font-size:12px;" onclick="handleLeaveAction(${l.id}, 'approved')"><i class="fa-solid fa-check"></i> قبول</button>
+                    <button class="btn btn-danger" style="padding:4px 8px; font-size:12px;" onclick="handleLeaveAction(${l.id}, 'rejected')"><i class="fa-solid fa-xmark"></i> رفض</button>
+                </div>
+            ` : `<span style="font-size:12px; color:var(--text-gray);">${l.admin_notes || '—'}</span>`;
+
+            return `
+                <tr>
+                    <td style="font-weight:700;">${l.employee_name || 'موظف'} <span style="font-size:11px; color:var(--text-gray); font-weight:normal;">(${l.section_name || 'عام'})</span></td>
+                    <td><span class="badge-status badge-status-info">${l.leave_type || 'إجازة اعتيادية'}</span></td>
+                    <td dir="ltr" style="font-size:12px;">${l.start_date || '---'} ➔ ${l.end_date || '---'}</td>
+                    <td><strong>${l.days_count || 1}</strong> يوم</td>
+                    <td style="font-size:12px; max-width:180px;">${l.reason || 'بدون تفاصيل'}</td>
+                    <td>${statusBadge}</td>
+                    <td>${actions}</td>
+                </tr>
+            `;
+        }).join('');
+    } catch(e) {
+        console.error('Error loading leave requests:', e);
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--danger); padding:15px;">❌ تعذر تحميل البيانات</td></tr>';
+    }
+}
 function backupDatabase() { openModal('backupModal'); }
 function downloadDbBackup() { window.location.href = '/api/backup'; }
 

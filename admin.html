@@ -535,6 +535,145 @@
         </div>
     </div>
 
+    <!-- Leave Requests Management Modal -->
+    <div id="leaveModal" class="modal">
+        <div class="modal-content" style="max-width: 850px;">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-umbrella-beach" style="color: var(--primary);"></i> إدارة ومتابعة طلبات الإجازات</h2>
+                <button type="button" class="close-btn" onclick="closeModal('leaveModal')">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn btn-secondary" style="padding:6px 14px; font-size:13px;" onclick="loadAllLeaveRequests('')">الكل</button>
+                        <button class="btn btn-secondary" style="padding:6px 14px; font-size:13px; color:var(--warning);" onclick="loadAllLeaveRequests('pending')">المعلقة</button>
+                        <button class="btn btn-secondary" style="padding:6px 14px; font-size:13px; color:var(--success);" onclick="loadAllLeaveRequests('approved')">المقبولة</button>
+                        <button class="btn btn-secondary" style="padding:6px 14px; font-size:13px; color:var(--danger);" onclick="loadAllLeaveRequests('rejected')">المرفوضة</button>
+                    </div>
+                    <button class="btn btn-secondary" style="padding:6px 12px; font-size:12px;" onclick="loadAllLeaveRequests()">
+                        <i class="fa-solid fa-rotate-right"></i> تحديث
+                    </button>
+                </div>
+                <div style="overflow-x:auto; border-radius:12px; border:1px solid var(--border-color);">
+                    <table class="table" style="margin:0; width:100%;">
+                        <thead>
+                            <tr>
+                                <th>الموظف</th>
+                                <th>النوع</th>
+                                <th>الفترة</th>
+                                <th>الأيام</th>
+                                <th>السبب</th>
+                                <th>الحالة</th>
+                                <th>الإجراء / الملاحظة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaveTableBody">
+                            <tr><td colspan="7" style="text-align:center; padding:20px;">⏳ جاري التحميل...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('leaveModal')">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Smart Attendance Modal -->
+    <div id="attendanceModal" class="modal">
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-calendar-check" style="color: var(--success);"></i> سجل الحضور والانصراف الذكي</h2>
+                <button type="button" class="close-btn" onclick="closeModal('attendanceModal')">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-bottom:15px; background:#f8fafc; padding:12px; border-radius:12px; border:1px solid var(--border-color);">
+                    <div class="form-group" style="margin:0;">
+                        <label style="font-size:12px; margin-bottom:4px;">تصفية حسب الموظف</label>
+                        <select id="attendanceEmployeeFilter" onchange="loadAttendanceReport()" style="padding:8px; font-size:13px;"></select>
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label style="font-size:12px; margin-bottom:4px;">تقرير اليوم</label>
+                        <div style="display:flex; gap:6px;">
+                            <input type="date" id="attendanceDate" style="padding:6px; font-size:13px;">
+                            <button class="btn btn-primary" style="padding:6px 12px; font-size:12px;" onclick="loadAttendanceReport('date')">عرض</button>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label style="font-size:12px; margin-bottom:4px;">تقرير الشهر</label>
+                        <div style="display:flex; gap:6px;">
+                            <input type="month" id="attendanceMonth" style="padding:6px; font-size:13px;">
+                            <button class="btn btn-secondary" style="padding:6px 12px; font-size:12px;" onclick="loadAttendanceReport('month')">عرض</button>
+                        </div>
+                    </div>
+                </div>
+                <div style="overflow-x:auto; border-radius:12px; border:1px solid var(--border-color); max-height: 400px;">
+                    <table class="table" style="margin:0; width:100%;">
+                        <thead>
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>الموظف</th>
+                                <th>الوردية</th>
+                                <th>حضور</th>
+                                <th>انصراف</th>
+                                <th>تأخير</th>
+                                <th>خروج مبكر</th>
+                                <th>إضافي</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceTableBody">
+                            <tr><td colspan="9" style="text-align:center; padding:20px;">⏳ جاري التحميل...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('attendanceModal')">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Branch Shifts Modal -->
+    <div id="shiftModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-clock" style="color: var(--primary);"></i> مواعيد العمل والورديات الأسبوعية</h2>
+                <button type="button" class="close-btn" onclick="closeModal('shiftModal')">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div style="font-size:13px; color:var(--text-gray); margin-bottom:12px;">
+                    حدد ساعات العمل الافتراضية لكل يوم من أيام الأسبوع لحساب التأخير والغياب بدقة:
+                </div>
+                <div style="overflow-x:auto; border-radius:12px; border:1px solid var(--border-color);">
+                    <table class="table" style="margin:0; width:100%;">
+                        <thead>
+                            <tr>
+                                <th>اليوم</th>
+                                <th>بداية الدوام</th>
+                                <th>نهاية الدوام</th>
+                                <th>مغلق (إجازة)</th>
+                                <th>حفظ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="shiftTableBody">
+                            <tr><td colspan="5" style="text-align:center; padding:20px;">⏳ جاري التحميل...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('shiftModal')">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Backup & Restore Modal -->
     <div id="backupModal" class="modal">
         <div class="modal-content" style="max-width: 500px;">
@@ -565,6 +704,6 @@
     </div>
 
     <!-- Scripts -->
-    <script src="public/js/admin.js?v=5.4"></script>
+    <script src="public/js/admin.js?v=5.5"></script>
 </body>
 </html>
