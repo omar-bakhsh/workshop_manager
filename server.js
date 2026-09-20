@@ -745,13 +745,25 @@ app.get('/api/sections-summary', async (req, res) => {
 app.get('/api/employee-stats/:id', async (req, res) => {
     const { id } = req.params;
     try {
-        // جلب اسم الموظف والهدف والقسم
+        // جلب بيانات الموظف والصلاحيات والوردية الخاصة بقسمه
         const info = await dbGet(`
-            SELECT e.*, s.name AS section_name 
+            SELECT 
+                e.*, 
+                s.name AS section_name,
+                COALESCE(s.can_view_income, 1) AS can_view_income,
+                COALESCE(s.can_withdraw, 1) AS can_withdraw,
+                COALESCE(s.can_inspect, 0) AS can_inspect,
+                COALESCE(s.can_manage_parts, 0) AS can_manage_parts,
+                COALESCE(s.shift_start, '08:00') AS shift_start,
+                COALESCE(s.shift_end, '18:00') AS shift_end
             FROM employees e 
             LEFT JOIN sections s ON e.section_id = s.id 
             WHERE e.id = ? AND e.is_active = 1
         `, [id]);
+
+        if (!info) {
+            return res.status(404).json({ message: "لم يتم العثور على الموظف أو أنه غير نشط." });
+        }
 
         // جلب إجمالي الدخل
         const totalIncomeRow = await dbGet(`SELECT COALESCE(SUM(income), 0) AS total_income FROM entries WHERE employee_id = ?`, [id]);
@@ -768,38 +780,69 @@ app.get('/api/employee-stats/:id', async (req, res) => {
         // جلب الغيابات
         const absences = await dbAll(`SELECT * FROM absences WHERE employee_id = ? ORDER BY date DESC`, [id]);
 
-        if (!info) {
-            return res.status(404).json({ message: "لم يتم العثور على الموظف أو أنه غير نشط." });
-        }
+        const isIncomeHidden = (info.hide_income == 1 || info.can_view_income === 0);
 
-        if (info.hide_income == 1) {
-            res.json({
-                ...info,
-                info,
-                total_income: -1, // Flag for hidden
-                total_withdrawal: totalWithdrawalRow.total_withdrawal,
-                last_income_at: entries.length > 0 ? entries[0].created_at : null,
-                last_withdrawal_at: withdrawals.length > 0 ? withdrawals[0].created_at : null,
-                entries: [], // Hide entries
-                withdrawals,
-                absences,
-                income_hidden: true
-            });
-        } else {
-            res.json({
-                ...info,
-                info,
-                total_income: totalIncomeRow.total_income,
-                total_withdrawal: totalWithdrawalRow.total_withdrawal,
-                entries,
-                withdrawals,
-                absences,
-                income_hidden: false
-            });
-        }
+        const permissions = {
+            can_view_income: !isIncomeHidden,
+            can_withdraw: info.can_withdraw !== 0,
+            can_inspect: info.can_inspect == 1,
+            can_manage_parts: info.can_manage_parts == 1
+        };
+
+        res.json({
+            ...info,
+            info,
+            permissions,
+            shift_start: info.shift_start,
+            shift_end: info.shift_end,
+            total_income: isIncomeHidden ? -1 : totalIncomeRow.total_income,
+            total_withdrawal: totalWithdrawalRow.total_withdrawal,
+            entries: isIncomeHidden ? [] : entries,
+            withdrawals,
+            absences,
+            income_hidden: isIncomeHidden
+        });
     } catch (error) {
         console.error("Fetch Employee Stats Error:", error);
         res.status(500).json({ message: "خطأ في جلب إحصائيات الموظف" });
+    }
+});
+
+// جلب أوامر العمل والسيارات المسندة للموظف
+app.get('/api/employee/:id/assigned-jobs', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const emp = await dbGet('SELECT id, name, section_id FROM employees WHERE id = ?', [id]);
+        if (!emp) return res.status(404).json({ message: 'الموظف غير موجود' });
+
+        // البحث في الفحوصات وأوامر العمل المسندة للموظف بالاسم أو المعرف
+        const jobs = await dbAll(`
+            SELECT 
+                i.id,
+                i.customer_name,
+                i.customer_phone,
+                i.car_type,
+                i.plate_number,
+                i.model_year,
+                i.color,
+                i.status,
+                i.assigned_technician,
+                i.created_at,
+                i.inspection_date,
+                i.grand_total,
+                (SELECT COUNT(*) FROM inspection_items WHERE inspection_id = i.id) as items_count,
+                (SELECT COUNT(*) FROM inspection_items WHERE inspection_id = i.id AND is_approved = 1) as approved_items_count
+            FROM inspections i
+            WHERE (i.assigned_technician LIKE ? OR i.inspector_name LIKE ?)
+            AND i.status IN ('converted', 'in_progress', 'draft', 'pending', 'approved', 'completed')
+            ORDER BY i.created_at DESC
+            LIMIT 30
+        `, [`%${emp.name}%`, `%${emp.name}%`]);
+
+        res.json(jobs);
+    } catch (e) {
+        console.error('Assigned jobs fetch error:', e);
+        res.status(500).json({ error: 'Failed to fetch assigned jobs' });
     }
 });
 

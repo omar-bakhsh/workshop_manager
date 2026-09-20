@@ -762,6 +762,201 @@
       background: var(--primary-gradient);
       color: #fff;
       border: none;
+      gap: 8px;
+    }
+
+    .input-field-group {
+      margin-bottom: 14px;
+    }
+
+    .input-field-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .touch-input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border-color);
+      background: var(--surface);
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .touch-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    }
+
+    .quick-chips-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .chip-btn {
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-color);
+      background: var(--surface-hover);
+      color: var(--text-main);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .chip-btn:active, .chip-btn.selected {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+      transform: scale(0.95);
+    }
+
+    .btn-submit-main {
+      width: 100%;
+      padding: 14px;
+      border-radius: var(--radius-md);
+      border: none;
+      font-weight: 800;
+      font-size: 15px;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-submit-main:active {
+      transform: scale(0.98);
+    }
+
+    /* =========================================================
+       📜 Request History & Timeline Cards
+       ========================================================= */
+    .history-card-item {
+      background: var(--surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background-color 0.2s;
+    }
+
+    .status-badge-pill {
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .pill-pending { background: #fef3c7; color: #92400e; }
+    .pill-approved { background: #dcfce7; color: #166534; }
+    .pill-rejected { background: #fee2e2; color: #991b1b; }
+
+    /* =========================================================
+       <i class="fa-solid fa-comment-dots"></i> Modern Mobile Chat Room
+       ========================================================= */
+    .chat-container-card {
+      background: var(--surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 180px);
+      min-height: 420px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .chat-header-bar {
+      padding: 14px 16px;
+      background: var(--surface-hover);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chat-messages-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: var(--bg-body);
+    }
+
+    .chat-bubble {
+      max-width: 82%;
+      padding: 10px 14px;
+      border-radius: 16px;
+      font-size: 13px;
+      line-height: 1.4;
+      position: relative;
+      word-break: break-word;
+    }
+
+    .chat-bubble.mine {
+      align-self: flex-end;
+      background: var(--primary-gradient);
+      color: #fff;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    }
+
+    .chat-bubble.admin {
+      align-self: flex-start;
+      background: var(--surface);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      border-bottom-right-radius: 4px;
+    }
+
+    .chat-input-bar {
+      padding: 12px 14px;
+      background: var(--surface);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      gap: 8px;
+    }
+
+    .chat-text-input {
+      flex: 1;
+      padding: 10px 16px;
+      border-radius: var(--radius-full);
+      border: 1.5px solid var(--border-color);
+      background: var(--surface-hover);
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .chat-send-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--primary-gradient);
+      color: #fff;
+      border: none;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -772,6 +967,81 @@
 
     .chat-send-btn:active {
       transform: scale(0.9);
+    }
+
+    /* =========================================================
+       🚗 Assigned Job Orders & Live Work Cards
+       ========================================================= */
+    .assigned-jobs-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .assigned-job-card {
+      background: var(--surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.2s ease;
+    }
+
+    .assigned-job-card:active {
+      transform: scale(0.98);
+      background: var(--surface-hover);
+    }
+
+    .job-car-badge {
+      background: #f1f5f9;
+      border: 1.5px solid var(--border-color);
+      border-radius: 8px;
+      padding: 5px 9px;
+      font-weight: 800;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-main);
+    }
+
+    body.dark-mode .job-car-badge {
+      background: #1e293b;
+    }
+
+    .job-status-pill {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .job-status-pending { background: #fef3c7; color: #92400e; }
+    .job-status-in-progress { background: #e0f2fe; color: #0284c7; }
+    .job-status-completed { background: #dcfce7; color: #166534; }
+
+    .permission-lock-notice {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1.5px dashed var(--warning);
+      color: var(--warning);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
     }
 
     /* =========================================================
@@ -909,604 +1179,6 @@
     }
   </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-
-<body>
-
-  <!-- =========================================================
-       <i class="fa-solid fa-mobile-screen"></i> Top Header Bar
-       ========================================================= -->
-  <header class="app-topbar">
-    <div class="user-profile-summary">
-      <div class="user-avatar-wrap">
-        <div class="user-avatar" id="headerAvatar">--</div>
-        <div class="user-status-dot"></div>
-      </div>
-      <div class="user-details">
-        <h1 id="welcomeName">مرحباً...</h1>
-        <span class="role-badge" id="roleName">بوابة الموظف</span>
-      </div>
-    </div>
-
-    <div class="topbar-actions">
-      <!-- Dark Mode Toggle -->
-      <button class="icon-btn" onclick="toggleDarkMode()" title="المظهر">
-        <span id="darkModeIcon">🌙</span>
-      </button>
-
-      <!-- Notifications -->
-      <button class="icon-btn" id="notifBtn" onclick="toggleNotif()" title="الإشعارات">
-        <i class="fa-solid fa-bell"></i>
-        <span id="notifBadge" class="badge-count" style="display:none;">0</span>
-      </button>
-
-      <!-- Logout -->
-      <button class="icon-btn" onclick="logout()" title="تسجيل الخروج" style="color: var(--danger);">
-        <i class="fa-solid fa-arrow-right-from-bracket"></i>
-      </button>
-    </div>
-  </header>
-
-  <!-- Notifications Drawer -->
-  <div id="notifDrawer" class="notif-drawer">
-    <div class="notif-drawer-header">
-      <h4 style="font-size: 14px; font-weight: 800;"><i class="fa-solid fa-bell"></i> مركز الإشعارات</h4>
-      <button onclick="markAllRead()" style="background:none; border:none; color:var(--primary); font-size:12px; font-weight:700; cursor:pointer;">تحديد الكل كمقروء</button>
-    </div>
-    <div id="notifList" class="notif-scroll-area">
-      <div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px;">لا توجد إشعارات</div>
-    </div>
-  </div>
-
-  <!-- =========================================================
-       📲 Main Content Tabs
-       ========================================================= -->
-  <main class="app-main">
-
-    <!-- =========================================================
-         TAB 1: <i class="fa-solid fa-house"></i> الرئيسية (Dashboard & Smart Attendance)
-         ========================================================= -->
-    <section id="tabHome" class="tab-view active">
-      
-      <!-- Biometric Attendance Hero -->
-      <div class="hero-attendance-card">
-        <div class="shift-info-pill" id="shiftTimeLabel">
-          <span>⏱️</span>
-          <span>جاري تحميل أوقات الدوام...</span>
-        </div>
-
-        <div class="digital-clock-display" id="liveClock">00:00:00</div>
-
-        <div class="biometric-touch-wrap">
-          <div id="fingerprintBtn" class="fingerprint-touch-btn pulse-active" onclick="handleFingerprintClick()" title="اضغط لتسجيل الحضور">
-            🖐️
-          </div>
-          <button id="checkOutBtn" class="btn-checkout-mobile" onclick="checkOut()">
-            <span>انصراف</span>
-            <span>🏃</span>
-          </button>
-        </div>
-
-        <div class="attendance-status-label" id="fingerprintStatus">بصمة حضور 🖐️</div>
-        <div id="delayAlert" class="attendance-alert-box"></div>
-      </div>
-
-      <!-- Quick Action Cards (Workshop Field Operations) -->
-      <div class="section-headline">
-        <h3>⚡ إجراءات الورشة السريعة</h3>
-      </div>
-      <div id="quickNavContainer" class="quick-actions-grid">
-        <!-- Dynamically injected based on permissions -->
-      </div>
-
-      <!-- Quick KPI Summary -->
-      <div class="section-headline">
-        <h3><i class="fa-solid fa-chart-pie"></i> ملخص اليوم والراتب</h3>
-      </div>
-      <div class="kpi-stats-grid">
-        <div class="kpi-card highlight span-2">
-          <div class="kpi-card-header">
-            <span class="kpi-label">صافي الراتب المستحق</span>
-            <div class="kpi-icon" style="background: rgba(255,255,255,0.2);"><i class="fa-solid fa-money-bill"></i></div>
-          </div>
-          <div class="kpi-value" id="dashNetRemaining">0 ﷼</div>
-        </div>
-
-        <div class="kpi-card">
-          <div class="kpi-card-header">
-            <span class="kpi-label">الدخل المحقق</span>
-            <div class="kpi-icon" style="background:#dcfce7; color:#166534;"><i class="fa-solid fa-sack-dollar"></i></div>
-          </div>
-          <div class="kpi-value" id="dashTotalIncome">0</div>
-          <div id="dashIncomeHidden" style="display:none; font-size:12px; color:var(--text-muted); font-weight:700;">🔒 مخفي</div>
-        </div>
-
-        <div class="kpi-card">
-          <div class="kpi-card-header">
-            <span class="kpi-label">نسبة الإنجاز</span>
-            <div class="kpi-icon" style="background:#fef3c7; color:#92400e;">🎯</div>
-          </div>
-          <div class="kpi-value" id="dashTargetPercent">0%</div>
-          <div class="progress-track">
-            <div class="progress-bar-fill" id="dashProgressFill"></div>
-          </div>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- =========================================================
-         TAB 2: <i class="fa-solid fa-pen-to-square"></i> الطلبات (Requests Management)
-         ========================================================= -->
-    <section id="tabRequests" class="tab-view">
-
-      <!-- Fast Withdrawal Form -->
-      <div class="form-card">
-        <div class="form-card-title">
-          <span><i class="fa-solid fa-credit-card"></i></span>
-          <span>طلب سحب مبلغ مالي</span>
-        </div>
-        <form id="withdrawalRequestForm">
-          <div class="input-field-group">
-            <label>المبلغ المطلوب (ريال)</label>
-            <input type="number" id="withdrawalAmount" class="touch-input" required placeholder="0" min="1" step="any">
-            <div class="quick-chips-group">
-              <button type="button" class="chip-btn" onclick="setQuickWithdrawalAmount(50)">50 ﷼</button>
-              <button type="button" class="chip-btn" onclick="setQuickWithdrawalAmount(100)">100 ﷼</button>
-              <button type="button" class="chip-btn" onclick="setQuickWithdrawalAmount(200)">200 ﷼</button>
-              <button type="button" class="chip-btn" onclick="setQuickWithdrawalAmount(500)">500 ﷼</button>
-              <button type="button" class="chip-btn" onclick="setQuickWithdrawalAmount(1000)">1000 ﷼</button>
-            </div>
-          </div>
-
-          <div class="input-field-group">
-            <label>السبب / ملاحظات</label>
-            <input type="text" id="withdrawalReason" class="touch-input" placeholder="اختياري (سلفة، مصاريف، ...)">
-          </div>
-
-          <button type="submit" class="btn-submit-main" style="background: var(--primary-gradient);">
-            <span>إرسال طلب السحب</span>
-            <span>📤</span>
-          </button>
-        </form>
-      </div>
-
-      <!-- Leave Request Form -->
-      <div class="form-card">
-        <div class="form-card-title">
-          <span>🏖️</span>
-          <span>تقديم طلب إجازة</span>
-        </div>
-        <form id="leaveRequestForm">
-          <div class="input-field-group">
-            <label>نوع الإجازة</label>
-            <select id="leaveType" class="touch-input">
-              <option value="annual">🏖️ إجازة سنوية</option>
-              <option value="sick">🩺 إجازة مرضية</option>
-              <option value="emergency">🚨 إجازة طارئة</option>
-              <option value="unpaid">⏳ إجازة بدون راتب</option>
-            </select>
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <div class="input-field-group">
-              <label>تاريخ البدء</label>
-              <input type="date" id="leaveStartDate" class="touch-input" required>
-            </div>
-            <div class="input-field-group">
-              <label>تاريخ الانتهاء</label>
-              <input type="date" id="leaveEndDate" class="touch-input" required>
-            </div>
-          </div>
-
-          <button type="submit" class="btn-submit-main" style="background: var(--success-gradient);">
-            <span>إرسال طلب الإجازة</span>
-            <span>🌴</span>
-          </button>
-        </form>
-      </div>
-
-      <!-- Requests History -->
-      <div class="section-headline">
-        <h3><i class="fa-solid fa-clipboard-list"></i> سجل الطلبات السابقة</h3>
-      </div>
-      <div id="requestHistory">
-        <div style="padding: 20px; text-align: center; color: var(--text-muted);">جاري المزامنة...</div>
-      </div>
-
-    </section>
-
-    <!-- =========================================================
-         TAB 3: <i class="fa-solid fa-chart-pie"></i> المالية والإنتاجية (Financials)
-         ========================================================= -->
-    <section id="tabFinance" class="tab-view">
-
-      <div class="kpi-stats-grid">
-        <div class="kpi-card highlight span-2">
-          <div class="kpi-card-header">
-            <span class="kpi-label">الراتب المتبقي المحسوب (إكسل)</span>
-            <div class="kpi-icon" style="background: rgba(255,255,255,0.2);">✨</div>
-          </div>
-          <div class="kpi-value" id="finNetRemaining">0 ﷼</div>
-          <div id="lastSyncInfo" style="font-size: 11px; color: rgba(255,255,255,0.8); margin-top: 6px;"></div>
-        </div>
-
-        <div class="kpi-card">
-          <div class="kpi-card-header">
-            <span class="kpi-label">إجمالي الدخل</span>
-            <div class="kpi-icon" style="background:#dcfce7; color:#166534;"><i class="fa-solid fa-sack-dollar"></i></div>
-          </div>
-          <div class="kpi-value" id="finTotalIncome">0</div>
-          <div id="finIncomeHidden" style="display:none; font-size:12px; color:var(--text-muted); font-weight:700;">🔒 مخفي</div>
-        </div>
-
-        <div class="kpi-card">
-          <div class="kpi-card-header">
-            <span class="kpi-label">إجمالي السحوبات</span>
-            <div class="kpi-icon" style="background:#fee2e2; color:#991b1b;"><i class="fa-solid fa-credit-card"></i></div>
-          </div>
-          <div class="kpi-value" id="finTotalWithdrawals">0</div>
-        </div>
-
-        <div class="kpi-card">
-          <div class="kpi-card-header">
-            <span class="kpi-label">الرصيد المتبقي</span>
-            <div class="kpi-icon" style="background:#e0f2fe; color:#0369a1;"><i class="fa-solid fa-money-bill"></i></div>
-          </div>
-          <div class="kpi-value" id="finRemainingBalance">0</div>
-        </div>
-
-        <div class="kpi-card">
-          <div class="kpi-card-header">
-            <span class="kpi-label">نسبة الإنجاز</span>
-            <div class="kpi-icon" style="background:#fef3c7; color:#92400e;">🎯</div>
-          </div>
-          <div class="kpi-value" id="finTargetAchievement">0%</div>
-          <div class="progress-track">
-            <div class="progress-bar-fill" id="finProgressFill"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Income Operations Record -->
-      <div id="incomeSection" class="form-card" style="display: none;">
-        <div class="form-card-title">
-          <span><i class="fa-solid fa-chart-line"></i></span>
-          <span>سجل العمليات اليومية</span>
-        </div>
-        <div id="entriesContainer"></div>
-      </div>
-
-    </section>
-
-    <!-- =========================================================
-         TAB 4: <i class="fa-solid fa-comment-dots"></i> المحادثة المباشرة (Chat Room)
-         ========================================================= -->
-    <section id="tabChat" class="tab-view">
-      <div class="chat-container-card">
-        <div class="chat-header-bar">
-          <div style="width: 10px; height: 10px; border-radius: 50%; background: var(--success);"></div>
-          <div>
-            <div style="font-size: 14px; font-weight: 800;">محادثة الإدارة المباشرة</div>
-            <div style="font-size: 11px; color: var(--text-muted);">التواصل الفوري مع المشرفين</div>
-          </div>
-        </div>
-
-        <div class="chat-messages-area" id="chatBody">
-          <!-- Populated dynamically -->
-        </div>
-
-        <div class="chat-input-bar">
-          <input type="text" id="chatInput" class="chat-text-input" placeholder="اكتب رسالتك للإدارة..." onkeypress="if(event.key==='Enter')sendMessage()">
-          <button class="chat-send-btn" onclick="sendMessage()" title="إرسال">
-            ➤
-          </button>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <!-- =========================================================
-       <i class="fa-solid fa-mobile-screen"></i> Fixed Bottom Navigation Bar
-       ========================================================= -->
-  <nav class="bottom-navbar">
-    <button class="nav-tab-btn active" onclick="switchTab('tabHome')" id="navBtn-tabHome">
-      <div class="nav-tab-icon"><i class="fa-solid fa-house"></i></div>
-      <span class="nav-tab-label">الرئيسية</span>
-      <div class="nav-tab-dot"></div>
-    </button>
-
-    <button class="nav-tab-btn" onclick="switchTab('tabRequests')" id="navBtn-tabRequests">
-      <div class="nav-tab-icon"><i class="fa-solid fa-pen-to-square"></i></div>
-      <span class="nav-tab-label">الطلبات</span>
-      <div class="nav-tab-dot"></div>
-    </button>
-
-    <button class="nav-tab-btn" onclick="switchTab('tabFinance')" id="navBtn-tabFinance">
-      <div class="nav-tab-icon"><i class="fa-solid fa-chart-pie"></i></div>
-      <span class="nav-tab-label">المالية</span>
-      <div class="nav-tab-dot"></div>
-    </button>
-
-    <button class="nav-tab-btn" onclick="switchTab('tabChat')" id="navBtn-tabChat">
-      <div class="nav-tab-icon">
-        <i class="fa-solid fa-comment-dots"></i>
-        <span class="tab-badge" id="chatTabBadge">0</span>
-      </div>
-      <span class="nav-tab-label">المحادثة</span>
-      <div class="nav-tab-dot"></div>
-    </button>
-  </nav>
-
-  <!-- =========================================================
-       <i class="fa-solid fa-gear"></i> Application Logic & Handlers
-       ========================================================= -->
-  <script>
-    let employeeId = null;
-    let employeeData = null;
-    let currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    let unreadCount = 0;
-    let isFirstNotifLoad = true;
-
-    /* --- Auth & Initialization --- */
-    function checkAuth() {
-      if (!localStorage.getItem('token') || currentUser.role !== 'employee') {
-        window.location.href = 'login.html';
-        return;
-      }
-      employeeId = currentUser.employee_id || currentUser.id;
-      
-      const welcomeEl = document.getElementById('welcomeName');
-      const avatarEl = document.getElementById('headerAvatar');
-      if (welcomeEl) welcomeEl.innerText = `مرحباً، ${currentUser.employee_name || currentUser.name || 'الموظف'}`;
-      if (avatarEl) avatarEl.innerText = getInitials(currentUser.employee_name || currentUser.name);
-
-      if (window.APP_CONFIG) {
-        window.APP_CONFIG.initBranding();
-      }
-
-      // Check Dark Mode
-      if (localStorage.getItem('darkMode') === 'true') {
-        document.body.classList.add('dark-mode');
-        document.getElementById('darkModeIcon').textContent = '☀️';
-      }
-
-      renderQuickNavButtons();
-      loadEmployeeData();
-      loadRequestHistory();
-      updateClock();
-      loadNotifications();
-      loadAttendance();
-      checkUnreadMessages();
-      
-      setInterval(updateClock, 1000);
-      setInterval(loadRequestHistory, 15000);
-      setInterval(loadNotifications, 45000);
-      setInterval(checkUnreadMessages, 6000);
-    }
-
-    function getInitials(name) {
-      if (!name) return '--';
-      return name.trim().split(' ').map(n => n[0]).slice(0, 2).join('');
-    }
-
-    function updateClock() {
-      const clockEl = document.getElementById('liveClock');
-      if (clockEl) {
-        clockEl.textContent = new Date().toLocaleTimeString('en-GB', { hour12: false });
-      }
-    }
-
-    /* --- Tab Navigation --- */
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-view').forEach(view => view.classList.remove('active'));
-      document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.classList.remove('active'));
-
-      const targetView = document.getElementById(tabId);
-      const targetBtn = document.getElementById(`navBtn-${tabId}`);
-
-      if (targetView) targetView.classList.add('active');
-      if (targetBtn) targetBtn.classList.add('active');
-
-      if (tabId === 'tabChat') {
-        loadMessages();
-      }
-
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    /* --- Quick Action Buttons (Workshop Operations) --- */
-    function renderQuickNavButtons() {
-      const navContainer = document.getElementById('quickNavContainer');
-      if (!navContainer) return;
-      navContainer.innerHTML = '';
-
-      const canEditQ = typeof APP_PERMISSIONS !== 'undefined' ? APP_PERMISSIONS.canEditQuotation(currentUser) : true;
-      const canViewInspections = typeof APP_PERMISSIONS !== 'undefined' ? APP_PERMISSIONS.canViewInspections(currentUser) : true;
-      const canViewJobOrders = typeof APP_PERMISSIONS !== 'undefined' ? APP_PERMISSIONS.canViewJobOrders(currentUser) : true;
-      const isAssignedOnly = typeof APP_PERMISSIONS !== 'undefined' ? APP_PERMISSIONS.isAssignedOnlyTechnician(currentUser) : false;
-
-      if (canEditQ) {
-        navContainer.innerHTML += `
-          <a href="inspector.html" class="quick-action-tile">
-            <div class="quick-action-icon" style="background:#eef2ff; color:#4f46e5;"><i class="fa-solid fa-magnifying-glass"></i></div>
-            <div class="quick-action-title">كشف فني / تسعيرة</div>
-          </a>
-        `;
-      }
-
-      if (canViewInspections) {
-        navContainer.innerHTML += `
-          <a href="inspections_list.html" class="quick-action-tile">
-            <div class="quick-action-icon" style="background:#e0f2fe; color:#0284c7;"><i class="fa-solid fa-clipboard-list"></i></div>
-            <div class="quick-action-title">سجل التسعيرات</div>
-          </a>
-        `;
-      }
-
-      if (canViewJobOrders) {
-        const title = isAssignedOnly ? 'أوامري المسندة <i class="fa-solid fa-screwdriver-wrench"></i>' : 'أوامر العمل والسيارات <i class="fa-solid fa-car"></i>';
-        navContainer.innerHTML += `
-          <a href="job_orders_list.html" class="quick-action-tile">
-            <div class="quick-action-icon" style="background:#dcfce7; color:#16a34a;"><i class="fa-solid fa-screwdriver-wrench"></i></div>
-            <div class="quick-action-title">${title}</div>
-          </a>
-        `;
-      }
-    }
-
-    /* --- Biometric Attendance --- */
-    async function handleFingerprintClick() {
-      try {
-        const res = await fetch('/api/attendance/check-in', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ employee_id: employeeId })
-        });
-        const data = await res.json();
-        
-        if (typeof showSuccess === 'function') {
-          showSuccess(data.message || 'تم تسجيل الحضور بنجاح');
-        } else {
-          alert(data.message);
-        }
-        loadAttendance();
-      } catch (err) {
-        if (typeof showError === 'function') {
-          showError('تعذر تسجيل الحضور');
-        } else {
-          alert('تعذر تسجيل الحضور');
-        }
-      }
-    }
-
-    async function loadAttendance() {
-      try {
-        const res = await fetch(`/api/attendance/status/${employeeId}`);
-        const data = await res.json();
-        const stat = document.getElementById('fingerprintStatus');
-        const btn = document.getElementById('fingerprintBtn');
-        const checkOutBtn = document.getElementById('checkOutBtn');
-        const shiftLabel = document.getElementById('shiftTimeLabel');
-        const delayAlert = document.getElementById('delayAlert');
-        
-        if (data.shift_start) {
-          shiftLabel.innerHTML = `<span>⏱️</span> <span>دوام اليوم: ${data.shift_start} - ${data.shift_end}</span>`;
-        } else {
-          shiftLabel.innerHTML = `<span>⏱️</span> <span>دوام اليوم غير محدد</span>`;
-        }
-
-        if (data.status === 'not_marked') {
-          stat.textContent = 'بصمة حضور 🖐️';
-          btn.classList.add('pulse-active');
-          if (checkOutBtn) checkOutBtn.style.display = 'none';
-          if (delayAlert) delayAlert.style.display = 'none';
-        } else {
-          stat.innerHTML = 'تم إثبات الحضور بنجاح <i class="fa-solid fa-circle-check"></i>';
-          btn.classList.remove('pulse-active');
-          if (checkOutBtn && !data.check_out) checkOutBtn.style.display = 'inline-flex';
-          if (checkOutBtn && data.check_out) checkOutBtn.style.display = 'none';
-          
-          let statusHTML = '';
-          let alertClass = 'alert-success';
-
-          if (data.delay_minutes > 0) {
-            statusHTML += `<div><i class="fa-solid fa-triangle-exclamation"></i> تأخير عن موعد الحضور: ${(data.delay_minutes / 60).toFixed(1)} ساعة</div>`;
-            alertClass = 'alert-warning';
-          }
-          if (data.early_departure_minutes > 0) {
-            statusHTML += `<div>🏃 انصراف مبكر: ${(data.early_departure_minutes / 60).toFixed(1)} ساعة</div>`;
-            alertClass = 'alert-danger';
-          }
-          if (data.overtime_minutes > 0) {
-            statusHTML += `<div>✨ ساعات إضافية: ${(data.overtime_minutes / 60).toFixed(1)} ساعة</div>`;
-          }
-          if (!statusHTML && data.check_in) {
-            statusHTML = '<i class="fa-solid fa-circle-check"></i> حضور منتظم في الموعد';
-          }
-          
-          if (delayAlert) {
-            delayAlert.className = `attendance-alert-box ${alertClass}`;
-            delayAlert.innerHTML = statusHTML;
-            delayAlert.style.display = 'block';
-          }
-        }
-      } catch (e) {
-        console.error('Attendance Load Error:', e);
-      }
-    }
-
-    async function checkOut() {
-      if (typeof showConfirm === 'function') {
-        showConfirm('هل أنت متأكد من تسجيل الانصراف الآن؟', async () => {
-          await executeCheckOut();
-        });
-      } else {
-        if (!confirm('هل أنت متأكد من تسجيل الانصراف؟')) return;
-        await executeCheckOut();
-      }
-    }
-
-    async function executeCheckOut() {
-      try {
-        const res = await fetch('/api/attendance/check-out', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ employee_id: employeeId })
-        });
-        const data = await res.json();
-        if (typeof showSuccess === 'function') {
-          showSuccess(data.message || 'تم تسجيل الانصراف بنجاح');
-        } else {
-          alert('تم تسجيل الانصراف بنجاح');
-        }
-        loadAttendance();
-      } catch (err) {
-        if (typeof showError === 'function') showError('تعذر تسجيل الانصراف');
-      }
-    }
-
-    /* --- Financials & Stats --- */
-    async function loadEmployeeData() {
-      try {
-        const res = await fetch(`/api/employee-stats/${employeeId}`);
-        employeeData = await res.json();
-        
-        if (document.getElementById('welcomeName')) {
-          document.getElementById('welcomeName').textContent = `مرحباً، ${employeeData.info.name}`;
-        }
-        if (document.getElementById('roleName')) {
-          document.getElementById('roleName').textContent = employeeData.info.section_name || 'بوابة الموظف';
-        }
-
-        const base = Number(employeeData.base_salary) || 0;
-        const bonus = Number(employeeData.target_amount) || 0;
-        const withdrawals = Number(employeeData.total_withdrawal) || Number(employeeData.total_withdrawals) || 0;
-        const deposit = Number(employeeData.deposit_amount) || 0;
-        const remaining = (base + bonus) - (withdrawals + deposit);
-        const netRemainingVal = Number(employeeData.net_remaining) || remaining || 0;
-
-        // Dashboard Tab Values
-        document.getElementById('dashNetRemaining').textContent = `${netRemainingVal.toLocaleString()} ﷼`;
-        document.getElementById('finNetRemaining').textContent = `${netRemainingVal.toLocaleString()} ﷼`;
-        document.getElementById('finTotalWithdrawals').textContent = withdrawals.toLocaleString();
-        document.getElementById('finRemainingBalance').textContent = remaining.toLocaleString();
-
-        if (employeeData.income_hidden) {
-          document.getElementById('dashTotalIncome').style.display = 'none';
-          document.getElementById('dashIncomeHidden').style.display = 'block';
-          document.getElementById('finTotalIncome').style.display = 'none';
-          document.getElementById('finIncomeHidden').style.display = 'block';
-          document.getElementById('incomeSection').style.display = 'none';
-        } else {
-          const totalInc = (employeeData.total_income || 0).toLocaleString();
-          document.getElementById('dashTotalIncome').textContent = totalInc;
-          document.getElementById('finTotalIncome').textContent = totalInc;
-          
-          const target = employeeData.info.target || 1;
-          const achievement = Math.min(((employeeData.total_income / target) * 100), 100).toFixed(1);
-          
           document.getElementById('dashTargetPercent').textContent = achievement + '%';
           document.getElementById('finTargetAchievement').textContent = achievement + '%';
           document.getElementById('dashProgressFill').style.width = achievement + '%';

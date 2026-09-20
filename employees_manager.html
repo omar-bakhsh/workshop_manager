@@ -3,478 +3,1549 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة الموظفين | Atenza App</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="toast.css?v=5.0">
-    <script src="toast.js?v=5.0"></script>
-    <script src="toast_helpers.js?v=5.0"></script>
+    <title>إدارة الموظفين والأقسام | Atenza App</title>
+    
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Toast System -->
+    <link rel="stylesheet" href="toast.css?v=5.5">
+    <script src="toast.js?v=5.5"></script>
+    <script src="toast_helpers.js?v=5.5"></script>
+    <script src="public/js/app-config.js"></script>
+
     <style>
         :root {
             --primary: #4f46e5;
             --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            --bg-gray: #f8fafc;
-            --text-dark: #0f172a;
+            --primary-light: #eef2ff;
+            --secondary: #0ea5e9;
+            --secondary-gradient: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+            --success: #10b981;
+            --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            --warning: #f59e0b;
+            --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            --danger: #ef4444;
+            --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            --bg-body: #f8fafc;
+            --surface: #ffffff;
+            --surface-hover: #f1f5f9;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --text-sub: #94a3b8;
             --border-color: #e2e8f0;
-            --glass: rgba(255, 255, 255, 0.95);
+            --glass-bg: rgba(255, 255, 255, 0.92);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
+            --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.12);
+            --radius-sm: 10px;
+            --radius-md: 16px;
+            --radius-lg: 22px;
+            --radius-full: 9999px;
         }
-        * { box-sizing: border-box; font-family: 'Cairo', sans-serif; margin: 0; padding: 0; }
-        body { background: var(--bg-gray); padding: 20px; }
-        .container { max-width: 1200px; margin: auto; }
-        .header { background: var(--glass); padding: 20px 24px; border-radius: 16px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid var(--border-color); }
-        .btn { background: var(--primary-gradient); color: white; padding: 10px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: 800; font-size: 13.5px; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px; }
-        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25); }
-        .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
-        .btn-secondary { background: #ffffff; color: #475569; border: 1.5px solid var(--border-color); }
-        .btn-secondary:hover { background: #f8fafc; color: #0f172a; }
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid var(--border-color); }
-        th, td { padding: 15px 18px; text-align: right; border-bottom: 1px solid var(--border-color); }
-        th { background: #f8fafc; font-weight: 800; color: #334155; font-size: 13.5px; }
-        .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
-        .modal-content { background: white; padding: 26px; border-radius: 20px; width: 100%; max-width: 520px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; margin-bottom: 6px; font-weight: 700; color: #334155; font-size: 13px; }
-        .form-group input, .form-group select { width: 100%; height: 44px; padding: 10px 14px; border: 1.5px solid var(--border-color); border-radius: 12px; font-size: 13.5px; font-family: inherit; font-weight: 600; background: #f8fafc; transition: all 0.2s; }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); background: #ffffff; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12); }
-        .actions { display: flex; gap: 10px; justify-content: flex-end; }
-        .back-btn { text-decoration: none; color: var(--primary); font-weight: 800; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; }
+
+        body.dark-mode {
+            --bg-body: #090d16;
+            --surface: #131b2e;
+            --surface-hover: #1c2640;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-sub: #64748b;
+            --border-color: #1e293b;
+            --glass-bg: rgba(19, 27, 46, 0.92);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+            --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 24px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 1320px;
+            margin: 0 auto;
+        }
+
+        /* --- Header Bar --- */
+        .app-header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px 28px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header-title-area {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-icon-badge {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius-md);
+            background: var(--primary-gradient);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 8px 16px rgba(79, 70, 229, 0.3);
+        }
+
+        .header-title-text h1 {
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-title-text .breadcrumb {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .header-title-text .breadcrumb a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .header-title-text .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* --- Buttons --- */
+        .btn {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 10px 18px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 13.5px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3);
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-success { background: var(--success-gradient); }
+        .btn-success:hover { box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3); }
+
+        .btn-warning { background: var(--warning-gradient); color: #fff; }
+        .btn-warning:hover { box-shadow: 0 6px 16px rgba(245, 158, 11, 0.3); }
+
+        .btn-danger { background: var(--danger-gradient); }
+        .btn-danger:hover { box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3); }
+
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text-main);
+            border: 1.5px solid var(--border-color);
+        }
+        .btn-secondary:hover {
+            background: var(--surface-hover);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-icon {
+            width: 42px;
+            height: 42px;
+            padding: 0;
+            border-radius: var(--radius-sm);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        /* --- KPI Stats Row --- */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 18px 20px;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card-info h4 {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .kpi-card-info .kpi-number {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--text-main);
+            letter-spacing: -0.5px;
+        }
+
+        .kpi-card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        /* --- Filter & Search Toolbar --- */
+        .toolbar-card {
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 14px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .search-input-wrap {
+            position: relative;
+            flex: 1;
+            min-width: 260px;
+            max-width: 400px;
+        }
+
+        .search-input-wrap i {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .search-input {
+            width: 100%;
+            height: 42px;
+            padding: 0 42px 0 14px;
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-body);
+            color: var(--text-main);
+            font-size: 13.5px;
+            font-weight: 600;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+            background: var(--surface);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+        }
+
+        .filter-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .select-filter {
+            height: 42px;
+            padding: 0 14px;
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-body);
+            color: var(--text-main);
+            font-size: 13px;
+            font-weight: 700;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .select-filter:focus {
+            border-color: var(--primary);
+        }
+
+        /* --- Table Styling --- */
+        .table-card {
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: right;
+        }
+
+        th {
+            background: var(--surface-hover);
+            padding: 16px 18px;
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13.5px;
+            color: var(--text-main);
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr {
+            transition: background-color 0.15s ease;
+        }
+
+        tbody tr:hover {
+            background-color: var(--surface-hover);
+        }
+
+        .emp-profile-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .emp-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--primary-gradient);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 15px;
+            flex-shrink: 0;
+        }
+
+        .emp-name-text {
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .emp-user-text {
+            font-size: 11.5px;
+            color: var(--text-muted);
+        }
+
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: var(--radius-full);
+            font-size: 11.5px;
+            font-weight: 800;
+        }
+
+        .badge-section { background: rgba(79, 70, 229, 0.1); color: var(--primary); }
+        .badge-bank { background: rgba(14, 165, 233, 0.1); color: var(--secondary); }
+        .badge-active { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .badge-inactive { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+
+        .table-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .action-icon-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--surface);
+            color: var(--text-muted);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            transition: all 0.15s;
+        }
+
+        .action-icon-btn:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+            background: var(--surface-hover);
+        }
+
+        .action-icon-btn.delete:hover {
+            color: var(--danger);
+            border-color: var(--danger);
+            background: #fef2f2;
+        }
+
+        /* --- Modals --- */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            color: var(--text-main);
+            padding: 28px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 580px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-header h2 {
+            font-size: 18px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-close-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .form-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 700;
+            color: var(--text-main);
+            font-size: 13px;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            height: 44px;
+            padding: 10px 14px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 13.5px;
+            font-family: inherit;
+            font-weight: 600;
+            background: var(--bg-body);
+            color: var(--text-main);
+            transition: all 0.2s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--surface);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+        }
+
+        .permission-toggle-box {
+            background: var(--surface-hover);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .permission-toggle-info {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .permission-toggle-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background-color: #cbd5e1;
+            transition: .3s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        .modal-footer {
+            margin-top: 24px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 14px; }
+            .app-header { flex-direction: column; align-items: stretch; }
+            .header-actions { justify-content: flex-start; }
+            .form-grid-2 { grid-template-columns: 1fr; }
+            .toolbar-card { flex-direction: column; align-items: stretch; }
+            .search-input-wrap { max-width: none; }
+        }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+
     <div class="container">
-        <div class="header">
-            <div>
-                <h1><i class="fa-solid fa-user-tie"></i> إدارة الموظفين</h1>
-                <a href="admin.html" class="back-btn">العودة للوحة التحكم</a>
+
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-title-area">
+                <div class="header-icon-badge">
+                    <i class="fa-solid fa-users-gear"></i>
+                </div>
+                <div class="header-title-text">
+                    <h1>إدارة الموظفين والأقسام</h1>
+                    <div class="breadcrumb">
+                        <a href="admin.html"><i class="fa-solid fa-arrow-right"></i> لوحة الإدارة</a>
+                        <span>/</span>
+                        <span>شؤون الموظفين والصلاحيات</span>
+                    </div>
+                </div>
             </div>
-            <div>
-                <button class="btn" onclick="openModal('sectionsModal')" style="background:#f59e0b"><i class="fa-solid fa-building"></i> إدارة الأقسام</button>
-                <button class="btn" onclick="openModal('addModal')">+ إضافة موظف جديد</button>
-                <button class="btn" onclick="openModal('importModal')" style="background:#10b981"><i class="fa-solid fa-file-import"></i> استيراد من إكسيل</button>
+
+            <div class="header-actions">
+                <button class="btn btn-warning" onclick="openSectionsModal()">
+                    <i class="fa-solid fa-building"></i> الأقسام والصلاحيات
+                </button>
+                <button class="btn btn-secondary" onclick="openBanksModal()">
+                    <i class="fa-solid fa-building-columns"></i> البنوك
+                </button>
+                <button class="btn btn-success" onclick="openImportModal()">
+                    <i class="fa-solid fa-file-excel"></i> استيراد Excel
+                </button>
+                <button class="btn" onclick="openAddEmployeeModal()">
+                    <i class="fa-solid fa-user-plus"></i> إضافة موظف
+                </button>
+                <button class="btn btn-secondary btn-icon" onclick="toggleDarkMode()" title="المظهر">
+                    <span id="darkModeIcon">🌙</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- KPI Stats Cards -->
+        <div class="kpi-row">
+            <div class="kpi-card">
+                <div class="kpi-card-info">
+                    <h4>إجمالي الكادر</h4>
+                    <div class="kpi-number" id="kpiTotalEmployees">0</div>
+                </div>
+                <div class="kpi-card-icon" style="background:#eef2ff; color:#4f46e5;">
+                    <i class="fa-solid fa-users"></i>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-card-info">
+                    <h4>الموظفون النشطون</h4>
+                    <div class="kpi-number" id="kpiActiveEmployees">0</div>
+                </div>
+                <div class="kpi-card-icon" style="background:#dcfce7; color:#166534;">
+                    <i class="fa-solid fa-user-check"></i>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-card-info">
+                    <h4>ميزانية الرواتب الأساسية</h4>
+                    <div class="kpi-number" id="kpiTotalSalaries">0 ﷼</div>
+                </div>
+                <div class="kpi-card-icon" style="background:#fef3c7; color:#92400e;">
+                    <i class="fa-solid fa-money-bill-trend-up"></i>
+                </div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-card-info">
+                    <h4>عدد الأقسام بالمركز</h4>
+                    <div class="kpi-number" id="kpiTotalSections">0</div>
+                </div>
+                <div class="kpi-card-icon" style="background:#e0f2fe; color:#0284c7;">
+                    <i class="fa-solid fa-building-user"></i>
+                </div>
             </div>
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>الاسم</th>
-                    <th>القسم</th>
-                    <th>الراتب الأساسي</th>
-                    <th>التارجت</th>
-                    <th>البنك / الصرف</th>
-                    <th>حساب الدخول</th>
-                    <th>إجراءات</th>
-                </tr>
-            </thead>
-            <tbody id="employeesTableBody">
-                <tr><td colspan="7" style="text-align:center">جاري التحميل...</td></tr>
-            </tbody>
-        </table>
+        <!-- Filter & Search Toolbar -->
+        <div class="toolbar-card">
+            <div class="search-input-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" class="search-input" placeholder="بحث بالاسم، اسم المستخدم، البنك..." oninput="filterEmployees()">
+            </div>
+
+            <div class="filter-controls">
+                <select id="filterSection" class="select-filter" onchange="filterEmployees()">
+                    <option value="">جميع الأقسام</option>
+                </select>
+
+                <select id="filterBank" class="select-filter" onchange="filterEmployees()">
+                    <option value="">جميع البنوك / الصرف</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Employees Table Card -->
+        <div class="table-card">
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الموظف</th>
+                            <th>القسم</th>
+                            <th>أوقات الدوام</th>
+                            <th>الراتب الأساسي</th>
+                            <th>التارجت (الهدف)</th>
+                            <th>طريقة الصرف</th>
+                            <th>الحالة</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeesTableBody">
+                        <tr>
+                            <td colspan="8" style="text-align:center; padding:30px; color:var(--text-muted);">
+                                <i class="fa-solid fa-spinner fa-spin" style="font-size:20px; margin-bottom:8px; display:block;"></i>
+                                جاري تحميل بيانات الموظفين...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
-    <!-- Add Employee Modal -->
-    <div id="addModal" class="modal">
+    <!-- =========================================================
+         Add / Edit Employee Modal
+         ========================================================= -->
+    <div id="employeeModal" class="modal">
         <div class="modal-content">
-            <h2>إضافة موظف جديد</h2>
-            <br>
-            <form id="addEmployeeForm" onsubmit="saveEmployee(event)">
+            <div class="modal-header">
+                <h2 id="empModalTitle"><i class="fa-solid fa-user-plus" style="color:var(--primary);"></i> إضافة موظف جديد</h2>
+                <button type="button" class="modal-close-btn" onclick="closeModal('employeeModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="employeeForm" onsubmit="handleEmployeeSubmit(event)">
+                <input type="hidden" id="empFormId">
+
                 <div class="form-group">
-                    <label>الاسم</label>
-                    <input type="text" id="empName" required>
+                    <label><i class="fa-solid fa-user"></i> اسم الموظف الكامل</label>
+                    <input type="text" id="empFormName" required placeholder="مثال: محمد عبدالله القحطاني">
                 </div>
-                <div class="form-group">
-                    <label>القسم</label>
-                    <select id="empSection" required></select>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-building"></i> القسم</label>
+                        <select id="empFormSection" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-building-columns"></i> البنك / طريقة الصرف</label>
+                        <select id="empFormBank"></select>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>الراتب الأساسي</label>
-                    <input type="number" id="empSalary" value="0">
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-money-bill-wave"></i> الراتب الأساسي (﷼)</label>
+                        <input type="number" id="empFormSalary" value="0" min="0" step="any">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-bullseye"></i> التارجت / الهدف (﷼)</label>
+                        <input type="number" id="empFormTarget" value="0" min="0" step="any">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>التارجت (الهدف)</label>
-                    <input type="number" id="empTarget" value="0">
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-at"></i> اسم المستخدم (الدخول)</label>
+                        <input type="text" id="empFormUsername" placeholder="mohammed">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fa-solid fa-lock"></i> كلمة المرور</label>
+                        <input type="password" id="empFormPassword" placeholder="اتركه فارغاً للتخطي">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>اسم المستخدم (الدخول)</label>
-                    <input type="text" id="empUsername">
-                </div>
-                <div class="form-group">
-                    <label>كلمة المرور</label>
-                    <input type="password" id="empPassword">
-                </div>
-                <div class="form-group">
-                    <label>البنك / طريقة الصرف</label>
-                    <select id="empBank"></select>
-                </div>
-                <div class="actions" style="margin-top: 20px">
-                    <button type="submit" class="btn">حفظ الموظف</button>
-                    <button type="button" class="btn btn-danger" onclick="closeModal('addModal')">إلغاء</button>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('employeeModal')">إلغاء</button>
+                    <button type="submit" class="btn btn-primary" id="empFormSubmitBtn"><i class="fa-solid fa-check"></i> حفظ الموظف</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Edit Employee Modal -->
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <h2>تعديل بيانات الموظف</h2>
-            <br>
-            <form id="editEmployeeForm" onsubmit="updateEmployee(event)">
-                <input type="hidden" id="editEmpId">
-                <div class="form-group">
-                    <label>الاسم</label>
-                    <input type="text" id="editEmpName" required>
-                </div>
-                <div class="form-group">
-                    <label>القسم</label>
-                    <select id="editEmpSection" required></select>
-                </div>
-                <div class="form-group">
-                    <label>الراتب الأساسي</label>
-                    <input type="number" id="editEmpSalary" value="0">
-                </div>
-                <div class="form-group">
-                    <label>التارجت (الهدف)</label>
-                    <input type="number" id="editEmpTarget" value="0">
-                </div>
-                <div class="form-group">
-                    <label>اسم المستخدم (الدخول)</label>
-                    <input type="text" id="editEmpUsername">
-                </div>
-                <div class="form-group">
-                    <label>كلمة المرور الجديدة (اختياري)</label>
-                    <input type="password" id="editEmpPassword" placeholder="اتركه فارغاً لعدم التغيير">
-                </div>
-                <div class="form-group">
-                    <label>البنك / طريقة الصرف</label>
-                    <select id="editEmpBank"></select>
-                </div>
-                <div class="actions" style="margin-top: 20px">
-                    <button type="submit" class="btn">حفظ التعديلات</button>
-                    <button type="button" class="btn btn-danger" onclick="closeModal('editModal')">إلغاء</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Manage Sections Modal -->
+    <!-- =========================================================
+         Sections & Permissions Manager Modal
+         ========================================================= -->
     <div id="sectionsModal" class="modal">
-        <div class="modal-content" style="max-width: 600px;">
-            <h2>إدارة أقسام المركز</h2>
-            <br>
-            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                <input type="text" id="newSectionName" placeholder="اسم القسم الجديد" style="flex: 1; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;">
-                <button class="btn" onclick="addSection()">+ إضافة قسم</button>
+        <div class="modal-content" style="max-width: 680px;">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-building-shield" style="color:var(--warning);"></i> إدارة أقسام المركز والصلاحيات</h2>
+                <button type="button" class="modal-close-btn" onclick="closeModal('sectionsModal')"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>الرقم</th>
-                        <th>اسم القسم</th>
-                        <th>إجراءات</th>
-                    </tr>
-                </thead>
-                <tbody id="sectionsTableBody">
-                    <tr><td colspan="3" style="text-align:center">جاري التحميل...</td></tr>
-                </tbody>
-            </table>
-            <div class="actions" style="margin-top: 20px">
-                <button type="button" class="btn btn-danger" onclick="closeModal('sectionsModal')">إغلاق</button>
+
+            <!-- Add New Section Row -->
+            <div style="background:var(--surface-hover); border:1px solid var(--border-color); border-radius:12px; padding:14px; margin-bottom:18px;">
+                <div style="font-weight:800; font-size:13px; margin-bottom:10px; color:var(--text-main);"><i class="fa-solid fa-plus-circle"></i> إضافة قسم جديد</div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <input type="text" id="newSectionName" placeholder="اسم القسم (مثال: صيانة محركات)" style="flex:1; min-width:180px; height:42px; padding:0 12px; border:1.5px solid var(--border-color); border-radius:10px; background:var(--surface);">
+                    <button class="btn btn-warning" onclick="addSection()"><i class="fa-solid fa-plus"></i> إضافة قسم</button>
+                </div>
+            </div>
+
+            <!-- Sections List -->
+            <div id="sectionsListContainer" style="display:flex; flex-direction:column; gap:12px; max-height:420px; overflow-y:auto; padding-left:4px;">
+                <!-- Populated dynamically -->
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('sectionsModal')">إغلاق</button>
             </div>
         </div>
     </div>
 
-    <!-- Import Modal -->
+    <!-- =========================================================
+         Edit Section Details & Permissions Sub-Modal
+         ========================================================= -->
+    <div id="editSectionModal" class="modal">
+        <div class="modal-content" style="max-width: 520px;">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-sliders" style="color:var(--primary);"></i> إعدادات القسم وصلاحياته</h2>
+                <button type="button" class="modal-close-btn" onclick="closeModal('editSectionModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="editSectionForm" onsubmit="saveSectionDetails(event)">
+                <input type="hidden" id="editSecId">
+                
+                <div class="form-group">
+                    <label>اسم القسم</label>
+                    <input type="text" id="editSecName" required>
+                </div>
+
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label>وقت بداية الدوام</label>
+                        <input type="time" id="editSecShiftStart" value="08:00">
+                    </div>
+                    <div class="form-group">
+                        <label>وقت نهاية الدوام</label>
+                        <input type="time" id="editSecShiftEnd" value="18:00">
+                    </div>
+                </div>
+
+                <div style="font-weight:800; font-size:13px; margin: 16px 0 10px; color:var(--text-main);">صلاحيات موظفي هذا القسم:</div>
+
+                <div class="permission-toggle-box">
+                    <div>
+                        <div class="permission-toggle-info"><i class="fa-solid fa-sack-dollar" style="color:var(--success);"></i> رؤية الدخل والإنتاجية</div>
+                        <div class="permission-toggle-sub">إظهار تبويب المالية ونسب الإنجاز في بوابة الموظف</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="permViewIncome" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="permission-toggle-box">
+                    <div>
+                        <div class="permission-toggle-info"><i class="fa-solid fa-credit-card" style="color:var(--secondary);"></i> طلبات السحب المالي</div>
+                        <div class="permission-toggle-sub">السماح لموظفي القسم بإرسال طلبات سحب من رصيدهم</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="permWithdraw" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="permission-toggle-box">
+                    <div>
+                        <div class="permission-toggle-info"><i class="fa-solid fa-magnifying-glass" style="color:var(--primary);"></i> فحص وتسعير المركبات</div>
+                        <div class="permission-toggle-sub">تمكين الفحص الفني وإنشاء التسعيرات</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="permInspect">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="permission-toggle-box">
+                    <div>
+                        <div class="permission-toggle-info"><i class="fa-solid fa-boxes-stacked" style="color:var(--warning);"></i> إدارة القطع والخدمات</div>
+                        <div class="permission-toggle-sub">إمكانية تصفح وتعديل أسعار الخدمات والقطع</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="permManageParts">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editSectionModal')">إلغاء</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> حفظ إعدادات القسم</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- =========================================================
+         Banks Manager Modal
+         ========================================================= -->
+    <div id="banksModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-building-columns" style="color:var(--secondary);"></i> إدارة البنوك وجهات الصرف</h2>
+                <button type="button" class="modal-close-btn" onclick="closeModal('banksModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-bottom:16px;">
+                <input type="text" id="newBankName" placeholder="اسم البنك الجديد (مثال: بنك الإنماء)" style="flex:1; height:42px; padding:0 12px; border:1.5px solid var(--border-color); border-radius:10px; background:var(--bg-body); color:var(--text-main);">
+                <button class="btn btn-secondary" onclick="addBank()"><i class="fa-solid fa-plus"></i> إضافة</button>
+            </div>
+
+            <div id="banksListContainer" style="display:flex; flex-direction:column; gap:8px; max-height:300px; overflow-y:auto;">
+                <!-- Populated dynamically -->
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('banksModal')">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================================
+         Smart Excel Import Modal
+         ========================================================= -->
     <div id="importModal" class="modal">
-        <div class="modal-content">
-            <h2>استيراد الموظفين من ملف Excel</h2>
-            <br>
-            <input type="file" id="excelFile" accept=".xlsx,.xls">
-            <div class="actions" style="margin-top: 20px">
-                <button class="btn" onclick="uploadExcel()" style="background:#10b981">استيراد</button>
-                <button class="btn btn-danger" onclick="closeModal('importModal')">إلغاء</button>
+        <div class="modal-content" style="max-width: 540px;">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-file-excel" style="color:var(--success);"></i> استيراد الموظفين والرواتب من Excel</h2>
+                <button type="button" class="modal-close-btn" onclick="closeModal('importModal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div style="background:var(--surface-hover); border:1px solid var(--border-color); border-radius:12px; padding:16px; margin-bottom:16px; font-size:13px; line-height:1.6;">
+                <div style="font-weight:800; color:var(--text-main); margin-bottom:4px;"><i class="fa-solid fa-wand-magic-sparkles" style="color:var(--primary);"></i> ميزة الكشف الذكي للملفات:</div>
+                <div style="color:var(--text-muted);">يدعم النظام ملفات الرواتب المصفوفية (مثل Salaries-9.xlsx) وقوائم الموظفين (موظفين.xlsx) تلقائياً، مع مطابقة الأقسام وإنشاء الحسابات.</div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                <button class="btn btn-secondary" onclick="downloadSampleExcel()" style="justify-content:center; padding:12px;">
+                    <i class="fa-solid fa-download"></i> تحميل نموذج Excel الاسترشادي
+                </button>
+                <button class="btn btn-success" onclick="document.getElementById('excelFileInput').click()" style="justify-content:center; padding:12px;">
+                    <i class="fa-solid fa-folder-open"></i> اختيار ملف Excel ورفعه
+                </button>
+                <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none;" onchange="handleExcelUpload(this)">
+            </div>
+
+            <div id="excelUploadResult" style="margin-top:16px; display:none;"></div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('importModal')">إغلاق</button>
             </div>
         </div>
     </div>
 
+    <!-- =========================================================
+         Application JavaScript Logic
+         ========================================================= -->
     <script>
-        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        let allEmployees = [];
+        let allSections = [];
+        let allBanks = [];
 
-        async function loadEmployees() {
-            try {
-                const res = await fetch('/api/employees');
-                const data = await res.json();
-                const tbody = document.getElementById('employeesTableBody');
-                tbody.innerHTML = '';
-                
-                if (data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">لا يوجد موظفين</td></tr>';
-                    return;
-                }
-
-                data.forEach(emp => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${emp.name}</td>
-                        <td>${emp.section_name || '-'}</td>
-                        <td>${emp.base_salary || 0}</td>
-                        <td>${emp.target || 0}</td>
-                        <td>${emp.bank_name || 'كاش'}</td>
-                        <td>${emp.username || '-'}</td>
-                        <td>
-                            <div class="actions">
-                                <button class="btn" style="padding: 5px 10px; font-size: 12px; background: var(--primary)" onclick="openEditModal(${emp.id}, '${emp.name.replace(/'/g, "\\'")}', '${emp.section_id || ''}', ${emp.base_salary || 0}, ${emp.target || 0}, '${emp.username || ''}', '${emp.password || ''}', '${(emp.bank_name || 'كاش').replace(/'/g, "\\'")}')">تعديل</button>
-                                <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px" onclick="deleteEmployee(${emp.id})">حذف</button>
-                            </div>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (e) {
-                console.error(e);
-            }
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            if (modal) modal.style.display = 'flex';
         }
 
-        async function saveEmployee(e) {
-            e.preventDefault();
-            const payload = {
-                name: document.getElementById('empName').value,
-                section_id: document.getElementById('empSection').value,
-                base_salary: document.getElementById('empSalary').value || 0,
-                target: document.getElementById('empTarget').value || 0,
-                username: document.getElementById('empUsername').value,
-                password: document.getElementById('empPassword').value,
-                bank_name: document.getElementById('empBank')?.value || 'كاش',
-                is_active: 1
-            };
-            
-            try {
-                const res = await fetch('/api/employees', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
-                if (res.ok) {
-                    closeModal('addModal');
-                    e.target.reset();
-                    loadEmployees();
-                    if(typeof showSuccess === 'function') showSuccess('تمت الإضافة بنجاح');
-                } else {
-                    const txt = await res.text();
-                    if(typeof showError === 'function') showError('فشل الحفظ: ' + txt);
-                }
-            } catch (err) {
-                console.error(err);
-            }
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            if (modal) modal.style.display = 'none';
         }
 
-        function openEditModal(id, name, sectionId, salary, target, username, password, bankName) {
-            document.getElementById('editEmpId').value = id;
-            document.getElementById('editEmpName').value = name;
-            document.getElementById('editEmpSection').value = sectionId;
-            document.getElementById('editEmpSalary').value = salary;
-            document.getElementById('editEmpTarget').value = target;
-            document.getElementById('editEmpUsername').value = username;
-            document.getElementById('editEmpPassword').value = password;
-            if (document.getElementById('editEmpBank') && bankName) {
-                const sel = document.getElementById('editEmpBank');
-                if (!Array.from(sel.options).some(o => o.value === bankName)) {
-                    const opt = document.createElement('option');
-                    opt.value = bankName;
-                    opt.textContent = bankName;
-                    sel.appendChild(opt);
-                }
-                sel.value = bankName;
-            }
-            openModal('editModal');
-        }
+        // Close modal on click outside
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.style.display = 'none';
+            });
+        });
 
-        async function updateEmployee(e) {
-            e.preventDefault();
-            const id = document.getElementById('editEmpId').value;
-            const payload = {
-                name: document.getElementById('editEmpName').value,
-                section_id: document.getElementById('editEmpSection').value,
-                base_salary: document.getElementById('editEmpSalary').value || 0,
-                target: document.getElementById('editEmpTarget').value || 0,
-                username: document.getElementById('editEmpUsername').value,
-                password: document.getElementById('editEmpPassword').value,
-                bank_name: document.getElementById('editEmpBank')?.value || 'كاش',
-                is_active: 1
-            };
-            
-            try {
-                const res = await fetch('/api/employees/' + id, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
-                if (res.ok) {
-                    closeModal('editModal');
-                    loadEmployees();
-                    if(typeof showSuccess === 'function') showSuccess('تم تعديل البيانات بنجاح');
-                } else {
-                    const txt = await res.text();
-                    if(typeof showError === 'function') showError('فشل التعديل: ' + txt);
-                }
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        async function deleteEmployee(id) {
-            if (!confirm('هل أنت متأكد من حذف هذا الموظف؟ لن يمكن التراجع عن هذا الإجراء.')) return;
-            
-            try {
-                const res = await fetch('/api/employees/' + id, { method: 'DELETE' });
-                if (res.ok) {
-                    loadEmployees();
-                    if(typeof showSuccess === 'function') showSuccess('تم حذف الموظف بنجاح');
-                } else {
-                    const txt = await res.text();
-                    if(typeof showError === 'function') showError('فشل الحذف: ' + txt);
-                }
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        async function uploadExcel() {
-            const fileInput = document.getElementById('excelFile');
-            if (!fileInput.files.length) {
-                alert('الرجاء اختيار ملف');
-                return;
-            }
-            const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
-
-            try {
-                // Using the salary sheet import as requested
-                const res = await fetch('/api/employees/import-from-salary-sheet', {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await res.json();
-                
-                if (res.ok) {
-                    alert('تم الاستيراد بنجاح! تم استيراد ' + (data.imported || 0) + ' وتم تجاهل ' + (data.duplicates || 0) + ' موظف مكرر.');
-                    closeModal('importModal');
-                    loadEmployees();
-                } else {
-                    alert('خطأ: ' + (data.error || 'حدث خطأ غير معروف'));
-                }
-            } catch (err) {
-                console.error(err);
-                alert('فشل الاتصال بالخادم');
-            }
+        /* --- Load Core Data --- */
+        async function loadAllData() {
+            await Promise.all([loadSections(), loadBanks()]);
+            await loadEmployees();
         }
 
         async function loadSections() {
             try {
                 const res = await fetch('/api/sections');
-                const data = await res.json();
+                allSections = await res.json();
                 
-                // Populate selects
-                const addSel = document.getElementById('empSection');
-                const editSel = document.getElementById('editEmpSection');
-                const optionsHtml = '<option value="">اختر القسم...</option>' + data.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-                if(addSel) addSel.innerHTML = optionsHtml;
-                if(editSel) editSel.innerHTML = optionsHtml;
+                // Update dropdowns
+                const empSecSel = document.getElementById('empFormSection');
+                const filterSecSel = document.getElementById('filterSection');
+                
+                const options = allSections.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+                if (empSecSel) empSecSel.innerHTML = options;
+                if (filterSecSel) filterSecSel.innerHTML = '<option value="">جميع الأقسام</option>' + options;
 
-                // Populate table
-                const tbody = document.getElementById('sectionsTableBody');
-                if(!tbody) return;
-                tbody.innerHTML = '';
-                if(data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center">لا يوجد أقسام</td></tr>';
-                    return;
-                }
-                data.forEach(sec => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td>${sec.id}</td>
-                        <td>${sec.name}</td>
-                        <td>
-                            <button class="btn" style="padding: 5px 10px; font-size: 12px; background: var(--primary)" onclick="editSection(${sec.id}, '${sec.name.replace(/'/g, "\\'")}')">تعديل</button>
-                            <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px" onclick="deleteSection(${sec.id})">حذف</button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (e) {
-                console.error(e);
+                document.getElementById('kpiTotalSections').textContent = allSections.length;
+            } catch (err) {
+                console.error('Error loading sections:', err);
             }
-        }
-
-        async function addSection() {
-            const name = document.getElementById('newSectionName').value.trim();
-            if(!name) return alert('يرجى إدخال اسم القسم');
-            try {
-                const res = await fetch('/api/sections', {
-                    method: 'POST',
-                    headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({name})
-                });
-                if(res.ok) {
-                    document.getElementById('newSectionName').value = '';
-                    loadSections();
-                } else {
-                    alert('فشل إضافة القسم');
-                }
-            } catch(e) { console.error(e); }
-        }
-
-        async function editSection(id, oldName) {
-            const newName = prompt('تعديل اسم القسم:', oldName);
-            if(!newName || newName.trim() === oldName || newName.trim() === '') return;
-            try {
-                const res = await fetch('/api/sections/' + id, {
-                    method: 'PUT',
-                    headers: {'Content-Type':'application/json'},
-                    body: JSON.stringify({name: newName.trim()})
-                });
-                if(res.ok) {
-                    loadSections();
-                    loadEmployees(); // update names in employees table
-                } else {
-                    alert('فشل تعديل القسم');
-                }
-            } catch(e) { console.error(e); }
-        }
-
-        async function deleteSection(id) {
-            if(!confirm('هل أنت متأكد من حذف هذا القسم؟ لا يمكن الحذف إذا كان هناك موظفين مرتبطين به.')) return;
-            try {
-                const res = await fetch('/api/sections/' + id, { method: 'DELETE' });
-                if(res.ok) {
-                    loadSections();
-                } else {
-                    const txt = await res.json();
-                    alert(txt.message || 'فشل حذف القسم');
-                }
-            } catch(e) { console.error(e); }
         }
 
         async function loadBanks() {
             try {
                 const res = await fetch('/api/banks');
-                const banks = await res.json();
-                const addSel = document.getElementById('empBank');
-                const editSel = document.getElementById('editEmpBank');
-                const optionsHtml = banks.map(b => `<option value="${b.name}">${b.name}</option>`).join('');
-                if (addSel) addSel.innerHTML = optionsHtml;
-                if (editSel) editSel.innerHTML = optionsHtml;
-            } catch (e) {
-                console.error(e);
+                allBanks = await res.json();
+                
+                const empBankSel = document.getElementById('empFormBank');
+                const filterBankSel = document.getElementById('filterBank');
+                
+                const options = allBanks.map(b => `<option value="${b.name}">${b.name}</option>`).join('');
+                if (empBankSel) empBankSel.innerHTML = options;
+                if (filterBankSel) filterBankSel.innerHTML = '<option value="">جميع البنوك / الصرف</option>' + options;
+            } catch (err) {
+                console.error('Error loading banks:', err);
             }
         }
 
-        loadSections();
-        loadBanks();
-        loadEmployees();
+        async function loadEmployees() {
+            try {
+                const res = await fetch('/api/employees');
+                allEmployees = await res.json();
+                
+                updateKpis();
+                renderEmployeesTable(allEmployees);
+            } catch (err) {
+                console.error('Error loading employees:', err);
+                document.getElementById('employeesTableBody').innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--danger); padding:20px;">تعذر تحميل بيانات الموظفين</td></tr>';
+            }
+        }
+
+        function updateKpis() {
+            document.getElementById('kpiTotalEmployees').textContent = allEmployees.length;
+            const activeCount = allEmployees.filter(e => e.is_active !== 0).length;
+            document.getElementById('kpiActiveEmployees').textContent = activeCount;
+
+            const totalSalary = allEmployees.reduce((sum, e) => sum + (Number(e.base_salary) || 0), 0);
+            document.getElementById('kpiTotalSalaries').textContent = totalSalary.toLocaleString() + ' ﷼';
+        }
+
+        /* --- Render Table & Filtering --- */
+        function renderEmployeesTable(list) {
+            const tbody = document.getElementById('employeesTableBody');
+            if (!tbody) return;
+
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--text-muted); font-size:13px;">لا يوجد موظفون مطابقون لخيارات البحث</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = list.map(emp => {
+                const initials = emp.name.trim().split(' ').map(n => n[0]).slice(0, 2).join('') || '--';
+                const section = allSections.find(s => s.id == emp.section_id);
+                const shiftTime = (section && section.shift_start) ? `${section.shift_start} - ${section.shift_end}` : 'غير محدد';
+                const isActive = emp.is_active !== 0;
+
+                return `
+                    <tr>
+                        <td>
+                            <div class="emp-profile-cell">
+                                <div class="emp-avatar">${initials}</div>
+                                <div>
+                                    <div class="emp-name-text">${emp.name}</div>
+                                    <div class="emp-user-text">@${emp.username || 'بدون حساب'}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge-pill badge-section"><i class="fa-solid fa-building"></i> ${emp.section_name || 'عام'}</span>
+                        </td>
+                        <td style="font-size:12px; font-weight:700; color:var(--text-muted);">
+                            <i class="fa-regular fa-clock"></i> ${shiftTime}
+                        </td>
+                        <td style="font-weight:800;">${(Number(emp.base_salary) || 0).toLocaleString()} ﷼</td>
+                        <td style="font-weight:800; color:var(--primary);">${(Number(emp.target) || 0).toLocaleString()} ﷼</td>
+                        <td>
+                            <span class="badge-pill badge-bank"><i class="fa-solid fa-building-columns"></i> ${emp.bank_name || 'كاش'}</span>
+                        </td>
+                        <td>
+                            <span class="badge-pill ${isActive ? 'badge-active' : 'badge-inactive'}">
+                                ${isActive ? '● نشط' : '○ متوقف'}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="table-actions">
+                                <button class="action-icon-btn" onclick="openEditEmployeeModal(${emp.id})" title="تعديل الموظف">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button class="action-icon-btn delete" onclick="deleteEmployee(${emp.id})" title="حذف الموظف">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterEmployees() {
+            const query = document.getElementById('searchInput').value.trim().toLowerCase();
+            const sectionFilter = document.getElementById('filterSection').value;
+            const bankFilter = document.getElementById('filterBank').value;
+
+            const filtered = allEmployees.filter(emp => {
+                const matchQuery = !query || 
+                    (emp.name && emp.name.toLowerCase().includes(query)) ||
+                    (emp.username && emp.username.toLowerCase().includes(query)) ||
+                    (emp.bank_name && emp.bank_name.toLowerCase().includes(query));
+                
+                const matchSection = !sectionFilter || emp.section_id == sectionFilter;
+                const matchBank = !bankFilter || emp.bank_name === bankFilter;
+
+                return matchQuery && matchSection && matchBank;
+            });
+
+            renderEmployeesTable(filtered);
+        }
+
+        /* --- Employee Modals (Add / Edit) --- */
+        function openAddEmployeeModal() {
+            document.getElementById('empModalTitle').innerHTML = '<i class="fa-solid fa-user-plus" style="color:var(--primary);"></i> إضافة موظف جديد';
+            document.getElementById('empFormId').value = '';
+            document.getElementById('employeeForm').reset();
+            document.getElementById('empFormSalary').value = 0;
+            document.getElementById('empFormTarget').value = 0;
+            openModal('employeeModal');
+        }
+
+        function openEditEmployeeModal(id) {
+            const emp = allEmployees.find(e => e.id == id);
+            if (!emp) return;
+
+            document.getElementById('empModalTitle').innerHTML = '<i class="fa-solid fa-user-pen" style="color:var(--primary);"></i> تعديل بيانات الموظف';
+            document.getElementById('empFormId').value = emp.id;
+            document.getElementById('empFormName').value = emp.name;
+            document.getElementById('empFormSection').value = emp.section_id || '';
+            document.getElementById('empFormSalary').value = emp.base_salary || 0;
+            document.getElementById('empFormTarget').value = emp.target || 0;
+            document.getElementById('empFormUsername').value = emp.username || '';
+            document.getElementById('empFormPassword').value = '';
+            document.getElementById('empFormBank').value = emp.bank_name || (allBanks[0]?.name || 'كاش');
+            
+            openModal('employeeModal');
+        }
+
+        async function handleEmployeeSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('empFormId').value;
+            const payload = {
+                name: document.getElementById('empFormName').value.trim(),
+                section_id: document.getElementById('empFormSection').value,
+                base_salary: Number(document.getElementById('empFormSalary').value) || 0,
+                target: Number(document.getElementById('empFormTarget').value) || 0,
+                username: document.getElementById('empFormUsername').value.trim(),
+                password: document.getElementById('empFormPassword').value.trim(),
+                bank_name: document.getElementById('empFormBank').value,
+                is_active: 1
+            };
+
+            const isEdit = !!id;
+            const url = isEdit ? `/api/employees/${id}` : '/api/employees';
+            const method = isEdit ? 'PUT' : 'POST';
+
+            try {
+                const res = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    closeModal('employeeModal');
+                    if (typeof showSuccess === 'function') {
+                        showSuccess(isEdit ? 'تم تحديث بيانات الموظف بنجاح' : 'تم إضافة الموظف الجديد بنجاح');
+                    }
+                    loadEmployees();
+                } else {
+                    const txt = await res.text();
+                    if (typeof showError === 'function') showError('فشل الحفظ: ' + txt);
+                }
+            } catch (err) {
+                console.error(err);
+                if (typeof showError === 'function') showError('تعذر الاتصال بالخادم');
+            }
+        }
+
+        async function deleteEmployee(id) {
+            const emp = allEmployees.find(e => e.id == id);
+            const name = emp ? emp.name : 'هذا الموظف';
+            
+            if (typeof showConfirm === 'function') {
+                showConfirm(`هل أنت متأكد من رغبتك في حذف الموظف (${name}) نهائياً؟`, async () => {
+                    await executeDeleteEmployee(id);
+                });
+            } else {
+                if (!confirm(`هل أنت متأكد من حذف الموظف (${name})؟`)) return;
+                await executeDeleteEmployee(id);
+            }
+        }
+
+        async function executeDeleteEmployee(id) {
+            try {
+                const res = await fetch(`/api/employees/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    if (typeof showSuccess === 'function') showSuccess('تم حذف الموظف بنجاح');
+                    loadEmployees();
+                } else {
+                    const txt = await res.text();
+                    if (typeof showError === 'function') showError('فشل الحذف: ' + txt);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        /* --- Sections & Permissions Modal Logic --- */
+        function openSectionsModal() {
+            renderSectionsList();
+            openModal('sectionsModal');
+        }
+
+        function renderSectionsList() {
+            const container = document.getElementById('sectionsListContainer');
+            if (!container) return;
+
+            if (allSections.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted);">لا توجد أقسام مسجلة</div>';
+                return;
+            }
+
+            container.innerHTML = allSections.map(sec => {
+                const shift = sec.shift_start ? `${sec.shift_start} - ${sec.shift_end}` : '08:00 - 18:00';
+                return `
+                    <div style="background:var(--surface); border:1px solid var(--border-color); border-radius:12px; padding:14px 16px; display:flex; justify-content:space-between; align-items:center; box-shadow:var(--shadow-sm);">
+                        <div>
+                            <div style="font-weight:800; font-size:14px; color:var(--text-main); display:flex; align-items:center; gap:8px;">
+                                <span>${sec.name}</span>
+                                <span style="font-size:11px; color:var(--text-muted); font-weight:600;">(دوام: ${shift})</span>
+                            </div>
+                            <div style="font-size:11.5px; color:var(--text-muted); margin-top:4px; display:flex; gap:10px;">
+                                <span>${sec.can_view_income !== 0 ? '🟢 رؤية الدخل' : '🔒 دخل مخفي'}</span>
+                                <span>${sec.can_withdraw !== 0 ? '🟢 سحب مالي' : '🔒 سحب مقفل'}</span>
+                                <span>${sec.can_inspect === 1 ? '🟢 كشف وتسعير' : '⚪ بدون كشف'}</span>
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn btn-secondary" style="padding:6px 12px; font-size:12px;" onclick="openEditSectionModal(${sec.id})">
+                                <i class="fa-solid fa-sliders"></i> الصلاحيات والدوام
+                            </button>
+                            <button class="action-icon-btn delete" onclick="deleteSection(${sec.id})">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function addSection() {
+            const input = document.getElementById('newSectionName');
+            const name = input.value.trim();
+            if (!name) {
+                if (typeof showError === 'function') showError('يرجى كتابة اسم القسم');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/sections', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+
+                if (res.ok) {
+                    input.value = '';
+                    await loadSections();
+                    renderSectionsList();
+                    if (typeof showSuccess === 'function') showSuccess('تمت إضافة القسم بنجاح');
+                } else {
+                    const txt = await res.text();
+                    if (typeof showError === 'function') showError('فشل إضافة القسم: ' + txt);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function openEditSectionModal(id) {
+            const sec = allSections.find(s => s.id == id);
+            if (!sec) return;
+
+            document.getElementById('editSecId').value = sec.id;
+            document.getElementById('editSecName').value = sec.name;
+            document.getElementById('editSecShiftStart').value = sec.shift_start || '08:00';
+            document.getElementById('editSecShiftEnd').value = sec.shift_end || '18:00';
+            document.getElementById('permViewIncome').checked = sec.can_view_income !== 0;
+            document.getElementById('permWithdraw').checked = sec.can_withdraw !== 0;
+            document.getElementById('permInspect').checked = sec.can_inspect === 1;
+            document.getElementById('permManageParts').checked = sec.can_manage_parts === 1;
+
+            openModal('editSectionModal');
+        }
+
+        async function saveSectionDetails(e) {
+            e.preventDefault();
+            const id = document.getElementById('editSecId').value;
+            const payload = {
+                name: document.getElementById('editSecName').value.trim(),
+                shift_start: document.getElementById('editSecShiftStart').value,
+                shift_end: document.getElementById('editSecShiftEnd').value,
+                can_view_income: document.getElementById('permViewIncome').checked ? 1 : 0,
+                can_withdraw: document.getElementById('permWithdraw').checked ? 1 : 0,
+                can_inspect: document.getElementById('permInspect').checked ? 1 : 0,
+                can_manage_parts: document.getElementById('permManageParts').checked ? 1 : 0
+            };
+
+            try {
+                const res = await fetch(`/api/sections/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    closeModal('editSectionModal');
+                    await loadSections();
+                    renderSectionsList();
+                    loadEmployees();
+                    if (typeof showSuccess === 'function') showSuccess('تم حفظ إعدادات وصلاحيات القسم بنجاح');
+                } else {
+                    const txt = await res.text();
+                    if (typeof showError === 'function') showError('فشل التعديل: ' + txt);
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function deleteSection(id) {
+            const sec = allSections.find(s => s.id == id);
+            const name = sec ? sec.name : 'القسم';
+            
+            if (!confirm(`هل أنت متأكد من حذف ${name}؟ لن يمكن الحذف إذا كان هناك موظفون مسندون إليه.`)) return;
+
+            try {
+                const res = await fetch(`/api/sections/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    await loadSections();
+                    renderSectionsList();
+                    loadEmployees();
+                    if (typeof showSuccess === 'function') showSuccess('تم حذف القسم بنجاح');
+                } else {
+                    const data = await res.json();
+                    if (typeof showError === 'function') showError(data.message || 'فشل حذف القسم');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        /* --- Banks Manager Modal Logic --- */
+        function openBanksModal() {
+            renderBanksList();
+            openModal('banksModal');
+        }
+
+        function renderBanksList() {
+            const container = document.getElementById('banksListContainer');
+            if (!container) return;
+
+            if (allBanks.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:15px; color:var(--text-muted);">لا توجد بنوك مسجلة</div>';
+                return;
+            }
+
+            container.innerHTML = allBanks.map(b => `
+                <div style="background:var(--surface-hover); border:1px solid var(--border-color); border-radius:10px; padding:10px 14px; display:flex; justify-content:space-between; align-items:center;">
+                    <div style="font-weight:700; font-size:13.5px;"><i class="fa-solid fa-building-columns" style="color:var(--secondary); margin-left:6px;"></i> ${b.name}</div>
+                    <button class="action-icon-btn delete" onclick="deleteBank(${b.id})" title="حذف البنك">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        async function addBank() {
+            const input = document.getElementById('newBankName');
+            const name = input.value.trim();
+            if (!name) return;
+
+            try {
+                const res = await fetch('/api/banks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+
+                if (res.ok) {
+                    input.value = '';
+                    await loadBanks();
+                    renderBanksList();
+                    if (typeof showSuccess === 'function') showSuccess('تم إضافة البنك بنجاح');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function deleteBank(id) {
+            if (!confirm('هل تريد حذف جهة الصرف هذه؟')) return;
+            try {
+                const res = await fetch(`/api/banks/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    await loadBanks();
+                    renderBanksList();
+                    if (typeof showSuccess === 'function') showSuccess('تم حذف البنك بنجاح');
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        /* --- Smart Excel Import Modal Logic --- */
+        function openImportModal() {
+            document.getElementById('excelUploadResult').style.display = 'none';
+            document.getElementById('excelUploadResult').innerHTML = '';
+            document.getElementById('excelFileInput').value = '';
+            openModal('importModal');
+        }
+
+        async function handleExcelUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const resultDiv = document.getElementById('excelUploadResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div style="color:var(--primary); font-weight:700; text-align:center; padding:12px;"><i class="fa-solid fa-spinner fa-spin"></i> جاري معالجة واستيراد الملف...</div>';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const res = await fetch('/api/employees/import-excel', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await res.json();
+
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:14px; font-size:13px;">
+                            <div style="color:#166534; font-weight:800; font-size:14px; margin-bottom:6px;"><i class="fa-solid fa-circle-check"></i> ${result.message}</div>
+                            <div>تم استيراد: <strong>${result.added}</strong> موظف ${result.skipped > 0 ? `| تم تخطي: <strong>${result.skipped}</strong> (مكرر)` : ''}</div>
+                        </div>
+                    `;
+                    await loadAllData();
+                    if (typeof showSuccess === 'function') showSuccess(result.message);
+                } else {
+                    resultDiv.innerHTML = `<div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:14px; color:#b91c1c; font-weight:700;"><i class="fa-solid fa-circle-xmark"></i> ${result.message || 'فشل الاستيراد'}</div>`;
+                }
+            } catch (err) {
+                console.error(err);
+                resultDiv.innerHTML = `<div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:14px; color:#b91c1c;">تعذر الاتصال بالخادم</div>`;
+            } finally {
+                input.value = '';
+            }
+        }
+
+        function downloadSampleExcel() {
+            const rows = [
+                ['اسم', 'قسم', 'هدف', 'راتب', 'مستخدم', 'كلمة المرور', 'بنك'],
+                ['محمد علي', 'مكانيكا', '5000', '3000', 'mohammed', 'pass123', 'الاهلي'],
+                ['فهد أحمد', 'كهرباء', '4000', '2500', 'fahad', 'pass123', 'الراجحي'],
+                ['خالد سعد', 'كشف', '6000', '3500', 'khaled', 'pass123', 'كاش']
+            ];
+            const csvContent = '\uFEFF' + rows.map(r => r.join('\t')).join('\n');
+            const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'نموذج_استيراد_موظفين.xls';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        /* --- Dark Mode Toggle --- */
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark);
+            document.getElementById('darkModeIcon').textContent = isDark ? '☀️' : '🌙';
+        }
+
+        // Init Dark Mode from storage
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+            const icon = document.getElementById('darkModeIcon');
+            if (icon) icon.textContent = '☀️';
+        }
+
+        // Initialize!
+        loadAllData();
     </script>
 </body>
 </html>
