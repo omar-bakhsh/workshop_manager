@@ -8,10 +8,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="toast.css?v=5.2">
-    <link rel="stylesheet" href="public/css/admin.css?v=5.4">
+    <link rel="stylesheet" href="public/css/admin.css?v=5.6">
     <script src="toast.js?v=5.0"></script>
     <script src="toast_helpers.js?v=5.0"></script>
-    <script src="public/js/app-config.js"></script>
+    <script src="public/js/app-config.js?v=5.6"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
@@ -47,6 +47,11 @@
                 <a href="#" class="nav-item" onclick="openShiftModal(); toggleMobileSidebar(false);" title="مواعيد العمل">
                     <span class="nav-icon"><i class="fa-solid fa-clock"></i></span>
                     <span>مواعيد العمل والورديات</span>
+                </a>
+                <a href="#" class="nav-item" onclick="toggleAdminChat(); toggleMobileSidebar(false);" title="دردشة الموظفين المباشرة">
+                    <span class="nav-icon"><i class="fa-solid fa-comments"></i></span>
+                    <span>دردشة الموظفين</span>
+                    <span id="sidebarChatBadge" class="badge-status badge-status-danger" style="display:none; margin-right:auto; padding:2px 7px; font-size:11px; border-radius:12px;">0</span>
                 </a>
 
                 <div class="nav-separator">العمليات والورشة</div>
@@ -133,6 +138,13 @@
                     <button class="action-icon-btn" onclick="printWithdrawalList()" title="طباعة كشف السحبيات">
                         <span>🖨️</span>
                         <span class="btn-desktop-text">كشف السحبيات</span>
+                    </button>
+
+                    <!-- Employee Chat Toggle Button -->
+                    <button class="action-icon-btn chat-toggle-btn" onclick="toggleAdminChat()" title="دردشة الموظفين المباشرة" style="position:relative;">
+                        <span><i class="fa-solid fa-comments"></i></span>
+                        <span class="btn-desktop-text">الدردشة</span>
+                        <span id="chatBadge" class="badge-dot-admin" style="display:none; top:-3px; right:-3px; background:#ef4444;">0</span>
                     </button>
 
                     <!-- Notification Bell with Dropdown -->
@@ -702,8 +714,52 @@
             </div>
         </div>
     </div>
+    <!-- Floating Quick Chat Action Button -->
+    <div id="floatingChatBtn" onclick="toggleAdminChat()" title="دردشة الموظفين المباشرة" style="position:fixed; bottom:25px; left:25px; width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg, #4f46e5, #6366f1); color:#fff; display:flex; align-items:center; justify-content:center; font-size:24px; box-shadow:0 8px 24px rgba(79, 70, 229, 0.4); cursor:pointer; z-index:9990; transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+        <i class="fa-solid fa-comments"></i>
+        <span id="floatingChatBadge" class="badge-dot-admin" style="display:none; position:absolute; top:-2px; right:-2px; background:#ef4444; border:2px solid #fff;">0</span>
+    </div>
+
+    <!-- Admin Live Chat Widget Container -->
+    <div id="adminChatWidget" class="admin-chat-widget" style="display:none;">
+        <div class="admin-chat-header">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div class="chat-header-avatar"><i class="fa-solid fa-comments"></i></div>
+                <div>
+                    <h3 style="margin:0; font-size:15px; font-weight:800; color:#fff;">دردشة الموظفين</h3>
+                    <div style="font-size:11px; color:#e0e7ff; opacity:0.85;">تواصل فوري مع فريق العمل</div>
+                </div>
+            </div>
+            <button type="button" class="chat-close-btn" onclick="toggleAdminChat()" title="إغلاق الدردشة">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="admin-chat-selector-bar">
+            <label style="font-size:12px; font-weight:700; color:var(--text-dark); display:flex; align-items:center; gap:5px;">
+                <i class="fa-solid fa-user-tag" style="color:var(--primary);"></i> المحادثة مع:
+            </label>
+            <select id="chatEmployeeSelect" onchange="loadAdminChat(this.value)" class="chat-employee-select">
+                <option value="">-- اختر موظفاً لبدء المحادثة --</option>
+            </select>
+        </div>
+
+        <div id="adminChatBody" class="admin-chat-messages-area">
+            <div style="text-align:center; padding:40px 20px; color:var(--text-gray); font-size:13px;">
+                <i class="fa-solid fa-comments" style="font-size:32px; color:#cbd5e1; margin-bottom:10px; display:block;"></i>
+                يرجى اختيار موظف من القائمة أعلاه لعرض المحادثة وإرسال الرسائل
+            </div>
+        </div>
+
+        <div class="admin-chat-input-bar">
+            <input type="text" id="adminChatInput" placeholder="اكتب رسالتك هنا واضغط Enter..." class="chat-text-input">
+            <button type="button" class="chat-send-btn" onclick="sendAdminMessage()" title="إرسال">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
 
     <!-- Scripts -->
-    <script src="public/js/admin.js?v=5.5"></script>
+    <script src="public/js/admin.js?v=5.6"></script>
 </body>
 </html>

@@ -837,16 +837,23 @@ async function printWithdrawalList() {
 // ==========================================
 function toggleAdminChat() {
     const w = document.getElementById('adminChatWidget');
-    w.style.display = w.style.display === 'flex' ? 'none' : 'flex';
-    if(w.style.display === 'flex') updateChatEmployeeSelect();
+    if (!w) return;
+    const isShowing = w.style.display === 'flex';
+    w.style.display = isShowing ? 'none' : 'flex';
+    if (!isShowing) {
+        updateChatEmployeeSelect();
+        const s = document.getElementById('chatEmployeeSelect');
+        if (s && s.value) loadAdminChat(s.value);
+    }
 }
 
 async function updateChatEmployeeSelect() {
     const s = document.getElementById('chatEmployeeSelect');
+    if (!s) return;
     const current = s.value;
-    s.innerHTML = '<option value="">-- اختر موظفاً --</option>' + employees.map(e => {
+    s.innerHTML = '<option value="">-- اختر موظفاً لبدء المحادثة --</option>' + employees.map(e => {
         const ur = unreadCounts[e.id] || 0;
-        return `<option value="${e.id}">${e.name} ${ur > 0 ? '<i class="fa-solid fa-circle" style="color: #ef4444;"></i>' : ''}</option>`;
+        return `<option value="${e.id}">${e.name} ${ur > 0 ? `(🔴 ${ur} جديد)` : ''}</option>`;
     }).join('');
     s.value = current;
 }
@@ -858,13 +865,23 @@ async function loadAdminChat(empId) {
         checkUnreadMessages();
         const msgs = await fetch(`/api/messages/${empId}`).then(r => r.json());
         const body = document.getElementById('adminChatBody');
-        body.innerHTML = msgs.map(m => `
-            <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px; flex-direction:${m.sender === 'admin' ? 'row-reverse' : 'row'};">
-                <div style="background: ${m.sender === 'admin' ? 'var(--primary)' : '#f1f5f9'}; color: ${m.sender === 'admin' ? 'white' : 'black'}; padding: 8px 12px; border-radius: 10px; max-width: 80%; font-size: 13.5px;">
-                    <div>${m.message}</div>
-                    <div style="font-size:9.5px; opacity:0.75; text-align:left; margin-top:3px;">${new Date(m.created_at || Date.now()).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'})}</div>
+        if (!body) return;
+        if (!msgs || msgs.length === 0) {
+            body.innerHTML = `
+                <div style="text-align:center; padding:40px 15px; color:#94a3b8; font-size:13px;">
+                    <i class="fa-regular fa-comment-dots" style="font-size:32px; color:#cbd5e1; margin-bottom:8px; display:block;"></i>
+                    لا توجد رسائل سابقة مع هذا الموظف. اكتب رسالتك بالأسفل للبدء.
                 </div>
-                <button style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size:11px;" onclick="deleteAdminChatMessage(${m.id}, ${empId})" title="حذف الرسالة">
+            `;
+            return;
+        }
+        body.innerHTML = msgs.map(m => `
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-direction:${m.sender === 'admin' ? 'row-reverse' : 'row'};">
+                <div style="background: ${m.sender === 'admin' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : '#f1f5f9'}; color: ${m.sender === 'admin' ? 'white' : '#1e293b'}; padding: 9px 14px; border-radius: 14px; max-width: 80%; font-size: 13.5px; line-height: 1.4; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+                    <div>${m.message}</div>
+                    <div style="font-size:10px; opacity:0.75; text-align:left; margin-top:4px; font-weight:600;">${new Date(m.created_at || Date.now()).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'})}</div>
+                </div>
+                <button style="background:none; border:none; color:#cbd5e1; cursor:pointer; font-size:12px; padding:4px; transition:color 0.2s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#cbd5e1'" onclick="deleteAdminChatMessage(${m.id}, ${empId})" title="حذف الرسالة">
                     <i class="fa-solid fa-trash"></i>
                 </button>
             </div>`).join('');
@@ -886,7 +903,11 @@ async function deleteAdminChatMessage(msgId, empId) {
 
 async function sendAdminMessage() {
     const id = val('chatEmployeeSelect'), msg = val('adminChatInput').trim();
-    if(!id || !msg) return;
+    if(!id) {
+        alert('يرجى اختيار موظف من القائمة أولاً');
+        return;
+    }
+    if(!msg) return;
     try {
         await fetch('/api/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ employee_id: id, sender: 'admin', message: msg }) });
         document.getElementById('adminChatInput').value = '';
@@ -899,9 +920,15 @@ async function checkUnreadMessages() {
         const counts = await fetch('/api/messages/unread/admin').then(r => r.json());
         unreadCounts = {}; counts.forEach(i => unreadCounts[i.employee_id] = i.count);
         const total = counts.reduce((s, i) => s + i.count, 0);
-        const b = document.getElementById('chatBadge');
-        b.style.display = total > 0 ? 'flex' : 'none';
-        b.textContent = total;
+        const displayTxt = total > 9 ? '9+' : total;
+        
+        ['chatBadge', 'sidebarChatBadge', 'floatingChatBadge'].forEach(bid => {
+            const b = document.getElementById(bid);
+            if (b) {
+                b.style.display = total > 0 ? (bid === 'sidebarChatBadge' ? 'inline-block' : 'flex') : 'none';
+                b.textContent = displayTxt;
+            }
+        });
     } catch(e) {}
 }
 
