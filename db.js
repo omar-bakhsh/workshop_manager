@@ -191,7 +191,19 @@ async function initDatabase() {
             id INT AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(191) UNIQUE NOT NULL,
             shift_start VARCHAR(20) DEFAULT '08:00',
-            shift_end VARCHAR(20) DEFAULT '18:00'
+            shift_end VARCHAR(20) DEFAULT '18:00',
+            can_view_income TINYINT DEFAULT 1,
+            can_withdraw TINYINT DEFAULT 1,
+            can_inspect TINYINT DEFAULT 0,
+            can_manage_parts TINYINT DEFAULT 0,
+            permissions TEXT
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+
+        `CREATE TABLE IF NOT EXISTS banks (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(100) UNIQUE NOT NULL,
+            is_default TINYINT DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
 
         `CREATE TABLE IF NOT EXISTS employees (
@@ -454,7 +466,20 @@ async function initDatabase() {
     const sqliteTables = [
         `CREATE TABLE IF NOT EXISTS sections (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL
+            name TEXT NOT NULL,
+            shift_start TEXT DEFAULT '08:00',
+            shift_end TEXT DEFAULT '18:00',
+            can_view_income INTEGER DEFAULT 1,
+            can_withdraw INTEGER DEFAULT 1,
+            can_inspect INTEGER DEFAULT 0,
+            can_manage_parts INTEGER DEFAULT 0,
+            permissions TEXT
+        )`,
+        `CREATE TABLE IF NOT EXISTS banks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL,
+            is_default INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )`,
         `CREATE TABLE IF NOT EXISTS employees (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -722,6 +747,13 @@ async function initDatabase() {
     }
 
     // migrations للأعمدة الإضافية
+    await safeAddColumn('sections', 'shift_start', "VARCHAR(20) DEFAULT '08:00'");
+    await safeAddColumn('sections', 'shift_end', "VARCHAR(20) DEFAULT '18:00'");
+    await safeAddColumn('sections', 'can_view_income', "TINYINT DEFAULT 1");
+    await safeAddColumn('sections', 'can_withdraw', "TINYINT DEFAULT 1");
+    await safeAddColumn('sections', 'can_inspect', "TINYINT DEFAULT 0");
+    await safeAddColumn('sections', 'can_manage_parts', "TINYINT DEFAULT 0");
+    await safeAddColumn('sections', 'permissions', "TEXT NULL");
     await safeAddColumn('employees', 'bank_name', "VARCHAR(100) DEFAULT 'كاش'");
     await safeAddColumn('attendance', 'early_departure_minutes', "INT DEFAULT 0");
     await safeAddColumn('attendance', 'overtime_minutes', "INT DEFAULT 0");
@@ -781,6 +813,7 @@ async function autoMigrateFromSqliteIfEmpty() {
         // قائمة الجداول المراد نقلها بالترتيب المناسب للعلاقات
         const tablesToTransfer = [
             'sections',
+            'banks',
             'employees',
             'users',
             'settings',
@@ -874,6 +907,12 @@ async function seedInitialData() {
         const defaultSections = ['مكانيكا', 'كهرباء', 'كشف', 'ادارة'];
         for (const sName of defaultSections) {
             await dbRun(`INSERT IGNORE INTO sections (name) VALUES (?)`, [sName]);
+        }
+
+        // البنوك الافتراضية
+        const defaultBanks = ['الاهلي', 'الراجحي', 'بنوك محلية', 'كاش'];
+        for (const bName of defaultBanks) {
+            await dbRun(`INSERT IGNORE INTO banks (name) VALUES (?)`, [bName]);
         }
 
         // مواعيد الفرع الافتراضية
@@ -1050,6 +1089,7 @@ async function seedInitialData() {
 async function exportDatabaseJson() {
     const tables = [
         'sections',
+        'banks',
         'employees',
         'users',
         'settings',

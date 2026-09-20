@@ -8,8 +8,10 @@
 // ==========================================
 let employees = [];
 let sections = [];
+let banks = [];
 let charts = {};
 let unreadCounts = {};
+let selectedSectionFilter = 'all';
 
 // ==========================================
 // 🚀 Application Core Init
@@ -21,7 +23,10 @@ async function init() {
     updateDateHeader();
     
     // Initial Data Fetch
-    await loadData();
+    await Promise.all([
+        loadData(),
+        loadBanks()
+    ]);
     
     // Initial Component Loads
     checkNotifications();
@@ -83,8 +88,10 @@ async function loadData() {
         employees = await empRes.json();
         sections = await secRes.json();
 
+        renderSectionFilterNav();
         renderSections();
         updateSectionSelects();
+        updateBankSelects();
         updateDashboardKPIs();
     } catch (err) {
         console.error('Data Load Error:', err);
@@ -120,40 +127,99 @@ async function updateGlobalLimit(val) {
 }
 
 // ==========================================
-// 🎨 UI Rendering & Component Logic
+// 🎨 UI Rendering & Section Filter Pills
 // ==========================================
+function renderSectionFilterNav() {
+    const nav = document.getElementById('sectionFilterNav');
+    if (!nav) return;
+
+    let html = `
+        <div class="section-filter-pill ${selectedSectionFilter === 'all' ? 'active' : ''}" onclick="setSectionFilter('all')">
+            <i class="fa-solid fa-layer-group"></i>
+            <span>الكل</span>
+            <span class="pill-badge">${employees.length}</span>
+        </div>
+    `;
+
+    sections.forEach(sec => {
+        const count = employees.filter(e => e.section_id === sec.id).length;
+        const isActive = selectedSectionFilter == sec.id;
+        html += `
+            <div class="section-filter-pill ${isActive ? 'active' : ''}" onclick="setSectionFilter(${sec.id})">
+                <i class="fa-solid fa-folder"></i>
+                <span>${sec.name}</span>
+                <span class="pill-badge">${count}</span>
+            </div>
+        `;
+    });
+
+    nav.innerHTML = html;
+}
+
+function setSectionFilter(secId) {
+    selectedSectionFilter = secId;
+    renderSectionFilterNav();
+    renderSections();
+}
+
 function renderSections() {
     const container = document.getElementById('sectionsContainer');
-    if(!container) return;
+    if (!container) return;
     container.innerHTML = '';
     
-    sections.forEach(section => {
+    const visibleSections = selectedSectionFilter === 'all' 
+        ? sections 
+        : sections.filter(s => s.id == selectedSectionFilter);
+
+    if (visibleSections.length === 0) {
+        container.innerHTML = `
+            <div style="text-align:center; padding:50px 20px; background:white; border-radius:16px; border:1px dashed var(--border-color); color:var(--text-gray);">
+                <i class="fa-solid fa-folder-open" style="font-size:36px; margin-bottom:12px; opacity:0.5;"></i>
+                <div style="font-size:16px; font-weight:700;">لا توجد أقسام مسجلة حتى الآن</div>
+                <button class="btn btn-primary" onclick="openNewSectionModal()" style="margin-top:15px;">
+                    <i class="fa-solid fa-plus"></i> إضافة قسم جديد
+                </button>
+            </div>
+        `;
+        return;
+    }
+
+    visibleSections.forEach(section => {
         const sectionEmployees = employees.filter(emp => emp.section_id === section.id);
         const sectionIncome = sectionEmployees.reduce((sum, emp) => sum + (parseFloat(emp.total_income) || 0), 0);
         
+        let shiftBadge = '';
+        if (section.shift_start && section.shift_end) {
+            shiftBadge = `<span style="background:#e0e7ff; color:var(--primary); font-size:11px; padding:2px 8px; border-radius:12px; font-weight:700; margin-right:8px;"><i class="fa-solid fa-clock"></i> ${section.shift_start} - ${section.shift_end}</span>`;
+        }
+
         const card = document.createElement('div');
         card.className = 'section-card';
         card.innerHTML = `
         <div class="section-header" onclick="toggleSection('section-${section.id}')">
             <div class="section-info">
                 <div class="section-icon">📂</div>
-                <div class="section-title-group">
-                    <h2>${section.name}</h2>
+                <div class="section-title-group" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <h2 style="margin:0;">${section.name}</h2>
+                    ${shiftBadge}
                 </div>
             </div>
-            <div class="section-stats">
+            <div class="section-stats" style="display:flex; align-items:center; gap:12px;">
                 <div class="mini-stat">
                     <span class="mini-stat-val">${sectionEmployees.length}</span>
                     <span class="mini-stat-label">موظف</span>
                 </div>
                 <div class="mini-stat">
-                    <span class="mini-stat-val">${sectionIncome.toLocaleString()}</span>
+                    <span class="mini-stat-val">${sectionIncome.toLocaleString()} ﷼</span>
                     <span class="mini-stat-label">دخل اليوم</span>
                 </div>
-                <div class="mini-stat" style="display:flex; align-items:center; opacity:0.5;">▼</div>
+                <button class="section-gear-btn" onclick="openSectionPermissionsModal(${section.id}, event)" title="صلاحيات وإعدادات القسم">
+                    <i class="fa-solid fa-sliders"></i>
+                </button>
+                <div class="mini-stat" style="display:flex; align-items:center; opacity:0.6; cursor:pointer;">▼</div>
             </div>
         </div>
-        <div class="section-content collapsed" id="section-${section.id}">
+        <div class="section-content" id="section-${section.id}">
             <div class="table-container">
                 <table>
                     <thead>
@@ -161,38 +227,42 @@ function renderSections() {
                             <th>الموظف</th>
                             <th>الراتب الأساسي</th>
                             <th>التارقت</th>
+                            <th>البنك / الصرف</th>
                             <th>سحوبات اليوم</th>
-                            <th style="background:#f0fdf4; color:#166534;">راتب متبقي من اكسل</th>
-                            <th>الدخل المحلي</th>
+                            <th style="background:#f0fdf4; color:#166534;">صافي متبقي (Excel)</th>
+                            <th>دخل اليوم</th>
                             <th>الإنجاز</th>
                             <th>إجراءات</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${sectionEmployees.map(emp => {
+                        ${sectionEmployees.length === 0 ? `
+                            <tr><td colspan="9" style="text-align:center; padding:20px; color:var(--text-gray);">لا يوجد موظفين في هذا القسم حتى الآن</td></tr>
+                        ` : sectionEmployees.map(emp => {
                             const income = parseFloat(emp.total_income) || 0;
-                            const target = parseFloat(emp.target) || 0;
+                            const target = parseFloat(emp.target || emp.target_amount) || 0;
                             const percent = target > 0 ? Math.round((income / target) * 100) : 0;
                             return `
                             <tr>
                                 <td data-label="الموظف">
-                                    <div style="font-weight:800; font-size:14px;">${emp.name}</div>
-                                    <div style="font-size:11px; color:var(--text-gray); font-weight:600;">${emp.username}</div>
+                                    <div style="font-weight:800; font-size:14px; color:var(--text-dark);">${emp.name}</div>
+                                    <div style="font-size:11px; color:var(--text-gray); font-weight:600;">${emp.username ? '@' + emp.username : 'بدون حساب'}</div>
                                 </td>
                                 <td data-label="الراتب الأساسي">${(parseFloat(emp.base_salary) || 0).toLocaleString()} ﷼</td>
-                                <td data-label="التارقت">${(parseFloat(emp.target_amount) || 0).toLocaleString()} ﷼</td>
-                                <td data-label="سحوبات اليوم" style="color:var(--danger); font-weight:800;">${(parseFloat(emp.total_withdrawals) || 0).toLocaleString()} ﷼</td>
-                                <td data-label="راتب متبقي (إكسل)" style="background:#f7fff9; font-weight:900; color:#15803d;">${(parseFloat(emp.net_remaining) || 0).toLocaleString()} ﷼</td>
-                                <td data-label="الدخل المحلي" style="font-weight:800; color:var(--primary);">${income.toLocaleString()} ﷼</td>
+                                <td data-label="التارقت">${(parseFloat(emp.target || emp.target_amount) || 0).toLocaleString()} ﷼</td>
+                                <td data-label="البنك">${emp.bank_name || 'كاش'}</td>
+                                <td data-label="سحوبات اليوم" style="color:var(--danger); font-weight:800;">${(parseFloat(emp.total_withdrawal || emp.total_withdrawals) || 0).toLocaleString()} ﷼</td>
+                                <td data-label="صافي متبقي (Excel)" style="background:#f7fff9; font-weight:900; color:#15803d;">${(parseFloat(emp.net_remaining) || 0).toLocaleString()} ﷼</td>
+                                <td data-label="دخل اليوم" style="font-weight:800; color:var(--primary);">${income.toLocaleString()} ﷼</td>
                                 <td data-label="الإنجاز">
                                     <span style="font-weight:800; color:${getPercentColor(percent)};">${percent}%</span>
                                 </td>
                                 <td data-label="إجراءات">
-                                    <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
-                                        <button class="action-btn-pill" style="background:#fef2f2; color:var(--danger);" onclick="deleteEmployee(${emp.id})" title="حذف">🗑️</button>
-                                        <button class="action-btn-pill" style="background:#f0f9ff; color:var(--primary);" onclick="openEditModal(${emp.id})" title="تعديل">✏️</button>
-                                        <button class="action-btn-pill" style="background:#f0fdf4; color:var(--success);" onclick="openIncomeModal(${emp.id})" title="إيداع"><i class="fa-solid fa-sack-dollar"></i></button>
-                                        <button class="action-btn-pill" style="background:#fffbeb; color:var(--warning);" onclick="openWithdrawalModal(${emp.id})" title="سحب"><i class="fa-solid fa-credit-card"></i></button>
+                                    <div style="display:flex; justify-content:center; gap:6px; flex-wrap:wrap;">
+                                        <button class="action-btn-pill" style="background:#f0fdf4; color:var(--success);" onclick="openIncomeModal(${emp.id})" title="إيداع دخل"><i class="fa-solid fa-sack-dollar"></i></button>
+                                        <button class="action-btn-pill" style="background:#fffbeb; color:var(--warning);" onclick="openWithdrawalModal(${emp.id})" title="تسجيل سحب"><i class="fa-solid fa-credit-card"></i></button>
+                                        <button class="action-btn-pill" style="background:#f0f9ff; color:var(--primary);" onclick="openEditModal(${emp.id})" title="تعديل"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="action-btn-pill" style="background:#fef2f2; color:var(--danger);" onclick="deleteEmployee(${emp.id})" title="حذف"><i class="fa-solid fa-trash"></i></button>
                                     </div>
                                 </td>
                             </tr>`;
@@ -203,16 +273,140 @@ function renderSections() {
         </div>`;
         container.appendChild(card);
     });
+}
 
-    // Add Universal Buttons
-    const footerBtns = document.createElement('div');
-    footerBtns.style = "display: flex; justify-content: center; gap: 15px; margin-top: 25px; padding-bottom: 50px;";
-    footerBtns.innerHTML = `
-        <button class="btn btn-primary" onclick="openModal('addEmployeeModal')"><i class="fa-solid fa-plus"></i> إضافة موظف</button>
-        <button class="btn btn-success" onclick="document.getElementById('salary-file').click()"><i class="fa-solid fa-chart-pie"></i> استيراد إكسل</button>
-        <input type="file" id="salary-file" style="display: none;" accept=".xlsx, .xls" onchange="importSalaries(this)">
-    `;
-    container.appendChild(footerBtns);
+function toggleAllSections() {
+    const contents = document.querySelectorAll('.section-content');
+    if (!contents.length) return;
+    const isAnyOpen = Array.from(contents).some(c => !c.classList.contains('collapsed'));
+    contents.forEach(c => {
+        if (isAnyOpen) c.classList.add('collapsed');
+        else c.classList.remove('collapsed');
+    });
+}
+
+// ==========================================
+// 🛡️ Section Permissions & Shifts Modal Logic
+// ==========================================
+function openSectionPermissionsModal(sectionId, event) {
+    if (event) event.stopPropagation();
+    const section = sections.find(s => s.id === sectionId);
+    if (!section) return;
+
+    document.getElementById('permSectionId').value = section.id;
+    document.getElementById('permSectionName').value = section.name;
+    document.getElementById('permCanViewIncome').checked = section.can_view_income !== 0;
+    document.getElementById('permCanWithdraw').checked = section.can_withdraw !== 0;
+    document.getElementById('permCanInspect').checked = section.can_inspect == 1;
+    document.getElementById('permCanManageParts').checked = section.can_manage_parts == 1;
+    document.getElementById('permShiftStart').value = section.shift_start || '';
+    document.getElementById('permShiftEnd').value = section.shift_end || '';
+
+    openModal('sectionPermissionsModal');
+}
+
+async function saveSectionPermissions(e) {
+    e.preventDefault();
+    const secId = document.getElementById('permSectionId').value;
+    const name = document.getElementById('permSectionName').value.trim();
+    const can_view_income = document.getElementById('permCanViewIncome').checked ? 1 : 0;
+    const can_withdraw = document.getElementById('permCanWithdraw').checked ? 1 : 0;
+    const can_inspect = document.getElementById('permCanInspect').checked ? 1 : 0;
+    const can_manage_parts = document.getElementById('permCanManageParts').checked ? 1 : 0;
+    const shift_start = document.getElementById('permShiftStart').value || null;
+    const shift_end = document.getElementById('permShiftEnd').value || null;
+
+    try {
+        const res = await fetch(`/api/sections/${secId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name,
+                can_view_income,
+                can_withdraw,
+                can_inspect,
+                can_manage_parts,
+                shift_start,
+                shift_end
+            })
+        });
+
+        if (res.ok) {
+            smartAlert('<i class="fa-solid fa-circle-check"></i> تم حفظ إعدادات وصلاحيات القسم بنجاح');
+            closeModal('sectionPermissionsModal');
+            loadData();
+        } else {
+            const err = await res.json();
+            smartAlert('<i class="fa-solid fa-circle-xmark"></i> ' + (err.message || 'فشل في حفظ التعديلات'));
+        }
+    } catch (err) {
+        console.error(err);
+        smartAlert('<i class="fa-solid fa-circle-xmark"></i> تعذر الاتصال بالسيرفر');
+    }
+}
+
+function openNewSectionModal() {
+    document.getElementById('newSectionName').value = '';
+    openModal('newSectionModal');
+}
+
+async function createNewSection(e) {
+    e.preventDefault();
+    const name = document.getElementById('newSectionName').value.trim();
+    if (!name) return;
+
+    try {
+        const res = await fetch('/api/sections', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name })
+        });
+
+        if (res.ok) {
+            smartAlert('<i class="fa-solid fa-circle-check"></i> تم إضافة القسم بنجاح');
+            closeModal('newSectionModal');
+            loadData();
+        } else {
+            const err = await res.json();
+            smartAlert('<i class="fa-solid fa-circle-xmark"></i> ' + (err.message || 'فشل في إضافة القسم'));
+        }
+    } catch (err) {
+        console.error(err);
+        smartAlert('<i class="fa-solid fa-circle-xmark"></i> تعذر الاتصال بالسيرفر');
+    }
+}
+
+async function deleteCurrentSection() {
+    const secId = document.getElementById('permSectionId').value;
+    const section = sections.find(s => s.id == secId);
+    if (!section) return;
+
+    const count = employees.filter(e => e.section_id == secId).length;
+    if (count > 0) {
+        if (!confirm(`تحذير: يوجد ${count} موظف مرتبطين بهذا القسم (${section.name}). هل أنت متأكد من حذف القسم؟`)) {
+            return;
+        }
+    } else {
+        if (!confirm(`هل أنت متأكد من حذف قسم (${section.name}) نهائياً؟`)) {
+            return;
+        }
+    }
+
+    try {
+        const res = await fetch(`/api/sections/${secId}`, { method: 'DELETE' });
+        if (res.ok) {
+            smartAlert('<i class="fa-solid fa-circle-check"></i> تم حذف القسم');
+            closeModal('sectionPermissionsModal');
+            if (selectedSectionFilter == secId) selectedSectionFilter = 'all';
+            loadData();
+        } else {
+            const err = await res.json();
+            smartAlert('<i class="fa-solid fa-circle-xmark"></i> ' + (err.message || 'فشل حذف القسم'));
+        }
+    } catch (err) {
+        console.error(err);
+        smartAlert('<i class="fa-solid fa-circle-xmark"></i> خطأ في الاتصال');
+    }
 }
 
 // ==========================================
@@ -227,7 +421,7 @@ function updateCharts() {
 
     const achievementData = employees.map(emp => {
         const income = parseFloat(emp.total_income) || 0;
-        const target = parseFloat(emp.target) || 0;
+        const target = parseFloat(emp.target || emp.target_amount) || 0;
         return {
             name: emp.name,
             percent: target > 0 ? (income / target) * 100 : 0
@@ -247,7 +441,7 @@ function renderIncomeChart(data) {
             labels: data.map(d => d.name),
             datasets: [{
                 data: data.map(d => d.income),
-                backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#3b82f6'],
+                backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#ec4899', '#8b5cf6'],
                 borderWidth: 2, borderColor: '#fff'
             }]
         },
@@ -276,11 +470,15 @@ function renderAchievementChart(data) {
 
 function openIncomeModal(empId) { 
     document.getElementById('incomeEmpId').value = empId; 
+    document.getElementById('incomeAmount').value = '';
+    document.getElementById('incomeNote').value = '';
     openModal('addIncomeModal'); 
 }
 
 function openWithdrawalModal(empId) {
     document.getElementById('withdrawalEmpId').value = empId;
+    document.getElementById('withdrawalAmount').value = '';
+    document.getElementById('withdrawalNote').value = '';
     openModal('addWithdrawalModal');
 }
 
@@ -290,27 +488,38 @@ function openEditModal(empId) {
     document.getElementById('editEmpId').value = emp.id;
     document.getElementById('editEmpName').value = emp.name;
     document.getElementById('editEmpSection').value = emp.section_id;
-    document.getElementById('editEmpTarget').value = emp.target;
+    document.getElementById('editEmpTarget').value = emp.target || emp.target_amount || 0;
     document.getElementById('editEmpBaseSalary').value = emp.base_salary || 0;
     document.getElementById('editEmpUsername').value = emp.username || '';
-    document.getElementById('editEmpPassword').value = emp.password || '';
-    document.getElementById('editEmpHideIncome').value = emp.hide_income || 0;
+    document.getElementById('editEmpPassword').value = '';
     
-    if(document.getElementById('editEmpBank') && emp.bank_name) {
-        document.getElementById('editEmpBank').value = emp.bank_name;
+    if(document.getElementById('editEmpBank')) {
+        document.getElementById('editEmpBank').value = emp.bank_name || (banks[0]?.name || 'كاش');
     }
     
-    document.getElementById('editEmpNewIncome').value = '';
     openModal('editEmployeeModal');
 }
 
 async function handleAddEmployee(e) {
     e.preventDefault();
-    const data = getFormData('addEmployeeForm');
+    const payload = {
+        name: document.getElementById('addEmpName').value.trim(),
+        section_id: document.getElementById('addEmpSection').value,
+        base_salary: parseFloat(document.getElementById('addEmpBaseSalary').value) || 0,
+        target: parseFloat(document.getElementById('addEmpTarget').value) || 0,
+        bank_name: document.getElementById('addEmpBank').value,
+        username: document.getElementById('addEmpUsername').value.trim() || undefined,
+        password: document.getElementById('addEmpPassword').value || undefined
+    };
+
     try {
-        const res = await fetch('/api/employees', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+        const res = await fetch('/api/employees', { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(payload) 
+        });
         if (res.ok) { 
-            smartAlert('<i class="fa-solid fa-circle-check"></i> تمت الإضافة'); 
+            smartAlert('<i class="fa-solid fa-circle-check"></i> تمت إضافة الموظف بنجاح'); 
             closeModal('addEmployeeModal'); 
             e.target.reset(); 
             loadData(); 
@@ -324,13 +533,26 @@ async function handleAddEmployee(e) {
 async function handleEditEmployee(e) {
     e.preventDefault();
     const id = document.getElementById('editEmpId').value;
-    const data = getFormData('editEmployeeForm');
+    const payload = {
+        name: document.getElementById('editEmpName').value.trim(),
+        section_id: document.getElementById('editEmpSection').value,
+        base_salary: parseFloat(document.getElementById('editEmpBaseSalary').value) || 0,
+        target: parseFloat(document.getElementById('editEmpTarget').value) || 0,
+        bank_name: document.getElementById('editEmpBank').value,
+        username: document.getElementById('editEmpUsername').value.trim() || undefined,
+        password: document.getElementById('editEmpPassword').value || undefined
+    };
+
     try {
-        const res = await fetch(`/api/employees/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+        const res = await fetch(`/api/employees/${id}`, { 
+            method: 'PUT', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(payload) 
+        });
         if (res.ok) {
-            const extraInc = document.getElementById('editEmpNewIncome').value;
-            if(extraInc) await fetch(`/api/employees/${id}/income`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ income: parseInt(extraInc), section_id: data.section_id }) });
-            smartAlert('<i class="fa-solid fa-circle-check"></i> تم التعديل'); closeModal('editEmployeeModal'); loadData();
+            smartAlert('<i class="fa-solid fa-circle-check"></i> تم تعديل بيانات الموظف'); 
+            closeModal('editEmployeeModal'); 
+            loadData();
         } else {
             const errorData = await res.json();
             smartAlert('<i class="fa-solid fa-circle-xmark"></i> ' + (errorData.message || 'خطأ في التعديل'));
@@ -341,29 +563,65 @@ async function handleEditEmployee(e) {
 async function handleAddIncome(e) {
     e.preventDefault();
     const empId = document.getElementById('incomeEmpId').value;
+    const amount = parseFloat(document.getElementById('incomeAmount').value) || 0;
+    const note = document.getElementById('incomeNote').value.trim();
+    const emp = employees.find(e => e.id == empId);
+
     const data = { 
-        income: document.getElementById('incomeAmount').value, 
-        details: document.getElementById('incomeDetails').value,
-        section_id: employees.find(e => e.id == empId).section_id
+        income: amount, 
+        details: note,
+        section_id: emp ? emp.section_id : null
     };
+
     try {
-        const res = await fetch(`/api/employees/${empId}/income`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-        if (res.ok) { smartAlert('<i class="fa-solid fa-circle-check"></i> تم الإيداع'); closeModal('addIncomeModal'); loadData(); }
+        const res = await fetch(`/api/employees/${empId}/income`, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(data) 
+        });
+        if (res.ok) { 
+            smartAlert('<i class="fa-solid fa-circle-check"></i> تم إيداع الدخل بنجاح'); 
+            closeModal('addIncomeModal'); 
+            loadData(); 
+        } else {
+            const err = await res.json();
+            smartAlert('<i class="fa-solid fa-circle-xmark"></i> ' + (err.message || 'فشل الإيداع'));
+        }
     } catch (e) { console.error(e); }
 }
 
 async function handleAddWithdrawal(e) {
     e.preventDefault();
     const empId = document.getElementById('withdrawalEmpId').value;
-    const data = { employee_id: empId, amount: document.getElementById('withdrawalAmount').value, reason: document.getElementById('withdrawalReason').value, status: 'approved' };
+    const amount = parseFloat(document.getElementById('withdrawalAmount').value) || 0;
+    const note = document.getElementById('withdrawalNote').value.trim();
+
+    const data = { 
+        employee_id: empId, 
+        amount: amount, 
+        reason: note, 
+        status: 'approved' 
+    };
+
     try {
-        const res = await fetch('/api/withdrawals', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-        if (res.ok) { smartAlert('<i class="fa-solid fa-circle-check"></i> تم تسجيل السحب'); closeModal('addWithdrawalModal'); loadData(); }
+        const res = await fetch('/api/withdrawals', { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(data) 
+        });
+        if (res.ok) { 
+            smartAlert('<i class="fa-solid fa-circle-check"></i> تم تسجيل السحب بنجاح'); 
+            closeModal('addWithdrawalModal'); 
+            loadData(); 
+        } else {
+            const err = await res.json();
+            smartAlert('<i class="fa-solid fa-circle-xmark"></i> ' + (err.message || 'فشل تسجيل السحب'));
+        }
     } catch (e) { console.error(e); }
 }
 
 function deleteEmployee(id) {
-    if (!confirm('🚮 متأكد من حذف الموظف نهائياً؟')) return;
+    if (!confirm('🚮 هل أنت متأكد من حذف هذا الموظف نهائياً؟')) return;
     fetch(`/api/employees/${id}`, { method: 'DELETE' }).then(res => res.ok ? loadData() : alert('فشل الحذف'));
 }
 
@@ -797,7 +1055,37 @@ const val = (id) => document.getElementById(id)?.value;
 const listen = (id, ev, fn) => { const el = document.getElementById(id); if(el) el.addEventListener(ev, fn); };
 const isVisible = (id) => document.getElementById(id)?.style.display === 'flex';
 const getPercentColor = (p) => p >= 100 ? '#10b981' : p >= 75 ? '#f59e0b' : '#ef4444';
-const updateSectionSelects = () => { ['empSection', 'editEmpSection'].forEach(sid => { const s = document.getElementById(sid); if(s) s.innerHTML = sections.map(sec => `<option value="${sec.id}">${sec.name}</option>`).join(''); }); };
+const updateSectionSelects = () => { 
+    ['empSection', 'editEmpSection', 'addEmpSection'].forEach(sid => { 
+        const s = document.getElementById(sid); 
+        if(s) {
+            const cur = s.value;
+            s.innerHTML = sections.map(sec => `<option value="${sec.id}">${sec.name}</option>`).join('');
+            if (cur && sections.some(sec => sec.id == cur)) s.value = cur;
+        }
+    }); 
+};
+const updateBankSelects = () => {
+    ['empBank', 'editEmpBank', 'addEmpBank'].forEach(bid => {
+        const s = document.getElementById(bid);
+        if (s && banks && banks.length > 0) {
+            const currentVal = s.value;
+            s.innerHTML = banks.map(b => `<option value="${b.name}">${b.name}</option>`).join('');
+            if (currentVal && banks.some(b => b.name === currentVal)) {
+                s.value = currentVal;
+            }
+        }
+    });
+};
+async function loadBanks() {
+    try {
+        const res = await fetch('/api/banks');
+        banks = await res.json();
+        updateBankSelects();
+    } catch (e) {
+        console.warn('Banks load error:', e);
+    }
+}
 const getFormData = (id) => Object.fromEntries(new FormData(document.getElementById(id)));
 
 // --- Excel Import Logic ---

@@ -71,7 +71,7 @@ initDatabase().catch(err => {
 });
 
 // مسار مزامنة واسترجاع البيانات الأولية (الموظفين والعملاء والخدمات) من ملف SQLite
-app.post('/api/admin/sync-seed-data', async (req, res) => {
+app.post(['/api/admin/sync-seed-data', '/api/backup/sync-seed'], async (req, res) => {
     try {
         if (isMySQL) {
             await autoMigrateFromSqliteIfEmpty();
@@ -207,26 +207,70 @@ app.get('/api/sections', async (req, res) => {
 
 app.post('/api/sections', async (req, res) => {
     try {
-        const { name } = req.body;
-        if (!name) return res.status(400).json({ error: 'Name is required' });
-        await dbRun('INSERT INTO sections (name) VALUES (?)', [name]);
-        res.json({ success: true });
+        const { name, shift_start, shift_end, can_view_income, can_withdraw, can_inspect, can_manage_parts, permissions } = req.body;
+        if (!name || !name.trim()) return res.status(400).json({ message: 'اسم القسم مطلوب' });
+        const cleanName = name.trim();
+        const existing = await dbGet('SELECT id FROM sections WHERE name = ?', [cleanName]);
+        if (existing) return res.status(400).json({ message: 'يوجد قسم مسجل بهذا الاسم مسبقاً' });
+
+        const result = await dbRun(
+            `INSERT INTO sections (name, shift_start, shift_end, can_view_income, can_withdraw, can_inspect, can_manage_parts, permissions)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                cleanName,
+                shift_start || '08:00',
+                shift_end || '18:00',
+                can_view_income !== undefined ? (can_view_income ? 1 : 0) : 1,
+                can_withdraw !== undefined ? (can_withdraw ? 1 : 0) : 1,
+                can_inspect !== undefined ? (can_inspect ? 1 : 0) : 0,
+                can_manage_parts !== undefined ? (can_manage_parts ? 1 : 0) : 0,
+                typeof permissions === 'object' ? JSON.stringify(permissions) : (permissions || null)
+            ]
+        );
+        res.json({ success: true, id: result.insertId || result.lastID, message: 'تمت إضافة القسم بنجاح' });
     } catch (e) {
         console.error(e);
-        res.status(500).json({ error: 'Failed to create section' });
+        res.status(500).json({ message: 'فشل إضافة القسم: ' + e.message });
     }
 });
 
 app.put('/api/sections/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { name } = req.body;
-        if (!name) return res.status(400).json({ error: 'Name is required' });
-        await dbRun('UPDATE sections SET name = ? WHERE id = ?', [name, id]);
-        res.json({ success: true });
+        const { name, shift_start, shift_end, can_view_income, can_withdraw, can_inspect, can_manage_parts, permissions } = req.body;
+        if (!name || !name.trim()) return res.status(400).json({ message: 'اسم القسم مطلوب' });
+        const cleanName = name.trim();
+
+        const duplicate = await dbGet('SELECT id FROM sections WHERE name = ? AND id != ?', [cleanName, id]);
+        if (duplicate) return res.status(400).json({ message: 'يوجد قسم آخر بنفس هذا الاسم' });
+
+        await dbRun(
+            `UPDATE sections SET
+                name = ?,
+                shift_start = COALESCE(?, shift_start),
+                shift_end = COALESCE(?, shift_end),
+                can_view_income = ?,
+                can_withdraw = ?,
+                can_inspect = ?,
+                can_manage_parts = ?,
+                permissions = ?
+             WHERE id = ?`,
+            [
+                cleanName,
+                shift_start || '08:00',
+                shift_end || '18:00',
+                can_view_income !== undefined ? (can_view_income ? 1 : 0) : 1,
+                can_withdraw !== undefined ? (can_withdraw ? 1 : 0) : 1,
+                can_inspect !== undefined ? (can_inspect ? 1 : 0) : 0,
+                can_manage_parts !== undefined ? (can_manage_parts ? 1 : 0) : 0,
+                typeof permissions === 'object' ? JSON.stringify(permissions) : (permissions || null),
+                id
+            ]
+        );
+        res.json({ success: true, message: 'تم حفظ وتحديث بيانات وصلاحيات القسم بنجاح' });
     } catch (e) {
         console.error(e);
-        res.status(500).json({ error: 'Failed to update section' });
+        res.status(500).json({ message: 'فشل تعديل القسم: ' + e.message });
     }
 });
 
@@ -242,6 +286,96 @@ app.delete('/api/sections/:id', async (req, res) => {
     } catch (e) {
         console.error(e);
         res.status(500).json({ error: 'Failed to delete section' });
+    }
+});
+
+// ==========================================
+// 🏦 BANKS MANAGEMENT ENDPOINTS (إدارة البنوك)
+// ==========================================
+
+app.get('/api/banks', async (req, res) => {
+    try {
+        let banks = await dbAll('SELECT * FROM banks ORDER BY id ASC');
+        if (!banks || banks.length === 0) {
+            const defaultBanks = ['الاهلي', 'الراجحي', 'بنوك محلية', 'كاش'];
+            for (const bName of defaultBanks) {
+                await dbRun('INSERT IGNORE INTO banks (name) VALUES (?)', [bName]);
+            }
+            banks = await dbAll('SELECT * FROM banks ORDER BY id ASC');
+        }
+        res.json(banks);
+    } catch (e) {
+        console.error('Error fetching banks:', e);
+        res.status(500).json({ error: 'Failed to fetch banks' });
+    }
+});
+
+app.post('/api/banks', async (req, res) => {
+    try {
+        const { name } = req.body;
+        if (!name || !name.trim()) return res.status(400).json({ message: 'اسم البنك مطلوب' });
+        const cleanName = name.trim();
+        
+        const existing = await dbGet('SELECT id FROM banks WHERE name = ?', [cleanName]);
+        if (existing) {
+            return res.status(400).json({ message: 'هذا البنك مسجل بالفعل مسبقاً' });
+        }
+
+        const result = await dbRun('INSERT INTO banks (name) VALUES (?)', [cleanName]);
+        res.json({ success: true, id: result.insertId || result.lastID, name: cleanName, message: 'تمت إضافة البنك بنجاح' });
+    } catch (e) {
+        console.error('Error adding bank:', e);
+        res.status(500).json({ message: 'فشل إضافة البنك: ' + e.message });
+    }
+});
+
+app.put('/api/banks/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name } = req.body;
+        if (!name || !name.trim()) return res.status(400).json({ message: 'اسم البنك مطلوب' });
+        const cleanName = name.trim();
+
+        const oldBank = await dbGet('SELECT name FROM banks WHERE id = ?', [id]);
+        if (!oldBank) {
+            return res.status(404).json({ message: 'البنك غير موجود' });
+        }
+
+        const duplicate = await dbGet('SELECT id FROM banks WHERE name = ? AND id != ?', [cleanName, id]);
+        if (duplicate) {
+            return res.status(400).json({ message: 'يوجد بنك آخر بنفس هذا الاسم' });
+        }
+
+        await dbRun('UPDATE banks SET name = ? WHERE id = ?', [cleanName, id]);
+
+        // تحديث الموظفين المرتبطين بالاسم القديم
+        if (oldBank.name !== cleanName) {
+            await dbRun('UPDATE employees SET bank_name = ? WHERE bank_name = ?', [cleanName, oldBank.name]);
+        }
+
+        res.json({ success: true, message: 'تم تعديل اسم البنك وتحديث سجلات الموظفين بنجاح' });
+    } catch (e) {
+        console.error('Error updating bank:', e);
+        res.status(500).json({ message: 'فشل تعديل البنك: ' + e.message });
+    }
+});
+
+app.delete('/api/banks/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const bank = await dbGet('SELECT name FROM banks WHERE id = ?', [id]);
+        if (!bank) {
+            return res.status(404).json({ message: 'البنك غير موجود' });
+        }
+
+        // تحويل الموظفين المرتبطين إلى كاش لتفادي بقاء أسماء مفقودة
+        await dbRun("UPDATE employees SET bank_name = 'كاش' WHERE bank_name = ?", [bank.name]);
+        await dbRun('DELETE FROM banks WHERE id = ?', [id]);
+
+        res.json({ success: true, message: 'تم حذف البنك بنجاح' });
+    } catch (e) {
+        console.error('Error deleting bank:', e);
+        res.status(500).json({ message: 'فشل حذف البنك: ' + e.message });
     }
 });
 
@@ -274,120 +408,298 @@ app.get('/api/employees', async (req, res) => {
 });
 
 // ==========================
-// 📊 استيراد الموظفين من ملف Excel
+// 📊 معالج الاستيراد الذكي لملفات الموظفين والرواتب (Smart Excel Parser)
 // ==========================
-app.post('/api/employees/import-excel', upload.single('file'), async (req, res) => {
-    if (!req.file) return res.status(400).json({ message: 'الرجاء رفع ملف Excel.' });
-    const filePath = req.file.path;
-    const ExcelJS = require('exceljs');
-    try {
-        const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.readFile(filePath);
-        const worksheet = workbook.worksheets[0];
+function cleanArabicText(str) {
+    return String(str || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[أإآ]/g, 'ا')
+        .replace(/ة/g, 'ه')
+        .replace(/ى/g, 'ي');
+}
 
-        const sections = await dbAll('SELECT id, name FROM sections');
-        const findSection = (name) => {
-            if (!name) return sections[0]?.id || 1;
-            const n = String(name).trim().toLowerCase();
-            const found = sections.find(s => s.name.toLowerCase().includes(n) || n.includes(s.name.toLowerCase()));
-            return found ? found.id : (sections[0]?.id || 1);
-        };
+async function handleSmartEmployeeImport(filePath) {
+    const wb = xlsx.readFile(filePath);
+    let tableSheet = null;
+    let matrixSheet = null;
 
-        // قراءة رأس العمود الأول للتعرف على الأعمدة
-        const headerRow = worksheet.getRow(1);
-        const headers = {};
-        headerRow.eachCell((cell, colNum) => {
-            const v = String(cell.value || '').trim();
-            if (/اسم|name/i.test(v)) headers.name = colNum;
-            else if (/قسم|section|dept/i.test(v)) headers.section = colNum;
-            else if (/هدف|target/i.test(v)) headers.target = colNum;
-            else if (/راتب|salary/i.test(v)) headers.salary = colNum;
-            else if (/مستخدم|user/i.test(v)) headers.username = colNum;
-            else if (/كلمة.*مرور|password|pass/i.test(v)) headers.password = colNum;
-            else if (/بنك|bank/i.test(v)) headers.bank = colNum;
-        });
+    for (const sheetName of wb.SheetNames) {
+        const ws = wb.Sheets[sheetName];
+        const data = xlsx.utils.sheet_to_json(ws, { header: 1 });
+        if (!data || data.length === 0) continue;
 
-        // إذا لم توجد أعمدة، نفترض ترتيباً افتراضياً: name, section, target, salary, username, password
-        if (!headers.name) headers.name = 1;
-        if (!headers.section) headers.section = 2;
-        if (!headers.target) headers.target = 3;
-        if (!headers.salary) headers.salary = 4;
-        if (!headers.username) headers.username = 5;
-        if (!headers.password) headers.password = 6;
+        const row1 = (data[0] || []).map(c => cleanArabicText(c));
+        const row2 = (data[1] || []).map(c => cleanArabicText(c));
 
-        let added = 0, skipped = 0, errors = [];
-        const totalRows = worksheet.rowCount;
+        const hasNameHeader = row1.some(c => /اسم|name/i.test(c) && !/مستخدم/i.test(c)) || row2.some(c => /اسم|name/i.test(c) && !/مستخدم/i.test(c));
+        const hasSectionHeader = row1.some(c => /قسم|section|dept/i.test(c)) || row2.some(c => /قسم|section|dept/i.test(c));
 
-        const allEmployees = await dbAll("SELECT id, name FROM employees");
-        const existingNames = allEmployees.map(e => String(e.name).toLowerCase().replace(/\s+/g, ' '));
-        const existingUsernames = new Set((await dbAll("SELECT username FROM users")).map(u => String(u.username).toLowerCase()));
+        if (hasNameHeader && (hasSectionHeader || row1.some(c => /راتب|salary|هدف|تارجت|تارقت|target/i.test(c)))) {
+            tableSheet = { name: sheetName, data, headerRowIdx: row1.some(c => /اسم|name/i.test(c) && !/مستخدم/i.test(c)) ? 0 : 1 };
+            break;
+        }
 
-        for (let r = 2; r <= totalRows; r++) {
-            const row = worksheet.getRow(r);
-            const getCell = (col) => col ? String(row.getCell(col).value || '').trim() : '';
+        const col1Texts = data.map(r => cleanArabicText(r && (r[0] || r[1] || r[2])));
+        const hasSalaryKeywords = col1Texts.some(t => /سحوبات|راتب|ايداع|صافي|متبقي|تارقت|تارجت/i.test(t));
+        if (hasSalaryKeywords) {
+            matrixSheet = { name: sheetName, data };
+        }
+    }
 
-            let name = getCell(headers.name);
-            if (!name || name.length < 2) continue;
-            
-            const normalizedName = name.toLowerCase().replace(/\s+/g, ' ');
-            if (existingNames.includes(normalizedName)) {
-                skipped++;
-                continue;
-            }
+    // سجلات الموظفين الحالية
+    const allEmployees = await dbAll("SELECT id, name, section_id FROM employees WHERE is_active = 1");
+    const existingNamesMap = new Map();
+    allEmployees.forEach(e => {
+        existingNamesMap.set(cleanArabicText(e.name), e);
+    });
 
-            const sectionName = getCell(headers.section);
-            const section_id = findSection(sectionName);
-            const target = parseInt(getCell(headers.target)) || 0;
-            const base_salary = parseInt(getCell(headers.salary)) || 0;
-            const bank_name = getCell(headers.bank) || 'كاش';
+    const existingUsers = await dbAll("SELECT username FROM users");
+    const existingUsernames = new Set(existingUsers.map(u => String(u.username).toLowerCase()));
 
-            // توليد اسم مستخدم وكلمة مرور تلقائيين إذا لم يوجدا
-            let username = getCell(headers.username);
-            let password = getCell(headers.password);
-            if (!username) {
-                let baseUsername = name.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/gi, '');
-                if (!baseUsername) baseUsername = 'user';
-                username = baseUsername;
-                let counter = 1;
-                while (existingUsernames.has(username)) {
-                    username = baseUsername + counter;
-                    counter++;
-                }
-            }
-            existingUsernames.add(username.toLowerCase());
-            if (!password) password = '1234';
+    // كاش ومطابقة الأقسام أو إنشاؤها تلقائياً
+    const sectionCache = new Map();
+    const dbSections = await dbAll("SELECT id, name FROM sections");
+    dbSections.forEach(s => sectionCache.set(cleanArabicText(s.name), s.id));
 
-            try {
-                const empResult = await dbRun(
-                    `INSERT IGNORE INTO employees (name, section_id, target, base_salary, hide_income, bank_name, is_active) VALUES (?, ?, ?, ?, 0, ?, 1)`,
-                    [name, section_id, target, base_salary, bank_name]
-                );
-                const employee_id = empResult.lastID || empResult.insertId;
-                if (employee_id) {
-                    await dbRun(
-                        `INSERT IGNORE INTO users (employee_id, username, password, role) VALUES (?, ?, ?, 'employee')`,
-                        [employee_id, username, password]
-                    );
-                    added++;
-                    existingNames.push(normalizedName);
-                } else {
-                    skipped++;
-                }
-            } catch (rowErr) {
-                errors.push(`الصف ${r} (${name}): ${rowErr.message}`);
+    let createdSectionsCount = 0;
+    const getOrCreateSectionId = async (sectionName) => {
+        const cleanSec = cleanArabicText(sectionName || 'عام');
+        if (!cleanSec) return dbSections[0]?.id || 1;
+        if (sectionCache.has(cleanSec)) return sectionCache.get(cleanSec);
+
+        for (const [sName, sId] of sectionCache.entries()) {
+            if (sName.includes(cleanSec) || cleanSec.includes(sName)) {
+                return sId;
             }
         }
 
-        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-        res.json({
-            success: true,
-            message: `تم استيراد ${added} موظف بنجاح${skipped > 0 ? `، تم تخطي ${skipped} (مكرر)` : ''}.`,
-            added, skipped, errors: errors.slice(0, 10)
+        // إنشاء قسم جديد تلقائياً
+        const rawName = String(sectionName).trim() || 'قسم عام';
+        try {
+            const res = await dbRun("INSERT INTO sections (name, shift_start, shift_end, can_view_income, can_withdraw) VALUES (?, '08:00', '18:00', 1, 1)", [rawName]);
+            const newId = res.insertId || res.lastID;
+            if (newId) {
+                sectionCache.set(cleanSec, newId);
+                createdSectionsCount++;
+                return newId;
+            }
+        } catch (e) {
+            console.warn('Auto create section warning:', e.message);
+        }
+        return dbSections[0]?.id || 1;
+    };
+
+    let addedCount = 0;
+    let updatedCount = 0;
+
+    if (tableSheet) {
+        // --- النمط 1: جدول موظفين مباشر (مثل موظفين.xlsx) ---
+        const headerRow = tableSheet.data[tableSheet.headerRowIdx].map(c => cleanArabicText(c));
+        const headers = {};
+        headerRow.forEach((h, idx) => {
+            if (/اسم|name/i.test(h) && !/مستخدم/i.test(h)) headers.name = idx;
+            else if (/قسم|section|dept/i.test(h)) headers.section = idx;
+            else if (/هدف|تارجت|تارقت|target/i.test(h)) headers.target = idx;
+            else if (/راتب|salary|اساس|base/i.test(h)) headers.salary = idx;
+            else if (/مستخدم|دخول|user/i.test(h)) headers.username = idx;
+            else if (/مرور|password|pass/i.test(h)) headers.password = idx;
+            else if (/بنك|bank/i.test(h)) headers.bank = idx;
         });
+
+        for (let r = tableSheet.headerRowIdx + 1; r < tableSheet.data.length; r++) {
+            const row = tableSheet.data[r];
+            if (!row || row.length === 0) continue;
+            const name = String(row[headers.name] || '').trim();
+            if (!name || name.length < 2) continue;
+
+            const cleanName = cleanArabicText(name);
+            const sectionRaw = headers.section !== undefined ? String(row[headers.section] || '').trim() : '';
+            const section_id = await getOrCreateSectionId(sectionRaw);
+            const base_salary = headers.salary !== undefined ? parseFloat(row[headers.salary]) || 0 : 0;
+            const target = headers.target !== undefined ? parseFloat(row[headers.target]) || 0 : 0;
+            const bank_name = headers.bank !== undefined ? String(row[headers.bank] || 'كاش').trim() : 'كاش';
+
+            let username = headers.username !== undefined ? String(row[headers.username] || '').trim() : '';
+            let password = headers.password !== undefined ? String(row[headers.password] || '').trim() : '';
+
+            if (existingNamesMap.has(cleanName)) {
+                const existingEmp = existingNamesMap.get(cleanName);
+                await dbRun(
+                    `UPDATE employees SET
+                        section_id = COALESCE(NULLIF(?, 0), section_id),
+                        base_salary = CASE WHEN ? > 0 THEN ? ELSE base_salary END,
+                        target = CASE WHEN ? > 0 THEN ? ELSE target END,
+                        bank_name = COALESCE(NULLIF(?, ''), bank_name),
+                        last_sync_at = CURRENT_TIMESTAMP
+                     WHERE id = ?`,
+                    [section_id, base_salary, base_salary, target, target, bank_name, existingEmp.id]
+                );
+                if (password) {
+                    await dbRun("UPDATE users SET password = ? WHERE employee_id = ?", [password, existingEmp.id]);
+                }
+                updatedCount++;
+            } else {
+                if (!username) {
+                    let baseUsername = name.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/gi, '');
+                    if (!baseUsername) baseUsername = 'user';
+                    username = baseUsername;
+                    let counter = 1;
+                    while (existingUsernames.has(username.toLowerCase())) {
+                        username = baseUsername + counter;
+                        counter++;
+                    }
+                }
+                existingUsernames.add(username.toLowerCase());
+                if (!password) password = '1234';
+
+                const empResult = await dbRun(
+                    `INSERT INTO employees (name, section_id, target, base_salary, target_amount, hide_income, bank_name, is_active, last_sync_at)
+                     VALUES (?, ?, ?, ?, ?, 0, ?, 1, CURRENT_TIMESTAMP)`,
+                    [name, section_id, target, base_salary, target, bank_name || 'كاش']
+                );
+                const empId = empResult.insertId || empResult.lastID;
+                if (empId) {
+                    await dbRun(
+                        `INSERT INTO users (employee_id, username, password, role) VALUES (?, ?, ?, 'employee')`,
+                        [empId, username, password]
+                    );
+                    existingNamesMap.set(cleanName, { id: empId, name });
+                    addedCount++;
+                }
+            }
+        }
+
+        return {
+            success: true,
+            type: 'table',
+            sheetName: tableSheet.name,
+            message: `تم استيراد ${addedCount} موظف جديد وتحديث ${updatedCount} موظف بنجاح${createdSectionsCount > 0 ? ` (وتم إنشاء ${createdSectionsCount} قسم جديد)` : ''}.`,
+            addedCount,
+            updatedCount,
+            createdSectionsCount
+        };
+    } else if (matrixSheet) {
+        // --- النمط 2: مصفوفة كشف الرواتب (مثل Salaries-9.xlsx) ---
+        const data = matrixSheet.data;
+        let nameRowIdx = 0;
+        let nameCount = 0;
+        for (let r = 0; r < Math.min(5, data.length); r++) {
+            const names = (data[r] || []).filter(c => c && String(c).trim().length > 1 && !/تاريخ|date/i.test(cleanArabicText(c)));
+            if (names.length > nameCount) {
+                nameCount = names.length;
+                nameRowIdx = r;
+            }
+        }
+
+        const nameRow = data[nameRowIdx] || [];
+        let ind = { b: -1, t: -1, d: -1, w: -1, r: -1, nr: -1 };
+        data.forEach((row, rowIdx) => {
+            const rowText = cleanArabicText((row && (row[0] || row[1] || row[2])) || '');
+            const has = (txt) => rowText.includes(txt);
+            if (has('اجمالي السحوبات') || has('سحوبات') || rowText === 'السحوبات') ind.w = rowIdx;
+            if (has('الراتب المتبقي') || has('اجمالي المتبقي')) ind.r = rowIdx;
+            if (has('الراتب الاساسي') || has('الراتب الاستحقاق') || (has('راتب') && has('اساسي'))) ind.b = rowIdx;
+            if (has('ايداع موسسه') || has('ايداع كاش') || has('ايداع')) ind.d = rowIdx;
+            if (has('المتبقي الصافي') || has('الصافي') || has('صافي المتبقي')) ind.nr = rowIdx;
+            if (has('مكافاه التارقت') || has('بونص التارقت') || (has('التارقت') && rowIdx > 20) || (has('التارجت') && rowIdx > 20)) ind.t = rowIdx;
+        });
+
+        for (let col = 0; col < nameRow.length; col++) {
+            const rawName = String(nameRow[col] || '').trim();
+            if (!rawName || rawName.length < 2 || /تاريخ|date/i.test(cleanArabicText(rawName))) continue;
+
+            const getNum = (rIdx) => {
+                if (rIdx === -1 || !data[rIdx]) return 0;
+                const v = parseFloat(data[rIdx][col]);
+                return isNaN(v) ? 0 : v;
+            };
+
+            const base_salary = getNum(ind.b);
+            const target_amount = getNum(ind.t);
+            const deposit_amount = getNum(ind.d);
+            const total_withdrawals = getNum(ind.w);
+            const net_remaining = getNum(ind.nr) || getNum(ind.r);
+
+            const cleanName = cleanArabicText(rawName);
+            let matchedEmp = existingNamesMap.get(cleanName);
+
+            if (!matchedEmp) {
+                for (const [eName, eObj] of existingNamesMap.entries()) {
+                    if (eName.includes(cleanName) || cleanName.includes(eName)) {
+                        matchedEmp = eObj;
+                        break;
+                    }
+                }
+            }
+
+            if (matchedEmp) {
+                await dbRun(
+                    `UPDATE employees SET
+                        base_salary = CASE WHEN ? > 0 THEN ? ELSE base_salary END,
+                        target_amount = ?,
+                        deposit_amount = ?,
+                        total_withdrawals = ?,
+                        net_remaining = ?,
+                        last_sync_at = CURRENT_TIMESTAMP
+                     WHERE id = ?`,
+                    [base_salary, base_salary, target_amount, deposit_amount, total_withdrawals, net_remaining, matchedEmp.id]
+                );
+                updatedCount++;
+            } else {
+                let baseUsername = rawName.split(/[\s-_]+/)[0].toLowerCase().replace(/[^a-z0-9]/gi, '');
+                if (!baseUsername) baseUsername = 'user';
+                let username = baseUsername;
+                let counter = 1;
+                while (existingUsernames.has(username.toLowerCase())) {
+                    username = baseUsername + counter;
+                    counter++;
+                }
+                existingUsernames.add(username.toLowerCase());
+
+                const defaultSecId = dbSections[0]?.id || 1;
+                const empResult = await dbRun(
+                    `INSERT INTO employees (name, section_id, target, base_salary, target_amount, deposit_amount, total_withdrawals, net_remaining, hide_income, bank_name, is_active, last_sync_at)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 'كاش', 1, CURRENT_TIMESTAMP)`,
+                    [rawName, defaultSecId, 0, base_salary, target_amount, deposit_amount, total_withdrawals, net_remaining]
+                );
+                const empId = empResult.insertId || empResult.lastID;
+                if (empId) {
+                    await dbRun(
+                        `INSERT INTO users (employee_id, username, password, role) VALUES (?, ?, '1234', 'employee')`,
+                        [empId, username]
+                    );
+                    existingNamesMap.set(cleanName, { id: empId, name: rawName });
+                    addedCount++;
+                }
+            }
+        }
+
+        return {
+            success: true,
+            type: 'matrix',
+            sheetName: matrixSheet.name,
+            message: `تمت مزامنة بيانات الرواتب بنجاح: تحديث ${updatedCount} موظف وإضافة ${addedCount} موظف جديد.`,
+            addedCount,
+            updatedCount
+        };
+    } else {
+        throw new Error('لم يتم التعرف على بنية ملف الإكسل. يرجى التأكد من اختيار ملف موظفين أو ملف رواتب صحيح.');
+    }
+}
+
+// 📊 استيراد الموظفين من ملف Excel (يدعم Salaries-9.xlsx و موظفين.xlsx)
+app.post(['/api/employees/import-excel', '/api/employees/import-from-salary-sheet'], upload.single('file'), async (req, res) => {
+    if (!req.file) return res.status(400).json({ message: 'الرجاء رفع ملف Excel.' });
+    const filePath = req.file.path;
+    try {
+        const result = await handleSmartEmployeeImport(filePath);
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        res.json(result);
     } catch (error) {
         if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-        console.error('Import Employees Excel Error:', error);
-        res.status(500).json({ success: false, message: 'خطأ في قراءة الملف: ' + error.message });
+        console.error('Import Excel Error:', error);
+        res.status(500).json({ success: false, message: error.message || 'خطأ في معالجة الملف' });
     }
 });
 
@@ -2271,11 +2583,23 @@ app.delete('/api/inspection-bundles/:id', async (req, res) => {
 // 💾 مسارات النسخ الاحتياطي واستعادة قاعدة البيانات
 // ==========================
 
-// تحميل نسخة احتياطية
+// تحميل نسخة احتياطية بصيغة JSON
+app.get('/api/backup/download-json', async (req, res) => {
+    try {
+        const backupData = await exportDatabaseJson();
+        res.setHeader('Content-type', 'application/json; charset=utf-8');
+        return res.json(backupData);
+    } catch (err) {
+        console.error("Backup JSON Download Error:", err);
+        res.status(500).json({ error: "Could not download JSON backup: " + err.message });
+    }
+});
+
+// تحميل نسخة احتياطية (ملف مباشر)
 app.get('/api/backup', async (req, res) => {
     try {
         const date = new Date().toISOString().split('T')[0];
-        if (isMySQL) {
+        if (isMySQL || req.query.format === 'json') {
             const backupData = await exportDatabaseJson();
             const backupJson = JSON.stringify(backupData, null, 2);
             res.setHeader('Content-disposition', `attachment; filename=backup_workshop_${date}.json`);
@@ -2303,12 +2627,13 @@ const restoreUpload = multer({
     limits: { fileSize: 100 * 1024 * 1024 } // 100MB
 });
 
-app.post('/api/backup/restore', restoreUpload.single('backup_file'), async (req, res) => {
-    if (!req.file) {
+const handleDbRestore = async (req, res) => {
+    const file = req.file || (req.files && req.files[0]);
+    if (!file) {
         return res.status(400).json({ message: "الرجاء اختيار ملف قاعدة البيانات (.json أو .sqlite أو .db)" });
     }
 
-    const uploadedPath = req.file.path;
+    const uploadedPath = file.path;
     try {
         // فحص ما إذا كان الملف المرفوع JSON
         let isJson = false;
@@ -2352,11 +2677,11 @@ app.post('/api/backup/restore', restoreUpload.single('backup_file'), async (req,
             });
 
             const tablesToTransfer = [
-                'sections', 'employees', 'users', 'settings', 'branch_shifts',
+                'sections', 'banks', 'employees', 'users', 'settings', 'branch_shifts',
                 'services', 'inspection_terms', 'inspection_bundles', 'inspection_bundle_items',
                 'clients', 'inspections', 'inspection_items', 'inspection_technicians',
                 'entries', 'withdrawals', 'absences', 'attendance', 'messages',
-                'sys_notifications', 'inspection_photos', 'workshop_lifts', 'work_schedule'
+                'sys_notifications', 'inspection_photos', 'workshop_lifts', 'work_schedule', 'promo_codes'
             ];
 
             const { pool } = require('./db');
@@ -2412,7 +2737,10 @@ app.post('/api/backup/restore', restoreUpload.single('backup_file'), async (req,
         if (fs.existsSync(uploadedPath)) fs.unlinkSync(uploadedPath);
         res.status(500).json({ message: "حدث خطأ أثناء استعادة قاعدة البيانات: " + error.message });
     }
-});
+};
+
+app.post('/api/backup/restore', restoreUpload.any(), handleDbRestore);
+app.post('/api/backup/restore-file', restoreUpload.any(), handleDbRestore);
 
 // ==========================
 // 👥 إدارة واستيراد وتصدير العملاء (Clients Management)
@@ -2693,164 +3021,18 @@ app.listen(PORT, () => {
 });
 
 // ==========================
-// 📊 سحب الموظفين الجدد من ملف اكسل الرواتب نفسه (لأول مرة)
-// ==========================
-app.post('/api/employees/import-from-salary-sheet', upload.single('file'), async (req, res) => {
-    if (!req.file) return res.status(400).json({ message: "الرجاء اختيار ملف Excel." });
-    const filePath = req.file.path;
-    const ExcelJS = require('exceljs');
-    try {
-        const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.readFile(filePath);
-        const worksheet = workbook.worksheets[0];
-        
-        let namesRow = worksheet.getRow(1);
-        let nameCount = 0;
-        namesRow.eachCell(c => { if (c.value && String(c.value).trim().length > 1) nameCount++; });
-        if (nameCount < 3) { // إذا كان الصف الأول فارغاً تقريباً، جرب الصف الثاني
-            namesRow = worksheet.getRow(2);
-        }
-
-        let added = 0, skipped = 0;
-        const allEmployees = await dbAll("SELECT id, name FROM employees");
-        const existingNames = allEmployees.map(e => String(e.name).toLowerCase().replace(/\s+/g, ' '));
-        const existingUsernames = new Set((await dbAll("SELECT username FROM users")).map(u => String(u.username).toLowerCase()));
-
-        for (let i = 2; i <= 250; i++) { 
-            const cell = namesRow.getCell(i);
-            const rawVal = cell.value;
-            if (!rawVal) continue;
-            
-            let name = String(rawVal).trim();
-            if (name.length < 2 || name === 'التاريخ' || name.includes('تاريخ')) continue;
-            
-            const normalizedName = name.toLowerCase().replace(/\s+/g, ' ');
-            if (existingNames.includes(normalizedName)) {
-                skipped++;
-                continue;
-            }
-
-            let baseUsername = name.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/gi, '');
-            if (!baseUsername) baseUsername = 'user';
-            let username = baseUsername;
-            let counter = 1;
-            while (existingUsernames.has(username)) {
-                username = baseUsername + counter;
-                counter++;
-            }
-            existingUsernames.add(username);
-            
-            const empResult = await dbRun(
-                `INSERT IGNORE INTO employees (name, section_id, target, base_salary, hide_income, bank_name, is_active) VALUES (?, 1, 0, 0, 0, 'كاش', 1)`,
-                [name]
-            );
-            const employee_id = empResult.lastID || empResult.insertId;
-            if (employee_id) {
-                await dbRun(
-                    `INSERT IGNORE INTO users (employee_id, username, password, role) VALUES (?, ?, '1234', 'employee')`,
-                    [employee_id, username]
-                );
-                added++;
-                existingNames.push(normalizedName);
-            }
-        }
-        
-        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-        res.json({ success: true, message: `تم إضافة ${added} موظف جديد بنجاح${skipped > 0 ? ` (وتم تخطي ${skipped} موجودين مسبقاً)` : ''}.` });
-    } catch (error) {
-        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-        res.status(500).json({ success: false, message: "خطأ: " + error.message });
-    }
-});
-
-// ==========================
-// 📊 استيراد وتحديث الرواتب من Excel
+// 📊 استيراد وتحديث الرواتب والموظفين من Excel (ذكي)
 // ==========================
 app.post('/api/employees/import-salaries', upload.single('file'), async (req, res) => {
     if (!req.file) return res.status(400).json({ message: "الرجاء اختيار ملف Excel." });
     const filePath = req.file.path;
-    const ExcelJS = require('exceljs');
     try {
-        const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.readFile(filePath);
-        const worksheet = workbook.worksheets[0];
-        
-        const allEmployees = await dbAll("SELECT id, name FROM employees WHERE is_active = 1");
-        const clean = (s) => String(s || '').toLowerCase()
-            .replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي')
-            .replace(/[^a-z0-9\u0600-\u06FF]/g, '');
-        const dbNamesClean = allEmployees.map(e => ({ id: e.id, name: e.name, cleanName: clean(e.name) }));
-
-        let ind = { n: -1, b: -1, t: -1, d: -1, w: -1, r: -1, nr: -1 };
-        worksheet.eachRow((row, rowNumber) => {
-            let rowText = String(row.getCell(1).value || '').trim();
-            // Also check first few cells if column 1 is empty or has a number
-            for(let i=2; i<=3; i++) {
-                if(!rowText) rowText = String(row.getCell(i).value || '').trim();
-            }
-
-            const has = (txt) => rowText.includes(txt);
-
-            if (has('إجمالي السحوبات') || has('اجمالي السحوبات') || (has('سحوبات') && (has('إجمالي') || has('اجمالي'))) || (rowText === 'السحوبات')) ind.w = rowNumber - 1;
-            if (has('الراتب المتبقي') || has('اجمالي المتبقي')) ind.r = rowNumber - 1;
-            if (has('الراتب الأساسي') || has('الراتب الاساسي') || has('الراتب الاستحقاق')) ind.b = rowNumber - 1;
-            if (has('ايداع مؤسسة') || has('إيداع مؤسسة') || has('إيداع المؤسسة') || has('ايداع كاش')) ind.d = rowNumber - 1;
-            if (has('المتبقي الصافي') || has('الصافي') || has('صافي المتبقي')) ind.nr = rowNumber - 1;
-            if (has('مكافأة التارقت') || has('بونص التارقت') || (has('التارقت') && rowNumber > 25)) ind.t = rowNumber - 1;
-
-            if (ind.n === -1 && rowNumber < 15) {
-                let m = 0;
-                row.eachCell(c => { if(clean(c.value) && dbNamesClean.some(db => db.cleanName === clean(c.value))) m++; });
-                if (m >= 3) ind.n = rowNumber - 1;
-            }
-        });
-
-        const getV = (rIdx, cIdx) => {
-            if (rIdx === -1) return 0;
-            const cell = worksheet.getRow(rIdx + 1).getCell(cIdx + 1);
-            let val = 0;
-            if (cell.value && typeof cell.value === 'object') val = cell.value.result !== undefined ? cell.value.result : (cell.value.value || 0);
-            else val = cell.value;
-            return isNaN(parseFloat(val)) ? 0 : parseFloat(val);
-        };
-
-        let updated = 0;
-        let notFound = [];
-        const namesRowIdx = ind.n + 1;
-        const namesRow = worksheet.getRow(namesRowIdx);
-        
-        for (let i = 1; i <= 250; i++) { 
-            const cell = namesRow.getCell(i);
-            const rawVal = cell.value;
-            if (!rawVal) continue;
-            
-            const cEx = clean(rawVal);
-            if (!cEx || cEx.includes('تاريخ')) continue;
-            
-            const m = dbNamesClean.find(db => 
-                db.cleanName === cEx || 
-                (cEx.length > 3 && db.cleanName.includes(cEx)) || 
-                (db.cleanName.length > 3 && cEx.includes(db.cleanName))
-            );
-
-            if (m) {
-                await dbRun(`UPDATE employees SET base_salary=?, target_amount=?, deposit_amount=?, total_withdrawals=?, remaining_salary=?, net_remaining=?, last_sync_at=CURRENT_TIMESTAMP WHERE id=?`, 
-                    [getV(ind.b, i-1), getV(ind.t, i-1), getV(ind.d, i-1), getV(ind.w, i-1), getV(ind.r, i-1), getV(ind.nr, i-1), m.id]);
-                updated++;
-            } else {
-                if (cEx.length > 1) notFound.push(String(rawVal));
-            }
-        }
-        
+        const result = await handleSmartEmployeeImport(filePath);
         if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-        res.json({ 
-            message: `تمت مزامنة ${updated} موظف بنجاح.`, 
-            notFound: [...new Set(notFound)],
-            debug: { namesRow: namesRowIdx, headers: ind }
-        });
+        res.json(result);
     } catch (error) {
         if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-        res.status(500).json({ message: "خطأ: " + error.message });
+        res.status(500).json({ success: false, message: "خطأ: " + error.message });
     }
 });
 

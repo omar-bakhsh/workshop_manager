@@ -56,12 +56,13 @@
                     <th>القسم</th>
                     <th>الراتب الأساسي</th>
                     <th>التارجت</th>
+                    <th>البنك / الصرف</th>
                     <th>حساب الدخول</th>
                     <th>إجراءات</th>
                 </tr>
             </thead>
             <tbody id="employeesTableBody">
-                <tr><td colspan="6" style="text-align:center">جاري التحميل...</td></tr>
+                <tr><td colspan="7" style="text-align:center">جاري التحميل...</td></tr>
             </tbody>
         </table>
     </div>
@@ -95,6 +96,10 @@
                 <div class="form-group">
                     <label>كلمة المرور</label>
                     <input type="password" id="empPassword">
+                </div>
+                <div class="form-group">
+                    <label>البنك / طريقة الصرف</label>
+                    <select id="empBank"></select>
                 </div>
                 <div class="actions" style="margin-top: 20px">
                     <button type="submit" class="btn">حفظ الموظف</button>
@@ -134,6 +139,10 @@
                 <div class="form-group">
                     <label>كلمة المرور الجديدة (اختياري)</label>
                     <input type="password" id="editEmpPassword" placeholder="اتركه فارغاً لعدم التغيير">
+                </div>
+                <div class="form-group">
+                    <label>البنك / طريقة الصرف</label>
+                    <select id="editEmpBank"></select>
                 </div>
                 <div class="actions" style="margin-top: 20px">
                     <button type="submit" class="btn">حفظ التعديلات</button>
@@ -206,10 +215,11 @@
                         <td>${emp.section_name || '-'}</td>
                         <td>${emp.base_salary || 0}</td>
                         <td>${emp.target || 0}</td>
+                        <td>${emp.bank_name || 'كاش'}</td>
                         <td>${emp.username || '-'}</td>
                         <td>
                             <div class="actions">
-                                <button class="btn" style="padding: 5px 10px; font-size: 12px; background: var(--primary)" onclick="openEditModal(${emp.id}, '${emp.name.replace(/'/g, "\\'")}', '${emp.section_id || ''}', ${emp.base_salary || 0}, ${emp.target || 0}, '${emp.username || ''}', '${emp.password || ''}')">تعديل</button>
+                                <button class="btn" style="padding: 5px 10px; font-size: 12px; background: var(--primary)" onclick="openEditModal(${emp.id}, '${emp.name.replace(/'/g, "\\'")}', '${emp.section_id || ''}', ${emp.base_salary || 0}, ${emp.target || 0}, '${emp.username || ''}', '${emp.password || ''}', '${(emp.bank_name || 'كاش').replace(/'/g, "\\'")}')">تعديل</button>
                                 <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px" onclick="deleteEmployee(${emp.id})">حذف</button>
                             </div>
                         </td>
@@ -230,6 +240,7 @@
                 target: document.getElementById('empTarget').value || 0,
                 username: document.getElementById('empUsername').value,
                 password: document.getElementById('empPassword').value,
+                bank_name: document.getElementById('empBank')?.value || 'كاش',
                 is_active: 1
             };
             
@@ -254,14 +265,24 @@
             }
         }
 
-        function openEditModal(id, name, sectionId, salary, target, username, password) {
+        function openEditModal(id, name, sectionId, salary, target, username, password, bankName) {
             document.getElementById('editEmpId').value = id;
             document.getElementById('editEmpName').value = name;
             document.getElementById('editEmpSection').value = sectionId;
             document.getElementById('editEmpSalary').value = salary;
             document.getElementById('editEmpTarget').value = target;
             document.getElementById('editEmpUsername').value = username;
-            document.getElementById('editEmpPassword').value = password; // May be hashed, but will send it or let it be changed
+            document.getElementById('editEmpPassword').value = password;
+            if (document.getElementById('editEmpBank') && bankName) {
+                const sel = document.getElementById('editEmpBank');
+                if (!Array.from(sel.options).some(o => o.value === bankName)) {
+                    const opt = document.createElement('option');
+                    opt.value = bankName;
+                    opt.textContent = bankName;
+                    sel.appendChild(opt);
+                }
+                sel.value = bankName;
+            }
             openModal('editModal');
         }
 
@@ -275,6 +296,7 @@
                 target: document.getElementById('editEmpTarget').value || 0,
                 username: document.getElementById('editEmpUsername').value,
                 password: document.getElementById('editEmpPassword').value,
+                bank_name: document.getElementById('editEmpBank')?.value || 'كاش',
                 is_active: 1
             };
             
@@ -431,7 +453,22 @@
             } catch(e) { console.error(e); }
         }
 
+        async function loadBanks() {
+            try {
+                const res = await fetch('/api/banks');
+                const banks = await res.json();
+                const addSel = document.getElementById('empBank');
+                const editSel = document.getElementById('editEmpBank');
+                const optionsHtml = banks.map(b => `<option value="${b.name}">${b.name}</option>`).join('');
+                if (addSel) addSel.innerHTML = optionsHtml;
+                if (editSel) editSel.innerHTML = optionsHtml;
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
         loadSections();
+        loadBanks();
         loadEmployees();
     </script>
 </body>

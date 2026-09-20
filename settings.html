@@ -153,6 +153,31 @@
             </ul>
         </div>
 
+        <!-- Banks Management Settings -->
+        <div class="section-box" style="border: 2px solid #0284c7; background: #f0f9ff;">
+            <div class="section-title" style="color: #0369a1; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span>🏦</span>
+                    <span>إدارة البنوك وطرق التحويل والصرف</span>
+                </div>
+                <span style="font-size: 12px; font-weight: normal; color: #0284c7;">تظهر هذه البنوك في خيارات حسابات الموظفين والتقارير المالية</span>
+            </div>
+            <p style="font-size:12px; color:#475569; margin-bottom:12px; line-height: 1.6;">
+                يمكنك إضافة أسماء بنوك جديدة، تعديل البنوك الحالية، أو حذفها. يتم تحديث سجلات الموظفين المرتبطين تلقائياً عند تغيير اسم البنك.
+            </p>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <input type="text" id="newBankName" placeholder="اكتب اسم البنك الجديد (مثال: بنك الإنماء، مصرف الراجحي)..." style="flex: 1; padding: 10px 14px; border: 1px solid #bae6fd; border-radius: 8px; font-family: inherit;" onkeypress="if(event.key==='Enter') addBankManual()">
+                <button type="button" class="btn" onclick="addBankManual()" style="background: #0284c7; color: white; padding: 0 20px; font-weight: bold; border-radius: 8px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <i class="fa-solid fa-plus"></i> إضافة بنك
+                </button>
+            </div>
+
+            <div id="banksListContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;">
+                <!-- Banks dynamically loaded here -->
+            </div>
+        </div>
+
         <!-- Database Backup and Restore -->
         <div class="section-box" style="border: 2px solid var(--primary); background: #f8fafc;">
             <div class="section-title" style="color: var(--primary); display: flex; align-items: center; gap: 8px;">
@@ -238,7 +263,126 @@
                 const res3 = await fetch('/api/work-schedule');
                 const schedule = await res3.json();
                 renderSchedule(schedule);
+
+                await loadBanks();
             } catch (e) { console.error(e); }
+        }
+
+        // ==========================
+        // 🏦 إدارة البنوك (Banks Management)
+        // ==========================
+        let currentBanks = [];
+
+        async function loadBanks() {
+            try {
+                const res = await fetch('/api/banks');
+                currentBanks = await res.json();
+                renderBanks(currentBanks);
+            } catch (e) {
+                console.error('Error loading banks:', e);
+            }
+        }
+
+        function renderBanks(banks) {
+            const container = document.getElementById('banksListContainer');
+            if (!container) return;
+            if (!banks || banks.length === 0) {
+                container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #64748b; padding: 15px;">لا توجد بنوك مسجلة حالياً</div>';
+                return;
+            }
+
+            container.innerHTML = banks.map(bank => `
+                <div style="background: white; border: 1px solid #e0f2fe; border-radius: 8px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                    <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #0f172a; font-size: 13.5px;">
+                        <span style="color: #0284c7;"><i class="fa-solid fa-building-columns"></i></span>
+                        <span>${bank.name}</span>
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                        <button type="button" title="تعديل اسم البنك" onclick="editBankPrompt(${bank.id}, '${bank.name.replace(/'/g, "\\'")}')" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #0284c7; width: 30px; height: 30px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button type="button" title="حذف البنك" onclick="deleteBankPrompt(${bank.id}, '${bank.name.replace(/'/g, "\\'")}')" style="background: #fef2f2; border: 1px solid #fecaca; color: #ef4444; width: 30px; height: 30px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function addBankManual() {
+            const input = document.getElementById('newBankName');
+            const name = input.value.trim();
+            if (!name) {
+                alert('يرجى كتابة اسم البنك أولاً');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/banks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+                const result = await res.json();
+                if (res.ok) {
+                    input.value = '';
+                    await loadBanks();
+                } else {
+                    alert('❌ ' + (result.message || 'فشل إضافة البنك'));
+                }
+            } catch (e) {
+                console.error(e);
+                alert('❌ تعذر الاتصال بالسيرفر لإضافة البنك');
+            }
+        }
+
+        async function editBankPrompt(id, currentName) {
+            const newName = prompt('تعديل اسم البنك:', currentName);
+            if (newName === null) return;
+            const cleanName = newName.trim();
+            if (!cleanName) {
+                alert('لا يمكن ترك اسم البنك فارغاً');
+                return;
+            }
+            if (cleanName === currentName) return;
+
+            try {
+                const res = await fetch(`/api/banks/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: cleanName })
+                });
+                const result = await res.json();
+                if (res.ok) {
+                    await loadBanks();
+                } else {
+                    alert('❌ ' + (result.message || 'فشل تعديل اسم البنك'));
+                }
+            } catch (e) {
+                console.error(e);
+                alert('❌ تعذر الاتصال بالسيرفر لتعديل البنك');
+            }
+        }
+
+        async function deleteBankPrompt(id, name) {
+            if (!confirm(`هل أنت متأكد من حذف (${name}) من قائمة البنوك؟\nملاحظة: سيتم تحويل الموظفين المسجلين على هذا البنك إلى 'كاش' تلقائياً.`)) {
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/banks/${id}`, {
+                    method: 'DELETE'
+                });
+                const result = await res.json();
+                if (res.ok) {
+                    await loadBanks();
+                } else {
+                    alert('❌ ' + (result.message || 'فشل حذف البنك'));
+                }
+            } catch (e) {
+                console.error(e);
+                alert('❌ تعذر الاتصال بالسيرفر لحذف البنك');
+            }
         }
 
         // Terms Management
