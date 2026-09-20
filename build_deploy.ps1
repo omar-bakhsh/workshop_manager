@@ -40,6 +40,8 @@ $filesToInclude = @(
     "style.css",
     "manifest.json",
     "sw.js",
+    "ecosystem.config.js",
+    "Procfile",
     "favicon.ico",
     "icon-192.svg",
     "icon-512.svg",
