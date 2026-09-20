@@ -957,8 +957,11 @@ app.post('/api/withdrawals', async (req, res) => {
     try {
         await dbRun(`INSERT INTO withdrawals (employee_id, amount, reason, date, status) VALUES (?, ?, ?, ?, ?)`,
             [employee_id, amount, reason, withdrawalDate, withdrawalStatus]);
+        
         // Notification for admin
-        await dbRun(`INSERT INTO sys_notifications (recipient_type, title, message, type) VALUES ('admin', 'طلب سحب جديد', 'طلب سحب بقيمة ${amount} من الموظف', 'warning')`);
+        const emp = await dbGet('SELECT name FROM employees WHERE id = ?', [employee_id]);
+        const empName = emp ? emp.name : 'موظف';
+        await dbRun(`INSERT INTO sys_notifications (recipient_type, recipient_id, title, message, type) VALUES ('admin', 0, 'طلب سحب جديد', ?, 'warning')`, [`طلب سحب بقيمة ${amount} ﷼ من الموظف (${empName})`]);
 
         res.status(201).json({ message: "تم تسجيل الطلب بنجاح وهو بانتظار الموافقة" });
     } catch (error) {
@@ -1168,6 +1171,16 @@ app.post('/api/leave-requests', uploadDocument.single('attachment'), async (req,
             INSERT INTO leave_requests (employee_id, leave_type, start_date, end_date, days_count, reason, attachment_path, attachment_name)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         `, [employee_id, leave_type || 'annual', start_date, end_date, days_count, reason, attachmentPath, attachmentName]);
+
+        // Notification for admin
+        const emp = await dbGet('SELECT name FROM employees WHERE id = ?', [employee_id]);
+        const empName = emp ? emp.name : 'موظف';
+        const notifTitle = attachmentPath ? 'طلب إجازة / سكليف طبي جديد' : 'طلب إجازة جديد';
+        const notifMsg = `قدم الموظف (${empName}) طلب إجازة (${days_count} يوم) من ${start_date} إلى ${end_date}`;
+        await dbRun(`
+            INSERT INTO sys_notifications (recipient_type, recipient_id, title, message, type)
+            VALUES ('admin', 0, ?, ?, 'warning')
+        `, [notifTitle, notifMsg]);
 
         res.json({ message: 'تم إرسال طلب الإجازة بنجاح', days_count });
     } catch (error) {

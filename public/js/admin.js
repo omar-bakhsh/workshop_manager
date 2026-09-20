@@ -30,6 +30,7 @@ async function init() {
     
     // Initial Component Loads
     checkNotifications();
+    loadAdminNotifications();
     loadPendingRequests();
     loadAdminInspectionStats();
     checkUnreadMessages();
@@ -1294,7 +1295,12 @@ function playNotificationSound() {
 
 function toggleAdminNotif() {
     const dropdown = document.getElementById('adminNotifDropdown');
-    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    if (!dropdown) return;
+    const isOpening = dropdown.style.display !== 'block';
+    dropdown.style.display = isOpening ? 'block' : 'none';
+    if (isOpening) {
+        loadAdminNotifications();
+    }
 }
 
 async function loadAdminNotifications() {
