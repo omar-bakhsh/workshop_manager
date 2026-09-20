@@ -137,26 +137,53 @@ app.post('/api/login', async (req, res) => {
 
 // إضافة موظف جديد
 app.post('/api/employees', async (req, res) => {
-    const { name, section_id, target, base_salary, target_amount, deposit_amount, total_withdrawals, username, password, hide_income, bank_name } = req.body;
-    if (!name || !section_id || !target || !username || !password) {
-        return res.status(400).json({ message: "البيانات ناقصة." });
+    const { name, section_id, target, base_salary, username, password, hide_income, bank_name } = req.body;
+    if (!name || !name.trim()) {
+        return res.status(400).json({ message: "اسم الموظف مطلوب." });
     }
     try {
+        const cleanName = name.trim();
+        let cleanUsername = (username && String(username).trim()) ? String(username).trim().toLowerCase() : '';
+        if (!cleanUsername) {
+            cleanUsername = cleanName.split(/[\s-_]+/)[0].toLowerCase().replace(/[^a-z0-9]/gi, '');
+            if (!cleanUsername) cleanUsername = 'user';
+        }
+
+        // التأكد من عدم تكرار اسم المستخدم
+        let finalUsername = cleanUsername;
+        let counter = 1;
+        while (await dbGet('SELECT id FROM users WHERE username = ?', [finalUsername])) {
+            finalUsername = cleanUsername + counter;
+            counter++;
+        }
+
+        const cleanPassword = (password && String(password).trim()) ? String(password).trim() : '1234';
+
         // 1. إضافة الموظف
-        const empResult = await dbRun(`INSERT INTO employees (name, section_id, target, base_salary, hide_income, bank_name) VALUES (?, ?, ?, ?, ?, ?)`, 
-            [name, section_id, target, base_salary || 0, hide_income || 0, bank_name || 'كاش']);
-        const employee_id = empResult.lastID;
+        const empResult = await dbRun(
+            `INSERT INTO employees (name, section_id, target, base_salary, hide_income, bank_name, is_active) VALUES (?, ?, ?, ?, ?, ?, 1)`, 
+            [cleanName, section_id || 1, parseFloat(target) || 0, parseFloat(base_salary) || 0, hide_income || 0, bank_name || 'كاش']
+        );
+        const employee_id = empResult.insertId || empResult.lastID;
 
         // 2. إنشاء حساب المستخدم
-        await dbRun(`INSERT INTO users (employee_id, username, password, role) VALUES (?, ?, ?, 'employee')`, [employee_id, username, password]);
+        await dbRun(
+            `INSERT INTO users (employee_id, username, password, role) VALUES (?, ?, ?, 'employee')`, 
+            [employee_id, finalUsername, cleanPassword]
+        );
 
-        res.status(201).json({ message: "تمت إضافة الموظف بنجاح", id: employee_id });
+        res.status(201).json({ 
+            success: true,
+            message: "تمت إضافة الموظف وإنشاء حسابه بنجاح", 
+            id: employee_id,
+            username: finalUsername 
+        });
     } catch (error) {
         if (error.code === 'SQLITE_CONSTRAINT' || error.code === 'ER_DUP_ENTRY' || error.errno === 1062) {
             return res.status(409).json({ message: "اسم المستخدم موجود بالفعل." });
         }
         console.error("Add Employee Error:", error);
-        res.status(500).json({ message: "خطأ في إضافة الموظف" });
+        res.status(500).json({ message: "خطأ في إضافة الموظف: " + error.message });
     }
 });
 
@@ -166,24 +193,62 @@ app.put('/api/employees/:id', async (req, res) => {
     const { name, section_id, target, base_salary, username, password, hide_income, bank_name } = req.body;
 
     try {
-        // 1. تحديث بيانات الموظف (الاسم، القسم، الهدف، الراتب الأساسي، إخفاء الدخل)
-        await dbRun(`UPDATE employees SET name = ?, section_id = ?, target = ?, base_salary = ?, hide_income = ?, bank_name = ? WHERE id = ?`, 
-            [name, section_id, target, base_salary, hide_income || 0, bank_name || 'كاش', id]);
+        const cleanName = name ? name.trim() : '';
 
-        // 2. تحديث بيانات المستخدم (اسم المستخدم وكلمة المرور)
-        // التحقق مما إذا كان هناك مستخدم مرتبط لتجنب تحديث المدير
-        const userCheck = await dbGet('SELECT id FROM users WHERE employee_id = ? LIMIT 1', [id]);
+        // 1. تحديث بيانات الموظف
+        await dbRun(
+            `UPDATE employees SET name = ?, section_id = ?, target = ?, base_salary = ?, hide_income = ?, bank_name = ? WHERE id = ?`, 
+            [cleanName, section_id || 1, parseFloat(target) || 0, parseFloat(base_salary) || 0, hide_income || 0, bank_name || 'كاش', id]
+        );
+
+        // 2. تحديث أو إنشاء حساب المستخدم
+        let cleanUsername = (username && String(username).trim()) ? String(username).trim().toLowerCase() : '';
+        const userCheck = await dbGet('SELECT id, username, password FROM users WHERE employee_id = ? LIMIT 1', [id]);
+
         if (userCheck) {
-            await dbRun(`UPDATE users SET username = ?, password = ? WHERE id = ?`, [username, password, userCheck.id]);
+            // التحقق من تكرار اسم المستخدم إذا تم تغييره
+            if (cleanUsername && cleanUsername !== userCheck.username.toLowerCase()) {
+                const duplicate = await dbGet('SELECT id FROM users WHERE username = ? AND id != ?', [cleanUsername, userCheck.id]);
+                if (duplicate) {
+                    return res.status(409).json({ message: "اسم المستخدم هذا مسجل بالفعل لموظف آخر." });
+                }
+            } else if (!cleanUsername) {
+                cleanUsername = userCheck.username;
+            }
+
+            // كلمة المرور: إذا تم إدخال كلمة مرور جديدة يتم تعيينها، وإلا يتم الحفاظ على السابقة (أو 1234 افتراضياً)
+            const finalPassword = (password && String(password).trim()) ? String(password).trim() : (userCheck.password || '1234');
+
+            await dbRun(`UPDATE users SET username = ?, password = ? WHERE id = ?`, [cleanUsername, finalPassword, userCheck.id]);
+        } else {
+            // لم يكن للموظف حساب سابق -> إنشاء حساب فوري له
+            if (!cleanUsername) {
+                cleanUsername = cleanName.split(/[\s-_]+/)[0].toLowerCase().replace(/[^a-z0-9]/gi, '');
+                if (!cleanUsername) cleanUsername = 'user' + id;
+            }
+
+            let finalUsername = cleanUsername;
+            let counter = 1;
+            while (await dbGet('SELECT id FROM users WHERE username = ?', [finalUsername])) {
+                finalUsername = cleanUsername + counter;
+                counter++;
+            }
+
+            const finalPassword = (password && String(password).trim()) ? String(password).trim() : '1234';
+
+            await dbRun(
+                `INSERT INTO users (employee_id, username, password, role) VALUES (?, ?, ?, 'employee')`, 
+                [id, finalUsername, finalPassword]
+            );
         }
 
-        res.json({ message: "تم تحديث بيانات الموظف بنجاح" });
+        res.json({ success: true, message: "تم تحديث بيانات الموظف وحسابه بنجاح" });
     } catch (error) {
         if (error.code === 'SQLITE_CONSTRAINT' || error.code === 'ER_DUP_ENTRY' || error.errno === 1062) {
             return res.status(409).json({ message: "اسم المستخدم موجود بالفعل." });
         }
         console.error("Update Employee Error:", error);
-        res.status(500).json({ message: "خطأ في تحديث بيانات الموظف" });
+        res.status(500).json({ message: "خطأ في تحديث بيانات الموظف: " + error.message });
     }
 });
 
@@ -406,6 +471,8 @@ app.get('/api/employees', async (req, res) => {
                 e.base_salary, e.target_amount, e.deposit_amount, e.total_withdrawals, e.remaining_salary, e.net_remaining, e.last_sync_at,
                 e.hide_income,
                 e.section_id,
+                e.bank_name,
+                e.is_active,
                 s.name AS section_name,
                 u.username,
                 u.password,

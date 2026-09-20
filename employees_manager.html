@@ -2,7 +2,10 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>إدارة الموظفين والأقسام | Atenza App</title>
     
     <!-- Google Fonts & FontAwesome -->
@@ -628,13 +631,334 @@
             border-top: 1px solid var(--border-color);
         }
 
+        /* --- Desktop & Mobile Helper Rules --- */
+        .mobile-td-label { display: none; }
+        .mobile-btn-text { display: none; }
+        .mobile-status-badge { display: none; }
+        .mobile-card-grid { display: contents; }
+        .mobile-fab-add { display: none !important; }
+
+        /* --- Mobile Responsive Optimizations (<= 768px) --- */
         @media (max-width: 768px) {
-            body { padding: 14px; }
-            .app-header { flex-direction: column; align-items: stretch; }
-            .header-actions { justify-content: flex-start; }
-            .form-grid-2 { grid-template-columns: 1fr; }
-            .toolbar-card { flex-direction: column; align-items: stretch; }
-            .search-input-wrap { max-width: none; }
+            body {
+                padding: 12px;
+                padding-bottom: calc(85px + env(safe-area-inset-bottom, 0px));
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            /* 1. Header Bar Mobile */
+            .app-header {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 14px 16px;
+                border-radius: var(--radius-md);
+                margin-bottom: 14px;
+                gap: 12px;
+            }
+
+            .header-title-area {
+                gap: 12px;
+            }
+
+            .header-icon-badge {
+                width: 44px;
+                height: 44px;
+                font-size: 20px;
+                border-radius: 12px;
+            }
+
+            .header-title-text h1 {
+                font-size: 18px;
+            }
+
+            .header-title-text .breadcrumb {
+                font-size: 11.5px;
+            }
+
+            .header-actions {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+                width: 100%;
+            }
+
+            .header-actions .btn {
+                padding: 9px 10px;
+                font-size: 12px;
+                justify-content: center;
+                border-radius: 10px;
+                white-space: nowrap;
+            }
+
+            .header-actions .btn-icon {
+                grid-column: span 2;
+                width: 100%;
+                height: 38px;
+            }
+
+            /* 2. KPI Cards 2x2 Grid */
+            .kpi-row {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                margin-bottom: 14px;
+            }
+
+            .kpi-card {
+                padding: 12px 14px;
+                border-radius: 14px;
+            }
+
+            .kpi-card-info h4 {
+                font-size: 11px;
+                margin-bottom: 3px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .kpi-card-info .kpi-number {
+                font-size: 17px;
+                font-weight: 800;
+            }
+
+            .kpi-card-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+                border-radius: 10px;
+                flex-shrink: 0;
+            }
+
+            /* 3. Search & Filters Toolbar */
+            .toolbar-card {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 12px 14px;
+                border-radius: 14px;
+                margin-bottom: 14px;
+                gap: 10px;
+            }
+
+            .search-input-wrap {
+                min-width: 100%;
+                max-width: 100%;
+            }
+
+            .search-input {
+                height: 42px;
+                font-size: 13px;
+                border-radius: 10px;
+            }
+
+            .filter-controls {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                width: 100%;
+            }
+
+            .select-filter {
+                width: 100%;
+                height: 40px;
+                font-size: 12px;
+                padding: 0 10px;
+                border-radius: 10px;
+            }
+
+            /* 4. Table Transformation into Clean Native Cards on Mobile */
+            .table-card {
+                background: transparent;
+                border: none;
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .table-responsive {
+                overflow: visible;
+            }
+
+            table, thead, tbody, th, td, tr {
+                display: block;
+                width: 100%;
+            }
+
+            thead {
+                display: none;
+            }
+
+            tbody {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            tbody tr {
+                background: var(--surface);
+                border: 1px solid var(--border-color);
+                border-radius: 16px;
+                box-shadow: var(--shadow-sm);
+                padding: 14px 16px;
+                transition: transform 0.15s ease;
+                position: relative;
+            }
+
+            tbody tr:hover {
+                background: var(--surface);
+            }
+
+            tbody tr:active {
+                transform: scale(0.99);
+            }
+
+            td {
+                padding: 5px 0;
+                border: none;
+            }
+
+            td.cell-employee {
+                padding-bottom: 10px;
+                border-bottom: 1px solid var(--border-color);
+                margin-bottom: 6px;
+            }
+
+            .emp-profile-cell {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                width: 100%;
+            }
+
+            .emp-info-wrap {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .emp-name-text {
+                font-size: 14px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .emp-user-text {
+                font-size: 11.5px;
+            }
+
+            .mobile-status-badge {
+                display: inline-flex;
+                flex-shrink: 0;
+            }
+
+            .desktop-only-cell {
+                display: none;
+            }
+
+            .mobile-card-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px 10px;
+                padding: 6px 0;
+                border-bottom: 1px dashed var(--border-color);
+                margin-bottom: 8px;
+            }
+
+            td.cell-section, td.cell-shift, td.cell-salary, td.cell-target, td.cell-bank {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 2px 0;
+                font-size: 12.5px;
+            }
+
+            .mobile-td-label {
+                display: inline-block;
+                font-size: 11px;
+                color: var(--text-muted);
+                font-weight: 700;
+            }
+
+            /* Mobile Actions Row */
+            td.cell-actions {
+                padding-top: 6px;
+            }
+
+            .table-actions {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                width: 100%;
+            }
+
+            .table-actions .action-icon-btn {
+                width: 100%;
+                height: 38px;
+                border-radius: 10px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                font-weight: 800;
+                font-size: 12.5px;
+            }
+
+            .mobile-btn-text {
+                display: inline;
+            }
+
+            /* 5. Mobile Floating Action Button (FAB) */
+            .mobile-fab-add {
+                display: flex !important;
+                position: fixed;
+                bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+                left: 18px;
+                z-index: 1000;
+                background: var(--primary-gradient);
+                color: white;
+                border: none;
+                border-radius: 50px;
+                padding: 12px 20px;
+                font-weight: 800;
+                font-size: 13.5px;
+                box-shadow: 0 10px 25px rgba(79, 70, 229, 0.45);
+                align-items: center;
+                gap: 8px;
+                cursor: pointer;
+                text-decoration: none;
+                transition: transform 0.2s;
+            }
+
+            .mobile-fab-add:active {
+                transform: scale(0.95);
+            }
+
+            /* 6. Modals on Mobile */
+            .modal {
+                padding: 8px;
+                align-items: flex-end;
+            }
+
+            .modal-content {
+                padding: 20px 16px;
+                border-radius: 20px 20px 12px 12px;
+                max-height: 88vh;
+            }
+
+            .modal-header h2 {
+                font-size: 16px;
+            }
+
+            .form-grid-2 {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+
+            .form-group input, .form-group select {
+                height: 46px;
+                font-size: 14.5px;
+            }
         }
     </style>
 </head>
@@ -996,6 +1320,12 @@
         </div>
     </div>
 
+    <!-- Mobile Floating Action Button (FAB) -->
+    <button class="mobile-fab-add" onclick="openAddEmployeeModal()" title="إضافة موظف جديد">
+        <i class="fa-solid fa-user-plus"></i>
+        <span>إضافة موظف</span>
+    </button>
+
     <!-- =========================================================
          Application JavaScript Logic
          ========================================================= -->
@@ -1090,7 +1420,14 @@
             if (!tbody) return;
 
             if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--text-muted); font-size:13px;">لا يوجد موظفون مطابقون لخيارات البحث</td></tr>';
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align:center; padding:40px 20px; color:var(--text-muted);">
+                            <div style="font-size:36px; margin-bottom:10px; opacity:0.6;">🔍</div>
+                            <div style="font-weight:700; font-size:14px; margin-bottom:4px;">لا توجد نتائج مطابقة</div>
+                            <div style="font-size:12px; opacity:0.8;">جرّب تعديل معايير البحث أو تصفية الأقسام</div>
+                        </td>
+                    </tr>`;
                 return;
             }
 
@@ -1101,39 +1438,53 @@
                 const isActive = emp.is_active !== 0;
 
                 return `
-                    <tr>
-                        <td>
+                    <tr class="emp-row" id="emp-row-${emp.id}">
+                        <td data-label="الموظف" class="cell-employee">
                             <div class="emp-profile-cell">
                                 <div class="emp-avatar">${initials}</div>
-                                <div>
+                                <div class="emp-info-wrap">
                                     <div class="emp-name-text">${emp.name}</div>
                                     <div class="emp-user-text">@${emp.username || 'بدون حساب'}</div>
                                 </div>
+                                <span class="badge-pill mobile-status-badge ${isActive ? 'badge-active' : 'badge-inactive'}">
+                                    ${isActive ? '● نشط' : '○ متوقف'}
+                                </span>
                             </div>
                         </td>
-                        <td>
-                            <span class="badge-pill badge-section"><i class="fa-solid fa-building"></i> ${emp.section_name || 'عام'}</span>
-                        </td>
-                        <td style="font-size:12px; font-weight:700; color:var(--text-muted);">
-                            <i class="fa-regular fa-clock"></i> ${shiftTime}
-                        </td>
-                        <td style="font-weight:800;">${(Number(emp.base_salary) || 0).toLocaleString()} ﷼</td>
-                        <td style="font-weight:800; color:var(--primary);">${(Number(emp.target) || 0).toLocaleString()} ﷼</td>
-                        <td>
-                            <span class="badge-pill badge-bank"><i class="fa-solid fa-building-columns"></i> ${emp.bank_name || 'كاش'}</span>
-                        </td>
-                        <td>
+                        <div class="mobile-card-grid">
+                            <td data-label="القسم" class="cell-section">
+                                <span class="mobile-td-label">القسم:</span>
+                                <span class="badge-pill badge-section"><i class="fa-solid fa-building"></i> ${emp.section_name || 'عام'}</span>
+                            </td>
+                            <td data-label="الدوام" class="cell-shift" style="font-size:12px; font-weight:700; color:var(--text-muted);">
+                                <span class="mobile-td-label">الدوام:</span>
+                                <span><i class="fa-regular fa-clock"></i> ${shiftTime}</span>
+                            </td>
+                            <td data-label="الراتب" class="cell-salary" style="font-weight:800;">
+                                <span class="mobile-td-label">الراتب:</span>
+                                <span>${(Number(emp.base_salary) || 0).toLocaleString()} ﷼</span>
+                            </td>
+                            <td data-label="التارجت" class="cell-target" style="font-weight:800; color:var(--primary);">
+                                <span class="mobile-td-label">التارجت:</span>
+                                <span>${(Number(emp.target) || 0).toLocaleString()} ﷼</span>
+                            </td>
+                            <td data-label="طريقة الصرف" class="cell-bank">
+                                <span class="mobile-td-label">البنك:</span>
+                                <span class="badge-pill badge-bank"><i class="fa-solid fa-building-columns"></i> ${emp.bank_name || 'كاش'}</span>
+                            </td>
+                        </div>
+                        <td data-label="الحالة" class="cell-status desktop-only-cell">
                             <span class="badge-pill ${isActive ? 'badge-active' : 'badge-inactive'}">
                                 ${isActive ? '● نشط' : '○ متوقف'}
                             </span>
                         </td>
-                        <td>
+                        <td data-label="إجراءات" class="cell-actions">
                             <div class="table-actions">
-                                <button class="action-icon-btn" onclick="openEditEmployeeModal(${emp.id})" title="تعديل الموظف">
-                                    <i class="fa-solid fa-pen-to-square"></i>
+                                <button class="action-icon-btn btn-edit-emp" onclick="openEditEmployeeModal(${emp.id})" title="تعديل الموظف">
+                                    <i class="fa-solid fa-pen-to-square"></i> <span class="mobile-btn-text">تعديل</span>
                                 </button>
-                                <button class="action-icon-btn delete" onclick="deleteEmployee(${emp.id})" title="حذف الموظف">
-                                    <i class="fa-solid fa-trash"></i>
+                                <button class="action-icon-btn delete btn-delete-emp" onclick="deleteEmployee(${emp.id})" title="حذف الموظف">
+                                    <i class="fa-solid fa-trash"></i> <span class="mobile-btn-text">حذف</span>
                                 </button>
                             </div>
                         </td>
