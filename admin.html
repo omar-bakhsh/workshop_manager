@@ -859,6 +859,19 @@
     </div>
 
     <!-- Scripts -->
-    <script src="public/js/admin.js?v=5.7"></script>
+    <script>
+        function openImportSalariesModal() {
+            const resDiv = document.getElementById('importSalariesResult');
+            if (resDiv) {
+                resDiv.style.display = 'none';
+                resDiv.innerHTML = '';
+            }
+            const fileInput = document.getElementById('importSalariesFileInput');
+            if (fileInput) fileInput.value = '';
+            const modal = document.getElementById('importSalariesModal');
+            if (modal) modal.style.display = 'flex';
+        }
+    </script>
+    <script src="public/js/admin.js?v=6.0"></script>
 </body>
 </html>

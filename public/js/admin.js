@@ -1549,6 +1549,17 @@ function initSidebarCollapseState() {
     }
 }
 
+// Global window mappings
+window.openImportSalariesModal = openImportSalariesModal;
+window.importSalariesFromExcel = importSalariesFromExcel;
+window.openImportEmployeesModal = openImportEmployeesModal;
+window.importEmployeesFromExcel = importEmployeesFromExcel;
+window.downloadImportTemplate = downloadImportTemplate;
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.toggleMobileSidebar = toggleMobileSidebar;
+window.toggleSidebarCollapse = toggleSidebarCollapse;
+
 // Initialize!
 init();
 
