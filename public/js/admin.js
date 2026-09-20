@@ -726,11 +726,25 @@ async function loadPendingRequests() {
     if(!container) return;
 
     try {
-        const [wRes, lRes] = await Promise.all([ fetch('/api/withdrawals/pending'), fetch('/api/leave-requests?status=pending') ]);
+        const [wRes, lRes, dRes] = await Promise.all([
+            fetch('/api/withdrawals/pending'),
+            fetch('/api/leave-requests?status=pending'),
+            fetch('/api/admin/documents?status=pending')
+        ]);
         const withdrawals = await wRes.json();
         const leaves = await lRes.json();
+        const pendingDocs = await dRes.json();
 
-        if (withdrawals.length === 0 && leaves.length === 0) { section.style.display = 'none'; return; }
+        const docsBadge = document.getElementById('docsBadge');
+        if (docsBadge) {
+            docsBadge.style.display = pendingDocs.length > 0 ? 'inline-block' : 'none';
+            docsBadge.textContent = pendingDocs.length > 9 ? '9+' : pendingDocs.length;
+        }
+
+        if (withdrawals.length === 0 && leaves.length === 0 && pendingDocs.length === 0) {
+            section.style.display = 'none';
+            return;
+        }
 
         section.style.display = 'block';
         container.innerHTML = '';
@@ -755,14 +769,41 @@ async function loadPendingRequests() {
             const card = document.createElement('div');
             card.className = 'stat-card';
             card.style.borderRight = '4px solid var(--info)';
+            const hasAtt = l.attachment_path ? `
+                <button type="button" class="btn btn-secondary" style="padding:4px 8px; font-size:11px; margin-top:6px;" onclick="previewAdminDoc('${l.attachment_path}', 'مرفق إجازة: ${l.employee_name}')">
+                    <i class="fa-solid fa-paperclip"></i> عرض السكليف / التقرير
+                </button>` : '';
+
             card.innerHTML = `
                 <div class="stat-header"><div class="stat-icon-box" style="--card-bg:#eff6ff; --card-accent:var(--info);">🏖️</div><span class="badge-status badge-status-warning">إجازة معلقة</span></div>
                 <div style="font-weight:700;">${l.employee_name}</div>
                 <div class="stat-value" style="font-size:20px;">${l.days_count} يوم</div>
                 <div class="stat-label">${l.leave_type} (${l.start_date} - ${l.end_date})</div>
+                ${hasAtt}
                 <div style="margin-top:15px; display:flex; gap:10px;">
                     <button class="btn btn-success" style="flex:1;" onclick="handleLeaveAction(${l.id}, 'approved')">قبول</button>
                     <button class="btn btn-danger" style="flex:1;" onclick="handleLeaveAction(${l.id}, 'rejected')">رفض</button>
+                </div>`;
+            container.appendChild(card);
+        });
+
+        pendingDocs.forEach(d => {
+            const card = document.createElement('div');
+            card.className = 'stat-card';
+            card.style.borderRight = '4px solid var(--primary)';
+            card.innerHTML = `
+                <div class="stat-header"><div class="stat-icon-box" style="--card-bg:#eef2ff; --card-accent:var(--primary);">📁</div><span class="badge-status badge-status-warning">مستند معلق</span></div>
+                <div style="font-weight:700;">${d.employee_name}</div>
+                <div class="stat-value" style="font-size:16px; font-weight:800; color:var(--text-dark);">${d.title}</div>
+                <div class="stat-label">${d.document_type} • ${d.notes || 'بدون تفاصيل'}</div>
+                <div style="margin-top:8px;">
+                    <button type="button" class="btn btn-secondary" style="padding:4px 10px; font-size:11.5px; width:100%; justify-content:center;" onclick="previewAdminDoc('${d.file_path}', '${d.title.replace(/'/g, "\\'")}', '${d.mime_type || ''}')">
+                        <i class="fa-solid fa-eye"></i> معاينة المرفق
+                    </button>
+                </div>
+                <div style="margin-top:12px; display:flex; gap:10px;">
+                    <button class="btn btn-success" style="flex:1;" onclick="handleDocumentAction(${d.id}, 'approved')">اعتماد</button>
+                    <button class="btn btn-danger" style="flex:1;" onclick="handleDocumentAction(${d.id}, 'rejected')">رفض</button>
                 </div>`;
             container.appendChild(card);
         });
@@ -1012,13 +1053,19 @@ async function loadAllLeaveRequests(filterStatus = '') {
                 </div>
             ` : `<span style="font-size:12px; color:var(--text-gray);">${l.admin_notes || '—'}</span>`;
 
+            const attBtn = l.attachment_path ? `
+                <button class="btn btn-secondary" style="padding:3px 8px; font-size:11px; margin-top:3px;" onclick="previewAdminDoc('${l.attachment_path}', 'مرفق إجازة: ${l.employee_name}')">
+                    <i class="fa-solid fa-paperclip"></i> السكليف
+                </button>
+            ` : '';
+
             return `
                 <tr>
                     <td style="font-weight:700;">${l.employee_name || 'موظف'} <span style="font-size:11px; color:var(--text-gray); font-weight:normal;">(${l.section_name || 'عام'})</span></td>
                     <td><span class="badge-status badge-status-info">${l.leave_type || 'إجازة اعتيادية'}</span></td>
                     <td dir="ltr" style="font-size:12px;">${l.start_date || '---'} ➔ ${l.end_date || '---'}</td>
                     <td><strong>${l.days_count || 1}</strong> يوم</td>
-                    <td style="font-size:12px; max-width:180px;">${l.reason || 'بدون تفاصيل'}</td>
+                    <td style="font-size:12px; max-width:180px;">${l.reason || 'بدون تفاصيل'} ${attBtn}</td>
                     <td>${statusBadge}</td>
                     <td>${actions}</td>
                 </tr>
@@ -1028,6 +1075,161 @@ async function loadAllLeaveRequests(filterStatus = '') {
         console.error('Error loading leave requests:', e);
         tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--danger); padding:15px;">❌ تعذر تحميل البيانات</td></tr>';
     }
+}
+
+// ==========================================
+// 📂 Employee Documents & Sick Leaves Management
+// ==========================================
+let currentDocStatusFilter = '';
+
+function setDocStatusFilter(st) {
+    currentDocStatusFilter = st;
+    loadAdminDocuments();
+}
+
+function openDocumentsModal() {
+    const s = document.getElementById('docAdminEmpFilter');
+    if (s && employees) {
+        const cur = s.value;
+        s.innerHTML = '<option value="">جميع الموظفين</option>' + employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+        s.value = cur;
+    }
+    loadAdminDocuments();
+    openModal('documentsModal');
+}
+
+async function loadAdminDocuments() {
+    const tbody = document.getElementById('adminDocsTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px;">⏳ جاري تحميل المستندات...</td></tr>';
+
+    const empId = document.getElementById('docAdminEmpFilter')?.value || '';
+    const docType = document.getElementById('docAdminTypeFilter')?.value || '';
+    
+    let url = `/api/admin/documents?`;
+    if (currentDocStatusFilter) url += `status=${currentDocStatusFilter}&`;
+    if (docType) url += `document_type=${docType}&`;
+    if (empId) url += `employee_id=${empId}`;
+
+    try {
+        const res = await fetch(url);
+        const docs = await res.json();
+        
+        if (!docs || docs.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:25px; color:var(--text-gray);">لا توجد مستندات مسجلة</td></tr>';
+            return;
+        }
+
+        const docTypesMap = {
+            'sick_leave': { label: 'إجازة مرضية / سكليف', icon: '🩺', color: '#ef4444' },
+            'national_id': { label: 'هوية / إقامة', icon: '🪪', color: '#3b82f6' },
+            'driving_license': { label: 'رخصة قيادة', icon: '🚗', color: '#10b981' },
+            'expense_invoice': { label: 'فاتورة / مصروفات', icon: '🧾', color: '#f59e0b' },
+            'certificate': { label: 'شهادة تدريبية', icon: '📜', color: '#8b5cf6' },
+            'other': { label: 'مستند رسمي', icon: '📝', color: '#64748b' }
+        };
+
+        tbody.innerHTML = docs.map(d => {
+            const meta = docTypesMap[d.document_type] || docTypesMap['other'];
+            const statusBadge = d.status === 'approved'
+                ? '<span class="badge-status badge-status-success">معتمد</span>'
+                : (d.status === 'rejected' ? '<span class="badge-status badge-status-danger">مرفوض</span>' : '<span class="badge-status badge-status-warning">قيد المراجعة</span>');
+
+            const isImage = (d.mime_type && d.mime_type.startsWith('image')) || d.file_path.match(/\.(jpg|jpeg|png|webp|gif)$/i);
+            const safeTitle = (d.title || '').replace(/'/g, "\\'");
+            const previewBtn = `
+                <button class="btn btn-secondary" style="padding:4px 10px; font-size:12px;" onclick="previewAdminDoc('${d.file_path}', '${safeTitle}', '${d.mime_type || ''}')">
+                    <i class="${isImage ? 'fa-solid fa-image' : 'fa-solid fa-file-pdf'}"></i> معاينة
+                </button>
+            `;
+
+            const actions = d.status === 'pending' ? `
+                <div style="display:flex; gap:6px; justify-content:center;">
+                    <button class="btn btn-success" style="padding:4px 8px; font-size:12px;" onclick="handleDocumentAction(${d.id}, 'approved')"><i class="fa-solid fa-check"></i> اعتماد</button>
+                    <button class="btn btn-danger" style="padding:4px 8px; font-size:12px;" onclick="handleDocumentAction(${d.id}, 'rejected')"><i class="fa-solid fa-xmark"></i> رفض</button>
+                </div>
+            ` : `
+                <div style="font-size:12px; color:var(--text-gray); display:flex; align-items:center; justify-content:center; gap:6px;">
+                    <span>${d.admin_notes || '—'}</span>
+                    <button style="background:none; border:none; color:#cbd5e1; cursor:pointer; font-size:11px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#cbd5e1'" onclick="deleteAdminDocument(${d.id})" title="حذف">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            `;
+
+            return `
+                <tr>
+                    <td style="font-weight:700;">${d.employee_name || 'موظف'} <span style="font-size:11px; color:var(--text-gray); font-weight:normal;">(${d.section_name || 'عام'})</span></td>
+                    <td><span class="badge-status" style="background:#f1f5f9; color:${meta.color}; font-weight:700;">${meta.icon} ${meta.label}</span></td>
+                    <td>
+                        <div style="font-weight:700; font-size:13px;">${d.title}</div>
+                        ${d.notes ? `<div style="font-size:11.5px; color:var(--text-gray);">${d.notes}</div>` : ''}
+                    </td>
+                    <td>${previewBtn}</td>
+                    <td dir="ltr" style="font-size:12px;">${new Date(d.created_at || Date.now()).toLocaleDateString('en-GB')}</td>
+                    <td>${statusBadge}</td>
+                    <td>${actions}</td>
+                </tr>
+            `;
+        }).join('');
+
+    } catch (e) {
+        console.error('Error loading admin docs:', e);
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--danger); padding:15px;">❌ تعذر تحميل المستندات</td></tr>';
+    }
+}
+
+async function handleDocumentAction(id, status) {
+    const note = prompt(status === 'rejected' ? 'سبب رفض المستند (اختياري):' : 'ملاحظة للإدارة والموظف (مثال: تم اعتماد التقرير الطبي):');
+    if (status === 'rejected' && note === null) return;
+    try {
+        const res = await fetch(`/api/admin/documents/${id}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status, admin_notes: note || '' })
+        });
+        if (res.ok) {
+            loadAdminDocuments();
+            loadPendingRequests();
+        }
+    } catch (e) {
+        alert('حدث خطأ في تحديث حالة المستند');
+    }
+}
+
+async function deleteAdminDocument(id) {
+    if (!confirm('هل تريد حذف هذا المستند نهائياً؟')) return;
+    try {
+        const res = await fetch(`/api/employee/documents/${id}`, { method: 'DELETE' });
+        if (res.ok) loadAdminDocuments();
+    } catch (e) {}
+}
+
+function previewAdminDoc(filePath, title, mimeType) {
+    const titleEl = document.getElementById('adminDocPreviewTitle');
+    const bodyEl = document.getElementById('adminDocPreviewBody');
+    const dlBtn = document.getElementById('adminDocDownloadBtn');
+
+    if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-file"></i> ${title || 'معاينة المستند'}`;
+    if (dlBtn) dlBtn.href = filePath;
+
+    const isImage = (mimeType && mimeType.startsWith('image')) || filePath.match(/\.(jpg|jpeg|png|webp|gif)$/i);
+
+    if (isImage) {
+        bodyEl.innerHTML = `<img src="${filePath}" style="max-width:100%; max-height:65vh; border-radius:10px; object-fit:contain; box-shadow:0 10px 30px rgba(0,0,0,0.5);">`;
+    } else {
+        bodyEl.innerHTML = `
+            <div style="padding:40px 20px;">
+                <i class="fa-solid fa-file-pdf" style="font-size:52px; color:#ef4444; margin-bottom:15px; display:block;"></i>
+                <div style="font-size:16px; font-weight:700; color:#ffffff; margin-bottom:15px;">ملف تقرير طبي / مستند PDF</div>
+                <a href="${filePath}" target="_blank" class="btn btn-primary" style="display:inline-block; padding:10px 20px; font-size:13px; text-decoration:none;">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> فتح في نافذة كاملة
+                </a>
+            </div>
+        `;
+    }
+
+    openModal('docAdminPreviewModal');
 }
 function backupDatabase() { openModal('backupModal'); }
 function downloadDbBackup() { window.location.href = '/api/backup'; }

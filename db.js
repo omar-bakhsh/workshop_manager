@@ -460,6 +460,23 @@ async function initDatabase() {
             end_date DATE NULL,
             description VARCHAR(255) NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+
+        `CREATE TABLE IF NOT EXISTS employee_documents (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            employee_id INT NOT NULL,
+            document_type VARCHAR(50) NOT NULL DEFAULT 'other',
+            title VARCHAR(255) NOT NULL,
+            notes TEXT NULL,
+            file_path VARCHAR(255) NOT NULL,
+            file_name VARCHAR(255) NOT NULL,
+            file_size INT DEFAULT 0,
+            mime_type VARCHAR(100) NULL,
+            status VARCHAR(20) DEFAULT 'pending',
+            admin_notes TEXT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`
     ];
 
@@ -721,9 +738,26 @@ async function initDatabase() {
             description TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )`,
+        `CREATE TABLE IF NOT EXISTS employee_documents (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            employee_id INTEGER NOT NULL,
+            document_type TEXT NOT NULL DEFAULT 'other',
+            title TEXT NOT NULL,
+            notes TEXT,
+            file_path TEXT NOT NULL,
+            file_name TEXT NOT NULL,
+            file_size INTEGER DEFAULT 0,
+            mime_type TEXT,
+            status TEXT DEFAULT 'pending',
+            admin_notes TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
+        )`,
         `CREATE INDEX IF NOT EXISTS idx_clients_phone ON clients(phone)`,
         `CREATE INDEX IF NOT EXISTS idx_clients_name ON clients(name)`,
-        `CREATE INDEX IF NOT EXISTS idx_promo_code ON promo_codes(code)`
+        `CREATE INDEX IF NOT EXISTS idx_promo_code ON promo_codes(code)`,
+        `CREATE INDEX IF NOT EXISTS idx_doc_emp ON employee_documents(employee_id)`
     ];
 
     const tablesToRun = isMySQL ? mysqlTables : sqliteTables;
@@ -773,6 +807,8 @@ async function initDatabase() {
     await safeAddColumn('inspection_items', 'is_completed', "TINYINT DEFAULT 0");
     await safeAddColumn('inspection_items', 'completed_at', "DATETIME NULL");
     await safeAddColumn('inspection_items', 'completed_by', "VARCHAR(191) NULL");
+    await safeAddColumn('leave_requests', 'attachment_path', "VARCHAR(255) NULL");
+    await safeAddColumn('leave_requests', 'attachment_name', "VARCHAR(255) NULL");
 
     // تحقق من الهجرة التلقائية الأولى إذا كانت قاعدة MySQL فارغة تماماً
     if (isMySQL) {

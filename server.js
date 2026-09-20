@@ -30,6 +30,23 @@ const uploadPhoto = multer({
     limits: { fileSize: 20 * 1024 * 1024 } // 20MB
 });
 
+const docStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const dir = path.join(__dirname, 'uploads', 'documents');
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+    },
+    filename: function (req, file, cb) {
+        const ext = path.extname(file.originalname) || '';
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'doc-' + uniqueSuffix + ext);
+    }
+});
+const uploadDocument = multer({
+    storage: docStorage,
+    limits: { fileSize: 25 * 1024 * 1024 } // 25MB
+});
+
 const upload = multer({ dest: 'uploads/' });
 const xlsx = require('xlsx');
 const { importClients, normalizePhone } = require('./import_clients');
@@ -1117,8 +1134,8 @@ async function getLeaveBalance(employee_id) {
     }
 }
 
-// إنشاء طلب إجازة جديد (Employee)
-app.post('/api/leave-requests', async (req, res) => {
+// إنشاء طلب إجازة جديد (Employee) مع دعم إرفاق السكليف / التقرير الطبي
+app.post('/api/leave-requests', uploadDocument.single('attachment'), async (req, res) => {
     const { employee_id, leave_type, start_date, end_date, reason } = req.body;
 
     if (!employee_id || !start_date || !end_date) {
@@ -1140,10 +1157,17 @@ app.post('/api/leave-requests', async (req, res) => {
             });
         }
 
+        let attachmentPath = null;
+        let attachmentName = null;
+        if (req.file) {
+            attachmentPath = 'uploads/documents/' + req.file.filename;
+            attachmentName = req.file.originalname;
+        }
+
         await dbRun(`
-            INSERT INTO leave_requests (employee_id, leave_type, start_date, end_date, days_count, reason)
-            VALUES (?, ?, ?, ?, ?, ?)
-        `, [employee_id, leave_type || 'annual', start_date, end_date, days_count, reason]);
+            INSERT INTO leave_requests (employee_id, leave_type, start_date, end_date, days_count, reason, attachment_path, attachment_name)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `, [employee_id, leave_type || 'annual', start_date, end_date, days_count, reason, attachmentPath, attachmentName]);
 
         res.json({ message: 'تم إرسال طلب الإجازة بنجاح', days_count });
     } catch (error) {
@@ -1232,6 +1256,143 @@ app.put('/api/leave-requests/:id', async (req, res) => {
     } catch (error) {
         console.error('Update Leave Request Error:', error);
         res.status(500).json({ message: 'خطأ في تحديث طلب الإجازة' });
+    }
+});
+
+// ==========================================
+// 📂 Employee Documents & Sick Leaves API
+// ==========================================
+// رفع مستند / سكليف من الموظف
+app.post('/api/employee/documents', uploadDocument.single('file'), async (req, res) => {
+    try {
+        const { employee_id, document_type, title, notes } = req.body;
+        if (!employee_id || !title) {
+            return res.status(400).json({ message: 'معرف الموظف وعنوان المستند مطلوبان' });
+        }
+        if (!req.file) {
+            return res.status(400).json({ message: 'يرجى اختيار ملف المستند للرفع' });
+        }
+
+        const filePath = 'uploads/documents/' + req.file.filename;
+        const fileName = req.file.originalname;
+        const fileSize = req.file.size;
+        const mimeType = req.file.mimetype;
+
+        const result = await dbRun(`
+            INSERT INTO employee_documents (employee_id, document_type, title, notes, file_path, file_name, file_size, mime_type, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+        `, [employee_id, document_type || 'other', title, notes || '', filePath, fileName, fileSize, mimeType]);
+
+        // إشعار للإدارة
+        const emp = await dbGet('SELECT name FROM employees WHERE id = ?', [employee_id]);
+        const empName = emp ? emp.name : 'موظف';
+        await dbRun(`
+            INSERT INTO sys_notifications (recipient_type, recipient_id, title, message, type)
+            VALUES ('admin', 0, 'مستند جديد من موظف', ?, 'info')
+        `, [`قام الموظف (${empName}) برفع مستند جديد: ${title}`]);
+
+        res.json({ message: 'تم رفع المستند بنجاح وتحويله لمراجعة الإدارة', id: result.lastID, file_path: filePath });
+    } catch (error) {
+        console.error('Upload document error:', error);
+        res.status(500).json({ message: 'خطأ في رفع المستند' });
+    }
+});
+
+// جلب مستندات موظف محدد
+app.get('/api/employee/:id/documents', async (req, res) => {
+    try {
+        const docs = await dbAll(`
+            SELECT * FROM employee_documents
+            WHERE employee_id = ?
+            ORDER BY created_at DESC
+        `, [req.params.id]);
+        res.json(docs);
+    } catch (error) {
+        console.error('Fetch employee docs error:', error);
+        res.status(500).json({ message: 'خطأ في جلب المستندات' });
+    }
+});
+
+// جلب جميع المستندات للإدارة مع الفلترة
+app.get('/api/admin/documents', async (req, res) => {
+    try {
+        const { status, document_type, employee_id } = req.query;
+        let sql = `
+            SELECT ed.*, e.name as employee_name, s.name as section_name
+            FROM employee_documents ed
+            JOIN employees e ON ed.employee_id = e.id
+            LEFT JOIN sections s ON e.section_id = s.id
+            WHERE 1=1
+        `;
+        const params = [];
+        if (status) {
+            sql += ' AND ed.status = ?';
+            params.push(status);
+        }
+        if (document_type) {
+            sql += ' AND ed.document_type = ?';
+            params.push(document_type);
+        }
+        if (employee_id) {
+            sql += ' AND ed.employee_id = ?';
+            params.push(employee_id);
+        }
+        sql += ' ORDER BY ed.created_at DESC';
+
+        const docs = await dbAll(sql, params);
+        res.json(docs);
+    } catch (error) {
+        console.error('Fetch admin docs error:', error);
+        res.status(500).json({ message: 'خطأ في جلب المستندات' });
+    }
+});
+
+// اعتماد أو رفض مستند من الإدارة
+app.put('/api/admin/documents/:id/status', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status, admin_notes } = req.body;
+        if (!['approved', 'rejected'].includes(status)) {
+            return res.status(400).json({ message: 'حالة غير صالحة' });
+        }
+
+        await dbRun(`
+            UPDATE employee_documents
+            SET status = ?, admin_notes = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE id = ?
+        `, [status, admin_notes || '', id]);
+
+        const doc = await dbGet('SELECT * FROM employee_documents WHERE id = ?', [id]);
+        if (doc) {
+            const statusLabel = status === 'approved' ? 'تم اعتماد' : 'تم رفض';
+            await dbRun(`
+                INSERT INTO sys_notifications (recipient_type, recipient_id, title, message, type)
+                VALUES ('employee', ?, 'تحديث حالة مستند', ?, ?)
+            `, [doc.employee_id, `${statusLabel} مستندك: "${doc.title}"${admin_notes ? ` (ملاحظة: ${admin_notes})` : ''}`, status === 'approved' ? 'success' : 'warning']);
+        }
+
+        res.json({ message: `تم تحديث حالة المستند إلى ${status === 'approved' ? 'معتمد' : 'مرفوض'}` });
+    } catch (error) {
+        console.error('Update doc status error:', error);
+        res.status(500).json({ message: 'خطأ في تحديث المستند' });
+    }
+});
+
+// حذف مستند
+app.delete('/api/employee/documents/:id', async (req, res) => {
+    try {
+        const doc = await dbGet('SELECT * FROM employee_documents WHERE id = ?', [req.params.id]);
+        if (doc) {
+            const fullPath = path.join(__dirname, doc.file_path);
+            if (fs.existsSync(fullPath)) {
+                try { fs.unlinkSync(fullPath); } catch (e) {}
+            }
+            await dbRun('DELETE FROM employee_documents WHERE id = ?', [req.params.id]);
+        }
+        res.json({ message: 'تم حذف المستند بنجاح' });
+    } catch (error) {
+        console.error('Delete doc error:', error);
+        res.status(500).json({ message: 'خطأ في حذف المستند' });
     }
 });
 

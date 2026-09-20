@@ -48,6 +48,11 @@
                     <span class="nav-icon"><i class="fa-solid fa-clock"></i></span>
                     <span>مواعيد العمل والورديات</span>
                 </a>
+                <a href="#" class="nav-item" onclick="openDocumentsModal(); toggleMobileSidebar(false);" title="مستندات وسكليفات الموظفين">
+                    <span class="nav-icon"><i class="fa-solid fa-folder-open"></i></span>
+                    <span>مستندات وسكليفات الموظفين</span>
+                    <span id="docsBadge" class="badge-status badge-status-danger" style="display:none; margin-right:auto; padding:2px 7px; font-size:11px; border-radius:12px;">0</span>
+                </a>
                 <a href="#" class="nav-item" onclick="toggleAdminChat(); toggleMobileSidebar(false);" title="دردشة الموظفين المباشرة">
                     <span class="nav-icon"><i class="fa-solid fa-comments"></i></span>
                     <span>دردشة الموظفين</span>
@@ -686,6 +691,91 @@
         </div>
     </div>
 
+    <!-- Employee Documents & Sick Leaves Management Modal -->
+    <div id="documentsModal" class="modal">
+        <div class="modal-content" style="max-width: 950px;">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-folder-open" style="color: var(--primary);"></i> مستندات وسكليفات الموظفين والتقارير الطبية</h2>
+                <button type="button" class="close-btn" onclick="closeModal('documentsModal')">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Filters Bar -->
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-bottom:15px; background:#f8fafc; padding:12px; border-radius:12px; border:1px solid var(--border-color);">
+                    <div class="form-group" style="margin:0;">
+                        <label style="font-size:12px; margin-bottom:4px;">تصفية حسب الموظف</label>
+                        <select id="docAdminEmpFilter" onchange="loadAdminDocuments()" style="padding:8px; font-size:13px;"></select>
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label style="font-size:12px; margin-bottom:4px;">نوع المستند</label>
+                        <select id="docAdminTypeFilter" onchange="loadAdminDocuments()" style="padding:8px; font-size:13px;">
+                            <option value="">جميع المستندات</option>
+                            <option value="sick_leave">🩺 إجازات مرضية / سكليف</option>
+                            <option value="national_id">🪪 هويات وإقامات</option>
+                            <option value="driving_license">🚗 رخص قيادة</option>
+                            <option value="expense_invoice">🧾 فواتير ومصروفات</option>
+                            <option value="certificate">📜 شهادات مهنية</option>
+                            <option value="other">📝 خطابات وأخرى</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin:0; display:flex; flex-direction:column; justify-content:flex-end;">
+                        <div style="display:flex; gap:6px;">
+                            <button class="btn btn-secondary" style="padding:8px 10px; font-size:12px; flex:1;" onclick="setDocStatusFilter('')">الكل</button>
+                            <button class="btn btn-secondary" style="padding:8px 10px; font-size:12px; flex:1; color:var(--warning);" onclick="setDocStatusFilter('pending')">المعلقة</button>
+                            <button class="btn btn-secondary" style="padding:8px 10px; font-size:12px; flex:1; color:var(--success);" onclick="setDocStatusFilter('approved')">المعتمدة</button>
+                            <button class="btn btn-secondary" style="padding:8px 10px; font-size:12px; flex:1; color:var(--danger);" onclick="setDocStatusFilter('rejected')">المرفوضة</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Area -->
+                <div style="overflow-x:auto; border-radius:12px; border:1px solid var(--border-color); max-height: 440px;">
+                    <table class="table" style="margin:0; width:100%;">
+                        <thead>
+                            <tr>
+                                <th>الموظف</th>
+                                <th>النوع</th>
+                                <th>العنوان والملاحظات</th>
+                                <th>المرفق</th>
+                                <th>تاريخ الرفع</th>
+                                <th>الحالة</th>
+                                <th>الإجراء والقرار</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminDocsTableBody">
+                            <tr><td colspan="7" style="text-align:center; padding:20px;">⏳ جاري التحميل...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('documentsModal')">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Document Preview Lightbox Modal -->
+    <div id="docAdminPreviewModal" class="modal" style="z-index: 10005;">
+        <div class="modal-content" style="max-width: 700px; background:#1e293b; color:#ffffff;">
+            <div class="modal-header" style="background:#0f172a; border-bottom:1px solid #334155; color:#ffffff;">
+                <h2 id="adminDocPreviewTitle" style="color:#ffffff; font-size:15px;"><i class="fa-solid fa-file"></i> معاينة المستند</h2>
+                <button type="button" class="close-btn" style="background:#334155; color:#ffffff;" onclick="closeModal('docAdminPreviewModal')">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div id="adminDocPreviewBody" class="modal-body" style="text-align:center; padding:20px; background:#0f172a; min-height:300px; display:flex; align-items:center; justify-content:center;">
+                <!-- Content loaded dynamically -->
+            </div>
+            <div class="modal-footer" style="background:#1e293b; border-top:1px solid #334155;">
+                <a id="adminDocDownloadBtn" href="#" target="_blank" download class="btn btn-primary" style="text-decoration:none;">
+                    <i class="fa-solid fa-download"></i> تنزيل الملف
+                </a>
+                <button class="btn btn-secondary" onclick="closeModal('docAdminPreviewModal')">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Backup & Restore Modal -->
     <div id="backupModal" class="modal">
         <div class="modal-content" style="max-width: 500px;">
@@ -760,6 +850,6 @@
     </div>
 
     <!-- Scripts -->
-    <script src="public/js/admin.js?v=5.6"></script>
+    <script src="public/js/admin.js?v=5.7"></script>
 </body>
 </html>
