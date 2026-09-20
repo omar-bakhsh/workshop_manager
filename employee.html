@@ -599,15 +599,69 @@
       padding: 14px 14px;
       margin-bottom: 14px;
       box-shadow: var(--shadow-xs);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
+    /* Distinctive Highlight Themes for Request Forms */
+    .form-card-withdrawal {
+      background: linear-gradient(180deg, #f5f7ff 0%, #ffffff 100%);
+      border: 1.5px solid #818cf8;
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.08);
+    }
+    body.dark-mode .form-card-withdrawal {
+      background: linear-gradient(180deg, #161e36 0%, #121a2d 100%);
+      border-color: #4f46e5;
+    }
+
+    .form-card-leave {
+      background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);
+      border: 1.5px solid #34d399;
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.08);
+    }
+    body.dark-mode .form-card-leave {
+      background: linear-gradient(180deg, #10261e 0%, #121a2d 100%);
+      border-color: #059669;
+    }
+
+    .form-card-docs {
+      background: linear-gradient(180deg, #fffbeb 0%, #ffffff 100%);
+      border: 1.5px solid #fbbf24;
+      box-shadow: 0 4px 16px rgba(245, 158, 11, 0.08);
+    }
+    body.dark-mode .form-card-docs {
+      background: linear-gradient(180deg, #282012 0%, #121a2d 100%);
+      border-color: #d97706;
+    }
+
+    .form-tag-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 11.5px;
+      font-weight: 800;
+    }
+    .tag-withdrawal { background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; }
+    body.dark-mode .tag-withdrawal { background: rgba(79,70,229,0.25); color: #c7d2fe; border-color: rgba(99,102,241,0.4); }
+
+    .tag-leave { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+    body.dark-mode .tag-leave { background: rgba(16,185,129,0.25); color: #6ee7b7; border-color: rgba(16,185,129,0.4); }
+
+    .tag-docs { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    body.dark-mode .tag-docs { background: rgba(245,158,11,0.25); color: #fde68a; border-color: rgba(245,158,11,0.4); }
+
     .form-card-title {
-      font-size: 14.5px;
+      font-size: 14px;
       font-weight: 800;
       margin-bottom: 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     .input-field-group {
@@ -1169,10 +1223,12 @@
          ========================================================= -->
     <section id="tabRequests" class="tab-view">
 
-      <!-- Fast Withdrawal Form -->
-      <div class="form-card" id="withdrawalFormCard">
+      <!-- Fast Withdrawal Form (Highlighted) -->
+      <div class="form-card form-card-withdrawal" id="withdrawalFormCard">
         <div class="form-card-title">
-          <span><i class="fa-solid fa-credit-card" style="color:var(--primary);"></i> طلب سحب مبلغ مالي</span>
+          <span class="form-tag-badge tag-withdrawal">
+            <i class="fa-solid fa-money-bill-transfer"></i> طلب سحب مالي وسلفة
+          </span>
           <button type="button" class="btn-print-action" onclick="printCurrentWithdrawalForm()">
             <i class="fa-solid fa-print"></i> طباعة نموذج يدوي
           </button>
@@ -1206,10 +1262,12 @@
         </form>
       </div>
 
-      <!-- Leave Request Form -->
-      <div class="form-card">
+      <!-- Leave Request Form (Highlighted) -->
+      <div class="form-card form-card-leave">
         <div class="form-card-title">
-          <span>🏖️ تقديم طلب إجازة رسمية</span>
+          <span class="form-tag-badge tag-leave">
+            <i class="fa-solid fa-umbrella-beach"></i> تقديم طلب إجازة رسمية
+          </span>
           <button type="button" class="btn-print-action" onclick="printCurrentLeaveForm()">
             <i class="fa-solid fa-print"></i> طباعة نموذج يدوي
           </button>
@@ -1219,7 +1277,7 @@
             <label>نوع الإجازة</label>
             <select id="leaveType" class="touch-input">
               <option value="annual">🏖️ إجازة سنوية</option>
-              <option value="sick">🩺 إجازة مرضية</option>
+              <option value="sick">🩺 إجازة مرضية (سكليف)</option>
               <option value="emergency">🚨 إجازة طارئة</option>
               <option value="unpaid">⏳ إجازة بدون راتب</option>
             </select>
@@ -1254,15 +1312,17 @@
         </form>
       </div>
 
-      <!-- Employee Documents & Sick Leaves Center -->
-      <div class="form-card" style="border: 1.5px solid #e0e7ff; background: linear-gradient(180deg, #ffffff 0%, #f8faff 100%);">
-        <div class="form-card-title" style="display:flex; justify-content:space-between; align-items:center;">
-          <span><i class="fa-solid fa-folder-open" style="color:var(--primary);"></i> مركز المستندات والسكليفات</span>
-          <button type="button" onclick="openUploadDocModal()" style="background:linear-gradient(135deg, #4f46e5, #6366f1); color:white; border:none; padding:7px 14px; border-radius:10px; font-size:12px; font-weight:800; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 4px 12px rgba(79,70,229,0.25);">
+      <!-- Employee Documents & Sick Leaves Center (Highlighted) -->
+      <div class="form-card form-card-docs">
+        <div class="form-card-title">
+          <span class="form-tag-badge tag-docs">
+            <i class="fa-solid fa-folder-open"></i> مركز المستندات والسكليفات
+          </span>
+          <button type="button" onclick="openUploadDocModal()" style="background:linear-gradient(135deg, #d97706, #f59e0b); color:white; border:none; padding:6px 13px; border-radius:10px; font-size:11.5px; font-weight:800; cursor:pointer; display:flex; align-items:center; gap:5px; box-shadow:0 3px 10px rgba(217,119,6,0.25);">
             <i class="fa-solid fa-cloud-arrow-up"></i> رفع مستند جديد
           </button>
         </div>
-        <div style="font-size:12px; color:var(--text-muted); margin-bottom:14px; line-height:1.6;">
+        <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:12px; line-height:1.6;">
           ارفع تقارير السكليف والإجازات المرضية، الهوية الوطنية أو الإقامة، رخصة القيادة، أو فواتير المصروفات لمراجعتها واعتمادها من الإدارة.
         </div>
         <div id="employeeDocsList">
@@ -1615,28 +1675,89 @@
       }
     }
 
-    /* --- Biometric Attendance --- */
+    /* --- Biometric Attendance with GPS Geofencing (500m Radius) --- */
+    function getDeviceCoordinates() {
+      return new Promise((resolve) => {
+        if (!navigator.geolocation) {
+          resolve({ latitude: null, longitude: null, error: 'المتصفح لا يدعم تحديد الموقع الجغرافي' });
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            resolve({
+              latitude: pos.coords.latitude,
+              longitude: pos.coords.longitude,
+              accuracy: pos.coords.accuracy
+            });
+          },
+          (err) => {
+            console.warn('Geolocation Error:', err);
+            resolve({ latitude: null, longitude: null, error: err });
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+          }
+        );
+      });
+    }
+
     async function handleFingerprintClick() {
+      const btn = document.getElementById('fingerprintBtn');
+      const stat = document.getElementById('fingerprintStatus');
+      const originalText = stat ? stat.innerHTML : '';
+
       try {
+        if (stat) stat.innerHTML = '<span style="color:var(--primary);"><i class="fa-solid fa-spinner fa-spin"></i> جاري التحقق من موقعك والبصمة...</span>';
+        if (btn) btn.style.pointerEvents = 'none';
+
+        // 1. جلب إحداثيات الموقع الحالية للموظف
+        const geo = await getDeviceCoordinates();
+
+        // 2. إرسال طلب تسجيل الحضور مع الإحداثيات
         const res = await fetch('/api/attendance/check-in', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ employee_id: employeeId })
+          body: JSON.stringify({ 
+            employee_id: employeeId,
+            latitude: geo.latitude,
+            longitude: geo.longitude
+          })
         });
+
         const data = await res.json();
         
-        if (typeof showSuccess === 'function') {
-          showSuccess(data.message || 'تم تسجيل الحضور بنجاح');
+        if (res.ok && (data.success || res.status === 200)) {
+          if (typeof showSuccess === 'function') {
+            showSuccess(data.message || 'تم تسجيل الحضور بنجاح');
+          } else if (typeof smartAlert === 'function') {
+            smartAlert(data.message || 'تم تسجيل الحضور بنجاح');
+          } else {
+            alert(data.message || 'تم تسجيل الحضور بنجاح');
+          }
         } else {
-          alert(data.message);
+          const errMsg = data.message || 'فشل تسجيل الحضور، يرجى المحاولة مرة أخرى.';
+          if (typeof showError === 'function') {
+            showError(errMsg);
+          } else if (typeof smartAlert === 'function') {
+            smartAlert(errMsg);
+          } else {
+            alert(errMsg);
+          }
         }
-        loadAttendance();
+
+        await loadAttendance();
       } catch (err) {
+        console.error('Check-in exception:', err);
         if (typeof showError === 'function') {
-          showError('تعذر تسجيل الحضور');
+          showError('تعذر الاتصال بالخادم لتسجيل الحضور.');
         } else {
-          alert('تعذر تسجيل الحضور');
+          alert('تعذر الاتصال بالخادم لتسجيل الحضور.');
         }
+        if (stat) stat.innerHTML = originalText;
+      } finally {
+        if (btn) btn.style.pointerEvents = 'auto';
       }
     }
 
@@ -1654,39 +1775,60 @@
           shiftLabel.innerHTML = `<span>⏱️</span> <span>دوام اليوم: ${data.shift_start} - ${data.shift_end || ''}</span>`;
         }
 
-        if (data.checked_in) {
-          stat.innerHTML = `✅ <span style="color:var(--success);">تم الحضور: ${data.check_in_time}</span>`;
-          btn.innerHTML = '✅';
-          btn.classList.remove('pulse-active');
-          btn.style.background = 'var(--success-gradient)';
-          btn.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.4)';
-          btn.onclick = null;
-          btn.style.cursor = 'default';
+        const isCheckedIn = !!data.checked_in;
+        const isCheckedOut = !!data.checked_out;
 
+        if (isCheckedIn && isCheckedOut) {
+          // تم تسجيل الحضور والانصراف
+          if (stat) stat.innerHTML = `✅ <span style="color:var(--success); font-size:12px;">اكتمل دوام اليوم (${data.check_in_time || ''} - ${data.check_out_time || ''})</span>`;
+          if (btn) {
+            btn.innerHTML = '🏁';
+            btn.classList.remove('pulse-active');
+            btn.style.background = 'linear-gradient(135deg, #4b5563, #374151)';
+            btn.style.boxShadow = '0 4px 12px rgba(75, 85, 99, 0.3)';
+            btn.onclick = null;
+            btn.style.cursor = 'default';
+          }
+          if (checkOutBtn) checkOutBtn.style.display = 'none';
+        } else if (isCheckedIn) {
+          // تم تسجيل الحضور فقط
+          if (stat) stat.innerHTML = `✅ <span style="color:var(--success);">تم الحضور: ${data.check_in_time || 'مسجل'}</span>`;
+          if (btn) {
+            btn.innerHTML = '✅';
+            btn.classList.remove('pulse-active');
+            btn.style.background = 'var(--success-gradient)';
+            btn.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.4)';
+            btn.onclick = null;
+            btn.style.cursor = 'default';
+          }
           if (checkOutBtn) checkOutBtn.style.display = 'inline-flex';
         } else {
-          stat.innerHTML = 'بصمة حضور 🖐️';
-          btn.innerHTML = '🖐️';
-          btn.classList.add('pulse-active');
-          btn.style.background = 'var(--primary-gradient)';
-          btn.style.boxShadow = '0 6px 18px rgba(79, 70, 229, 0.35)';
-          btn.onclick = handleFingerprintClick;
-          btn.style.cursor = 'pointer';
-
+          // لم يتم تسجيل الحضور بعد
+          if (stat) stat.innerHTML = 'بصمة حضور 🖐️';
+          if (btn) {
+            btn.innerHTML = '🖐️';
+            btn.classList.add('pulse-active');
+            btn.style.background = 'var(--primary-gradient)';
+            btn.style.boxShadow = '0 6px 18px rgba(79, 70, 229, 0.35)';
+            btn.onclick = handleFingerprintClick;
+            btn.style.cursor = 'pointer';
+          }
           if (checkOutBtn) checkOutBtn.style.display = 'none';
         }
 
         if (delayAlert) {
           let statusHTML = '';
-          if (data.is_delay) {
-            statusHTML += `<div style="color:var(--danger); margin-bottom:2px;">⚠️ تأخير مسجل: ${data.delay_minutes} دقيقة</div>`;
+          if (data.is_delay || (data.delay_minutes && data.delay_minutes > 0)) {
+            statusHTML += `<div style="color:var(--danger); margin-bottom:2px;"><i class="fa-solid fa-clock"></i> تأخير مسجل: ${data.delay_minutes} دقيقة</div>`;
           }
-          if (data.is_early_leave) {
-            statusHTML += `<div style="color:var(--warning);">🏃 انصراف مبكر: ${data.early_leave_minutes} دقيقة</div>`;
+          if (data.early_minutes && data.early_minutes > 0) {
+            statusHTML += `<div style="color:var(--warning);"><i class="fa-solid fa-person-walking-arrow-right"></i> انصراف مبكر: ${data.early_minutes} دقيقة</div>`;
           }
           if (statusHTML) {
             delayAlert.innerHTML = statusHTML;
             delayAlert.style.display = 'block';
+          } else {
+            delayAlert.style.display = 'none';
           }
         }
       } catch (e) {
@@ -1696,7 +1838,7 @@
 
     async function checkOut() {
       if (typeof showConfirm === 'function') {
-        showConfirm('هل أنت متأكد من تسجيل الانصراف الآن؟', async () => {
+        showConfirm('هل أنت متأكد من تسجيل الانصراف وإنهاء دوام اليوم؟', async () => {
           await executeCheckOut();
         });
       } else {
@@ -1706,21 +1848,46 @@
     }
 
     async function executeCheckOut() {
+      const checkOutBtn = document.getElementById('checkOutBtn');
       try {
+        if (checkOutBtn) checkOutBtn.disabled = true;
+
+        // جلب الإحداثيات للتحقق من النطاق الجغرافي عند الانصراف
+        const geo = await getDeviceCoordinates();
+
         const res = await fetch('/api/attendance/check-out', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ employee_id: employeeId })
+          body: JSON.stringify({ 
+            employee_id: employeeId,
+            latitude: geo.latitude,
+            longitude: geo.longitude
+          })
         });
+
         const data = await res.json();
-        if (typeof showSuccess === 'function') {
-          showSuccess(data.message || 'تم تسجيل الانصراف بنجاح');
+        if (res.ok && (data.success || res.status === 200)) {
+          if (typeof showSuccess === 'function') {
+            showSuccess(data.message || 'تم تسجيل الانصراف بنجاح');
+          } else if (typeof smartAlert === 'function') {
+            smartAlert(data.message || 'تم تسجيل الانصراف بنجاح');
+          } else {
+            alert(data.message || 'تم تسجيل الانصراف بنجاح');
+          }
         } else {
-          alert('تم تسجيل الانصراف بنجاح');
+          const errMsg = data.message || 'فشل تسجيل الانصراف';
+          if (typeof showError === 'function') {
+            showError(errMsg);
+          } else {
+            alert(errMsg);
+          }
         }
-        loadAttendance();
+        await loadAttendance();
       } catch (err) {
+        console.error('Check-out exception:', err);
         if (typeof showError === 'function') showError('تعذر تسجيل الانصراف');
+      } finally {
+        if (checkOutBtn) checkOutBtn.disabled = false;
       }
     }
 

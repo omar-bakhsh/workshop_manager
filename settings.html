@@ -119,6 +119,49 @@
             </p>
         </div>
 
+        <!-- Geofence Attendance Settings -->
+        <div class="section-box" style="border: 2px solid #059669; background: #f0fdf4;">
+            <div class="section-title" style="color: #047857; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-location-dot" style="font-size: 20px;"></i>
+                    <span>النطاق الجغرافي لتسجيل الحضور والانصراف (GPS Geofencing)</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <label style="font-size: 13px; font-weight: 700; color: #047857; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                        <input type="checkbox" id="geofenceEnabled" style="width: 18px; height: 18px;">
+                        تفعيل التحقق من موقع المركز عند الحضور/الانصراف
+                    </label>
+                </div>
+            </div>
+            <p style="font-size:12.5px; color:#374151; margin-bottom:14px; line-height: 1.6;">
+                يضمن هذا الخيار ألا يتمكن الموظف من تسجيل الحضور أو الانصراف إلا إذا كان متواجداً فعلياً داخل نطاق محدد من المركز (الافتراضي 500 متر).
+            </p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>📍 خط العرض (Latitude)</label>
+                    <input type="number" step="any" id="workshopLatitude" placeholder="مثال: 24.7136">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>📍 خط الطول (Longitude)</label>
+                    <input type="number" step="any" id="workshopLongitude" placeholder="مثال: 46.6753">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>📏 نصف قطر النطاق المسموح (بالمتر)</label>
+                    <input type="number" id="geofenceRadius" placeholder="500" value="500">
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button type="button" class="btn" onclick="captureCurrentLocationForWorkshop(event)" style="flex: 1; min-width: 220px; justify-content: center; background: #047857; color: white; height: 42px; font-weight: 700; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-crosshairs"></i> تحديد إحداثيات موقعي الحالي كمركز للورشة
+                </button>
+                <button type="button" class="btn" onclick="testGeofenceLocation()" style="min-width: 150px; justify-content: center; background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; height: 42px; font-weight: 700; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-map-location-dot"></i> اختبار المسافة الآن
+                </button>
+            </div>
+        </div>
+
         <!-- Work Schedule Settings -->
         <div class="section-box">
             <div class="section-title">⏱️ مواعيد الدوام الإسبوعية</div>
@@ -297,6 +340,12 @@
                 if (settings.workshop_phone) document.getElementById('workshopPhone').value = settings.workshop_phone;
                 if (settings.vat_number) document.getElementById('vatNumber').value = settings.vat_number;
 
+                // Geofence Settings
+                document.getElementById('workshopLatitude').value = settings.workshop_latitude || '';
+                document.getElementById('workshopLongitude').value = settings.workshop_longitude || '';
+                document.getElementById('geofenceRadius').value = settings.geofence_radius_meters || '500';
+                document.getElementById('geofenceEnabled').checked = settings.geofence_enabled === 'true' || settings.geofence_enabled === true;
+
                 const res2 = await fetch('/api/terms');
                 const terms = await res2.json();
                 renderTerms(terms.map(t => t.term));
@@ -307,6 +356,92 @@
 
                 await loadBanks();
             } catch (e) { console.error(e); }
+        }
+
+        // ==========================
+        // 📍 أدوات النطاق الجغرافي GPS
+        // ==========================
+        function captureCurrentLocationForWorkshop(event) {
+            if (!navigator.geolocation) {
+                alert('❌ متصفحك لا يدعم خاصية تحديد الموقع الجغرافي GPS.');
+                return;
+            }
+            const btn = event ? (event.currentTarget || event.target) : null;
+            let oldText = '';
+            if (btn) {
+                oldText = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري قراءة إحداثيات GPS بدقة...';
+                btn.disabled = true;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    if (btn) {
+                        btn.innerHTML = oldText;
+                        btn.disabled = false;
+                    }
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    const acc = Math.round(pos.coords.accuracy || 0);
+                    document.getElementById('workshopLatitude').value = lat;
+                    document.getElementById('workshopLongitude').value = lng;
+                    document.getElementById('geofenceEnabled').checked = true;
+                    alert(`✅ تم التقاط إحداثيات الموقع بنجاح!\n• خط العرض: ${lat}\n• خط الطول: ${lng}\n• دقة الإشارة: ±${acc} متر\n\nتذكر الضغط على "حفظ كافة الإعدادات" في الأسفل.`);
+                },
+                (err) => {
+                    if (btn) {
+                        btn.innerHTML = oldText;
+                        btn.disabled = false;
+                    }
+                    let msg = 'تعذر تحديد الموقع.';
+                    if (err.code === 1) msg = 'تم رفض إذن الوصول إلى الموقع GPS من المتصفح. يرجى تفعيل الموقع في المتصفح.';
+                    else if (err.code === 2) msg = 'إشارة الموقع GPS غير متوفرة حالياً.';
+                    else if (err.code === 3) msg = 'انتهت مهلة قراءة إشارة الموقع.';
+                    alert('❌ ' + msg);
+                },
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+            );
+        }
+
+        function testGeofenceLocation() {
+            const wLat = parseFloat(document.getElementById('workshopLatitude').value);
+            const wLng = parseFloat(document.getElementById('workshopLongitude').value);
+            const radius = parseFloat(document.getElementById('geofenceRadius').value) || 500;
+
+            if (!wLat || !wLng) {
+                alert('يرجى تحديد إحداثيات المركز أولاً أو الضغط على زر تحديد الموقع الحالي.');
+                return;
+            }
+
+            if (!navigator.geolocation) {
+                alert('❌ متصفحك لا يدعم خاصية تحديد الموقع GPS.');
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    const uLat = pos.coords.latitude;
+                    const uLng = pos.coords.longitude;
+                    const R = 6371000;
+                    const dLat = (uLat - wLat) * Math.PI / 180;
+                    const dLng = (uLng - wLng) * Math.PI / 180;
+                    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                        Math.cos(wLat * Math.PI / 180) * Math.cos(uLat * Math.PI / 180) *
+                        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                    const distance = Math.round(R * c);
+
+                    if (distance <= radius) {
+                        alert(`✅ أنت داخل النطاق المسموح للورشة!\n• المسافة الحالية عن المركز: ${distance} متر\n• النطاق المسموح: ${radius} متر`);
+                    } else {
+                        alert(`⚠️ أنت خارج النطاق المسموح!\n• المسافة الحالية عن المركز: ${distance} متر\n• النطاق المسموح: ${radius} متر\n(فارق الزيادة: ${distance - radius} متر)`);
+                    }
+                },
+                (err) => {
+                    alert('❌ تعذر قراءة موقعك الحالي لاختبار المسافة: ' + err.message);
+                },
+                { enableHighAccuracy: true, timeout: 15000 }
+            );
         }
 
         // ==========================
@@ -479,7 +614,11 @@
                 workshop_name: document.getElementById('workshopName').value,
                 workshop_desc: document.getElementById('workshopDesc').value,
                 workshop_phone: document.getElementById('workshopPhone').value,
-                vat_number: document.getElementById('vatNumber').value
+                vat_number: document.getElementById('vatNumber').value,
+                workshop_latitude: document.getElementById('workshopLatitude').value.trim(),
+                workshop_longitude: document.getElementById('workshopLongitude').value.trim(),
+                geofence_radius_meters: document.getElementById('geofenceRadius').value.trim() || '500',
+                geofence_enabled: document.getElementById('geofenceEnabled').checked ? 'true' : 'false'
             };
 
             try {

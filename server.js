@@ -1643,30 +1643,110 @@ app.get("/login.html", (req, res) => {
 });
 
 // ==========================
-// 📅 نظام الحضور والانصراف
+// 📅 نظام الحضور والانصراف الذكي مع النطاق الجغرافي (Geofencing 500m)
 // ==========================
+
+// دالة حساب المسافة الجغرافية بالأمتار (Haversine Formula)
+function getDistanceMeters(lat1, lon1, lat2, lon2) {
+    const R = 6371000; // نصف قطر الأرض بالأمتار
+    const φ1 = lat1 * Math.PI / 180;
+    const φ2 = lat2 * Math.PI / 180;
+    const Δφ = (lat2 - lat1) * Math.PI / 180;
+    const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return Math.round(R * c);
+}
+
+// دالة التحقق من النطاق الجغرافي للمركز
+async function verifyGeofence(empLat, empLng) {
+    try {
+        const settingsRows = await dbAll(
+            `SELECT key, value FROM settings WHERE key IN ('workshop_latitude', 'workshop_longitude', 'geofence_radius_meters', 'geofence_enabled')`
+        );
+        const config = {};
+        settingsRows.forEach(r => config[r.key] = r.value);
+
+        const isEnabled = config.geofence_enabled !== '0';
+        const wsLat = parseFloat(config.workshop_latitude);
+        const wsLng = parseFloat(config.workshop_longitude);
+        const maxRadius = parseFloat(config.geofence_radius_meters) || 500;
+
+        if (!isEnabled || isNaN(wsLat) || isNaN(wsLng)) {
+            return { valid: true }; // لم يتم تفعيل أو تحديد إحداثيات المركز بعد
+        }
+
+        if (empLat === undefined || empLng === undefined || empLat === null || empLng === null) {
+            return {
+                valid: false,
+                message: '📍 يرجى تفعيل ومشاركة خدمة الموقع الجغرافي (GPS) للتأكد من تواجدك في محيط المركز لتسجيل البصمة.'
+            };
+        }
+
+        const lat = parseFloat(empLat);
+        const lng = parseFloat(empLng);
+        if (isNaN(lat) || isNaN(lng)) {
+            return { valid: false, message: '📍 إحداثيات الموقع غير صالحة. يرجى إعادة المحاولة.' };
+        }
+
+        const distance = getDistanceMeters(wsLat, wsLng, lat, lng);
+        if (distance > maxRadius) {
+            return {
+                valid: false,
+                distance,
+                maxRadius,
+                message: `📍 أنت خارج نطاق المركز (المسافة الحالية: ${distance.toLocaleString()} متر). يجب التواجد داخل محيط ${maxRadius} متر لتسجيل البصمة.`
+            };
+        }
+
+        return { valid: true, distance };
+    } catch (e) {
+        console.error('Geofence check error:', e);
+        return { valid: true }; // fallback safe
+    }
+}
 
 // تسجيل دخول (Check-in)
 app.post('/api/attendance/check-in', async (req, res) => {
-    const { employee_id } = req.body;
+    const { employee_id, latitude, longitude } = req.body;
     const now = new Date();
     const date = now.toISOString().split('T')[0];
     const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon...
 
     try {
-        const existing = await dbGet('SELECT * FROM attendance WHERE employee_id = ? AND date = ?', [employee_id, date]);
-        if (existing) return res.status(400).json({ message: 'تم تسجيل الحضور مسبقاً' });
+        if (!employee_id) {
+            return res.status(400).json({ message: 'رقم الموظف مطلوب' });
+        }
 
-        // جلب وقت الدوام لليوم من مواعيد الفرع
+        // 1. التحقق من النطاق الجغرافي
+        const geo = await verifyGeofence(latitude, longitude);
+        if (!geo.valid) {
+            return res.status(403).json({ message: geo.message, distance: geo.distance });
+        }
+
+        // 2. التحقق من وجود تسجيل مسبق اليوم
+        const existing = await dbGet('SELECT * FROM attendance WHERE employee_id = ? AND date = ?', [employee_id, date]);
+        if (existing && existing.check_in) {
+            return res.status(200).json({ 
+                success: true, 
+                message: 'تم تسجيل الحضور مسبقاً لهذا اليوم',
+                checked_in: true,
+                check_in_time: new Date(existing.check_in).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', hour12: true })
+            });
+        }
+
+        // 3. جلب وقت الدوام لليوم من مواعيد الفرع
         const shift = await dbGet(`SELECT * FROM branch_shifts WHERE day_of_week = ?`, [dayOfWeek]);
         
         let delayMinutes = 0;
-        let sStart = '08:00', sEnd = '18:00';
+        let sStart = '08:30', sEnd = '17:30';
 
         if (shift) {
-            if (shift.is_closed) return res.status(400).json({ message: 'المحل مغلق اليوم' });
-            sStart = shift.shift_start;
-            sEnd = shift.shift_end;
+            sStart = shift.shift_start || '08:30';
+            sEnd = shift.shift_end || '17:30';
             
             const [sh, sm] = sStart.split(':').map(Number);
             const shiftTime = new Date(now);
@@ -1677,24 +1757,59 @@ app.post('/api/attendance/check-in', async (req, res) => {
             }
         }
 
-        await dbRun(`INSERT INTO attendance (employee_id, date, check_in, delay_minutes, shift_start, shift_end) VALUES (?, ?, ?, ?, ?, ?)`, 
-            [employee_id, date, now.toISOString(), delayMinutes, sStart, sEnd]);
+        if (existing) {
+            await dbRun(
+                `UPDATE attendance SET check_in = ?, delay_minutes = ?, shift_start = ?, shift_end = ? WHERE id = ?`,
+                [now.toISOString(), delayMinutes, sStart, sEnd, existing.id]
+            );
+        } else {
+            await dbRun(
+                `INSERT INTO attendance (employee_id, date, check_in, delay_minutes, shift_start, shift_end) VALUES (?, ?, ?, ?, ?, ?)`, 
+                [employee_id, date, now.toISOString(), delayMinutes, sStart, sEnd]
+            );
+        }
         
-        res.json({ message: delayMinutes > 0 ? `تم تسجيل الحضور (تأخير: ${delayMinutes} دقيقة)` : 'تم تسجيل الحضور في الوقت المحدد', delay_minutes: delayMinutes });
+        const timeStr = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', hour12: true });
+        res.json({ 
+            success: true,
+            message: delayMinutes > 0 ? `✅ تم تسجيل الحضور (${timeStr}) - تأخير: ${delayMinutes} دقيقة` : `✅ تم تسجيل الحضور بنجاح (${timeStr})`, 
+            delay_minutes: delayMinutes,
+            check_in_time: timeStr
+        });
     } catch (error) {
-        res.status(500).json({ message: "خطأ في تسجيل الحضور" });
+        console.error("Attendance check-in error:", error);
+        res.status(500).json({ message: "خطأ في تسجيل الحضور: " + error.message });
     }
 });
 
+// تسجيل انصراف (Check-out)
 app.post('/api/attendance/check-out', async (req, res) => {
-    const { employee_id } = req.body;
+    const { employee_id, latitude, longitude } = req.body;
     const now = new Date();
     const date = now.toISOString().split('T')[0];
 
     try {
+        if (!employee_id) {
+            return res.status(400).json({ message: 'رقم الموظف مطلوب' });
+        }
+
+        // 1. التحقق من النطاق الجغرافي
+        const geo = await verifyGeofence(latitude, longitude);
+        if (!geo.valid) {
+            return res.status(403).json({ message: geo.message, distance: geo.distance });
+        }
+
         const existing = await dbGet('SELECT * FROM attendance WHERE employee_id = ? AND date = ?', [employee_id, date]);
-        if (!existing) return res.status(400).json({ message: 'يجب تسجيل الحضور أولاً' });
-        if (existing.check_out) return res.status(400).json({ message: 'تم تسجيل الانصراف مسبقاً' });
+        if (!existing || !existing.check_in) {
+            return res.status(400).json({ message: 'يجب تسجيل الحضور أولاً قبل تسجيل الانصراف' });
+        }
+        if (existing.check_out) {
+            return res.status(200).json({ 
+                success: true, 
+                message: 'تم تسجيل الانصراف مسبقاً لهذا اليوم',
+                checked_out: true 
+            });
+        }
 
         let earlyMinutes = 0;
         let overtimeMinutes = 0;
@@ -1711,12 +1826,22 @@ app.post('/api/attendance/check-out', async (req, res) => {
             }
         }
 
-        await dbRun(`UPDATE attendance SET check_out = ?, early_departure_minutes = ?, overtime_minutes = ? WHERE id = ?`, 
-            [now.toISOString(), earlyMinutes, overtimeMinutes, existing.id]);
+        await dbRun(
+            `UPDATE attendance SET check_out = ?, early_departure_minutes = ?, overtime_minutes = ? WHERE id = ?`, 
+            [now.toISOString(), earlyMinutes, overtimeMinutes, existing.id]
+        );
         
-        res.json({ message: 'تم تسجيل الانصراف بنجاح', early_minutes: earlyMinutes, overtime_minutes: overtimeMinutes });
+        const timeStr = now.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', hour12: true });
+        res.json({ 
+            success: true,
+            message: `✅ تم تسجيل الانصراف بنجاح (${timeStr})`, 
+            early_minutes: earlyMinutes, 
+            overtime_minutes: overtimeMinutes,
+            check_out_time: timeStr
+        });
     } catch (error) {
-        res.status(500).json({ message: "خطأ في تسجيل الانصراف" });
+        console.error("Attendance check-out error:", error);
+        res.status(500).json({ message: "خطأ في تسجيل الانصراف: " + error.message });
     }
 });
 
@@ -1734,15 +1859,34 @@ app.get('/api/attendance/status/:employee_id', async (req, res) => {
         const att = await dbGet(`SELECT * FROM attendance WHERE employee_id = ? AND date = ?`, [employee_id, date]);
         const shift = await dbGet(`SELECT * FROM branch_shifts WHERE day_of_week = ?`, [dayOfWeek]);
 
+        let checkInTimeStr = null;
+        if (att && att.check_in) {
+            try {
+                checkInTimeStr = new Date(att.check_in).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', hour12: true });
+            } catch(e) { checkInTimeStr = String(att.check_in); }
+        }
+
+        let checkOutTimeStr = null;
+        if (att && att.check_out) {
+            try {
+                checkOutTimeStr = new Date(att.check_out).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', hour12: true });
+            } catch(e) { checkOutTimeStr = String(att.check_out); }
+        }
+
         res.json({
             status: att && att.check_in ? 'marked' : 'not_marked',
+            checked_in: !!att && !!att.check_in,
+            checked_out: !!att && !!att.check_out,
             check_in: att ? att.check_in : null,
             check_out: att ? att.check_out : null,
+            check_in_time: checkInTimeStr,
+            check_out_time: checkOutTimeStr,
             delay_minutes: att ? (att.delay_minutes || 0) : 0,
             early_minutes: att ? (att.early_departure_minutes || 0) : 0,
             overtime_minutes: att ? (att.overtime_minutes || 0) : 0,
-            shift_start: shift ? shift.shift_start : '08:00',
-            shift_end: shift ? shift.shift_end : '18:00'
+            is_delay: !!att && (att.delay_minutes || 0) > 0,
+            shift_start: shift ? shift.shift_start : '08:30',
+            shift_end: shift ? shift.shift_end : '17:30'
         });
     } catch (error) {
         console.error("Attendance Status Error:", error);
