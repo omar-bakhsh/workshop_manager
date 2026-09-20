@@ -832,31 +832,31 @@ app.get('/api/employee/:id/assigned-jobs', async (req, res) => {
         const emp = await dbGet('SELECT id, name, section_id FROM employees WHERE id = ?', [id]);
         if (!emp) return res.status(404).json({ message: 'الموظف غير موجود' });
 
-        // البحث في الفحوصات وأوامر العمل المسندة للموظف بالاسم أو المعرف
         const jobs = await dbAll(`
             SELECT 
                 i.id,
                 i.customer_name,
                 i.customer_phone,
                 i.car_type,
+                i.car_color,
+                i.car_model,
                 i.plate_number,
-                i.model_year,
-                i.color,
                 i.status,
-                i.assigned_technician,
+                i.car_status,
+                i.assigned_technician_id,
                 i.created_at,
-                i.inspection_date,
-                i.grand_total,
+                COALESCE(i.final_amount, i.total_amount, 0) as grand_total,
                 (SELECT COUNT(*) FROM inspection_items WHERE inspection_id = i.id) as items_count,
-                (SELECT COUNT(*) FROM inspection_items WHERE inspection_id = i.id AND is_approved = 1) as approved_items_count
+                (SELECT COUNT(*) FROM inspection_items WHERE inspection_id = i.id AND is_completed = 1) as approved_items_count
             FROM inspections i
-            WHERE (i.assigned_technician LIKE ? OR i.inspector_name LIKE ?)
-            AND i.status IN ('converted', 'in_progress', 'draft', 'pending', 'approved', 'completed')
+            WHERE i.assigned_technician_id = ?
+               OR i.inspector_id = ?
+               OR EXISTS (SELECT 1 FROM inspection_technicians it WHERE it.inspection_id = i.id AND it.employee_id = ?)
             ORDER BY i.created_at DESC
             LIMIT 30
-        `, [`%${emp.name}%`, `%${emp.name}%`]);
+        `, [id, id, id]);
 
-        res.json(jobs);
+        res.json(jobs || []);
     } catch (e) {
         console.error('Assigned jobs fetch error:', e);
         res.status(500).json({ error: 'Failed to fetch assigned jobs' });
