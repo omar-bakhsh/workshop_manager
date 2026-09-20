@@ -1420,58 +1420,68 @@ async function loadBanks() {
 }
 const getFormData = (id) => Object.fromEntries(new FormData(document.getElementById(id)));
 
-// --- Excel Import Logic ---
-async function importSalaries(input) {
-    const file = input.files[0]; if (!file) return;
-    const fd = new FormData(); fd.append('file', file);
-    try {
-        smartAlert('⏳ جاري المزامنة...');
-        const res = await fetch('/api/employees/import-salaries', { method: 'POST', body: fd });
-        const result = await res.json();
-        smartAlert(result.message);
-        loadData();
-    } catch(e) { smartAlert('<i class="fa-solid fa-circle-xmark"></i> خطأ في الاتصال'); } finally { input.value = ''; }
+// --- Excel Import Salaries (Admin Home) ---
+function openImportSalariesModal() {
+    const resDiv = document.getElementById('importSalariesResult');
+    if (resDiv) {
+        resDiv.style.display = 'none';
+        resDiv.innerHTML = '';
+    }
+    const fileInput = document.getElementById('importSalariesFileInput');
+    if (fileInput) fileInput.value = '';
+    const modal = document.getElementById('importSalariesModal');
+    if (modal) modal.style.display = 'flex';
 }
 
-// --- Excel Import Employees ---
-function openImportEmployeesModal() {
-    document.getElementById('importEmpResult').style.display = 'none';
-    document.getElementById('importEmpResult').innerHTML = '';
-    document.getElementById('importEmpFileInput').value = '';
-    document.getElementById('importEmployeesModal').style.display = 'flex';
-}
-
-async function importEmployeesFromExcel(input) {
+async function importSalariesFromExcel(input) {
     const file = input.files[0];
     if (!file) return;
-    const resultDiv = document.getElementById('importEmpResult');
-    resultDiv.style.display = 'block';
-    resultDiv.innerHTML = '<div style="color:#6366f1; font-weight:700; text-align:center; padding:10px;">⏳ جاري معالجة الملف...</div>';
+    const resultDiv = document.getElementById('importSalariesResult');
+    if (resultDiv) {
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = '<div style="color:var(--primary); font-weight:700; text-align:center; padding:12px;"><i class="fa-solid fa-spinner fa-spin"></i> جاري قراءة ومزامنة مسير الرواتب...</div>';
+    }
 
     const fd = new FormData();
     fd.append('file', file);
     try {
-        const res = await fetch('/api/employees/import-excel', { method: 'POST', body: fd });
+        const res = await fetch('/api/employees/import-salaries', { method: 'POST', body: fd });
         const result = await res.json();
-        if (result.success) {
-            resultDiv.innerHTML = `
-                <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:14px;">
-                    <div style="color:#166534; font-weight:800; font-size:15px; margin-bottom:8px;"><i class="fa-solid fa-circle-check"></i> ${result.message}</div>
-                    <div style="font-size:13px; color:#374151;">
-                        تم إضافة: <strong>${result.added}</strong> موظف
-                        ${result.skipped > 0 ? ` | تم تخطي: <strong>${result.skipped}</strong> (موجود مسبقاً)` : ''}
-                    </div>
-                    ${result.errors && result.errors.length > 0 ? `<div style="margin-top:8px; color:#b91c1c; font-size:12px;">${result.errors.join('<br>')}</div>` : ''}
-                </div>`;
+        if (result.success || res.ok) {
+            if (resultDiv) {
+                resultDiv.innerHTML = `
+                    <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:14px;">
+                        <div style="color:#166534; font-weight:800; font-size:15px; margin-bottom:8px;"><i class="fa-solid fa-circle-check"></i> ${result.message || 'تمت مزامنة مسير الرواتب بنجاح'}</div>
+                        <div style="font-size:13px; color:#374151;">
+                            تم تحديث: <strong>${result.updatedCount || 0}</strong> موظف
+                            ${result.addedCount > 0 ? ` | تم إضافة: <strong>${result.addedCount}</strong> موظف جديد` : ''}
+                        </div>
+                    </div>`;
+            }
+            if (typeof smartAlert === 'function') {
+                smartAlert('✅ ' + (result.message || 'تم استيراد مسير الرواتب بنجاح'));
+            }
             loadData();
         } else {
-            resultDiv.innerHTML = `<div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:14px; color:#b91c1c; font-weight:700;"><i class="fa-solid fa-circle-xmark"></i> ${result.message}</div>`;
+            if (resultDiv) {
+                resultDiv.innerHTML = `<div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:14px; color:#b91c1c; font-weight:700;"><i class="fa-solid fa-circle-xmark"></i> ${result.message || 'فشل استيراد مسير الرواتب'}</div>`;
+            }
         }
     } catch(e) {
-        resultDiv.innerHTML = `<div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:14px; color:#b91c1c;"><i class="fa-solid fa-circle-xmark"></i> تعذر الاتصال بالسيرفر</div>`;
+        if (resultDiv) {
+            resultDiv.innerHTML = `<div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:14px; color:#b91c1c;"><i class="fa-solid fa-circle-xmark"></i> تعذر الاتصال بالسيرفر</div>`;
+        }
     } finally {
         input.value = '';
     }
+}
+
+// Fallbacks for compatibility
+function openImportEmployeesModal() {
+    openImportSalariesModal();
+}
+async function importEmployeesFromExcel(input) {
+    return importSalariesFromExcel(input);
 }
 
 function downloadImportTemplate() {

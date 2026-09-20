@@ -178,6 +178,51 @@
             </div>
         </div>
 
+        <!-- Employees Excel Import Section -->
+        <div class="section-box" style="border: 2px solid #10b981; background: #f0fdf4;">
+            <div class="section-title" style="color: #047857; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-users-gear" style="font-size: 20px;"></i>
+                    <span>استيراد بيانات الموظفين من ملف Excel</span>
+                </div>
+                <span style="font-size: 12px; font-weight: normal; color: #047857;">(جدول الموظفين، الأقسام، الحسابات، الأهداف)</span>
+            </div>
+            <p style="font-size:12.5px; color:#374151; margin-bottom:14px; line-height: 1.6;">
+                مخصص لإضافة موظفين جدد أو تحديث بياناتهم الأساسية (الاسم، القسم، الراتب، المستهدف، اسم المستخدم، كلمة المرور، واسم البنك).
+            </p>
+
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button type="button" class="btn" onclick="downloadEmployeeTemplate()" style="flex: 1; min-width: 200px; justify-content: center; background: #059669; color: white; height: 42px; font-weight: 700;">
+                    <i class="fa-solid fa-file-arrow-down"></i> تحميل نموذج الموظفين الاسترشادي
+                </button>
+                <button type="button" class="btn" onclick="document.getElementById('importEmployeesExcelInput').click()" style="flex: 1; min-width: 200px; justify-content: center; background: #10b981; color: white; height: 42px; font-weight: 700;">
+                    <i class="fa-solid fa-file-excel"></i> اختيار ورفع ملف الموظفين (Excel)
+                </button>
+                <input type="file" id="importEmployeesExcelInput" style="display: none;" accept=".xlsx,.xls" onchange="importEmployeesFromExcel(this)">
+            </div>
+        </div>
+
+        <!-- Salaries Excel Import Section -->
+        <div class="section-box" style="border: 2px solid #8b5cf6; background: #f5f3ff;">
+            <div class="section-title" style="color: #6d28d9; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-money-bill-transfer" style="font-size: 20px;"></i>
+                    <span>استيراد مسير الرواتب من ملف Excel</span>
+                </div>
+                <span style="font-size: 12px; font-weight: normal; color: #6d28d9;">(كشف الرواتب، السحبيات، الإيداعات، وصافي المتبقي)</span>
+            </div>
+            <p style="font-size:12.5px; color:#374151; margin-bottom:14px; line-height: 1.6;">
+                مخصص لرفع كشف مسير الرواتب الدوري (مثل كشوفات الرواتب الشهرية) لتحديث الرواتب الأساسية، السحبيات، الإيداعات، ومكافأة التارجت وصافي المستحقات تلقائياً.
+            </p>
+
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button type="button" class="btn" onclick="document.getElementById('importSalariesExcelInput').click()" style="flex: 1; min-width: 220px; justify-content: center; background: #7c3aed; color: white; height: 42px; font-weight: 700;">
+                    <i class="fa-solid fa-file-invoice-dollar"></i> اختيار ورفع كشف مسير الرواتب (Excel)
+                </button>
+                <input type="file" id="importSalariesExcelInput" style="display: none;" accept=".xlsx,.xls" onchange="importSalariesFromExcel(this)">
+            </div>
+        </div>
+
         <!-- Database Backup and Restore -->
         <div class="section-box" style="border: 2px solid var(--primary); background: #f8fafc;">
             <div class="section-title" style="color: var(--primary); display: flex; align-items: center; gap: 8px;">
@@ -195,13 +240,9 @@
                 <button type="button" class="btn" onclick="document.getElementById('dbRestoreFileInput').click()" style="flex: 1; min-width: 170px; justify-content: center; background: #f59e0b; color: white; height: 42px; font-weight: 700;">
                     <span>📤 رفع واستعادة قاعدة البيانات</span>
                 </button>
-                <button type="button" class="btn" onclick="syncDefaultSeedData()" style="flex: 1; min-width: 170px; justify-content: center; background: #10b981; color: white; height: 42px; font-weight: 700;">
-                    <span>🔄 مزامنة واستيراد الموظفين والعملاء</span>
+                <button type="button" class="btn" onclick="syncDefaultSeedData()" style="flex: 1; min-width: 170px; justify-content: center; background: #0284c7; color: white; height: 42px; font-weight: 700;">
+                    <span>🔄 مزامنة واستيراد البيانات الافتراضية</span>
                 </button>
-                <button type="button" class="btn" onclick="document.getElementById('importSalariesEmpInput').click()" style="flex: 1; min-width: 170px; justify-content: center; background: #8b5cf6; color: white; height: 42px; font-weight: 700;">
-                    <span><i class="fa-solid fa-chart-pie"></i> سحب الموظفين من ملف الرواتب</span>
-                </button>
-                <input type="file" id="importSalariesEmpInput" style="display: none;" accept=".xlsx,.xls" onchange="importEmployeesFromSalarySheet(this)">
                 <input type="file" id="dbRestoreFileInput" style="display: none;" accept=".sqlite,.db,.json" onchange="uploadAndRestoreDatabase(this)">
             </div>
         </div>
@@ -548,11 +589,28 @@
             }
         }
 
-        async function importEmployeesFromSalarySheet(input) {
+        function downloadEmployeeTemplate() {
+            const rows = [
+                ['اسم', 'قسم', 'هدف', 'راتب', 'مستخدم', 'كلمة المرور', 'بنك'],
+                ['محمد علي', 'مكانيكا', '5000', '3000', 'mohammed', 'pass123', 'الاهلي'],
+                ['فهد أحمد', 'كهرباء', '4000', '2500', 'fahad', 'pass123', 'الراجحي'],
+                ['خالد سعد', 'كشف', '6000', '3500', 'khaled', 'pass123', 'كاش'],
+            ];
+            const csvContent = '\uFEFF' + rows.map(r => r.join('\t')).join('\n');
+            const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'نموذج_استيراد_موظفين.xls';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        async function importEmployeesFromExcel(input) {
             const file = input.files[0];
             if (!file) return;
 
-            if (!confirm(`هل أنت متأكد من رغبتك في سحب وتحديث الموظفين من ملف الرواتب:\n(${file.name})؟\nسيتم إضافة الموظفين الجدد وتحديث رواتب ومستهدفات الموظفين الحاليين.`)) {
+            if (!confirm(`هل أنت متأكد من رغبتك في استيراد بيانات الموظفين من الملف:\n(${file.name})؟\nسيتم إضافة الموظفين الجدد وتحديث السجلات الحالية.`)) {
                 input.value = '';
                 return;
             }
@@ -561,22 +619,55 @@
             formData.append('file', file);
 
             try {
-                const res = await fetch('/api/employees/import-from-salary-sheet', {
+                const res = await fetch('/api/employees/import-excel', {
                     method: 'POST',
                     body: formData
                 });
                 const data = await res.json();
-                if (res.ok) {
-                    let msg = `✅ ${data.message}\n• الموظفون المضافون الجدد: ${data.inserted_count}\n• الموظفون المحدثون: ${data.updated_count}`;
-                    if (data.created_sections && data.created_sections.length > 0) {
-                        msg += `\n• تم إنشاء أقسام جديدة: ${data.created_sections.join('، ')}`;
-                    }
+                if (res.ok && data.success) {
+                    let msg = `✅ ${data.message || 'تم استيراد الموظفين بنجاح!'}`;
+                    if (data.addedCount !== undefined) msg += `\n• الموظفون المضافون: ${data.addedCount}`;
+                    if (data.updatedCount !== undefined) msg += `\n• الموظفون المحدثون: ${data.updatedCount}`;
+                    if (data.createdSectionsCount > 0) msg += `\n• تم إنشاء أقسام جديدة: ${data.createdSectionsCount}`;
                     alert(msg);
                 } else {
-                    alert('❌ ' + (data.message || 'فشل استيراد موظفي مسير الرواتب'));
+                    alert('❌ ' + (data.message || 'فشل استيراد ملف الموظفين'));
                 }
             } catch (e) {
-                alert('❌ تعذر رفع ملف الرواتب: ' + e.message);
+                alert('❌ تعذر رفع ملف الموظفين: ' + e.message);
+            } finally {
+                input.value = '';
+            }
+        }
+
+        async function importSalariesFromExcel(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            if (!confirm(`هل أنت متأكد من رغبتك في استيراد ومزامنة مسير الرواتب من الملف:\n(${file.name})؟\nسيتم تحديث الرواتب الأساسية، السحبيات، الإيداعات، والمستحقات.`)) {
+                input.value = '';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const res = await fetch('/api/employees/import-salaries', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    let msg = `✅ ${data.message || 'تم استيراد مسير الرواتب بنجاح!'}`;
+                    if (data.updatedCount !== undefined) msg += `\n• سجلات الرواتب المحدثة: ${data.updatedCount}`;
+                    if (data.addedCount !== undefined && data.addedCount > 0) msg += `\n• الموظفون الجدد المضافون: ${data.addedCount}`;
+                    alert(msg);
+                } else {
+                    alert('❌ ' + (data.message || 'فشل استيراد مسير الرواتب'));
+                }
+            } catch (e) {
+                alert('❌ تعذر رفع ملف مسير الرواتب: ' + e.message);
             } finally {
                 input.value = '';
             }

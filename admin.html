@@ -223,8 +223,8 @@
                         <button class="btn" style="background:#4b5563; color:white;" onclick="openNewSectionModal()">
                             <i class="fa-solid fa-folder-plus"></i> قسم جديد
                         </button>
-                        <button class="btn btn-success" onclick="openImportEmployeesModal()">
-                            <i class="fa-solid fa-file-excel"></i> استيراد Excel ذكي (رواتب / موظفين)
+                        <button class="btn btn-success" onclick="openImportSalariesModal()">
+                            <i class="fa-solid fa-file-excel"></i> استيراد الرواتب
                         </button>
                     </div>
                     <div style="display:flex; gap:10px;">
@@ -526,41 +526,37 @@
         </div>
     </div>
 
-    <!-- Smart Excel Import Modal -->
-    <div id="importEmployeesModal" class="modal">
+    <!-- Smart Salaries Import Modal -->
+    <div id="importSalariesModal" class="modal">
         <div class="modal-content" style="max-width: 580px;">
             <div class="modal-header">
-                <h2><i class="fa-solid fa-file-excel" style="color: var(--success);"></i> استيراد ملف موظفين / رواتب (Excel)</h2>
-                <button type="button" class="close-btn" onclick="closeModal('importEmployeesModal')">
+                <h2><i class="fa-solid fa-file-excel" style="color: var(--success);"></i> استيراد مسير الرواتب (Excel)</h2>
+                <button type="button" class="close-btn" onclick="closeModal('importSalariesModal')">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
             <div class="modal-body">
                 <div style="font-size: 13px; line-height: 1.7; color: var(--text-gray); background: #f8fafc; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 16px;">
                     <div style="font-weight: 800; color: var(--text-dark); margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
-                        <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--primary);"></i> يدعم النظام الكشف التلقائي الذكي لكافة صيغ Excel:
+                        <i class="fa-solid fa-file-invoice-dollar" style="color: var(--primary);"></i> مطابقة وتحديث كشف مسير الرواتب:
                     </div>
-                    <ul style="padding-right: 18px; margin: 0;">
-                        <li><strong>كشف رواتب مصفوفي (مثل Salaries-9.xlsx):</strong> يستخرج أسماء الموظفين، الرواتب، السحبيات، والصافي المتبقي تلقائياً.</li>
-                        <li><strong>جدول موظفين مباشر (مثل موظفين.xlsx):</strong> يستخرج الاسم، القسم، التارجت، وحسابات الدخول.</li>
-                    </ul>
+                    <p style="margin: 0; font-size: 12.5px; color: #475569;">
+                        قم برفع ملف كشف مسير الرواتب الدوري (مثل <strong>Salaries-9.xlsx</strong>) لتحديث الرواتب الأساسية، السحبيات، الإيداعات، ومكافأة التارجت وصافي المستحقات للموظفين تلقائياً.
+                    </p>
                 </div>
 
                 <div style="display:flex; flex-direction:column; gap:12px;">
-                    <button class="btn" onclick="downloadImportTemplate()" style="padding: 12px; font-weight: 700; background: #6366f1; color: white;">
-                        <i class="fa-solid fa-download"></i> تحميل نموذج Excel الاسترشادي
+                    <button class="btn btn-primary" onclick="document.getElementById('importSalariesFileInput').click()" style="padding: 13px; font-weight: 700; background: #10b981; font-size: 14px; display:flex; align-items:center; justify-content:center; gap:8px;">
+                        <i class="fa-solid fa-folder-open"></i> اختيار ملف كشف مسير الرواتب (Excel)
                     </button>
-                    <button class="btn btn-primary" onclick="document.getElementById('importEmpFileInput').click()" style="padding: 12px; font-weight: 700; background: #10b981;">
-                        <i class="fa-solid fa-folder-open"></i> اختيار ملف Excel للرفع والمعالجة
-                    </button>
-                    <input type="file" id="importEmpFileInput" accept=".xlsx,.xls" style="display:none;" onchange="importEmployeesFromExcel(this)">
+                    <input type="file" id="importSalariesFileInput" accept=".xlsx,.xls" style="display:none;" onchange="importSalariesFromExcel(this)">
                 </div>
 
-                <div id="importEmpResult" style="margin-top:14px; display:none;"></div>
+                <div id="importSalariesResult" style="margin-top:14px; display:none;"></div>
             </div>
 
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal('importEmployeesModal')">إغلاق</button>
+                <button class="btn btn-secondary" onclick="closeModal('importSalariesModal')">إغلاق</button>
             </div>
         </div>
     </div>
