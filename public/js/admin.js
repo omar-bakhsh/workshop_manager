@@ -632,9 +632,12 @@ function deleteEmployee(id) {
 let currentAttendanceData = [];
 
 async function openAttendanceModal() {
+    openModal('attendanceModal');
+    
     const select = document.getElementById('attendanceEmployeeFilter');
     if(select) {
-        select.innerHTML = '<option value="">جميع الموظفين</option>' + employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+        const empList = (typeof employees !== 'undefined' && Array.isArray(employees)) ? employees : [];
+        select.innerHTML = '<option value="">جميع الموظفين</option>' + empList.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
     }
     
     // Set default date range to current month (from 1st of month to today)
@@ -646,11 +649,10 @@ async function openAttendanceModal() {
 
     const fromInput = document.getElementById('attendanceFromDate');
     const toInput = document.getElementById('attendanceToDate');
-    if(fromInput) fromInput.value = firstDay;
-    if(toInput) toInput.value = today;
+    if(fromInput && !fromInput.value) fromInput.value = firstDay;
+    if(toInput && !toInput.value) toInput.value = today;
     
     loadAttendanceReport('range');
-    openModal('attendanceModal');
 }
 
 function setAttendanceTodayFilter() {
@@ -679,9 +681,13 @@ async function loadAttendanceReport(type = 'range') {
     const tbody = document.getElementById('attendanceTableBody');
     if(!tbody) return;
     
-    const fromDate = document.getElementById('attendanceFromDate')?.value || '';
-    const toDate = document.getElementById('attendanceToDate')?.value || '';
-    const empId = document.getElementById('attendanceEmployeeFilter')?.value || '';
+    const fromInput = document.getElementById('attendanceFromDate');
+    const toInput = document.getElementById('attendanceToDate');
+    const empFilter = document.getElementById('attendanceEmployeeFilter');
+
+    const fromDate = fromInput ? fromInput.value : '';
+    const toDate = toInput ? toInput.value : '';
+    const empId = empFilter ? empFilter.value : '';
     
     tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:20px;">⏳ جاري جلب وتدقيق سجلات الحضور والانصراف...</td></tr>';
     
@@ -1874,6 +1880,20 @@ window.openModal = openModal;
 window.closeModal = closeModal;
 window.toggleMobileSidebar = toggleMobileSidebar;
 window.toggleSidebarCollapse = toggleSidebarCollapse;
+window.openAttendanceModal = openAttendanceModal;
+window.loadAttendanceReport = loadAttendanceReport;
+window.setAttendanceTodayFilter = setAttendanceTodayFilter;
+window.setAttendanceMonthFilter = setAttendanceMonthFilter;
+window.exportAttendanceToExcel = exportAttendanceToExcel;
+window.printAttendanceReport = printAttendanceReport;
+window.updateAttendanceSummaryCards = updateAttendanceSummaryCards;
+window.openShiftModal = openShiftModal;
+window.openLeaveModal = openLeaveModal;
+window.openDocumentsModal = openDocumentsModal;
+window.toggleAdminChat = toggleAdminChat;
+window.sendAdminMessage = sendAdminMessage;
+window.loadAdminChat = loadAdminChat;
+window.showView = showView;
 
 // Initialize!
 init();
