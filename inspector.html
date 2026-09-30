@@ -760,8 +760,9 @@
             .ops-notes-row { text-align: center !important; font-size: 11px !important; font-weight: 800 !important; color: #1e293b !important; margin-bottom: 2px !important; }
             .ops-wishes-text { text-align: center !important; font-size: 12px !important; font-weight: 800 !important; border-top: 1.2px solid #000 !important; padding-top: 4px !important; margin-bottom: 4px !important; }
             .ops-signatures-row { display: flex !important; justify-content: space-between !important; align-items: flex-end !important; padding: 0 15px !important; margin-top: 4px !important; }
-            .ops-stamp-box { text-align: center !important; font-size: 11.5px !important; font-weight: 800 !important; }
-            .ops-stamp-circle { width: 60px !important; height: 32px !important; border: 1.2px dashed #64748b !important; border-radius: 50% !important; margin-top: 2px !important; display: flex !important; align-items: center !important; justify-content: center !important; font-size: 9.5px !important; color: #475569 !important; }
+            .ops-stamp-box { text-align: center !important; font-size: 11.5px !important; font-weight: 800 !important; min-width: 140px !important; }
+            .ops-stamp-circle { min-width: 130px !important; max-width: 190px !important; min-height: 60px !important; max-height: 100px !important; width: auto !important; height: auto !important; border: 1.2px dashed #94a3b8 !important; border-radius: 8px !important; margin-top: 2px !important; display: flex !important; align-items: center !important; justify-content: center !important; font-size: 9.5px !important; color: #475569 !important; background: transparent !important; }
+            .ops-stamp-circle.has-stamp-image { border: none !important; }
             .ops-manager-box { text-align: center !important; font-size: 11.5px !important; font-weight: 800 !important; }
             .ops-sign-line { margin-top: 8px !important; font-size: 12px !important; letter-spacing: 2px !important; }
             .ops-bottom-info { display: flex !important; justify-content: space-between !important; align-items: center !important; font-size: 10.5px !important; color: #1e293b !important; margin-top: 4px !important; border-top: 1px dotted #cbd5e1 !important; padding-top: 2px !important; }
@@ -1144,8 +1145,8 @@
                 </div>
                 
                 <!-- Stamp Container (Printed when enabled) -->
-                <div id="printStampContainer" style="display:flex; align-items:center; justify-content:center; position:absolute; left:50%; transform:translateX(-50%); bottom:0; text-align:center; pointer-events:none;">
-                    <img id="printStampImg" src="" alt="الختم الرسمي" style="max-height:85px; max-width:145px; object-fit:contain; opacity:0.92; transform:rotate(-4deg); filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));">
+                <div id="printStampContainer" style="display:flex; align-items:center; justify-content:center; position:absolute; left:50%; transform:translateX(-50%); bottom:-5px; text-align:center; pointer-events:none; z-index:10;">
+                    <img id="printStampImg" src="" alt="الختم الرسمي" style="max-height:105px; max-width:185px; width:auto; height:auto; object-fit:contain; opacity:0.95; transform:rotate(-3deg); filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));">
                 </div>
 
                 <div style="text-align:left; display:flex; flex-direction:column; gap:4px;">
@@ -1380,19 +1381,32 @@
             
             // Official Quotation Sheet Stamp
             const opsStampImg = document.getElementById('opsStampImg');
+            const opsStampCircle = document.getElementById('opsStampCircle');
             const opsStampText = document.getElementById('opsStampFallbackText');
+
+            // Official Job Order Sheet Stamp
+            const jcStampImg = document.getElementById('jcPrintStampImg');
+            const jcStampContainer = document.getElementById('jcPrintStampContainer');
 
             if (isStampIncluded && stampUrl && stampUrl.trim()) {
                 const cleanStamp = stampUrl.startsWith('/') ? stampUrl : '/' + stampUrl;
                 if (printStampContainer) printStampContainer.style.display = 'flex';
                 if (printStampImg) { printStampImg.src = cleanStamp; printStampImg.style.display = 'block'; }
                 if (opsStampImg) { opsStampImg.src = cleanStamp; opsStampImg.style.display = 'block'; }
+                if (opsStampCircle) { opsStampCircle.classList.add('has-stamp-image'); opsStampCircle.style.border = 'none'; }
                 if (opsStampText) opsStampText.style.display = 'none';
+
+                if (jcStampImg) { jcStampImg.src = cleanStamp; }
+                if (jcStampContainer) { jcStampContainer.style.display = 'flex'; }
             } else {
                 if (printStampContainer) printStampContainer.style.display = 'none';
                 if (printStampImg) { printStampImg.src = ''; printStampImg.style.display = 'none'; }
                 if (opsStampImg) { opsStampImg.src = ''; opsStampImg.style.display = 'none'; }
+                if (opsStampCircle) { opsStampCircle.classList.remove('has-stamp-image'); opsStampCircle.style.border = ''; }
                 if (opsStampText) opsStampText.style.display = 'inline';
+
+                if (jcStampImg) { jcStampImg.src = ''; }
+                if (jcStampContainer) { jcStampContainer.style.display = 'none'; }
             }
         }
 
@@ -2966,12 +2980,12 @@
                 <div class="ops-wishes-text">نرجو أن ينال عرضنا هذا رضاكم وشاكرين حسن تعاونكم best wishes</div>
                 <div class="ops-signatures-row">
                     <div class="ops-stamp-box">
-                    <span>الختم Stamp</span>
-                    <div class="ops-stamp-circle" id="opsStampCircle" style="position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;">
-                        <img id="opsStampImg" src="" alt="الختم" style="display:none; max-height:80px; max-width:130px; object-fit:contain; transform:rotate(-4deg);">
-                        <span id="opsStampFallbackText">ختم الورشة</span>
+                        <span>الختم Stamp</span>
+                        <div class="ops-stamp-circle" id="opsStampCircle" style="position:relative; display:flex; align-items:center; justify-content:center; min-height:65px; min-width:130px;">
+                            <img id="opsStampImg" src="" alt="الختم" style="display:none; max-height:100px; max-width:180px; width:auto; height:auto; object-fit:contain; transform:rotate(-3deg); filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));">
+                            <span id="opsStampFallbackText">ختم الورشة</span>
+                        </div>
                     </div>
-                </div>
                     <div class="ops-manager-box"><span>توقيع المسؤول Manager Sign</span><div class="ops-sign-line">................................................</div></div>
                 </div>
                 <div class="ops-bottom-info">
@@ -3120,24 +3134,29 @@
                     <img src="car_diagram.svg" class="jc-diagram-img" alt="Car Diagram" onerror="this.src='car_diagram.png'">
                 </div>
 
-                <table class="jc-receipt-table">
-                    <tbody>
-                        <tr>
-                            <td style="width: 50%; font-size: 11px; font-weight: 700;">تم إستلام المركبة بدون فوارق Without Discrepancies</td>
-                            <td style="width: 25%; text-align: center; font-size: 12px; font-weight: 800;" id="jcSignCustName"></td>
-                            <td style="width: 25%; background: #f1f5f9; font-size: 11px; font-weight: 800;">اسم العميل Customer Name</td>
-                        </tr>
-                        <tr>
-                            <td style="font-size: 11px; font-weight: 700;">توقيع العميل Customer's Signature : &nbsp; ..............................</td>
-                            <td style="text-align: center;">..........................................</td>
-                            <td style="background: #f1f5f9; font-size: 11px; font-weight: 800;">توقيع العميل Customer's Signature</td>
-                        </tr>
-                        <tr>
-                            <td style="font-size: 11px; font-weight: 700;">تاريخ الاستلام Collected Date : &nbsp; ...................................</td>
-                            <td colspan="2"></td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div style="position: relative;">
+                    <table class="jc-receipt-table">
+                        <tbody>
+                            <tr>
+                                <td style="width: 50%; font-size: 11px; font-weight: 700;">تم إستلام المركبة بدون فوارق Without Discrepancies</td>
+                                <td style="width: 25%; text-align: center; font-size: 12px; font-weight: 800;" id="jcSignCustName"></td>
+                                <td style="width: 25%; background: #f1f5f9; font-size: 11px; font-weight: 800;">اسم العميل Customer Name</td>
+                            </tr>
+                            <tr>
+                                <td style="font-size: 11px; font-weight: 700;">توقيع العميل Customer's Signature : &nbsp; ..............................</td>
+                                <td style="text-align: center;">..........................................</td>
+                                <td style="background: #f1f5f9; font-size: 11px; font-weight: 800;">توقيع العميل Customer's Signature</td>
+                            </tr>
+                            <tr>
+                                <td style="font-size: 11px; font-weight: 700;">تاريخ الاستلام Collected Date : &nbsp; ...................................</td>
+                                <td colspan="2"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div id="jcPrintStampContainer" style="display:none; align-items:center; justify-content:center; position:absolute; left:30%; bottom:15px; pointer-events:none; z-index:10;">
+                        <img id="jcPrintStampImg" src="" alt="ختم الفاتورة وأمر العمل" style="max-height:100px; max-width:180px; width:auto; height:auto; object-fit:contain; opacity:0.95; transform:rotate(-3deg); filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));">
+                    </div>
+                </div>
 
                 <div class="jc-footer-bar">
                     <div class="jc-footer-contacts" id="jcFooterContacts">

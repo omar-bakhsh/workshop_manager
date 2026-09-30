@@ -566,24 +566,29 @@
                     <img src="car_diagram.svg" class="jc-diagram-img" alt="Car Diagram" onerror="this.src='car_diagram.png'">
                 </div>
 
-                <table class="jc-receipt-table">
-                    <tbody>
-                        <tr>
-                            <td style="width: 50%; font-size: 11px; font-weight: 700;">تم إستلام المركبة بدون فوارق Without Discrepancies</td>
-                            <td style="width: 25%; text-align: center; font-size: 12px; font-weight: 800;" id="jcSignCustName"></td>
-                            <td style="width: 25%; background: #f1f5f9; font-size: 11px; font-weight: 800;">اسم العميل Customer Name</td>
-                        </tr>
-                        <tr>
-                            <td style="font-size: 11px; font-weight: 700;">توقيع العميل Customer's Signature : &nbsp; ..............................</td>
-                            <td style="text-align: center;">..........................................</td>
-                            <td style="background: #f1f5f9; font-size: 11px; font-weight: 800;">توقيع العميل Customer's Signature</td>
-                        </tr>
-                        <tr>
-                            <td style="font-size: 11px; font-weight: 700;">تاريخ الاستلام Collected Date : &nbsp; ...................................</td>
-                            <td colspan="2"></td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div style="position: relative;">
+                    <table class="jc-receipt-table">
+                        <tbody>
+                            <tr>
+                                <td style="width: 50%; font-size: 11px; font-weight: 700;">تم إستلام المركبة بدون فوارق Without Discrepancies</td>
+                                <td style="width: 25%; text-align: center; font-size: 12px; font-weight: 800;" id="jcSignCustName"></td>
+                                <td style="width: 25%; background: #f1f5f9; font-size: 11px; font-weight: 800;">اسم العميل Customer Name</td>
+                            </tr>
+                            <tr>
+                                <td style="font-size: 11px; font-weight: 700;">توقيع العميل Customer's Signature : &nbsp; ..............................</td>
+                                <td style="text-align: center;">..........................................</td>
+                                <td style="background: #f1f5f9; font-size: 11px; font-weight: 800;">توقيع العميل Customer's Signature</td>
+                            </tr>
+                            <tr>
+                                <td style="font-size: 11px; font-weight: 700;">تاريخ الاستلام Collected Date : &nbsp; ...................................</td>
+                                <td colspan="2"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div id="jcPrintStampContainer" style="display:none; align-items:center; justify-content:center; position:absolute; left:30%; bottom:15px; pointer-events:none; z-index:10;">
+                        <img id="jcPrintStampImg" src="" alt="ختم الفاتورة وأمر العمل" style="max-height:100px; max-width:180px; width:auto; height:auto; object-fit:contain; opacity:0.95; transform:rotate(-3deg); filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));">
+                    </div>
+                </div>
 
                 <div class="jc-footer-bar">
                     <div class="jc-footer-contacts" id="jcFooterContacts">
@@ -858,6 +863,18 @@
                     jcLogo.style.display = 'block';
                 } else {
                     jcLogo.style.display = 'none';
+                }
+            }
+
+            const jcStamp = document.getElementById('jcPrintStampImg');
+            const jcStampContainer = document.getElementById('jcPrintStampContainer');
+            if (jcStamp && jcStampContainer) {
+                const stampSrc = appSettings?.invoice_stamp || window.APP_CONFIG?.settings?.invoice_stamp || appSettings?.quotation_stamp || window.APP_CONFIG?.settings?.quotation_stamp;
+                if (stampSrc) {
+                    jcStamp.src = stampSrc;
+                    jcStampContainer.style.display = 'flex';
+                } else {
+                    jcStampContainer.style.display = 'none';
                 }
             }
 

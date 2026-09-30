@@ -112,21 +112,35 @@
                 </div>
                 <span style="font-size: 11.5px; background: #dbeafe; color: #1e40af; font-weight: 700; padding: 3px 10px; border-radius: 12px;">تلقائي في التسعيرة وأوامر العمل</span>
             </div>
-            <p style="font-size:12.5px; color:#475569; margin-bottom:16px; line-height: 1.6;">
-                ارفع شعار المركز (Logo) ليظهر في رأس تسعيرة الأجور وأوامر العمل، وأختام الاعتماد الرسمية لتظهر تلقائياً أو اختيارياً عند طباعة التسعيرات والفواتير وأوامر العمل.
+            <p style="font-size:12.5px; color:#475569; margin-bottom:12px; line-height: 1.6;">
+                ارفع شعار المركز (Logo) ليظهر في ترويسة الأوراق، وأختام الاعتماد لتظهر تلقائياً أو اختيارياً عند طباعة التسعيرات والفواتير وأوامر العمل. تم تحسين مساحات الأختام لتتسع للصور <b>المربعة والمستطيلة والدائرية</b> بدون قص أو مط.
             </p>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+            <!-- Guide Box for Recommended Dimensions -->
+            <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: 12px; color: #1e40af; line-height: 1.6;">
+                <div style="font-weight: 800; display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>دليل المقاسات الموصى به لتجهيز الصور بجودة عالية (PNG بخلفية شفافة):</span>
+                </div>
+                <ul style="margin: 0; padding-right: 18px; list-style-type: disc; font-size: 11.5px; color: #1e3a8a;">
+                    <li><b>الأختام المربعة والدائرية:</b> المقاس المثالي <code style="background:#dbeafe; padding:1px 5px; border-radius:4px; font-weight:700;">300×300 px</code> إلى <code style="background:#dbeafe; padding:1px 5px; border-radius:4px; font-weight:700;">500×500 px</code></li>
+                    <li><b>الأختام المستطيلة العريضة:</b> المقاس المثالي <code style="background:#dbeafe; padding:1px 5px; border-radius:4px; font-weight:700;">400×200 px</code> إلى <code style="background:#dbeafe; padding:1px 5px; border-radius:4px; font-weight:700;">600×250 px</code></li>
+                    <li><b>شعار المركز (Logo):</b> المقاس المثالي <code style="background:#dbeafe; padding:1px 5px; border-radius:4px; font-weight:700;">400×150 px</code> أو <code style="background:#dbeafe; padding:1px 5px; border-radius:4px; font-weight:700;">300×300 px</code></li>
+                </ul>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
                 <!-- 1. Workshop Logo -->
                 <div style="background: white; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between;">
                     <div>
-                        <div style="font-weight: 800; font-size: 13.5px; color: #0f172a; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                        <div style="font-weight: 800; font-size: 13.5px; color: #0f172a; margin-bottom: 3px; display: flex; align-items: center; gap: 6px;">
                             <i class="fa-solid fa-image" style="color: #3b82f6;"></i>
                             <span>شعار المركز (Logo)</span>
                         </div>
-                        <div style="font-size: 11px; color: #64748b; margin-bottom: 10px;">يظهر في رأس التسعيرة وأمر العمل</div>
-                        <div style="border: 1.5px dashed #cbd5e1; border-radius: 10px; min-height: 100px; display: flex; align-items: center; justify-content: center; background: #f8fafc; padding: 8px; margin-bottom: 10px;">
-                            <img id="logoPreviewImg" src="" alt="شعار المركز" style="max-width: 100%; max-height: 90px; object-fit: contain; display: none;">
+                        <div style="font-size: 11px; color: #64748b; margin-bottom: 4px;">يظهر في رأس التسعيرة وأمر العمل</div>
+                        <div style="font-size: 10.5px; color: #0284c7; font-weight: 700; margin-bottom: 8px;">📐 المقاس الموصى به: 400×150 بكسل (PNG)</div>
+                        <div style="border: 1.5px dashed #cbd5e1; border-radius: 10px; min-height: 120px; display: flex; align-items: center; justify-content: center; background: #f8fafc; padding: 10px; margin-bottom: 10px;">
+                            <img id="logoPreviewImg" src="" alt="شعار المركز" style="max-width: 100%; max-height: 105px; object-fit: contain; display: none;">
                             <span id="logoPlaceholder" style="font-size: 11.5px; color: #94a3b8; text-align: center;">📷 لا يوجد شعار مرفوع</span>
                         </div>
                     </div>
@@ -144,13 +158,14 @@
                 <!-- 2. Quotation Stamp -->
                 <div style="background: white; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between;">
                     <div>
-                        <div style="font-weight: 800; font-size: 13.5px; color: #0f172a; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                        <div style="font-weight: 800; font-size: 13.5px; color: #0f172a; margin-bottom: 3px; display: flex; align-items: center; gap: 6px;">
                             <i class="fa-solid fa-file-signature" style="color: #0284c7;"></i>
                             <span>ختم تسعيرة أجور</span>
                         </div>
-                        <div style="font-size: 11px; color: #64748b; margin-bottom: 10px;">يظهر في أسفل ورقة التسعيرة</div>
-                        <div style="border: 1.5px dashed #cbd5e1; border-radius: 10px; min-height: 100px; display: flex; align-items: center; justify-content: center; background: #f8fafc; padding: 8px; margin-bottom: 10px;">
-                            <img id="quoteStampPreviewImg" src="" alt="ختم التسعيرة" style="max-width: 100%; max-height: 90px; object-fit: contain; display: none;">
+                        <div style="font-size: 11px; color: #64748b; margin-bottom: 4px;">يظهر في أسفل ورقة التسعيرة</div>
+                        <div style="font-size: 10.5px; color: #0284c7; font-weight: 700; margin-bottom: 8px;">📐 المقاس: 300×300 إلى 400×200 بكسل</div>
+                        <div style="border: 1.5px dashed #cbd5e1; border-radius: 10px; min-height: 120px; display: flex; align-items: center; justify-content: center; background: #f8fafc; padding: 10px; margin-bottom: 10px;">
+                            <img id="quoteStampPreviewImg" src="" alt="ختم التسعيرة" style="max-width: 100%; max-height: 105px; object-fit: contain; display: none;">
                             <span id="quoteStampPlaceholder" style="font-size: 11.5px; color: #94a3b8; text-align: center;">💮 لا يوجد ختم تسعيرة</span>
                         </div>
                     </div>
@@ -168,13 +183,14 @@
                 <!-- 3. Invoice & Job Order Stamp -->
                 <div style="background: white; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between;">
                     <div>
-                        <div style="font-weight: 800; font-size: 13.5px; color: #0f172a; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                        <div style="font-weight: 800; font-size: 13.5px; color: #0f172a; margin-bottom: 3px; display: flex; align-items: center; gap: 6px;">
                             <i class="fa-solid fa-certificate" style="color: #16a34a;"></i>
                             <span>ختم الفاتورة وأمر العمل</span>
                         </div>
-                        <div style="font-size: 11px; color: #64748b; margin-bottom: 10px;">يظهر في كرت التشغيل وأمر العمل المعتمد</div>
-                        <div style="border: 1.5px dashed #cbd5e1; border-radius: 10px; min-height: 100px; display: flex; align-items: center; justify-content: center; background: #f8fafc; padding: 8px; margin-bottom: 10px;">
-                            <img id="invoiceStampPreviewImg" src="" alt="ختم الفاتورة" style="max-width: 100%; max-height: 90px; object-fit: contain; display: none;">
+                        <div style="font-size: 11px; color: #64748b; margin-bottom: 4px;">يظهر في كرت التشغيل وأمر العمل المعتمد</div>
+                        <div style="font-size: 10.5px; color: #16a34a; font-weight: 700; margin-bottom: 8px;">📐 المقاس: 300×300 إلى 400×200 بكسل</div>
+                        <div style="border: 1.5px dashed #cbd5e1; border-radius: 10px; min-height: 120px; display: flex; align-items: center; justify-content: center; background: #f8fafc; padding: 10px; margin-bottom: 10px;">
+                            <img id="invoiceStampPreviewImg" src="" alt="ختم الفاتورة" style="max-width: 100%; max-height: 105px; object-fit: contain; display: none;">
                             <span id="invoiceStampPlaceholder" style="font-size: 11.5px; color: #94a3b8; text-align: center;">🛡️ لا يوجد ختم فاتورة</span>
                         </div>
                     </div>
