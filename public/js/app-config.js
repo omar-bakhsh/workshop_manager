@@ -166,29 +166,34 @@
 
         isAdmin: function (user) {
             if (!user) user = this.getUser();
-            return user.role === 'admin';
+            return user.role === 'admin' || user.username === 'admin';
+        },
+
+        isReception: function (user) {
+            if (!user) user = this.getUser();
+            return this.isSection(user, 'استقبال') || 
+                   this.isSection(user, 'reception') || 
+                   this.isSection(user, 'خدمة العملاء') ||
+                   this.isSection(user, 'عملاء') ||
+                   user.role === 'reception' ||
+                   user.role === 'customer_service';
         },
 
         isManagement: function (user) {
             if (!user) user = this.getUser();
             return this.isAdmin(user) || 
+                   this.isReception(user) ||
                    this.isSection(user, 'ادار') || 
                    this.isSection(user, 'إدار') ||
+                   this.isSection(user, 'مشرف') ||
                    user.role === 'management' ||
                    user.role === 'manager' ||
-                   user.role === 'supervisor' ||
-                   user.username === 'admin';
-        },
-
-        // صلاحية كتابة وتعديل التسعيرة وأمر العمل والتحويل بينهما
-        canConvertDocType: function (user) {
-            if (!user) user = this.getUser();
-            return this.isManagement(user) || this.isInspection(user);
+                   user.role === 'supervisor';
         },
 
         isInspection: function (user) {
             if (!user) user = this.getUser();
-            return this.isSection(user, 'كشف');
+            return this.isSection(user, 'كشف') || this.isSection(user, 'فحص') || this.isSection(user, 'تسعير');
         },
 
         isElectricity: function (user) {
@@ -201,40 +206,65 @@
             return this.isSection(user, 'مكانيك');
         },
 
-        // 1. صلاحية تعديل أوامر العمل: فقط لموظفي الإدارة + حساب الأدمن
+        // فحص صلاحية أوامر العمل من بيانات القسم أو الدور
+        hasJobOrdersPerm: function (user) {
+            if (!user) user = this.getUser();
+            if (this.isManagement(user) || this.isReception(user)) return true;
+            if (user.can_job_orders === 1 || user.can_job_orders === true || user.can_job_orders === '1') return true;
+            if (user.can_inspect === 1 || user.can_inspect === true || user.can_inspect === '1') return true;
+            if (this.isInspection(user)) return true;
+            if (user.permissions && (user.permissions.includes('job_orders') || user.permissions.includes('all'))) return true;
+            return false;
+        },
+
+        // فحص صلاحية الكشوفات والتسعيرات
+        hasInspectPerm: function (user) {
+            if (!user) user = this.getUser();
+            if (this.isManagement(user) || this.isReception(user) || this.isInspection(user)) return true;
+            if (user.can_inspect === 1 || user.can_inspect === true || user.can_inspect === '1') return true;
+            if (user.can_job_orders === 1 || user.can_job_orders === true || user.can_job_orders === '1') return true;
+            if (user.permissions && (user.permissions.includes('inspect') || user.permissions.includes('all'))) return true;
+            return false;
+        },
+
+        // 1. صلاحية تعديل وإنشاء أوامر العمل وتعيين الفنيين والتحويل
         canEditJobOrder: function (user) {
             if (!user) user = this.getUser();
-            return this.isManagement(user);
+            return this.hasJobOrdersPerm(user);
         },
 
-        // 2. صلاحية تعديل التسعيرة: جميع موظفي الكشف + الإدارة + حساب الأدمن
+        // 2. صلاحية تعديل وإنشاء التسعيرة والكشف
         canEditQuotation: function (user) {
             if (!user) user = this.getUser();
-            return this.isManagement(user) || this.isInspection(user);
+            return this.hasInspectPerm(user) || this.hasJobOrdersPerm(user);
         },
 
-        // 3. صلاحية استعراض أوامر العمل دون تعديل:
-        // موظفي الإدارة + موظفي الكشف + موظفي المكانيكا والكهرباء المعين لهم الكرت فقط + الأدمن
+        // 3. صلاحية كتابة وتعديل التسعيرة وأمر العمل والتحويل بينهما
+        canConvertDocType: function (user) {
+            if (!user) user = this.getUser();
+            return this.hasJobOrdersPerm(user) || this.hasInspectPerm(user);
+        },
+
+        // 4. صلاحية استعراض أوامر العمل
         canViewJobOrders: function (user) {
             if (!user) user = this.getUser();
-            return this.isManagement(user) || this.isInspection(user) || this.isMechanic(user) || this.isElectricity(user);
+            return this.hasJobOrdersPerm(user) || this.hasInspectPerm(user) || this.isMechanic(user) || this.isElectricity(user);
         },
 
         // هل المستخدم فني تنفيذي مقيد فقط بالكروت المعينة له؟
         isAssignedOnlyTechnician: function (user) {
             if (!user) user = this.getUser();
-            if (this.isManagement(user) || this.isInspection(user)) return false;
+            if (this.hasJobOrdersPerm(user) || this.hasInspectPerm(user)) return false;
             return this.isMechanic(user) || this.isElectricity(user);
         },
 
-        // 4. صلاحية استعراض الكشوفات السابقة:
-        // موظفي الكشف + موظفي الإدارة + موظفي الكهرباء + الأدمن
+        // 5. صلاحية استعراض الكشوفات السابقة
         canViewInspections: function (user) {
             if (!user) user = this.getUser();
-            return this.isManagement(user) || this.isInspection(user) || this.isElectricity(user);
+            return this.hasInspectPerm(user) || this.hasJobOrdersPerm(user) || this.isElectricity(user);
         },
 
-        // 5. الصلاحية الكاملة لحساب الأدمن
+        // 6. الصلاحيات الإدارية الإضافية
         canDelete: function (user) {
             if (!user) user = this.getUser();
             return this.isAdmin(user);
@@ -242,12 +272,12 @@
 
         canAssignTechnicians: function (user) {
             if (!user) user = this.getUser();
-            return this.isManagement(user);
+            return this.hasJobOrdersPerm(user);
         },
 
         canChangeCarStatus: function (user) {
             if (!user) user = this.getUser();
-            return this.isManagement(user);
+            return this.hasJobOrdersPerm(user);
         }
     };
 

@@ -127,7 +127,12 @@ app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
     try {
         const user = await dbGet(`
-            SELECT u.*, e.name AS employee_name, e.id AS employee_id, e.section_id, s.name AS section_name
+            SELECT u.*, e.name AS employee_name, e.id AS employee_id, e.section_id, s.name AS section_name,
+                   COALESCE(s.can_inspect, 0) AS can_inspect,
+                   COALESCE(s.can_job_orders, 0) AS can_job_orders,
+                   COALESCE(s.can_view_income, 1) AS can_view_income,
+                   COALESCE(s.can_withdraw, 1) AS can_withdraw,
+                   s.permissions AS section_permissions
             FROM users u
             LEFT JOIN employees e ON u.employee_id = e.id
             LEFT JOIN sections s ON e.section_id = s.id
@@ -307,15 +312,15 @@ app.get('/api/sections', async (req, res) => {
 
 app.post('/api/sections', async (req, res) => {
     try {
-        const { name, shift_start, shift_end, can_view_income, can_withdraw, can_inspect, can_manage_parts, permissions, target_enabled, target_type, target_percent, default_target } = req.body;
+        const { name, shift_start, shift_end, can_view_income, can_withdraw, can_inspect, can_job_orders, can_manage_parts, permissions, target_enabled, target_type, target_percent, default_target } = req.body;
         if (!name || !name.trim()) return res.status(400).json({ message: 'اسم القسم مطلوب' });
         const cleanName = name.trim();
         const existing = await dbGet('SELECT id FROM sections WHERE name = ?', [cleanName]);
         if (existing) return res.status(400).json({ message: 'يوجد قسم مسجل بهذا الاسم مسبقاً' });
 
         const result = await dbRun(
-            `INSERT INTO sections (name, shift_start, shift_end, can_view_income, can_withdraw, can_inspect, can_manage_parts, permissions, target_enabled, target_type, target_percent, default_target)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO sections (name, shift_start, shift_end, can_view_income, can_withdraw, can_inspect, can_job_orders, can_manage_parts, permissions, target_enabled, target_type, target_percent, default_target)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 cleanName,
                 shift_start || '08:00',
@@ -323,6 +328,7 @@ app.post('/api/sections', async (req, res) => {
                 can_view_income !== undefined ? (can_view_income ? 1 : 0) : 1,
                 can_withdraw !== undefined ? (can_withdraw ? 1 : 0) : 1,
                 can_inspect !== undefined ? (can_inspect ? 1 : 0) : 0,
+                can_job_orders !== undefined ? (can_job_orders ? 1 : 0) : 0,
                 can_manage_parts !== undefined ? (can_manage_parts ? 1 : 0) : 0,
                 typeof permissions === 'object' ? JSON.stringify(permissions) : (permissions || null),
                 target_enabled !== undefined ? (target_enabled ? 1 : 0) : 1,
@@ -356,6 +362,7 @@ app.put('/api/sections/:id', async (req, res) => {
                 can_view_income = ?,
                 can_withdraw = ?,
                 can_inspect = ?,
+                can_job_orders = ?,
                 can_manage_parts = ?,
                 permissions = ?,
                 target_enabled = ?,
@@ -370,6 +377,7 @@ app.put('/api/sections/:id', async (req, res) => {
                 can_view_income !== undefined ? (can_view_income ? 1 : 0) : 1,
                 can_withdraw !== undefined ? (can_withdraw ? 1 : 0) : 1,
                 can_inspect !== undefined ? (can_inspect ? 1 : 0) : 0,
+                can_job_orders !== undefined ? (can_job_orders ? 1 : 0) : 0,
                 can_manage_parts !== undefined ? (can_manage_parts ? 1 : 0) : 0,
                 typeof permissions === 'object' ? JSON.stringify(permissions) : (permissions || null),
                 target_enabled !== undefined ? (target_enabled ? 1 : 0) : 1,
@@ -867,6 +875,7 @@ app.get('/api/employee-stats/:id', async (req, res) => {
                 COALESCE(s.can_view_income, 1) AS can_view_income,
                 COALESCE(s.can_withdraw, 1) AS can_withdraw,
                 COALESCE(s.can_inspect, 0) AS can_inspect,
+                COALESCE(s.can_job_orders, 0) AS can_job_orders,
                 COALESCE(s.can_manage_parts, 0) AS can_manage_parts,
                 COALESCE(s.shift_start, '08:00') AS shift_start,
                 COALESCE(s.shift_end, '18:00') AS shift_end,
@@ -904,6 +913,7 @@ app.get('/api/employee-stats/:id', async (req, res) => {
             can_view_income: !isIncomeHidden,
             can_withdraw: info.can_withdraw !== 0,
             can_inspect: info.can_inspect == 1,
+            can_job_orders: info.can_job_orders == 1,
             can_manage_parts: info.can_manage_parts == 1
         };
 

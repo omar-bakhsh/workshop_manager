@@ -1248,6 +1248,17 @@
                     </label>
                 </div>
 
+                <div class="permission-toggle-box" style="background:#eff6ff; border-color:#bfdbfe;">
+                    <div>
+                        <div class="permission-toggle-info"><i class="fa-solid fa-screwdriver-wrench" style="color:#2563eb;"></i> إدارة وأوامر العمل والتشغيل الكاملة</div>
+                        <div class="permission-toggle-sub">استعراض أوامر العمل، إنشاء كروت تشغيل، تحويل التسعيرات، وتعيين الفنيين (مثل: قسم الاستقبال، المشرفين)</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="permJobOrders">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
                 <div class="permission-toggle-box">
                     <div>
                         <div class="permission-toggle-info"><i class="fa-solid fa-boxes-stacked" style="color:var(--warning);"></i> إدارة القطع والخدمات</div>
@@ -1674,6 +1685,7 @@
                                 <span>${sec.can_view_income !== 0 ? '🟢 رؤية الدخل' : '🔒 دخل مخفي'}</span>
                                 <span>${sec.can_withdraw !== 0 ? '🟢 سحب مالي' : '🔒 سحب مقفل'}</span>
                                 <span>${sec.can_inspect === 1 ? '🟢 كشف وتسعير' : '⚪ بدون كشف'}</span>
+                                <span>${sec.can_job_orders === 1 ? '🛠️ أوامر العمل' : '⚪ بدون أوامر عمل'}</span>
                             </div>
                         </div>
                         <div style="display:flex; gap:6px;">
@@ -1742,6 +1754,7 @@
             document.getElementById('permViewIncome').checked = sec.can_view_income !== 0;
             document.getElementById('permWithdraw').checked = sec.can_withdraw !== 0;
             document.getElementById('permInspect').checked = sec.can_inspect === 1;
+            document.getElementById('permJobOrders').checked = (sec.can_job_orders === 1 || (sec.name && (sec.name.includes('استقبال') || sec.name.includes('إدار'))));
             document.getElementById('permManageParts').checked = sec.can_manage_parts === 1;
             
             const isTargetOn = sec.target_enabled !== 0;
@@ -1776,6 +1789,7 @@
                 can_view_income: document.getElementById('permViewIncome').checked ? 1 : 0,
                 can_withdraw: document.getElementById('permWithdraw').checked ? 1 : 0,
                 can_inspect: document.getElementById('permInspect').checked ? 1 : 0,
+                can_job_orders: document.getElementById('permJobOrders')?.checked ? 1 : 0,
                 can_manage_parts: document.getElementById('permManageParts').checked ? 1 : 0,
                 target_enabled: isTargetOn,
                 target_type: targetType,

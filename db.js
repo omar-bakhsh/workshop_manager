@@ -195,6 +195,7 @@ async function initDatabase() {
             can_view_income TINYINT DEFAULT 1,
             can_withdraw TINYINT DEFAULT 1,
             can_inspect TINYINT DEFAULT 0,
+            can_job_orders TINYINT DEFAULT 0,
             can_manage_parts TINYINT DEFAULT 0,
             permissions TEXT
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
@@ -489,6 +490,7 @@ async function initDatabase() {
             can_view_income INTEGER DEFAULT 1,
             can_withdraw INTEGER DEFAULT 1,
             can_inspect INTEGER DEFAULT 0,
+            can_job_orders INTEGER DEFAULT 0,
             can_manage_parts INTEGER DEFAULT 0,
             permissions TEXT
         )`,
@@ -786,6 +788,7 @@ async function initDatabase() {
     await safeAddColumn('sections', 'can_view_income', "TINYINT DEFAULT 1");
     await safeAddColumn('sections', 'can_withdraw', "TINYINT DEFAULT 1");
     await safeAddColumn('sections', 'can_inspect', "TINYINT DEFAULT 0");
+    await safeAddColumn('sections', 'can_job_orders', "TINYINT DEFAULT 0");
     await safeAddColumn('sections', 'can_manage_parts', "TINYINT DEFAULT 0");
     await safeAddColumn('sections', 'permissions', "TEXT NULL");
     await safeAddColumn('sections', 'target_enabled', "TINYINT DEFAULT 1");
@@ -828,6 +831,11 @@ async function initDatabase() {
     }
 
     // بذر البيانات الأساسية في حال كانت الجداول فارغة
+    // Auto-grant full permissions to Reception, Management, and Inspection sections
+    try {
+        await dbRun(`UPDATE sections SET can_job_orders = 1, can_inspect = 1 WHERE name LIKE '%استقبال%' OR name LIKE '%إدار%' OR name LIKE '%كشف%' OR name LIKE '%reception%'`);
+    } catch(e){}
+
     await seedInitialData();
 
     console.log(`✅ اكتملت تهيئة قاعدة البيانات بنجاح (${isMySQL ? 'MySQL' : 'SQLite'}).`);

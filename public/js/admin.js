@@ -299,6 +299,8 @@ function openSectionPermissionsModal(sectionId, event) {
     document.getElementById('permCanViewIncome').checked = section.can_view_income !== 0;
     document.getElementById('permCanWithdraw').checked = section.can_withdraw !== 0;
     document.getElementById('permCanInspect').checked = section.can_inspect == 1;
+    const jobOrdersEl = document.getElementById('permCanJobOrders');
+    if (jobOrdersEl) jobOrdersEl.checked = (section.can_job_orders == 1 || (section.name && (section.name.includes('استقبال') || section.name.includes('إدار'))));
     document.getElementById('permCanManageParts').checked = section.can_manage_parts == 1;
     document.getElementById('permShiftStart').value = section.shift_start || '';
     document.getElementById('permShiftEnd').value = section.shift_end || '';
@@ -313,6 +315,7 @@ async function saveSectionPermissions(e) {
     const can_view_income = document.getElementById('permCanViewIncome').checked ? 1 : 0;
     const can_withdraw = document.getElementById('permCanWithdraw').checked ? 1 : 0;
     const can_inspect = document.getElementById('permCanInspect').checked ? 1 : 0;
+    const can_job_orders = document.getElementById('permCanJobOrders')?.checked ? 1 : 0;
     const can_manage_parts = document.getElementById('permCanManageParts').checked ? 1 : 0;
     const shift_start = document.getElementById('permShiftStart').value || null;
     const shift_end = document.getElementById('permShiftEnd').value || null;
@@ -326,6 +329,7 @@ async function saveSectionPermissions(e) {
                 can_view_income,
                 can_withdraw,
                 can_inspect,
+                can_job_orders,
                 can_manage_parts,
                 shift_start,
                 shift_end
