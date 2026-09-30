@@ -819,6 +819,12 @@ async function initDatabase() {
     await safeAddColumn('inspections', 'discount_amount', "DOUBLE DEFAULT 0");
     await safeAddColumn('inspections', 'discount_type', "VARCHAR(50) NULL");
     await safeAddColumn('inspections', 'discount_value', "DOUBLE DEFAULT 0");
+    await safeAddColumn('inspections', 'invoice_number', "VARCHAR(100) NULL");
+    await safeAddColumn('inspections', 'invoiced_at', "DATETIME NULL");
+    await safeAddColumn('inspections', 'payment_method', "VARCHAR(50) DEFAULT 'cash'");
+    await safeAddColumn('inspections', 'zatca_uuid', "VARCHAR(100) NULL");
+    await safeAddColumn('inspections', 'zatca_hash', "TEXT NULL");
+    await safeAddColumn('inspections', 'zatca_status', "VARCHAR(50) DEFAULT 'draft'");
     await safeAddColumn('inspection_items', 'is_completed', "TINYINT DEFAULT 0");
     await safeAddColumn('inspection_items', 'completed_at', "DATETIME NULL");
     await safeAddColumn('inspection_items', 'completed_by', "VARCHAR(191) NULL");

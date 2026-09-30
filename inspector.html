@@ -14,6 +14,8 @@
     <script src="public/js/app-config.js"></script>
     <script src="toast.js"></script>
     <script src="toast_helpers.js"></script>
+    <script src="public/js/zatca-qr.js?v=2.0"></script>
+    <script src="zatca-qr.js?v=2.0"></script>
 
     <style>
         :root {
@@ -702,6 +704,28 @@
                 background: #ffffff !important;
             }
 
+            /* Invoice Print Mode */
+            body.print-invoice-mode #officialTaxInvoicePrintSheet {
+                display: block !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 auto !important;
+                padding: 0 !important;
+                font-family: 'Segoe UI', Tahoma, Arial, 'Cairo', sans-serif !important;
+                color: #000000 !important;
+                background: #ffffff !important;
+            }
+
+            body.print-invoice-mode #officialQuotationPrintSheet,
+            body.print-invoice-mode #officialJobOrderPrintSheet {
+                display: none !important;
+            }
+
+            body.print-quotation-mode #officialTaxInvoicePrintSheet,
+            body.print-job-order-mode #officialTaxInvoicePrintSheet {
+                display: none !important;
+            }
+
             body.print-job-order-mode #officialQuotationPrintSheet,
             body.job-order-page #officialQuotationPrintSheet {
                 display: none !important;
@@ -710,6 +734,56 @@
             body.print-quotation-mode #officialJobOrderPrintSheet {
                 display: none !important;
             }
+
+            /* ---------------- SIMPLIFIED TAX INVOICE STYLES (ZATCA COMPLIANT) ---------------- */
+            .tax-invoice-sheet {
+                border: 1.5px solid #000 !important;
+                padding: 8px 12px !important;
+                background: #fff !important;
+                height: auto !important;
+                min-height: 0 !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                font-family: 'Segoe UI', Tahoma, Arial, 'Cairo', sans-serif !important;
+                color: #000 !important;
+            }
+            .inv-header { display: flex !important; justify-content: space-between !important; align-items: flex-start !important; margin-bottom: 4px !important; }
+            .inv-header-right { text-align: right !important; display: flex !important; align-items: center !important; gap: 12px !important; }
+            .inv-header-right h2 { font-size: 18px !important; font-weight: 900 !important; margin: 0 0 2px 0 !important; color: #000 !important; }
+            .inv-header-right p { font-size: 11.5px !important; font-weight: 700 !important; margin: 1px 0 !important; color: #000 !important; }
+            .inv-header-left { text-align: left !important; direction: ltr !important; }
+            .inv-header-left h2 { font-size: 17px !important; font-weight: 900 !important; margin: 0 0 2px 0 !important; color: #000 !important; }
+            .inv-header-left p { font-size: 11.5px !important; font-weight: 700 !important; margin: 1px 0 !important; color: #000 !important; }
+            
+            .inv-title-bar { text-align: center !important; background: #0f172a !important; color: #fff !important; padding: 4px 8px !important; border-radius: 4px !important; margin: 4px 0 6px 0 !important; }
+            .inv-main-title { font-size: 16px !important; font-weight: 900 !important; letter-spacing: 0.5px !important; color: #fff !important; }
+            
+            .inv-meta-bar { display: flex !important; justify-content: space-between !important; align-items: center !important; font-size: 12px !important; font-weight: 800 !important; background: #f8fafc !important; border: 1.2px solid #000 !important; padding: 4px 8px !important; margin-bottom: 6px !important; }
+            .inv-info-table { width: 100% !important; border-collapse: collapse !important; border: 1.2px solid #000 !important; margin-bottom: 6px !important; }
+            .inv-info-table td { border: 1px solid #000 !important; padding: 3px 6px !important; font-size: 12px !important; height: 22px !important; vertical-align: middle !important; }
+            .inv-info-table .lbl { font-weight: 800 !important; background: #f1f5f9 !important; text-align: right !important; width: 20% !important; white-space: nowrap !important; color: #000 !important; }
+            .inv-info-table .val { font-weight: 800 !important; text-align: center !important; width: 30% !important; color: #000 !important; }
+
+            .inv-table-title { font-size: 12.5px !important; font-weight: 900 !important; background: #e2e8f0 !important; border: 1.2px solid #000 !important; border-bottom: none !important; padding: 3px 6px !important; color: #000 !important; }
+            .inv-services-table { width: 100% !important; border-collapse: collapse !important; border: 1.2px solid #000 !important; margin-bottom: 6px !important; text-align: center !important; }
+            .inv-services-table th { border: 1.2px solid #000 !important; background: #f8fafc !important; font-size: 11px !important; font-weight: 800 !important; padding: 3px 4px !important; color: #000 !important; line-height: 1.15 !important; }
+            .inv-services-table td { border: 1px dashed #000 !important; font-size: 11.5px !important; font-weight: 700 !important; padding: 3px 4px !important; height: 21px !important; color: #000 !important; }
+            .inv-services-table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
+
+            .inv-totals-table { width: 100% !important; border-collapse: collapse !important; border: 1.2px solid #000 !important; margin-bottom: 6px !important; text-align: center !important; page-break-inside: avoid !important; break-inside: avoid !important; }
+            .inv-totals-table th { border: 1.2px solid #000 !important; background: #f1f5f9 !important; font-size: 11px !important; font-weight: 800 !important; padding: 3px 2px !important; color: #000 !important; line-height: 1.15 !important; }
+            .inv-totals-table td { border: 1.2px solid #000 !important; font-size: 12px !important; font-weight: 800 !important; padding: 3px 2px !important; color: #000 !important; }
+
+            .inv-compliance-row { display: flex !important; justify-content: space-between !important; align-items: center !important; border: 1.2px solid #000 !important; padding: 6px 12px !important; margin-bottom: 4px !important; page-break-inside: avoid !important; break-inside: avoid !important; gap: 12px !important; }
+            .inv-qr-card { text-align: center !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; }
+            .inv-qr-box { width: 105px !important; height: 105px !important; display: flex !important; align-items: center !important; justify-content: center !important; background: #fff !important; padding: 3px !important; border: 1px solid #cbd5e1 !important; border-radius: 4px !important; }
+            .inv-qr-label { font-size: 9.5px !important; font-weight: 800 !important; color: #1e293b !important; margin-top: 2px !important; }
+            .inv-qr-label small { display: block !important; font-size: 8px !important; color: #64748b !important; }
+            
+            .inv-stamp-card { text-align: center !important; flex: 1 !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; }
+            .inv-sign-card { text-align: right !important; font-size: 11px !important; min-width: 170px !important; }
+            
+            .inv-footer-bar { display: flex !important; justify-content: space-between !important; align-items: center !important; font-size: 10px !important; color: #475569 !important; border-top: 1px dotted #cbd5e1 !important; padding-top: 3px !important; }
 
             /* ---------------- QUOTATION STYLES (Single Unified Services Table) ---------------- */
             .quotation-card-sheet {
@@ -911,6 +985,10 @@
                         <span>🖨️</span>
                         <span>طباعة</span>
                     </button>
+                    <button type="button" class="btn-action-top" style="background: #16a34a; color: white; font-weight: 800; border: none; box-shadow: 0 2px 8px rgba(22, 163, 74, 0.35);" onclick="printTaxInvoice()" title="طباعة فاتورة ضريبية">
+                        <span>🧾</span>
+                        <span>فاتورة ضريبية</span>
+                    </button>
                     <button type="button" class="btn-action-top btn-bottom-save" style="background: linear-gradient(135deg, #10b981, #059669); color: white; font-weight: 800; border: none; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);" onclick="saveInspection()" title="حفظ">
                         <span>💾</span>
                         <span>حفظ</span>
@@ -952,6 +1030,7 @@
                     <select id="docTypeSelect" onchange="changeDocType(this.value)">
                         <option value="new" selected>📋 تسعيرة / كشف فني (Quotation)</option>
                         <option value="job_order">🛠️ أمر عمل / كرت تشغيل (Job Card)</option>
+                        <option value="tax_invoice">🧾 فاتورة ضريبية مبسطة (Tax Invoice)</option>
                     </select>
 
                     <div id="jobStatusGroup" style="display: none; align-items: center; gap: 4px;">
@@ -1222,6 +1301,19 @@
                 }
                 if (statusGroup) statusGroup.style.display = 'flex';
                 if (convertTopBtn) {
+                    convertTopBtn.innerHTML = '<span>🧾</span><span>فاتورة</span>';
+                    convertTopBtn.style.background = '#dcfce7';
+                    convertTopBtn.style.color = '#166534';
+                }
+            } else if (type === 'tax_invoice' || type === 'invoiced') {
+                if (titleEl) titleEl.textContent = '🧾 فاتورة ضريبية مبسطة (Tax Invoice)';
+                if (badgeEl) {
+                    badgeEl.textContent = '🧾 فاتورة ضريبية معتمدة';
+                    badgeEl.style.background = '#ecfdf5';
+                    badgeEl.style.color = '#065f46';
+                }
+                if (statusGroup) statusGroup.style.display = 'none';
+                if (convertTopBtn) {
                     convertTopBtn.innerHTML = '<span>📋</span><span>تسعيرة</span>';
                     convertTopBtn.style.background = '#e0f2fe';
                     convertTopBtn.style.color = '#0369a1';
@@ -1301,6 +1393,20 @@
                         await fetch(`/api/inspections/${currentInspectionId}/convert-to-job`, { method: 'POST' });
                     } catch (e) { console.error(e); }
                 }
+            } else if (currentDocType === 'job_order') {
+                if (typeof APP_PERMISSIONS !== 'undefined' && !APP_PERMISSIONS.canEditJobOrder(currentUser)) {
+                    if (typeof showError === 'function') showError('عذراً، إصدار الفواتير متاح فقط لموظفي الإدارة.');
+                    return;
+                }
+                changeDocType('tax_invoice');
+                if (typeof showSuccess === 'function') {
+                    showSuccess('تم تحويل المستند إلى فاتورة ضريبية مبسطة معتمدة 🧾.');
+                }
+                if (currentInspectionId) {
+                    try {
+                        await fetch(`/api/inspections/${currentInspectionId}/convert-to-invoice`, { method: 'POST' });
+                    } catch (e) { console.error(e); }
+                }
             } else {
                 if (typeof APP_PERMISSIONS !== 'undefined' && !APP_PERMISSIONS.canEditJobOrder(currentUser)) {
                     if (typeof showError === 'function') showError('عذراً، تعديل وتحويل أوامر العمل متاح فقط لموظفي الإدارة.');
@@ -1319,6 +1425,29 @@
                         });
                     } catch (e) { console.error(e); }
                 }
+            }
+        }
+
+        async function convertToTaxInvoice() {
+            if (typeof APP_PERMISSIONS !== 'undefined' && !APP_PERMISSIONS.canEditJobOrder(currentUser)) {
+                if (typeof showError === 'function') showError('عذراً، إصدار الفواتير متاح فقط لموظفي الإدارة.');
+                return;
+            }
+            changeDocType('tax_invoice');
+            if (currentInspectionId) {
+                try {
+                    const res = await fetch(`/api/inspections/${currentInspectionId}/convert-to-invoice`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ payment_method: 'نقدي (Cash)' })
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (typeof showSuccess === 'function') {
+                            showSuccess(`تم إصدار الفاتورة الضريبية #${data.invoice_number} بنجاح 🧾`);
+                        }
+                    }
+                } catch (e) { console.error(e); }
             }
         }
 
@@ -2696,23 +2825,216 @@
             }
         }
 
-        function prepareDispatchPrint() {
-            if (typeof currentDocType !== 'undefined' && currentDocType === 'job_order') {
-                document.body.classList.add('print-job-order-mode');
-                document.body.classList.remove('print-quotation-mode');
-                prepareJobOrderSheet();
-            } else if (document.body.classList.contains('job-order-page')) {
+        function prepareTaxInvoiceSheet() {
+            const sheet = document.getElementById('officialTaxInvoicePrintSheet');
+            if (!sheet) return;
+
+            // 1. Dynamic Workshop Info
+            const shopName = appSettings?.workshop_name || appSettings?.app_name || 'مركز صيانة السيارات';
+            const shopDesc = appSettings?.workshop_desc || '';
+            const shopPhone = appSettings?.workshop_phone || '';
+            const vatNumber = appSettings?.vat_number || '300000000000003';
+
+            const invShopName = document.getElementById('invShopName');
+            if (invShopName) invShopName.textContent = shopName;
+            const invShopDesc = document.getElementById('invShopDesc');
+            if (invShopDesc) invShopDesc.textContent = shopDesc;
+            const invShopPhones = document.getElementById('invShopPhones');
+            if (invShopPhones) invShopPhones.textContent = '📞 ' + shopPhone;
+            const invVatNumber = document.getElementById('invVatNumber');
+            if (invVatNumber) invVatNumber.textContent = vatNumber;
+            const invVatNumberEn = document.getElementById('invVatNumberEn');
+            if (invVatNumberEn) invVatNumberEn.textContent = vatNumber;
+
+            const invLogo = document.getElementById('invWorkshopLogo');
+            if (invLogo) {
+                const logoSrc = appSettings?.workshop_logo || window.APP_CONFIG?.settings?.workshop_logo;
+                if (logoSrc) {
+                    invLogo.src = logoSrc.startsWith('/') ? logoSrc : '/' + logoSrc;
+                    invLogo.style.display = 'block';
+                } else {
+                    invLogo.style.display = 'none';
+                }
+            }
+
+            // 2. Invoice Meta Numbers & Dates
+            let docId = getSafeVal('orderId', 'id') || 
+                        getSafeVal('inspectionIdDisplay', 'id') || 
+                        String(currentInspectionId || '').replace(/[^0-9]/g, '') || '1';
+            const invDocNo = document.getElementById('invDocNo');
+            if (invDocNo) {
+                const customInv = currentInspection?.invoice_number || `INV-${String(docId).padStart(5, '0')}`;
+                invDocNo.textContent = customInv;
+            }
+            const invJobRef = document.getElementById('invJobRef');
+            if (invJobRef) invJobRef.textContent = `#${docId}`;
+
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            const invIssueDate = document.getElementById('invIssueDate');
+            if (invIssueDate) invIssueDate.textContent = dateStr;
+
+            const invPaymentMethod = document.getElementById('invPaymentMethod');
+            if (invPaymentMethod) {
+                const pm = currentInspection?.payment_method || 'نقدي (Cash)';
+                invPaymentMethod.textContent = pm;
+            }
+
+            // 3. Customer & Car info
+            const invCustName = document.getElementById('invCustName');
+            if (invCustName) invCustName.textContent = getSafeVal('custName', 'customer_name') || 'عميل نقدي';
+            const invCustPhone = document.getElementById('invCustPhone');
+            if (invCustPhone) invCustPhone.textContent = getSafeVal('custPhone', 'customer_phone') || '---';
+
+            const carType = getSafeVal('carType', 'car_type');
+            const carModel = getSafeVal('carModel', 'car_model');
+            const carColor = getSafeVal('carColor', 'car_color');
+            const modelColor = [carType, carModel, carColor].filter(Boolean).join(' - ') || '---';
+            const invCarModel = document.getElementById('invCarModel');
+            if (invCarModel) invCarModel.textContent = modelColor;
+
+            const pL = [document.getElementById('pL1')?.value || '', document.getElementById('pL2')?.value || '', document.getElementById('pL3')?.value || ''];
+            const pN = [document.getElementById('pN1')?.value || '', document.getElementById('pN2')?.value || '', document.getElementById('pN3')?.value || '', document.getElementById('pN4')?.value || ''];
+            const formattedPlate = formatPlateDisplay(getSafeVal('plateNum', 'plate_number'), pL, pN);
+            const invPlateNo = document.getElementById('invPlateNo');
+            if (invPlateNo) invPlateNo.textContent = formattedPlate;
+
+            const invOdometer = document.getElementById('invOdometer');
+            if (invOdometer) invOdometer.textContent = getSafeVal('odometer', 'odometer') || '---';
+            const invVin = document.getElementById('invVin');
+            if (invVin) invVin.textContent = getSafeVal('vin', 'vin') || '---';
+
+            let user = getSafeVal('inspectorName', 'inspector_name');
+            if (!user && typeof currentUser !== 'undefined' && currentUser) {
+                user = currentUser.name || currentUser.employee_name || currentUser.username || '';
+            }
+            const invUserName = document.getElementById('invUserName');
+            if (invUserName) invUserName.textContent = (user || 'ADMIN').toUpperCase();
+
+            // 4. Line items
+            const tbody = document.getElementById('invServicesTbody');
+            if (tbody) {
+                tbody.innerHTML = '';
+                let rawSubtotal = 0;
+                let count = 0;
+
+                const rows = document.querySelectorAll('#tableBody tr');
+                if (rows.length > 0 && Array.from(rows).some(tr => tr.querySelector('.service-input')?.value?.trim())) {
+                    rows.forEach(tr => {
+                        const service = tr.querySelector('.service-input')?.value?.trim();
+                        if (service) {
+                            count++;
+                            const cat = (tr.querySelector('.cat-select')?.value || 'قسم الميكانيكا').trim();
+                            const qty = parseFloat(tr.querySelector('.qty-input')?.value) || 1;
+                            const price = parseFloat(tr.querySelector('.price-input')?.value) || 0;
+                            const total = parseFloat(tr.querySelector('.row-total')?.textContent) || (qty * price);
+                            rawSubtotal += total;
+
+                            const itemTax = +(total * 0.15).toFixed(2);
+                            const itemTotalWithVat = +(total + itemTax).toFixed(2);
+
+                            const rowTr = document.createElement('tr');
+                            rowTr.innerHTML = `<td>${count}</td><td>${escapeHtml(cat)}</td><td style="text-align:right; font-weight:800; padding-right:6px;">${escapeHtml(service)}</td><td>${qty}</td><td>${price.toFixed(2)}</td><td>${total.toFixed(2)}</td><td>${itemTax.toFixed(2)}</td><td style="font-weight:800;">${itemTotalWithVat.toFixed(2)}</td>`;
+                            tbody.appendChild(rowTr);
+                        }
+                    });
+                } else if (typeof currentInspection !== 'undefined' && currentInspection && Array.isArray(currentInspection.items) && currentInspection.items.length > 0) {
+                    currentInspection.items.forEach(item => {
+                        const service = item.service_description || item.service || '';
+                        if (service) {
+                            count++;
+                            const cat = item.category || 'قسم الميكانيكا';
+                            const qty = parseFloat(item.quantity || item.qty) || 1;
+                            const price = parseFloat(item.price) || 0;
+                            const total = parseFloat(item.total) || (qty * price);
+                            rawSubtotal += total;
+
+                            const itemTax = +(total * 0.15).toFixed(2);
+                            const itemTotalWithVat = +(total + itemTax).toFixed(2);
+
+                            const rowTr = document.createElement('tr');
+                            rowTr.innerHTML = `<td>${count}</td><td>${escapeHtml(cat)}</td><td style="text-align:right; font-weight:800; padding-right:6px;">${escapeHtml(service)}</td><td>${qty}</td><td>${price.toFixed(2)}</td><td>${total.toFixed(2)}</td><td>${itemTax.toFixed(2)}</td><td style="font-weight:800;">${itemTotalWithVat.toFixed(2)}</td>`;
+                            tbody.appendChild(rowTr);
+                        }
+                    });
+                }
+
+                if (count === 0) {
+                    const rowTr = document.createElement('tr');
+                    rowTr.innerHTML = '<td>1</td><td>قسم الميكانيكا</td><td style="text-align:right; font-weight:800; padding-right:6px;">كشف وفحص صيانة شامل</td><td>1</td><td>0.00</td><td>0.00</td><td>0.00</td><td>0.00</td>';
+                    tbody.appendChild(rowTr);
+                }
+
+                // 5. Financial Totals
+                let discount = 0.00;
+                if (typeof appliedPromo !== 'undefined' && appliedPromo && appliedPromo.discount_amount) {
+                    discount = parseFloat(appliedPromo.discount_amount) || 0;
+                } else if (typeof currentInspection !== 'undefined' && currentInspection && currentInspection.discount_amount) {
+                    discount = parseFloat(currentInspection.discount_amount) || 0;
+                }
+                const netTaxable = Math.max(0, rawSubtotal - discount);
+                const vatAmount = +(netTaxable * 0.15).toFixed(2);
+                const grandTotal = +(netTaxable + vatAmount).toFixed(2);
+
+                let paid = 0.00;
+                const paidInput = document.getElementById('paidAmount');
+                if (paidInput) paid = parseFloat(paidInput.value) || 0;
+                else if (typeof currentInspection !== 'undefined' && currentInspection && currentInspection.paid_amount) {
+                    paid = parseFloat(currentInspection.paid_amount) || 0;
+                }
+                const remaining = Math.max(0, grandTotal - paid);
+
+                document.getElementById('invSubtotalVal').textContent = rawSubtotal.toFixed(2);
+                document.getElementById('invDiscountVal').textContent = discount.toFixed(2);
+                document.getElementById('invNetTaxableVal').textContent = netTaxable.toFixed(2);
+                document.getElementById('invVatVal').textContent = vatAmount.toFixed(2);
+                document.getElementById('invPaidVal').textContent = paid.toFixed(2);
+                document.getElementById('invRemainingVal').textContent = remaining.toFixed(2);
+                document.getElementById('invGrandTotalCell').textContent = grandTotal.toFixed(2) + ' ﷼';
+
+                // 6. ZATCA QR Code Generation
+                const qrContainer = document.getElementById('invZatcaQrContainer');
+                if (qrContainer && typeof ZATCA !== 'undefined') {
+                    ZATCA.generateInvoiceQR(qrContainer, {
+                        created_at: now.toISOString(),
+                        final_amount: grandTotal,
+                        vat_amount: vatAmount
+                    }, appSettings);
+                }
+
+                // 7. Stamp
+                const stampImg = document.getElementById('invPrintStampImg');
+                const stampContainer = document.getElementById('invPrintStampContainer');
+                if (stampImg && stampContainer) {
+                    const stampSrc = appSettings?.invoice_stamp || window.APP_CONFIG?.settings?.invoice_stamp || appSettings?.quotation_stamp || window.APP_CONFIG?.settings?.quotation_stamp;
+                    if (stampSrc && (!document.getElementById('includeStampCheckbox') || document.getElementById('includeStampCheckbox').checked)) {
+                        stampImg.src = stampSrc.startsWith('/') ? stampSrc : '/' + stampSrc;
+                        stampContainer.style.display = 'flex';
+                    } else {
+                        stampContainer.style.display = 'none';
+                    }
+                }
+            }
+        }
+
+        function prepareDispatchPrint(forceMode) {
+            const mode = forceMode || (currentDocType === 'tax_invoice' || currentDocType === 'invoiced' ? 'invoice' : (currentDocType === 'job_order' ? 'job_order' : 'quotation'));
+
+            document.body.classList.remove('print-quotation-mode', 'print-job-order-mode', 'print-invoice-mode');
+
+            if (mode === 'invoice' || mode === 'tax_invoice') {
+                document.body.classList.add('print-invoice-mode');
+                prepareTaxInvoiceSheet();
+            } else if (mode === 'job_order' || document.body.classList.contains('job-order-page')) {
                 document.body.classList.add('print-job-order-mode');
                 prepareJobOrderSheet();
             } else {
                 document.body.classList.add('print-quotation-mode');
-                document.body.classList.remove('print-job-order-mode');
                 prepareOfficialQuotationSheet();
             }
         }
 
-
-        window.addEventListener('beforeprint', prepareDispatchPrint);
+        window.addEventListener('beforeprint', () => prepareDispatchPrint());
 
         // Enhance direct print calls
         window.print = (function(oldPrint) {
@@ -2722,9 +3044,15 @@
             };
         })(window.print);
 
-        
         function doPrint() {
             prepareDispatchPrint();
+            setTimeout(function() {
+                window.print();
+            }, 60);
+        }
+
+        function printTaxInvoice() {
+            prepareDispatchPrint('invoice');
             setTimeout(function() {
                 window.print();
             }, 60);
@@ -3167,6 +3495,159 @@
                     <div><span>نسخه &nbsp; 1 &nbsp; copy</span></div>
                     <div><span>user name &nbsp;&nbsp; <b id="jcUserName">ADMIN</b> &nbsp;&nbsp; اسم المستخدم</span></div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- =========================================================
+         OFFICIAL SIMPLIFIED TAX INVOICE PRINT SHEET (ZATCA COMPLIANT)
+         ========================================================= -->
+    <div id="officialTaxInvoicePrintSheet" style="display:none;">
+        <div class="tax-invoice-sheet">
+            <!-- Header -->
+            <div class="inv-header">
+                <div class="inv-header-right">
+                    <img id="invWorkshopLogo" src="" alt="Logo" style="display:none; max-height:65px; max-width:130px; object-fit:contain;">
+                    <div>
+                        <h2 id="invShopName">مركز الصيانة المتخصص</h2>
+                        <p id="invShopDesc">طريق مكة القديم - مجمع كيلو 14</p>
+                        <p id="invShopPhones">📞 0556565135 - 0566522351</p>
+                        <p style="font-weight:900; color:#1e3a8a;">الرقم الضريبي: <span id="invVatNumber">300000000000003</span></p>
+                    </div>
+                </div>
+                <div class="inv-header-left">
+                    <h2 id="invShopEnName">Specialized Auto Care</h2>
+                    <p>Simplified Tax Invoice</p>
+                    <p style="font-size:12px; font-weight:800; color:#047857;">VAT Reg: <span id="invVatNumberEn">300000000000003</span></p>
+                    <p>نسخة أصلية &nbsp; <b>Original</b></p>
+                </div>
+            </div>
+
+            <!-- Title Bar -->
+            <div class="inv-title-bar">
+                <span class="inv-main-title">فاتورة ضريبية مبسطة &nbsp;&nbsp;&nbsp; SIMPLIFIED TAX INVOICE</span>
+            </div>
+
+            <!-- Meta Details Bar -->
+            <div class="inv-meta-bar">
+                <div><span>رقم الفاتورة Invoice No:</span> <b id="invDocNo">INV-00001</b></div>
+                <div><span>رقم أمر العمل Job Ref:</span> <b id="invJobRef">#00001</b></div>
+                <div><span>تاريخ ووقت الإصدار Date:</span> <b id="invIssueDate" style="direction:ltr; display:inline-block;"></b></div>
+                <div><span>طريقة الدفع Payment:</span> <b id="invPaymentMethod">نقدي / كاش</b></div>
+            </div>
+
+            <!-- Customer & Vehicle Info Table -->
+            <table class="inv-info-table">
+                <tbody>
+                    <tr>
+                        <td class="lbl">اسم العميل Customer Name</td>
+                        <td class="val" id="invCustName">---</td>
+                        <td class="lbl">رقم الجوال Mobile No</td>
+                        <td class="val" id="invCustPhone" style="direction:ltr;">---</td>
+                    </tr>
+                    <tr>
+                        <td class="lbl">نوع وطراز السيارة Car Model</td>
+                        <td class="val" id="invCarModel">---</td>
+                        <td class="lbl">رقم اللوحة Plate No</td>
+                        <td class="val" id="invPlateNo">---</td>
+                    </tr>
+                    <tr>
+                        <td class="lbl">قراءة العداد Odometer</td>
+                        <td class="val" id="invOdometer">---</td>
+                        <td class="lbl">رقم الشاصيه VIN</td>
+                        <td class="val" id="invVin">---</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Services / Line Items Table -->
+            <div class="inv-table-title">
+                <span>تفاصيل بنود وأجور الخدمات والأعمال المنجزة (Services & Labor Details)</span>
+            </div>
+            <table class="inv-services-table">
+                <thead>
+                    <tr>
+                        <th style="width:28px;">#</th>
+                        <th style="width:90px;">القسم<br>Section</th>
+                        <th>بيان الخدمة / الصيانة<br>Service Description</th>
+                        <th style="width:40px;">الكمية<br>Qty</th>
+                        <th style="width:75px;">سعر الوحدة<br>Unit Price</th>
+                        <th style="width:80px;">الخاضع للضريبة<br>Taxable Amt</th>
+                        <th style="width:60px;">الضريبة 15%<br>VAT (15%)</th>
+                        <th style="width:85px;">الإجمالي<br>Total (with VAT)</th>
+                    </tr>
+                </thead>
+                <tbody id="invServicesTbody"></tbody>
+            </table>
+
+            <!-- Totals & Financial Summary Table -->
+            <table class="inv-totals-table">
+                <thead>
+                    <tr>
+                        <th style="width:16%;">الإجمالي قبل الخصم<br>Subtotal</th>
+                        <th style="width:16%;">مبلغ الخصم<br>Discount</th>
+                        <th style="width:17%;">المبلغ الخاضع للضريبة<br>Taxable Net</th>
+                        <th style="width:17%;">ضريبة القيمة المضافة 15%<br>VAT Amount 15%</th>
+                        <th style="width:17%;">المدفوع<br>Paid Amount</th>
+                        <th style="width:17%;">المتبقي<br>Remaining</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td id="invSubtotalVal">0.00</td>
+                        <td id="invDiscountVal">0.00</td>
+                        <td id="invNetTaxableVal">0.00</td>
+                        <td id="invVatVal">0.00</td>
+                        <td id="invPaidVal">0.00</td>
+                        <td id="invRemainingVal">0.00</td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" style="background:#f1f5f9; font-size:13px; font-weight:900; text-align:left; padding-left:12px;">المبلغ الإجمالي المستحق شامل الضريبة (Total Amount Due):</td>
+                        <td colspan="2" id="invGrandTotalCell" style="background:#bbf7d0; font-size:16px; font-weight:900; color:#065f46;">0.00 ﷼</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- ZATCA QR Code + Official Stamp + Signatures Section -->
+            <div class="inv-compliance-row">
+                <!-- 1. ZATCA QR Code Box -->
+                <div class="inv-qr-card">
+                    <div id="invZatcaQrContainer" class="inv-qr-box">
+                        <!-- QR Code dynamically injected here -->
+                    </div>
+                    <div class="inv-qr-label">
+                        <span>رمز الفاتورة الإلكترونية المعتمد</span>
+                        <small>ZATCA E-Invoice Standard</small>
+                    </div>
+                </div>
+
+                <!-- 2. Official Stamp Container -->
+                <div class="inv-stamp-card">
+                    <span style="font-size:11px; font-weight:800; color:#475569;">الختم والاعتماد الرسمي Stamp</span>
+                    <div id="invPrintStampContainer" style="display:flex; align-items:center; justify-content:center; min-height:80px; min-width:140px; margin-top:4px;">
+                        <img id="invPrintStampImg" src="" alt="ختم الفاتورة" style="max-height:95px; max-width:170px; width:auto; height:auto; object-fit:contain; transform:rotate(-3deg); filter:drop-shadow(0 2px 4px rgba(0,0,0,0.12));">
+                    </div>
+                </div>
+
+                <!-- 3. Signatures & User -->
+                <div class="inv-sign-card">
+                    <div>
+                        <span style="font-weight:800;">توقيع المحاسب / المسؤول:</span>
+                        <div style="margin-top:12px; font-size:11px; letter-spacing:2px; color:#64748b;">...................................</div>
+                    </div>
+                    <div style="margin-top:10px;">
+                        <span style="font-weight:800;">توقيع واستلام العميل:</span>
+                        <div style="margin-top:12px; font-size:11px; letter-spacing:2px; color:#64748b;">...................................</div>
+                    </div>
+                    <div style="font-size:10.5px; color:#64748b; margin-top:6px;">المستخدم: <b id="invUserName">ADMIN</b></div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="inv-footer-bar">
+                <div><span>شكراً لتعاملكم معنا • Thank you for your business</span></div>
+                <div><span id="invFooterBrand">Atenza Workshop Management System</span></div>
             </div>
         </div>
     </div>

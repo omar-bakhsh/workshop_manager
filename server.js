@@ -2700,6 +2700,84 @@ app.delete('/api/inspections/photos/:photo_id', async (req, res) => {
 });
 
 // ==========================
+// 🧾 مسارات الفواتير الضريبية وتحويل المستندات (Tax Invoices & ZATCA Integration)
+// ==========================
+
+// تحويل أمر العمل إلى فاتورة ضريبية معتمدة
+app.post('/api/inspections/:id/convert-to-invoice', async (req, res) => {
+    const { id } = req.params;
+    const { payment_method, invoice_number } = req.body || {};
+    try {
+        const insp = await dbGet(`SELECT * FROM inspections WHERE id = ?`, [id]);
+        if (!insp) return res.status(404).json({ message: "أمر العمل غير موجود" });
+
+        const invNum = invoice_number || insp.invoice_number || `INV-${String(id).padStart(5, '0')}`;
+        const nowIso = new Date().toISOString();
+        const zatcaUuid = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : `urn:uuid:${Date.now()}-${Math.floor(Math.random()*100000)}`;
+
+        await dbRun(`
+            UPDATE inspections 
+            SET status = 'invoiced', 
+                invoice_number = ?, 
+                invoiced_at = COALESCE(invoiced_at, ?), 
+                payment_method = ?, 
+                zatca_uuid = COALESCE(zatca_uuid, ?),
+                zatca_status = 'cleared'
+            WHERE id = ?
+        `, [invNum, nowIso, payment_method || 'cash', zatcaUuid, id]);
+
+        // Audit notification
+        try {
+            await dbRun(`
+                INSERT INTO sys_notifications (recipient_type, recipient_id, title, message, type)
+                VALUES ('admin', 0, ?, ?, 'success')
+            `, ['إصدار فاتورة ضريبية 🧾', `تم إصدار الفاتورة الضريبية #${invNum} لأمر العمل #${id} (${insp.customer_name || 'عميل'}) بنجاح`]);
+        } catch(ne){}
+
+        res.json({
+            message: "تم إصدار الفاتورة الضريبية بنجاح",
+            id: Number(id),
+            invoice_number: invNum,
+            invoiced_at: nowIso,
+            status: 'invoiced'
+        });
+    } catch (error) {
+        console.error("Convert to Invoice Error:", error);
+        res.status(500).json({ message: "خطأ في إصدار الفاتورة: " + error.message });
+    }
+});
+
+// تحويل المستند إلى أمر عمل
+app.post('/api/inspections/:id/convert-to-job', async (req, res) => {
+    const { id } = req.params;
+    try {
+        await dbRun(`UPDATE inspections SET status = 'job_order' WHERE id = ?`, [id]);
+        res.json({ message: "تم تحويل المستند إلى أمر عمل", id: Number(id), status: 'job_order' });
+    } catch (error) {
+        console.error("Convert to Job Error:", error);
+        res.status(500).json({ message: "خطأ في التحويل: " + error.message });
+    }
+});
+
+// تحديث حالة المستند العامة (تسعيرة / أمر عمل / فاتورة)
+app.patch('/api/inspections/:id/status', async (req, res) => {
+    const { id } = req.params;
+    const { status, car_status } = req.body;
+    try {
+        await dbRun(`
+            UPDATE inspections 
+            SET status = COALESCE(?, status),
+                car_status = COALESCE(?, car_status)
+            WHERE id = ?
+        `, [status || null, car_status || null, id]);
+        res.json({ message: "تم تحديث الحالة بنجاح", id: Number(id), status, car_status });
+    } catch (error) {
+        console.error("Update Inspection Status Error:", error);
+        res.status(500).json({ message: "خطأ في تحديث الحالة: " + error.message });
+    }
+});
+
+// ==========================
 // 📱 مسار تتبع العميل المباشر (Public Customer Tracking)
 // ==========================
 app.get('/api/track/:id', async (req, res) => {

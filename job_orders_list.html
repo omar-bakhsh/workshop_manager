@@ -1040,6 +1040,7 @@
                     <td>
                         <div class="action-btns" style="justify-content: center;">
                             <button class="btn-action-icon btn-card" onclick="openJobOrderCard(${item.id})" title="كرت التشغيل"><i class="fa-solid fa-clipboard-list"></i> كرت العمل</button>
+                            <button class="btn-action-icon" style="background:#059669; color:#fff;" onclick="openTaxInvoice(${item.id})" title="فاتورة ضريبية"><i class="fa-solid fa-file-invoice-dollar"></i> فاتورة</button>
                             <button class="btn-action-icon btn-whatsapp" onclick='openWhatsAppModalFor(${JSON.stringify(item).replace(/'/g, "&apos;")})' title="واتساب"><i class="fa-solid fa-comment-dots"></i> واتساب</button>
                             ${canEditOrders ? `<button class="btn-action-icon btn-edit" onclick="openInspectionEditor(${item.id})" title="تعديل"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
                             ${canEditOrders ? `<button class="btn-action-icon btn-assign" onclick="openAssignModal(${item.id})" title="تعيين فني"><i class="fa-solid fa-users"></i></button>` : ''}
@@ -1093,6 +1094,10 @@
                             <span><i class="fa-solid fa-clipboard-list"></i></span>
                             <span>كرت العمل</span>
                         </button>
+                        <button class="btn-card-touch" style="background:#059669; color:#fff;" onclick="openTaxInvoice(${item.id})">
+                            <span><i class="fa-solid fa-file-invoice-dollar"></i></span>
+                            <span>فاتورة</span>
+                        </button>
                         <button class="btn-card-touch btn-whatsapp" onclick='openWhatsAppModalFor(${JSON.stringify(item).replace(/'/g, "&apos;")})'>
                             <span><i class="fa-solid fa-comment-dots"></i></span>
                             <span>واتساب</span>
@@ -1141,6 +1146,10 @@
                 console.error(e);
                 alert('خطأ أثناء التحديث');
             }
+        }
+
+        function openTaxInvoice(id) {
+            window.location.href = `inspector.html?id=${id}&mode=tax_invoice`;
         }
 
         function openJobOrderCard(id) {
