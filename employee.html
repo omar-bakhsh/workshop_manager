@@ -1087,7 +1087,159 @@
         display: none !important;
       }
     }
-  </style>
+  
+    /* 🏦 Vault Target Card & Motivational Fill Column */
+    .vault-target-card {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      color: #ffffff;
+      border: 1.5px solid #334155;
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 14px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.4);
+    }
+
+    .vault-target-card::before {
+      content: '';
+      position: absolute;
+      top: -50px;
+      left: -50px;
+      width: 120px;
+      height: 120px;
+      background: radial-gradient(circle, rgba(245, 158, 11, 0.25), transparent 70%);
+      pointer-events: none;
+    }
+
+    .vault-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .vault-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .vault-icon-badge {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+    }
+
+    .vault-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #f8fafc;
+    }
+
+    .vault-subtitle {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    .vault-kpis-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 10px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .vault-kpi-item .kpi-sub {
+      font-size: 10.5px;
+      color: #cbd5e1;
+      font-weight: 600;
+    }
+
+    .vault-kpi-item .kpi-main {
+      font-size: 14.5px;
+      font-weight: 900;
+      margin-top: 2px;
+    }
+
+    /* Motivational Fill Column */
+    .motivational-fill-wrapper {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1.5px solid rgba(245, 158, 11, 0.3);
+      padding: 10px 12px;
+      border-radius: 14px;
+      position: relative;
+    }
+
+    .fill-track-outer {
+      height: 22px;
+      background: #090d16;
+      border-radius: 11px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6);
+    }
+
+    .fill-bar-active {
+      height: 100%;
+      background: linear-gradient(90deg, #10b981, #f59e0b, #eab308);
+      border-radius: 11px;
+      width: 0%;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 14px rgba(245, 158, 11, 0.6);
+      position: relative;
+    }
+
+    .fill-bar-active::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+      animation: shineBar 2s infinite linear;
+    }
+
+    @keyframes shineBar {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    .fill-markers {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 5px;
+      font-size: 10px;
+      color: #94a3b8;
+      font-weight: 700;
+    }
+
+    .vault-motivational-msg {
+      margin-top: 8px;
+      font-size: 11.5px;
+      font-weight: 700;
+      text-align: center;
+      color: #fde047;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    </style>
 </head>
 
 <body>
@@ -1172,6 +1324,51 @@
       </div>
       <div id="quickNavContainer" class="quick-actions-grid">
         <!-- Dynamically injected based on permissions -->
+      </div>
+
+      <!-- 🏦 خزنة التارجت المتوقع وعمود التعبئة التحفيزي -->
+      <div id="vaultTargetSection" class="vault-target-card" style="display:none;">
+        <div class="vault-header">
+          <div class="vault-title-group">
+            <div class="vault-icon-badge"><i class="fa-solid fa-vault"></i></div>
+            <div>
+              <div class="vault-title">خزنة التارجت والأهداف المالية</div>
+              <div class="vault-subtitle">محسوبة بناءً على الدخل الصافي بدون ضريبة</div>
+            </div>
+          </div>
+          <div id="vaultPercentBadge" style="background:#f59e0b; color:#000; font-weight:900; padding:3px 9px; border-radius:20px; font-size:12px;">0%</div>
+        </div>
+
+        <div class="vault-kpis-row">
+          <div class="vault-kpi-item">
+            <div class="kpi-sub">الدخل الصافي</div>
+            <div class="kpi-main" id="vaultNetIncomeVal" style="color:#34d399;">0 ﷼</div>
+          </div>
+          <div class="vault-kpi-item">
+            <div class="kpi-sub">التارجت المتوقع</div>
+            <div class="kpi-main" id="vaultTargetVal" style="color:#fbbf24;">0 ﷼</div>
+          </div>
+          <div class="vault-kpi-item">
+            <div class="kpi-sub">المتبقي للقفل</div>
+            <div class="kpi-main" id="vaultRemainingVal" style="color:#60a5fa;">0 ﷼</div>
+          </div>
+        </div>
+
+        <div class="motivational-fill-wrapper">
+          <div class="fill-track-outer">
+            <div id="vaultMotivationalFill" class="fill-bar-active"></div>
+          </div>
+          <div class="fill-markers">
+            <span>0%</span>
+            <span>25%</span>
+            <span>50%</span>
+            <span>75%</span>
+            <span>100% 🏆</span>
+          </div>
+          <div id="vaultMotivationalMsg" class="vault-motivational-msg">
+            <span>💪</span> <span id="vaultMsgText">جاري حساب هدفك اليومي...</span>
+          </div>
+        </div>
       </div>
 
       <!-- Quick KPI Summary -->
@@ -1956,24 +2153,71 @@
         document.getElementById('finTotalWithdrawals').innerHTML = formatMoneyDisplay(withdrawals);
         document.getElementById('finRemainingBalance').innerHTML = formatMoneyDisplay(remaining);
 
+        const vaultSection = document.getElementById('vaultTargetSection');
+        const isTargetEnabled = (employeeData.section_target_enabled !== 0);
+
         if (!canViewIncome) {
           document.getElementById('dashTotalIncome').style.display = 'none';
           document.getElementById('dashIncomeHidden').style.display = 'block';
           document.getElementById('finTotalIncome').style.display = 'none';
           document.getElementById('finIncomeHidden').style.display = 'block';
           document.getElementById('incomeSection').style.display = 'none';
+          if (vaultSection) vaultSection.style.display = 'none';
         } else {
-          const totalInc = (employeeData.total_income || 0).toLocaleString();
-          document.getElementById('dashTotalIncome').textContent = totalInc;
-          document.getElementById('finTotalIncome').textContent = totalInc;
+          const netIncome = (employeeData.total_income || 0);
+          const totalIncStr = netIncome.toLocaleString();
+          document.getElementById('dashTotalIncome').textContent = totalIncStr;
+          document.getElementById('finTotalIncome').textContent = totalIncStr;
           
-          const target = employeeData.info.target || 1;
-          const achievement = Math.min(((employeeData.total_income / target) * 100), 100).toFixed(1);
+          // Calculate Target: Check employee specific target or section default / percentage
+          let target = employeeData.info.target || 0;
+          if (target <= 0) {
+            if (employeeData.section_target_type === 'amount' && employeeData.section_default_target > 0) {
+              target = employeeData.section_default_target;
+            } else if (employeeData.section_target_percent > 0) {
+              // Expected target based on technician net income percentage baseline or target percentage
+              target = Math.round((netIncome * (employeeData.section_target_percent / 100)) + 1000);
+            }
+          }
+          if (target <= 0) target = 3000; // Sensible workshop default
+
+          const achievement = Math.min(((netIncome / target) * 100), 100).toFixed(1);
+          const rawAchievement = ((netIncome / target) * 100).toFixed(1);
           
           document.getElementById('dashTargetPercent').textContent = achievement + '%';
           document.getElementById('finTargetAchievement').textContent = achievement + '%';
           document.getElementById('dashProgressFill').style.width = achievement + '%';
           document.getElementById('finProgressFill').style.width = achievement + '%';
+
+          // Update Vault Target Card
+          if (vaultSection) {
+            if (isTargetEnabled) {
+              vaultSection.style.display = 'block';
+              document.getElementById('vaultNetIncomeVal').textContent = netIncome.toLocaleString() + ' ﷼';
+              document.getElementById('vaultTargetVal').textContent = target.toLocaleString() + ' ﷼';
+              
+              const remainingToTarget = Math.max(0, target - netIncome);
+              document.getElementById('vaultRemainingVal').textContent = remainingToTarget.toLocaleString() + ' ﷼';
+              
+              document.getElementById('vaultPercentBadge').textContent = rawAchievement + '%';
+              document.getElementById('vaultMotivationalFill').style.width = Math.min(rawAchievement, 100) + '%';
+              
+              const msgEl = document.getElementById('vaultMsgText');
+              if (msgEl) {
+                if (netIncome >= target) {
+                  msgEl.innerHTML = '🎉 رائع جداً! تم إكمال تعبئة الخزنة وتحقيق التارجت المستهدف بنجاح! 🏆🔥';
+                } else if (rawAchievement >= 75) {
+                  msgEl.innerHTML = `🔥 خطوة واحدة تفصلك! باقي ${remainingToTarget.toLocaleString()} ﷼ فقط لقفل الخزنة وتحقيق التارجت!`;
+                } else if (rawAchievement >= 50) {
+                  msgEl.innerHTML = `⚡ أداء ممتاز! تجاوزت نصف التعبئة، باقي ${remainingToTarget.toLocaleString()} ﷼ للهدف!`;
+                } else {
+                  msgEl.innerHTML = `💪 انطلق بقوة! باقي ${remainingToTarget.toLocaleString()} ﷼ لإكمال تعبئة الخزنة وتحقيق التارجت!`;
+                }
+              }
+            } else {
+              vaultSection.style.display = 'none';
+            }
+          }
           
           document.getElementById('incomeSection').style.display = 'block';
           renderTable('entriesContainer', employeeData.entries || []);

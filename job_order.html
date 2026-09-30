@@ -347,10 +347,13 @@
     <div id="atenzaNavbar"></div>
     <div class="container" id="printableArea">
         <div class="header">
-            <div class="logo">
-                <h1 id="shopName">...</h1>
+            <div class="logo" style="display:flex; align-items:center; gap:15px;">
+                <img id="shopLogoImg" src="" alt="Logo" style="display:none; max-height:60px; max-width:120px; object-fit:contain; border-radius:6px;">
+                <div>
+                    <h1 id="shopName" style="margin:0 0 4px 0;">...</h1>
                 <p id="shopDesc">...</p>
-                <p>جوال: <span id="shopPhone">...</span> | ضريبي: <span id="shopVat">...</span></p>
+                <p style="margin:0;">جوال: <span id="shopPhone">...</span> | ضريبي: <span id="shopVat">...</span></p>
+                </div>
             </div>
             <div style="text-align: left;">
                 <h2 style="font-weight: 900; font-size: 24px;">أمر عمل / Job Order</h2>
@@ -387,7 +390,7 @@
         <div class="section-title">🚗 الفحص الظاهري (علم على الأضرار)</div>
         <p class="no-print" style="font-size:12px; color:gray; margin-bottom:10px;">اضغط على الصورة لتحديد أماكن الخدوش أو الصدمات.</p>
         <div class="diagram-container" id="diagramContainer">
-            <img src="car_diagram.png" alt="Car Diagram">
+            <img src="car_diagram.svg" alt="Car Diagram" onerror="this.src='car_diagram.png'">
         </div>
 
         <div class="notes-section">
@@ -430,10 +433,13 @@
     <div id="officialJobOrderPrintSheet">
         <div class="job-card-sheet">
             <div class="jc-header">
-                <div class="jc-header-right">
-                    <h2 id="jcShopName">مركز الصيانة</h2>
-                    <p id="jcShopDesc">طريق مكة القديم مجمع كيلو 14</p>
-                    <p id="jcShopPhones">0556565135 &nbsp;&nbsp;&nbsp; 0566522351</p>
+                <div class="jc-header-right" style="display:flex; align-items:center; gap:12px;">
+                    <img id="jcWorkshopLogo" src="" alt="Logo" style="display:none; max-height:65px; max-width:120px; object-fit:contain;">
+                    <div>
+                        <h2 id="jcShopName">مركز الصيانة</h2>
+                        <p id="jcShopDesc">طريق مكة القديم مجمع كيلو 14</p>
+                        <p id="jcShopPhones">0556565135 &nbsp;&nbsp;&nbsp; 0566522351</p>
+                    </div>
                 </div>
                 <div class="jc-header-left">
                     <h2 id="jcShopEnName">Mazda Service</h2>
@@ -556,7 +562,8 @@
                 </div>
 
                 <div class="jc-diagram-wrapper">
-                    <img src="car_diagram.png" class="jc-diagram-img" alt="Car Diagram" onerror="this.src='car_diagram.png'">
+                    <div class="jc-diagram-title">كشف المعاينة Detection preview</div>
+                    <img src="car_diagram.svg" class="jc-diagram-img" alt="Car Diagram" onerror="this.src='car_diagram.png'">
                 </div>
 
                 <table class="jc-receipt-table">
@@ -677,6 +684,13 @@
                     if (appSettings.workshop_desc) document.getElementById('shopDesc').textContent = appSettings.workshop_desc;
                     if (appSettings.workshop_phone) document.getElementById('shopPhone').textContent = appSettings.workshop_phone;
                     if (appSettings.vat_number) document.getElementById('shopVat').textContent = appSettings.vat_number;
+                    if (appSettings.workshop_logo) {
+                        const shopLogo = document.getElementById('shopLogoImg');
+                        if (shopLogo) {
+                            shopLogo.src = appSettings.workshop_logo;
+                            shopLogo.style.display = 'block';
+                        }
+                    }
 
                     const termList = document.getElementById('termsList');
                     if (termList && terms.length > 0) {
@@ -769,6 +783,39 @@
             return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
 
+        function formatPlateDisplay(plateStr, pLArr, pNArr) {
+            let letters = '';
+            let numbers = '';
+            
+            if (pLArr && Array.isArray(pLArr) && pLArr.some(Boolean)) {
+                letters = pLArr.filter(Boolean).join('  ');
+            }
+            if (pNArr && Array.isArray(pNArr) && pNArr.some(Boolean)) {
+                numbers = pNArr.filter(Boolean).join('');
+            }
+            
+            if (letters || numbers) {
+                if (letters && numbers) return `${letters}  -  ${numbers}`;
+                return letters || numbers;
+            }
+            
+            if (!plateStr) return '---';
+            let s = String(plateStr).trim();
+            if (!s || s === '-' || s === '---' || s === 'غير محدد') return '---';
+            
+            const lettersMatch = s.match(/[\u0600-\u06FFa-zA-Z]/g);
+            const digitsMatch = s.match(/[0-9\u0660-\u0669]/g);
+            
+            if (lettersMatch && digitsMatch) {
+                return `${lettersMatch.join('  ')}  -  ${digitsMatch.join('')}`;
+            } else if (lettersMatch) {
+                return lettersMatch.join('  ');
+            } else if (digitsMatch) {
+                return digitsMatch.join('');
+            }
+            return s;
+        }
+
         function prepareJobOrderSheet() {
             const sheet = document.getElementById('officialJobOrderPrintSheet');
             if (!sheet) return;
@@ -802,6 +849,17 @@
 
             const jcShopPhones = document.getElementById('jcShopPhones');
             if (jcShopPhones) jcShopPhones.textContent = shopPhone;
+
+            const jcLogo = document.getElementById('jcWorkshopLogo');
+            if (jcLogo) {
+                const logoSrc = appSettings?.workshop_logo || window.APP_CONFIG?.settings?.workshop_logo;
+                if (logoSrc) {
+                    jcLogo.src = logoSrc;
+                    jcLogo.style.display = 'block';
+                } else {
+                    jcLogo.style.display = 'none';
+                }
+            }
 
             const jcFooterContacts = document.getElementById('jcFooterContacts');
             if (jcFooterContacts) jcFooterContacts.innerHTML = '<span>📞 ' + shopPhone + '</span>';
@@ -865,14 +923,20 @@
             const jcCarColor = document.getElementById('jcCarColor');
             if (jcCarColor) jcCarColor.textContent = carColor;
 
-            let plate = getSafeVal('plateNum', 'plate_number');
-            if (!plate) {
-                const pL = [document.getElementById('pL1')?.value, document.getElementById('pL2')?.value, document.getElementById('pL3')?.value].filter(Boolean).join(' ');
-                const pN = [document.getElementById('pN1')?.value, document.getElementById('pN2')?.value, document.getElementById('pN3')?.value, document.getElementById('pN4')?.value].filter(Boolean).join('');
-                if (pL || pN) plate = (pL + ' ' + pN).trim();
-            }
+            const pL = [
+                document.getElementById('pL1')?.value || '',
+                document.getElementById('pL2')?.value || '',
+                document.getElementById('pL3')?.value || ''
+            ];
+            const pN = [
+                document.getElementById('pN1')?.value || '',
+                document.getElementById('pN2')?.value || '',
+                document.getElementById('pN3')?.value || '',
+                document.getElementById('pN4')?.value || ''
+            ];
+            const rawPlate = getSafeVal('plateNum', 'plate_number');
             const jcPlateNo = document.getElementById('jcPlateNo');
-            if (jcPlateNo) jcPlateNo.textContent = plate;
+            if (jcPlateNo) jcPlateNo.textContent = formatPlateDisplay(rawPlate, pL, pN);
 
             const jcOdometer = document.getElementById('jcOdometer');
             if (jcOdometer) jcOdometer.textContent = getSafeVal('odometer', 'odometer');

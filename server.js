@@ -47,6 +47,24 @@ const uploadDocument = multer({
     limits: { fileSize: 25 * 1024 * 1024 } // 25MB
 });
 
+const brandingStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const dir = path.join(__dirname, 'uploads', 'branding');
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+    },
+    filename: function (req, file, cb) {
+        const ext = path.extname(file.originalname) || '.png';
+        const type = req.body.type || 'brand';
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E6);
+        cb(null, type + '-' + uniqueSuffix + ext);
+    }
+});
+const uploadBranding = multer({
+    storage: brandingStorage,
+    limits: { fileSize: 10 * 1024 * 1024 } // 10MB
+});
+
 const upload = multer({ dest: 'uploads/' });
 const xlsx = require('xlsx');
 const { importClients, normalizePhone } = require('./import_clients');
@@ -289,15 +307,15 @@ app.get('/api/sections', async (req, res) => {
 
 app.post('/api/sections', async (req, res) => {
     try {
-        const { name, shift_start, shift_end, can_view_income, can_withdraw, can_inspect, can_manage_parts, permissions } = req.body;
+        const { name, shift_start, shift_end, can_view_income, can_withdraw, can_inspect, can_manage_parts, permissions, target_enabled, target_type, target_percent, default_target } = req.body;
         if (!name || !name.trim()) return res.status(400).json({ message: 'اسم القسم مطلوب' });
         const cleanName = name.trim();
         const existing = await dbGet('SELECT id FROM sections WHERE name = ?', [cleanName]);
         if (existing) return res.status(400).json({ message: 'يوجد قسم مسجل بهذا الاسم مسبقاً' });
 
         const result = await dbRun(
-            `INSERT INTO sections (name, shift_start, shift_end, can_view_income, can_withdraw, can_inspect, can_manage_parts, permissions)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO sections (name, shift_start, shift_end, can_view_income, can_withdraw, can_inspect, can_manage_parts, permissions, target_enabled, target_type, target_percent, default_target)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 cleanName,
                 shift_start || '08:00',
@@ -306,7 +324,11 @@ app.post('/api/sections', async (req, res) => {
                 can_withdraw !== undefined ? (can_withdraw ? 1 : 0) : 1,
                 can_inspect !== undefined ? (can_inspect ? 1 : 0) : 0,
                 can_manage_parts !== undefined ? (can_manage_parts ? 1 : 0) : 0,
-                typeof permissions === 'object' ? JSON.stringify(permissions) : (permissions || null)
+                typeof permissions === 'object' ? JSON.stringify(permissions) : (permissions || null),
+                target_enabled !== undefined ? (target_enabled ? 1 : 0) : 1,
+                target_type || 'percentage',
+                target_percent !== undefined ? parseFloat(target_percent) : 100,
+                default_target !== undefined ? parseFloat(default_target) : 0
             ]
         );
         res.json({ success: true, id: result.insertId || result.lastID, message: 'تمت إضافة القسم بنجاح' });
@@ -319,7 +341,7 @@ app.post('/api/sections', async (req, res) => {
 app.put('/api/sections/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, shift_start, shift_end, can_view_income, can_withdraw, can_inspect, can_manage_parts, permissions } = req.body;
+        const { name, shift_start, shift_end, can_view_income, can_withdraw, can_inspect, can_manage_parts, permissions, target_enabled, target_type, target_percent, default_target } = req.body;
         if (!name || !name.trim()) return res.status(400).json({ message: 'اسم القسم مطلوب' });
         const cleanName = name.trim();
 
@@ -335,7 +357,11 @@ app.put('/api/sections/:id', async (req, res) => {
                 can_withdraw = ?,
                 can_inspect = ?,
                 can_manage_parts = ?,
-                permissions = ?
+                permissions = ?,
+                target_enabled = ?,
+                target_type = ?,
+                target_percent = ?,
+                default_target = ?
              WHERE id = ?`,
             [
                 cleanName,
@@ -346,6 +372,10 @@ app.put('/api/sections/:id', async (req, res) => {
                 can_inspect !== undefined ? (can_inspect ? 1 : 0) : 0,
                 can_manage_parts !== undefined ? (can_manage_parts ? 1 : 0) : 0,
                 typeof permissions === 'object' ? JSON.stringify(permissions) : (permissions || null),
+                target_enabled !== undefined ? (target_enabled ? 1 : 0) : 1,
+                target_type || 'percentage',
+                target_percent !== undefined ? parseFloat(target_percent) : 100,
+                default_target !== undefined ? parseFloat(default_target) : 0,
                 id
             ]
         );
@@ -839,7 +869,11 @@ app.get('/api/employee-stats/:id', async (req, res) => {
                 COALESCE(s.can_inspect, 0) AS can_inspect,
                 COALESCE(s.can_manage_parts, 0) AS can_manage_parts,
                 COALESCE(s.shift_start, '08:00') AS shift_start,
-                COALESCE(s.shift_end, '18:00') AS shift_end
+                COALESCE(s.shift_end, '18:00') AS shift_end,
+                COALESCE(s.target_enabled, 1) AS section_target_enabled,
+                COALESCE(s.target_type, 'percentage') AS section_target_type,
+                COALESCE(s.target_percent, 100) AS section_target_percent,
+                COALESCE(s.default_target, 0) AS section_default_target
             FROM employees e 
             LEFT JOIN sections s ON e.section_id = s.id 
             WHERE e.id = ? AND e.is_active = 1
@@ -1962,6 +1996,54 @@ app.post('/api/settings', async (req, res) => {
     }
 });
 
+// 🎨 رفع الشعار والأختام الرسمية (Logo, Quotation Stamp, Invoice Stamp)
+app.post('/api/settings/upload-branding', uploadBranding.single('brandingFile'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'الرجاء اختيار ملف صورة صالح' });
+        }
+        const type = req.body.type || 'logo';
+        const keyMap = {
+            'logo': 'workshop_logo',
+            'quotation_stamp': 'quotation_stamp',
+            'invoice_stamp': 'invoice_stamp'
+        };
+        const settingKey = keyMap[type] || 'workshop_logo';
+        const relativePath = 'uploads/branding/' + req.file.filename;
+
+        await dbRun(`INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`, [settingKey, relativePath]);
+
+        res.json({
+            success: true,
+            message: 'تم رفع وحفظ الصورة بنجاح',
+            key: settingKey,
+            url: relativePath
+        });
+    } catch (error) {
+        console.error('Upload branding error:', error);
+        res.status(500).json({ message: 'فشل رفع الملف: ' + error.message });
+    }
+});
+
+// حذف الشعار أو الختم
+app.delete('/api/settings/branding/:key', async (req, res) => {
+    try {
+        const { key } = req.params;
+        const existing = await dbGet('SELECT value FROM settings WHERE key = ?', [key]);
+        if (existing && existing.value) {
+            const fullPath = path.join(__dirname, existing.value);
+            if (fs.existsSync(fullPath)) {
+                try { fs.unlinkSync(fullPath); } catch (e) {}
+            }
+        }
+        await dbRun('DELETE FROM settings WHERE key = ?', [key]);
+        res.json({ success: true, message: 'تم حذف الملف بنجاح' });
+    } catch (error) {
+        console.error('Delete branding error:', error);
+        res.status(500).json({ message: 'فشل حذف الملف: ' + error.message });
+    }
+});
+
 // ==========================
 // 🧩 تقرير السحبيات (للطباعة)
 // ==========================
@@ -1992,13 +2074,18 @@ app.get('/api/reports/withdrawal-list', async (req, res) => {
 });
 
 app.get('/api/attendance/report', async (req, res) => {
-    const { date, month, employee_id } = req.query;
+    const { date, month, employee_id, from_date, to_date } = req.query;
     try {
         let sql = `
             SELECT 
                 e.id AS employee_id, e.name AS employee_name, s.name AS section_name,
+                COALESCE(e.base_salary, 0) AS base_salary,
                 a.check_in, a.check_out, a.status, a.date,
-                a.delay_minutes, a.early_departure_minutes, a.overtime_minutes,
+                COALESCE(a.delay_minutes, 0) AS delay_minutes,
+                COALESCE(a.late_minutes, 0) AS late_minutes,
+                COALESCE(a.early_departure_minutes, 0) AS early_departure_minutes,
+                COALESCE(a.overtime_minutes, 0) AS overtime_minutes,
+                COALESCE(a.total_hours, 0) AS total_hours,
                 a.shift_start, a.shift_end
             FROM employees e
             LEFT JOIN sections s ON e.section_id = s.id
@@ -2012,21 +2099,33 @@ app.get('/api/attendance/report', async (req, res) => {
             params.push(employee_id);
         }
 
-        if (date) {
+        if (from_date && to_date) {
+            conditions.push("a.date >= ? AND a.date <= ?");
+            params.push(from_date, to_date);
+        } else if (from_date) {
+            conditions.push("a.date >= ?");
+            params.push(from_date);
+        } else if (to_date) {
+            conditions.push("a.date <= ?");
+            params.push(to_date);
+        } else if (date) {
             conditions.push("a.date = ?");
             params.push(date);
         } else if (month) {
-            conditions.push("strftime('%Y-%m', a.date) = ?");
-            params.push(month);
+            conditions.push("(strftime('%Y-%m', a.date) = ? OR a.date LIKE ?)");
+            params.push(month, `${month}%`);
         } else {
-            // Default to today if no date or month or employee filter is provided for date context
+            // If no filters at all, default to current month or today
             if (!employee_id) {
-                conditions.push("a.date = CURRENT_DATE");
+                conditions.push("(a.date = CURRENT_DATE OR a.date >= date('now', '-30 days'))");
             }
         }
 
+        // Only return rows where there is an attendance record or specific employee
+        conditions.push("a.id IS NOT NULL");
+
         sql += " WHERE " + conditions.join(" AND ");
-        sql += " ORDER BY a.date DESC, s.id, e.name";
+        sql += " ORDER BY a.date DESC, e.name ASC";
 
         const report = await dbAll(sql, params);
         res.json(report);

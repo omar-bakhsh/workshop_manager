@@ -171,7 +171,19 @@
 
         isManagement: function (user) {
             if (!user) user = this.getUser();
-            return this.isAdmin(user) || this.isSection(user, 'ادار') || this.isSection(user, 'إدار');
+            return this.isAdmin(user) || 
+                   this.isSection(user, 'ادار') || 
+                   this.isSection(user, 'إدار') ||
+                   user.role === 'management' ||
+                   user.role === 'manager' ||
+                   user.role === 'supervisor' ||
+                   user.username === 'admin';
+        },
+
+        // صلاحية كتابة وتعديل التسعيرة وأمر العمل والتحويل بينهما
+        canConvertDocType: function (user) {
+            if (!user) user = this.getUser();
+            return this.isManagement(user) || this.isInspection(user);
         },
 
         isInspection: function (user) {

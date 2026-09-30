@@ -396,20 +396,49 @@
         }
 
         .plate-container {
-            display: flex;
-            gap: 4px;
+            display: inline-flex;
+            gap: 5px;
             align-items: center;
+            background: #f8fafc;
+            padding: 4px 7px;
+            border-radius: 8px;
+            border: 1.5px solid #cbd5e1;
+            direction: rtl;
+            width: fit-content;
         }
 
         .plate-input {
-            width: 28px;
-            height: 32px;
+            width: 35px;
+            height: 36px;
             text-align: center;
-            border: 1.5px solid #000;
-            border-radius: 4px;
-            font-weight: 900;
-            font-size: 13px;
-            background: #fff;
+            border: 1.5px solid #475569;
+            border-radius: 6px;
+            font-weight: 800;
+            background: #ffffff;
+            color: #0f172a;
+            padding: 0;
+            line-height: 36px;
+            box-sizing: border-box;
+            outline: none;
+            transition: all 0.15s ease;
+        }
+
+        .plate-input:focus {
+            border-color: #2563eb;
+            background: #eff6ff;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+        }
+
+        .plate-input.letter {
+            font-size: 13.5px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 800;
+        }
+
+        .plate-input.number {
+            font-size: 14.5px;
+            font-family: monospace, sans-serif;
+            font-weight: 800;
         }
 
         /* --- Table Styles --- */
@@ -893,12 +922,16 @@
                         <span>🔗</span>
                         <span>رابط العميل</span>
                     </a>
+                    <label class="btn-action-top" style="background:#ecfdf5; color:#065f46; border:1.5px solid #a7f3d0; cursor:pointer; display:inline-flex; align-items:center; gap:6px; font-weight:800;" title="إظهار / إخفاء الختم الرسمي في ورقة التسعيرة وأمر العمل المطبوع">
+                        <input type="checkbox" id="includeStampCheckbox" checked onchange="toggleStampInDoc(this.checked)" style="accent-color:#059669; width:16px; height:16px; cursor:pointer;">
+                        <span>💮 إضافة الختم</span>
+                    </label>
                     <button type="button" class="btn-action-top" onclick="window.location.href='inspections_list.html'">
                         <span>📋</span>
                         <span>السجل</span>
                     </button>
                     <button type="button" class="btn-action-top" onclick="window.location.href='job_orders_list.html'" style="background:#e0f2fe; color:#0369a1;">
-                        <span>🚗</span>
+                        <span><i class="fa-solid fa-screwdriver-wrench"></i></span>
                         <span>أوامر العمل</span>
                     </button>
                     <button type="button" class="btn-action-top" onclick="window.location.href='clients_manager.html'" style="background:#f0fdf4; color:#166534; border-color:#bbf7d0;" title="قاعدة بيانات العملاء (استيراد/تصدير)">
@@ -959,11 +992,14 @@
         <!-- Printable Document Area -->
         <div class="card" id="printableArea">
             <div class="workshop-header">
-                <div class="workshop-info-text">
-                    <h2 id="inspectorShopName" class="app-brand-name">Atenza App</h2>
-                    <p id="inspectorShopDesc">📍 طريق مكة القديم مجمع كيلو 14</p>
-                    <p id="inspectorShopPhone">📞 0566522351</p>
-                    <p id="inspectorShopVat">📄 الرقم الضريبي: 302240502300003</p>
+                <div style="display:flex; align-items:center; gap:14px;">
+                    <img id="inspectorShopLogo" src="" alt="شعار المركز" style="display:none; max-height:70px; max-width:130px; object-fit:contain; border-radius:6px;">
+                    <div class="workshop-info-text">
+                        <h2 id="inspectorShopName" class="app-brand-name">Atenza App</h2>
+                        <p id="inspectorShopDesc">📍 طريق مكة القديم مجمع كيلو 14</p>
+                        <p id="inspectorShopPhone">📞 0566522351</p>
+                        <p id="inspectorShopVat">📄 الرقم الضريبي: 302240502300003</p>
+                    </div>
                 </div>
                 <div style="text-align: left;">
                     <p style="font-size:12px; font-weight:700;">رقم المستند: <b id="inspectionIdDisplay" style="color:var(--primary);">جديد</b></p>
@@ -1101,9 +1137,21 @@
                 </div>
             </div>
 
-            <div style="margin-top:12px; font-size:11px; display:flex; justify-content:space-between; color:#475569; font-weight:700;">
-                <span>الكشيف المسؤول: <b id="inspectorNameDisplay">...</b></span>
-                <span>توقيع العميل: ...........................</span>
+            <div style="margin-top:16px; padding-top:12px; border-top:1px dashed #cbd5e1; font-size:11.5px; display:flex; justify-content:space-between; align-items:flex-end; color:#334155; font-weight:700; position:relative; min-height:85px;">
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                    <span>الكشيف / المسؤول: <b id="inspectorNameDisplay">...</b></span>
+                    <span style="font-size:10.5px; color:#64748b;">التوقيع: ...........................</span>
+                </div>
+                
+                <!-- Stamp Container (Printed when enabled) -->
+                <div id="printStampContainer" style="display:flex; align-items:center; justify-content:center; position:absolute; left:50%; transform:translateX(-50%); bottom:0; text-align:center; pointer-events:none;">
+                    <img id="printStampImg" src="" alt="الختم الرسمي" style="max-height:85px; max-width:145px; object-fit:contain; opacity:0.92; transform:rotate(-4deg); filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));">
+                </div>
+
+                <div style="text-align:left; display:flex; flex-direction:column; gap:4px;">
+                    <span>توقيع العميل والموافقة:</span>
+                    <span style="font-size:10.5px; color:#64748b;">...........................</span>
+                </div>
             </div>
         </div>
     </div>
@@ -1122,6 +1170,10 @@
             <button type="button" id="convertDocBtn" class="btn-bottom" onclick="toggleConvertDoc()" style="background:#fef3c7; color:#92400e;">
                 <span>🛠️</span>
                 <span>تحويل</span>
+            </button>
+            <button type="button" id="mobileStampToggleBtn" class="btn-bottom" onclick="toggleMobileStamp()" style="background:#ecfdf5; color:#065f46;" title="تبديل الختم">
+                <span>💮</span>
+                <span>الختم</span>
             </button>
             <button type="button" class="btn-bottom btn-bottom-print" onclick="doPrint()">
                 <span>🖨️</span>
@@ -1189,6 +1241,7 @@
             }
 
             enforcePermissionsOnDoc();
+            applyBrandingAndStamps();
         }
 
         function enforcePermissionsOnDoc() {
@@ -1268,6 +1321,81 @@
             }
         }
 
+        
+        // ==========================
+        // 💮 إدارة الشعار والأختام الرسمية في التسعيرة وأوامر العمل
+        // ==========================
+        let isStampIncluded = true;
+
+        function toggleStampInDoc(checked) {
+            isStampIncluded = !!checked;
+            const mobileBtn = document.getElementById('mobileStampToggleBtn');
+            if (mobileBtn) {
+                mobileBtn.style.background = isStampIncluded ? '#ecfdf5' : '#f1f5f9';
+                mobileBtn.style.color = isStampIncluded ? '#065f46' : '#64748b';
+            }
+            applyBrandingAndStamps();
+        }
+
+        function toggleMobileStamp() {
+            const cb = document.getElementById('includeStampCheckbox');
+            if (cb) {
+                cb.checked = !cb.checked;
+                toggleStampInDoc(cb.checked);
+            } else {
+                toggleStampInDoc(!isStampIncluded);
+            }
+            if (typeof showInfo === 'function') {
+                showInfo(isStampIncluded ? 'تم تفعيل ظهور الختم في الطباعة 💮' : 'تم إخفاء الختم من الطباعة ⚪');
+            }
+        }
+
+        function applyBrandingAndStamps() {
+            if (!appSettings) return;
+
+            // 1. Apply Workshop Logo
+            const logoUrl = appSettings.workshop_logo;
+            const shopLogoEl = document.getElementById('inspectorShopLogo');
+            const opsLogoEl = document.getElementById('opsWorkshopLogo');
+            const jcLogoEl = document.getElementById('jcWorkshopLogo');
+
+            if (logoUrl && logoUrl.trim()) {
+                const cleanLogo = logoUrl.startsWith('/') ? logoUrl : '/' + logoUrl;
+                if (shopLogoEl) { shopLogoEl.src = cleanLogo; shopLogoEl.style.display = 'block'; }
+                if (opsLogoEl) { opsLogoEl.src = cleanLogo; opsLogoEl.style.display = 'block'; }
+                if (jcLogoEl) { jcLogoEl.src = cleanLogo; jcLogoEl.style.display = 'block'; }
+            } else {
+                if (shopLogoEl) shopLogoEl.style.display = 'none';
+                if (opsLogoEl) opsLogoEl.style.display = 'none';
+                if (jcLogoEl) jcLogoEl.style.display = 'none';
+            }
+
+            // 2. Select Appropriate Stamp based on document type
+            const isJob = (currentDocType === 'job_order');
+            const stampUrl = isJob ? (appSettings.invoice_stamp || appSettings.quotation_stamp) : (appSettings.quotation_stamp || appSettings.invoice_stamp);
+
+            // On-screen stamp container
+            const printStampContainer = document.getElementById('printStampContainer');
+            const printStampImg = document.getElementById('printStampImg');
+            
+            // Official Quotation Sheet Stamp
+            const opsStampImg = document.getElementById('opsStampImg');
+            const opsStampText = document.getElementById('opsStampFallbackText');
+
+            if (isStampIncluded && stampUrl && stampUrl.trim()) {
+                const cleanStamp = stampUrl.startsWith('/') ? stampUrl : '/' + stampUrl;
+                if (printStampContainer) printStampContainer.style.display = 'flex';
+                if (printStampImg) { printStampImg.src = cleanStamp; printStampImg.style.display = 'block'; }
+                if (opsStampImg) { opsStampImg.src = cleanStamp; opsStampImg.style.display = 'block'; }
+                if (opsStampText) opsStampText.style.display = 'none';
+            } else {
+                if (printStampContainer) printStampContainer.style.display = 'none';
+                if (printStampImg) { printStampImg.src = ''; printStampImg.style.display = 'none'; }
+                if (opsStampImg) { opsStampImg.src = ''; opsStampImg.style.display = 'none'; }
+                if (opsStampText) opsStampText.style.display = 'inline';
+            }
+        }
+
         async function init() {
             if (!currentUser || !currentUser.role) {
                 window.location.href = 'login.html';
@@ -1294,6 +1422,7 @@
                     if (appSettings.vat_number) {
                         document.getElementById('inspectorShopVat').textContent = '📄 الرقم الضريبي: ' + appSettings.vat_number;
                     }
+                    applyBrandingAndStamps();
                 }
             } catch (e) {}
 
@@ -1514,12 +1643,53 @@
             const inputs = document.querySelectorAll('.plate-input');
             inputs.forEach((input, index) => {
                 input.addEventListener('input', () => {
-                    if (input.value.length === 1 && index < inputs.length - 1) inputs[index + 1].focus();
+                    const val = input.value.trim();
+                    if (val.length >= 1) {
+                        input.value = val.slice(-1).toUpperCase();
+                        if (index < inputs.length - 1) inputs[index + 1].focus();
+                    }
+                    if (typeof prepareOfficialQuotationSheet === 'function') prepareOfficialQuotationSheet();
+                    if (typeof prepareJobOrderSheet === 'function') prepareJobOrderSheet();
                 });
                 input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Backspace' && input.value.length === 0 && index > 0) inputs[index - 1].focus();
+                    if (e.key === 'Backspace' && input.value.length === 0 && index > 0) {
+                        inputs[index - 1].focus();
+                    }
                 });
             });
+        }
+
+        function formatPlateDisplay(plateStr, pLArr, pNArr) {
+            let letters = '';
+            let numbers = '';
+            
+            if (pLArr && Array.isArray(pLArr) && pLArr.some(Boolean)) {
+                letters = pLArr.filter(Boolean).join('  ');
+            }
+            if (pNArr && Array.isArray(pNArr) && pNArr.some(Boolean)) {
+                numbers = pNArr.filter(Boolean).join('');
+            }
+            
+            if (letters || numbers) {
+                if (letters && numbers) return `${letters}  -  ${numbers}`;
+                return letters || numbers;
+            }
+            
+            if (!plateStr) return '---';
+            let s = String(plateStr).trim();
+            if (!s || s === '-' || s === '---' || s === 'غير محدد') return '---';
+            
+            const lettersMatch = s.match(/[\u0600-\u06FFa-zA-Z]/g);
+            const digitsMatch = s.match(/[0-9\u0660-\u0669]/g);
+            
+            if (lettersMatch && digitsMatch) {
+                return `${lettersMatch.join('  ')}  -  ${digitsMatch.join('')}`;
+            } else if (lettersMatch) {
+                return lettersMatch.join('  ');
+            } else if (digitsMatch) {
+                return digitsMatch.join('');
+            }
+            return s;
         }
 
         function addNewRow() {
@@ -2211,14 +2381,20 @@
             const jcCarColor = document.getElementById('jcCarColor');
             if (jcCarColor) jcCarColor.textContent = carColor;
 
-            let plate = getSafeVal('plateNum', 'plate_number');
-            if (!plate) {
-                const pL = [document.getElementById('pL1')?.value, document.getElementById('pL2')?.value, document.getElementById('pL3')?.value].filter(Boolean).join(' ');
-                const pN = [document.getElementById('pN1')?.value, document.getElementById('pN2')?.value, document.getElementById('pN3')?.value, document.getElementById('pN4')?.value].filter(Boolean).join('');
-                if (pL || pN) plate = (pL + ' ' + pN).trim();
-            }
+            const pL = [
+                document.getElementById('pL1')?.value || '',
+                document.getElementById('pL2')?.value || '',
+                document.getElementById('pL3')?.value || ''
+            ];
+            const pN = [
+                document.getElementById('pN1')?.value || '',
+                document.getElementById('pN2')?.value || '',
+                document.getElementById('pN3')?.value || '',
+                document.getElementById('pN4')?.value || ''
+            ];
+            const rawPlate = getSafeVal('plateNum', 'plate_number');
             const jcPlateNo = document.getElementById('jcPlateNo');
-            if (jcPlateNo) jcPlateNo.textContent = plate;
+            if (jcPlateNo) jcPlateNo.textContent = formatPlateDisplay(rawPlate, pL, pN);
 
             const jcOdometer = document.getElementById('jcOdometer');
             if (jcOdometer) jcOdometer.textContent = getSafeVal('odometer', 'odometer');
@@ -2429,25 +2605,21 @@
             const opsCarModelColorEl = document.getElementById('opsCarModelColor');
             if (opsCarModelColorEl) opsCarModelColorEl.textContent = modelColor;
 
-            let plate = '';
             const pL = [
                 document.getElementById('pL1')?.value || '',
                 document.getElementById('pL2')?.value || '',
                 document.getElementById('pL3')?.value || ''
-            ].filter(Boolean).join(' ');
+            ];
             const pN = [
                 document.getElementById('pN1')?.value || '',
                 document.getElementById('pN2')?.value || '',
                 document.getElementById('pN3')?.value || '',
                 document.getElementById('pN4')?.value || ''
-            ].filter(Boolean).join('');
-            if (pL || pN) {
-                plate = (pL + ' - ' + pN).trim();
-            } else if (typeof currentInspection !== 'undefined' && currentInspection && currentInspection.plate_number) {
-                plate = currentInspection.plate_number;
-            }
+            ];
+            const rawPlate = getSafeVal('plateNum', 'plate_number');
+            const formattedPlate = formatPlateDisplay(rawPlate, pL, pN);
             const opsPlateEl = document.getElementById('opsPlateNo');
-            if (opsPlateEl) opsPlateEl.textContent = plate || '---';
+            if (opsPlateEl) opsPlateEl.textContent = formattedPlate;
 
             const vin = getSafeVal('vin', 'vin');
             const opsChassisEl = document.getElementById('opsChassisNo');
@@ -2674,21 +2846,20 @@
 
                 // Plate parsing
                 if (car.plate_number) {
-                    const parts = car.plate_number.split(' ');
-                    if (parts.length === 2) {
-                        const letters = parts[0];
-                        const numbers = parts[1];
-                        const pL1 = document.getElementById('pL1');
-                        if (pL1 && !pL1.value) {
-                            document.getElementById('pL1').value = letters[0] || '';
-                            document.getElementById('pL2').value = letters[1] || '';
-                            document.getElementById('pL3').value = letters[2] || '';
-                            document.getElementById('pN1').value = numbers[0] || '';
-                            document.getElementById('pN2').value = numbers[1] || '';
-                            document.getElementById('pN3').value = numbers[2] || '';
-                            document.getElementById('pN4').value = numbers[3] || '';
-                        }
+                    const pL1 = document.getElementById('pL1');
+                    if (pL1 && !pL1.value) {
+                        const letters = car.plate_number.replace(/[^ء-يa-zA-Z]/g, '');
+                        const numbers = car.plate_number.replace(/[^0-9]/g, '');
+                        document.getElementById('pL1').value = letters[0] || '';
+                        document.getElementById('pL2').value = letters[1] || '';
+                        document.getElementById('pL3').value = letters[2] || '';
+                        document.getElementById('pN1').value = numbers[0] || '';
+                        document.getElementById('pN2').value = numbers[1] || '';
+                        document.getElementById('pN3').value = numbers[2] || '';
+                        document.getElementById('pN4').value = numbers[3] || '';
                     }
+                    if (typeof prepareOfficialQuotationSheet === 'function') prepareOfficialQuotationSheet();
+                    if (typeof prepareJobOrderSheet === 'function') prepareJobOrderSheet();
                 }
             }
 
@@ -2707,10 +2878,13 @@
         <div class="quotation-card-sheet">
             <div class="ops-header">
                 <div class="ops-header-top">
-                    <div class="ops-header-right">
-                        <h2 class="ops-title-ar" id="opsWorkshopTitleAr">مركز الصيانة</h2>
-                        <p class="ops-sub-ar" id="opsWorkshopDesc">طريق مكة القديم مجمع كيلو 14</p>
-                        <p class="ops-phones-ar" id="opsWorkshopPhones">0556565135 &nbsp;&nbsp;&nbsp; 0566522351</p>
+                    <div class="ops-header-right" style="display:flex; align-items:center; gap:12px;">
+                        <img id="opsWorkshopLogo" src="" alt="Logo" style="display:none; max-height:65px; max-width:120px; object-fit:contain;">
+                        <div>
+                            <h2 class="ops-title-ar" id="opsWorkshopTitleAr">مركز الصيانة</h2>
+                            <p class="ops-sub-ar" id="opsWorkshopDesc">طريق مكة القديم مجمع كيلو 14</p>
+                            <p class="ops-phones-ar" id="opsWorkshopPhones">0556565135 &nbsp;&nbsp;&nbsp; 0566522351</p>
+                        </div>
                     </div>
                     <div class="ops-header-center">
                         <div class="ops-quote-badge">
@@ -2791,7 +2965,13 @@
                 <div class="ops-notes-row"><span>اعمال بعد الفك Possible appear damage after jaw</span></div>
                 <div class="ops-wishes-text">نرجو أن ينال عرضنا هذا رضاكم وشاكرين حسن تعاونكم best wishes</div>
                 <div class="ops-signatures-row">
-                    <div class="ops-stamp-box"><span>الختم Stamp</span><div class="ops-stamp-circle">ختم الورشة</div></div>
+                    <div class="ops-stamp-box">
+                    <span>الختم Stamp</span>
+                    <div class="ops-stamp-circle" id="opsStampCircle" style="position:relative; overflow:hidden; display:flex; align-items:center; justify-content:center;">
+                        <img id="opsStampImg" src="" alt="الختم" style="display:none; max-height:80px; max-width:130px; object-fit:contain; transform:rotate(-4deg);">
+                        <span id="opsStampFallbackText">ختم الورشة</span>
+                    </div>
+                </div>
                     <div class="ops-manager-box"><span>توقيع المسؤول Manager Sign</span><div class="ops-sign-line">................................................</div></div>
                 </div>
                 <div class="ops-bottom-info">
@@ -2807,10 +2987,13 @@
     <div id="officialJobOrderPrintSheet">
         <div class="job-card-sheet">
             <div class="jc-header">
-                <div class="jc-header-right">
-                    <h2 id="jcShopName">مركز الصيانة</h2>
-                    <p id="jcShopDesc">طريق مكة القديم مجمع كيلو 14</p>
-                    <p id="jcShopPhones">0556565135 &nbsp;&nbsp;&nbsp; 0566522351</p>
+                <div class="jc-header-right" style="display:flex; align-items:center; gap:12px;">
+                    <img id="jcWorkshopLogo" src="" alt="Logo" style="display:none; max-height:65px; max-width:120px; object-fit:contain;">
+                    <div>
+                        <h2 id="jcShopName">مركز الصيانة</h2>
+                        <p id="jcShopDesc">طريق مكة القديم مجمع كيلو 14</p>
+                        <p id="jcShopPhones">0556565135 &nbsp;&nbsp;&nbsp; 0566522351</p>
+                    </div>
                 </div>
                 <div class="jc-header-left">
                     <h2 id="jcShopEnName">Mazda Service</h2>

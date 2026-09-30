@@ -1259,6 +1259,31 @@
                     </label>
                 </div>
 
+                <div class="permission-toggle-box" style="background:#fffbeb; border-color:#fde68a;">
+                    <div>
+                        <div class="permission-toggle-info"><i class="fa-solid fa-vault" style="color:#d97706;"></i> تفعيل تارجت الفني وخزنة النقود</div>
+                        <div class="permission-toggle-sub">إظهار عمود التعبئة التحفيزي والتارجت المتوقع من الدخل الصافي بدون ضريبة</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="permTargetEnabled" checked onchange="toggleSectionTargetFields(this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <div id="sectionTargetSettingsRow" class="form-grid-2" style="background:#fef3c7; padding:12px; border-radius:10px; border:1px solid #fde68a; margin-top:8px;">
+                    <div class="form-group" style="margin:0;">
+                        <label style="font-size:12px; font-weight:700;">نوع التارجت للقسم</label>
+                        <select id="editSecTargetType" style="height:38px; font-size:12px;" onchange="updateTargetValueLabel(this.value)">
+                            <option value="percentage">نسبة مئوية من الدخل الصافي (%)</option>
+                            <option value="amount">مبلغ تارجت ثابت (﷼)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin:0;">
+                        <label id="secTargetValueLabel" style="font-size:12px; font-weight:700;">النسبة / القيمة المستهدفة</label>
+                        <input type="number" id="editSecTargetValue" value="100" min="1" step="any" style="height:38px; font-size:12px;">
+                    </div>
+                </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('editSectionModal')">إلغاء</button>
                     <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> حفظ إعدادات القسم</button>
@@ -1693,6 +1718,19 @@
             }
         }
 
+        
+        function toggleSectionTargetFields(show) {
+            const row = document.getElementById('sectionTargetSettingsRow');
+            if (row) row.style.display = show ? 'grid' : 'none';
+        }
+
+        function updateTargetValueLabel(type) {
+            const lbl = document.getElementById('secTargetValueLabel');
+            if (lbl) {
+                lbl.textContent = type === 'percentage' ? 'النسبة المستهدفة (%)' : 'المبلغ المستهدف الافتراضي (﷼)';
+            }
+        }
+
         function openEditSectionModal(id) {
             const sec = allSections.find(s => s.id == id);
             if (!sec) return;
@@ -1705,6 +1743,21 @@
             document.getElementById('permWithdraw').checked = sec.can_withdraw !== 0;
             document.getElementById('permInspect').checked = sec.can_inspect === 1;
             document.getElementById('permManageParts').checked = sec.can_manage_parts === 1;
+            
+            const isTargetOn = sec.target_enabled !== 0;
+            const targetToggle = document.getElementById('permTargetEnabled');
+            if (targetToggle) targetToggle.checked = isTargetOn;
+            
+            const targetTypeEl = document.getElementById('editSecTargetType');
+            if (targetTypeEl) targetTypeEl.value = sec.target_type || 'percentage';
+            
+            const targetValEl = document.getElementById('editSecTargetValue');
+            if (targetValEl) {
+                targetValEl.value = sec.target_type === 'amount' ? (sec.default_target || 0) : (sec.target_percent || 100);
+            }
+            
+            toggleSectionTargetFields(isTargetOn);
+            updateTargetValueLabel(sec.target_type || 'percentage');
 
             openModal('editSectionModal');
         }
@@ -1712,6 +1765,10 @@
         async function saveSectionDetails(e) {
             e.preventDefault();
             const id = document.getElementById('editSecId').value;
+            const isTargetOn = document.getElementById('permTargetEnabled')?.checked ? 1 : 0;
+            const targetType = document.getElementById('editSecTargetType')?.value || 'percentage';
+            const targetVal = parseFloat(document.getElementById('editSecTargetValue')?.value) || 0;
+
             const payload = {
                 name: document.getElementById('editSecName').value.trim(),
                 shift_start: document.getElementById('editSecShiftStart').value,
@@ -1719,7 +1776,11 @@
                 can_view_income: document.getElementById('permViewIncome').checked ? 1 : 0,
                 can_withdraw: document.getElementById('permWithdraw').checked ? 1 : 0,
                 can_inspect: document.getElementById('permInspect').checked ? 1 : 0,
-                can_manage_parts: document.getElementById('permManageParts').checked ? 1 : 0
+                can_manage_parts: document.getElementById('permManageParts').checked ? 1 : 0,
+                target_enabled: isTargetOn,
+                target_type: targetType,
+                target_percent: targetType === 'percentage' ? targetVal : 100,
+                default_target: targetType === 'amount' ? targetVal : 0
             };
 
             try {

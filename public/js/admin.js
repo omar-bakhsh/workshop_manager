@@ -627,56 +627,371 @@ function deleteEmployee(id) {
 }
 
 // ==========================================
-// 📅 Attendance & Shifts
+// 📅 Attendance & Shifts (Advanced HR with Salary & Time Calculations)
 // ==========================================
+let currentAttendanceData = [];
+
 async function openAttendanceModal() {
     const select = document.getElementById('attendanceEmployeeFilter');
     if(select) {
         select.innerHTML = '<option value="">جميع الموظفين</option>' + employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
     }
-    const dateInput = document.getElementById('attendanceDate');
-    if(dateInput) dateInput.value = new Date().toISOString().split('T')[0];
     
-    loadAttendanceReport();
+    // Set default date range to current month (from 1st of month to today)
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const today = now.toISOString().split('T')[0];
+    const firstDay = `${year}-${month}-01`;
+
+    const fromInput = document.getElementById('attendanceFromDate');
+    const toInput = document.getElementById('attendanceToDate');
+    if(fromInput) fromInput.value = firstDay;
+    if(toInput) toInput.value = today;
+    
+    loadAttendanceReport('range');
     openModal('attendanceModal');
 }
 
-async function loadAttendanceReport(type = 'date') {
+function setAttendanceTodayFilter() {
+    const today = new Date().toISOString().split('T')[0];
+    const fromInput = document.getElementById('attendanceFromDate');
+    const toInput = document.getElementById('attendanceToDate');
+    if (fromInput) fromInput.value = today;
+    if (toInput) toInput.value = today;
+    loadAttendanceReport('range');
+}
+
+function setAttendanceMonthFilter() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const lastDayOfMonth = new Date(year, now.getMonth() + 1, 0).getDate();
+    
+    const fromInput = document.getElementById('attendanceFromDate');
+    const toInput = document.getElementById('attendanceToDate');
+    if (fromInput) fromInput.value = `${year}-${month}-01`;
+    if (toInput) toInput.value = `${year}-${month}-${String(lastDayOfMonth).padStart(2, '0')}`;
+    loadAttendanceReport('range');
+}
+
+async function loadAttendanceReport(type = 'range') {
     const tbody = document.getElementById('attendanceTableBody');
     if(!tbody) return;
-    const date = document.getElementById('attendanceDate').value;
-    const month = document.getElementById('attendanceMonth').value;
-    const empId = document.getElementById('attendanceEmployeeFilter').value;
     
-    tbody.innerHTML = '<tr><td colspan="9">⏳ جاري التحميل...</td></tr>';
+    const fromDate = document.getElementById('attendanceFromDate')?.value || '';
+    const toDate = document.getElementById('attendanceToDate')?.value || '';
+    const empId = document.getElementById('attendanceEmployeeFilter')?.value || '';
+    
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:20px;">⏳ جاري جلب وتدقيق سجلات الحضور والانصراف...</td></tr>';
     
     let url = `/api/attendance/report?`;
-    if (date && type==='date') url += `date=${date}&`;
-    if (month && type==='month') url += `month=${month}&`;
+    if (fromDate) url += `from_date=${fromDate}&`;
+    if (toDate) url += `to_date=${toDate}&`;
     if (empId) url += `employee_id=${empId}`;
 
     try {
         const res = await fetch(url);
         const data = await res.json();
-        if (data.length === 0) { tbody.innerHTML = '<tr><td colspan="9">لا توجد بيانات</td></tr>'; return; }
+        currentAttendanceData = Array.isArray(data) ? data : [];
+        
+        const countEl = document.getElementById('attRecordCount');
+        if (countEl) countEl.textContent = currentAttendanceData.length;
 
-        tbody.innerHTML = data.map(row => {
+        if (currentAttendanceData.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:25px; color:#64748b;">لا توجد سجلات حضور للفترة المحددة</td></tr>';
+            updateAttendanceSummaryCards(0, 0, 0, 0, 0);
+            return;
+        }
+
+        let totalDelayMinutes = 0;
+        let totalOvertimeMinutes = 0;
+        let totalDelayDeduction = 0;
+        let totalOvertimeBonus = 0;
+
+        tbody.innerHTML = currentAttendanceData.map(row => {
             const checkIn = row.check_in ? new Date(row.check_in).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'}) : '---';
             const checkOut = row.check_out ? new Date(row.check_out).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'}) : '---';
+            
+            const delayMin = parseFloat(row.delay_minutes || row.late_minutes || 0) + parseFloat(row.early_departure_minutes || 0);
+            const overtimeMin = parseFloat(row.overtime_minutes || 0);
+            
+            totalDelayMinutes += delayMin;
+            totalOvertimeMinutes += overtimeMin;
+
+            // Hourly rate calculation: base_salary / 240 (30 days * 8 hours)
+            const salary = parseFloat(row.base_salary) || 0;
+            const hourlyRate = salary > 0 ? (salary / 240) : 0;
+            
+            const delayDeduction = (delayMin / 60) * hourlyRate;
+            const overtimeBonus = (overtimeMin / 60) * hourlyRate;
+            const netFinancial = overtimeBonus - delayDeduction;
+
+            totalDelayDeduction += delayDeduction;
+            totalOvertimeBonus += overtimeBonus;
+
+            let netBadge = '<span style="color:#64748b; font-weight:700;">-</span>';
+            if (salary > 0) {
+                if (netFinancial > 0.5) {
+                    netBadge = `<span style="color:#16a34a; font-weight:800;">+${netFinancial.toFixed(1)} ﷼</span>`;
+                } else if (netFinancial < -0.5) {
+                    netBadge = `<span style="color:#dc2626; font-weight:800;">-${Math.abs(netFinancial).toFixed(1)} ﷼</span>`;
+                } else {
+                    netBadge = `<span style="color:#0284c7; font-weight:700;">0.0 ﷼</span>`;
+                }
+            } else {
+                netBadge = '<span style="color:#94a3b8; font-size:11px;">(راتب غير محدد)</span>';
+            }
+
             return `
                 <tr>
-                    <td>${row.date}</td>
-                    <td font-weight-bold>${row.employee_name}</td>
-                    <td font-size-11 color-gray>${row.shift_start}-${row.shift_end}</td>
-                    <td dir="ltr">${checkIn}</td>
-                    <td dir="ltr">${checkOut}</td>
-                    <td>${(row.delay_minutes/60).toFixed(1)}h</td>
-                    <td>${(row.early_departure_minutes/60).toFixed(1)}h</td>
-                    <td>${(row.overtime_minutes/60).toFixed(1)}h</td>
+                    <td style="font-weight:700;">${row.date}</td>
+                    <td style="font-weight:800; color:#1e293b;">${row.employee_name}</td>
+                    <td><span style="font-size:11px; background:#f1f5f9; padding:2px 8px; border-radius:6px; font-weight:700; color:#475569;">${row.section_name || 'عام'}</span></td>
+                    <td style="font-size:11px; color:#64748b;">${row.shift_start || '08:00'}-${row.shift_end || '18:00'}</td>
+                    <td dir="ltr" style="font-weight:700; color:${row.check_in ? '#059669' : '#dc2626'}">${checkIn}</td>
+                    <td dir="ltr" style="font-weight:700; color:#475569;">${checkOut}</td>
+                    <td style="color:${delayMin > 0 ? '#dc2626' : '#64748b'}; font-weight:700;">${(delayMin/60).toFixed(1)} س</td>
+                    <td style="color:${overtimeMin > 0 ? '#16a34a' : '#64748b'}; font-weight:700;">${(overtimeMin/60).toFixed(1)} س</td>
+                    <td>${netBadge}</td>
                     <td><span class="badge-status badge-status-${row.check_in ? 'success' : 'danger'}">${row.check_in ? 'حاضر' : 'غائب'}</span></td>
                 </tr>`;
         }).join('');
-    } catch (e) { tbody.innerHTML = '<tr><td colspan="9"><i class="fa-solid fa-circle-xmark"></i> خطأ في التحميل</td></tr>'; }
+
+        updateAttendanceSummaryCards(totalDelayMinutes, totalOvertimeMinutes, totalDelayDeduction, totalOvertimeBonus);
+
+    } catch (e) { 
+        console.error(e);
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:20px; color:#dc2626;"><i class="fa-solid fa-circle-xmark"></i> خطأ في تحميل بيانات الحضور</td></tr>'; 
+    }
+}
+
+function updateAttendanceSummaryCards(delayMin, overtimeMin, delayDeduction, overtimeBonus) {
+    const delayHours = (delayMin / 60);
+    const overtimeHours = (overtimeMin / 60);
+    const netHours = overtimeHours - delayHours;
+    const netFinancial = overtimeBonus - delayDeduction;
+
+    const elDelayH = document.getElementById('attStatDelayHours');
+    const elDelayD = document.getElementById('attStatDelayDeduction');
+    const elOverH = document.getElementById('attStatOvertimeHours');
+    const elOverB = document.getElementById('attStatOvertimeBonus');
+    const elNetH = document.getElementById('attStatNetHours');
+    const elNetHLbl = document.getElementById('attStatNetHoursLabel');
+    const elNetImpact = document.getElementById('attStatNetImpact');
+
+    if (elDelayH) elDelayH.textContent = `${delayHours.toFixed(1)} ساعة`;
+    if (elDelayD) elDelayD.textContent = `خصم: ${delayDeduction.toFixed(1)} ﷼`;
+    if (elOverH) elOverH.textContent = `${overtimeHours.toFixed(1)} ساعة`;
+    if (elOverB) elOverB.textContent = `إضافة: ${overtimeBonus.toFixed(1)} ﷼`;
+    
+    if (elNetH) {
+        elNetH.textContent = `${netHours > 0 ? '+' : ''}${netHours.toFixed(1)} ساعة`;
+        elNetH.style.color = netHours > 0 ? '#16a34a' : netHours < 0 ? '#dc2626' : '#2563eb';
+    }
+
+    if (elNetHLbl) {
+        if (netHours > 0.1) elNetHLbl.textContent = 'فارق إيجابي (أوفر تايم)';
+        else if (netHours < -0.1) elNetHLbl.textContent = 'فارق سلبي (تأخيرات)';
+        else elNetHLbl.textContent = 'متوازن تماماً';
+    }
+
+    if (elNetImpact) {
+        elNetImpact.textContent = `${netFinancial > 0 ? '+' : ''}${netFinancial.toFixed(1)} ﷼`;
+        elNetImpact.style.color = netFinancial > 0 ? '#16a34a' : netFinancial < 0 ? '#dc2626' : '#7c3aed';
+    }
+}
+
+function exportAttendanceToExcel() {
+    if (!currentAttendanceData || currentAttendanceData.length === 0) {
+        if (typeof smartAlert === 'function') smartAlert('لا توجد بيانات حضور لتصديرها');
+        else alert('لا توجد بيانات حضور لتصديرها');
+        return;
+    }
+
+    if (typeof XLSX === 'undefined') {
+        alert('مكتبة Excel غير محملة، يرجى تحديث الصفحة.');
+        return;
+    }
+
+    const selectedEmp = document.getElementById('attendanceEmployeeFilter');
+    const empNameFilter = selectedEmp && selectedEmp.value ? selectedEmp.options[selectedEmp.selectedIndex].text : 'كافة الموظفين';
+    const fromDate = document.getElementById('attendanceFromDate')?.value || '';
+    const toDate = document.getElementById('attendanceToDate')?.value || '';
+
+    const exportRows = currentAttendanceData.map((row, idx) => {
+        const checkIn = row.check_in ? new Date(row.check_in).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'}) : '---';
+        const checkOut = row.check_out ? new Date(row.check_out).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'}) : '---';
+        const delayMin = parseFloat(row.delay_minutes || row.late_minutes || 0) + parseFloat(row.early_departure_minutes || 0);
+        const overtimeMin = parseFloat(row.overtime_minutes || 0);
+        const salary = parseFloat(row.base_salary) || 0;
+        const hourlyRate = salary > 0 ? (salary / 240) : 0;
+        const delayDeduction = (delayMin / 60) * hourlyRate;
+        const overtimeBonus = (overtimeMin / 60) * hourlyRate;
+        const netImpact = overtimeBonus - delayDeduction;
+
+        return {
+            'م': idx + 1,
+            'التاريخ': row.date,
+            'اسم الموظف': row.employee_name,
+            'القسم': row.section_name || 'عام',
+            'الراتب الأساسي': salary,
+            'الوردية': `${row.shift_start || '08:00'} - ${row.shift_end || '18:00'}`,
+            'وقت الحضور': checkIn,
+            'وقت الانصراف': checkOut,
+            'ساعات التأخير': (delayMin / 60).toFixed(2),
+            'ساعات الإضافي': (overtimeMin / 60).toFixed(2),
+            'مبلغ الخصم (﷼)': delayDeduction.toFixed(2),
+            'مبلغ الإضافي (﷼)': overtimeBonus.toFixed(2),
+            'صافي الأثر المالي (﷼)': netImpact.toFixed(2),
+            'الحالة': row.check_in ? 'حاضر' : 'غائب'
+        };
+    });
+
+    const ws = XLSX.utils.json_to_sheet(exportRows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "تقرير الحضور والغياب");
+    
+    const fileName = `سجل_الحضور_${empNameFilter.replace(/\s+/g, '_')}_${fromDate}_إلى_${toDate}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+}
+
+function printAttendanceReport() {
+    if (!currentAttendanceData || currentAttendanceData.length === 0) {
+        alert('لا توجد بيانات حضور للطباعة');
+        return;
+    }
+
+    const selectedEmp = document.getElementById('attendanceEmployeeFilter');
+    const empNameFilter = selectedEmp && selectedEmp.value ? selectedEmp.options[selectedEmp.selectedIndex].text : 'كافة موظفي المركز';
+    const fromDate = document.getElementById('attendanceFromDate')?.value || '--';
+    const toDate = document.getElementById('attendanceToDate')?.value || '--';
+
+    let totalDelayMin = 0;
+    let totalOvertimeMin = 0;
+    let totalDeduction = 0;
+    let totalBonus = 0;
+
+    const rowsHtml = currentAttendanceData.map((row, idx) => {
+        const checkIn = row.check_in ? new Date(row.check_in).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'}) : '---';
+        const checkOut = row.check_out ? new Date(row.check_out).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'}) : '---';
+        const delayMin = parseFloat(row.delay_minutes || row.late_minutes || 0) + parseFloat(row.early_departure_minutes || 0);
+        const overtimeMin = parseFloat(row.overtime_minutes || 0);
+        const salary = parseFloat(row.base_salary) || 0;
+        const hourlyRate = salary > 0 ? (salary / 240) : 0;
+        const delayDeduction = (delayMin / 60) * hourlyRate;
+        const overtimeBonus = (overtimeMin / 60) * hourlyRate;
+        const netImpact = overtimeBonus - delayDeduction;
+
+        totalDelayMin += delayMin;
+        totalOvertimeMin += overtimeMin;
+        totalDeduction += delayDeduction;
+        totalBonus += overtimeBonus;
+
+        return `
+            <tr>
+                <td style="padding:6px; border:1px solid #ccc; text-align:center;">${idx + 1}</td>
+                <td style="padding:6px; border:1px solid #ccc; text-align:center;">${row.date}</td>
+                <td style="padding:6px; border:1px solid #ccc; font-weight:bold;">${row.employee_name}</td>
+                <td style="padding:6px; border:1px solid #ccc; text-align:center;">${row.section_name || 'عام'}</td>
+                <td style="padding:6px; border:1px solid #ccc; text-align:center;" dir="ltr">${checkIn}</td>
+                <td style="padding:6px; border:1px solid #ccc; text-align:center;" dir="ltr">${checkOut}</td>
+                <td style="padding:6px; border:1px solid #ccc; text-align:center; color:${delayMin > 0 ? '#b91c1c' : '#000'}">${(delayMin/60).toFixed(1)} س</td>
+                <td style="padding:6px; border:1px solid #ccc; text-align:center; color:${overtimeMin > 0 ? '#15803d' : '#000'}">${(overtimeMin/60).toFixed(1)} س</td>
+                <td style="padding:6px; border:1px solid #ccc; text-align:center; font-weight:bold;">${netImpact > 0 ? '+' : ''}${netImpact.toFixed(1)} ﷼</td>
+                <td style="padding:6px; border:1px solid #ccc; text-align:center;">${row.check_in ? 'حاضر' : 'غائب'}</td>
+            </tr>
+        `;
+    }).join('');
+
+    const netTotal = totalBonus - totalDeduction;
+    const printWin = window.open('', '_blank');
+    printWin.document.write(`
+        <!DOCTYPE html>
+        <html lang="ar" dir="rtl">
+        <head>
+            <meta charset="UTF-8">
+            <title>تقرير سجل الحضور والانصراف - ${empNameFilter}</title>
+            <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+            <style>
+                body { font-family: 'Cairo', sans-serif; padding: 20px; direction: rtl; color: #111; }
+                table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 12px; }
+                th { background: #f1f5f9; padding: 8px; border: 1px solid #cbd5e1; font-weight: 800; }
+                .summary-box { display: flex; gap: 12px; justify-content: space-between; margin: 15px 0; }
+                .stat-card { border: 1px solid #cbd5e1; padding: 10px 14px; border-radius: 8px; flex: 1; text-align: center; }
+                .stat-card b { display: block; font-size: 16px; margin-top: 4px; }
+                @media print {
+                    @page { size: landscape; margin: 10mm; }
+                }
+            </style>
+        </head>
+        <body>
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #000; padding-bottom:10px;">
+                <div>
+                    <h2 style="margin:0;">تقرير الحضور والانصراف وساعات العمل</h2>
+                    <div style="font-size:13px; color:#555;">الموظف: <strong>${empNameFilter}</strong> | الفترة: من <strong>${fromDate}</strong> إلى <strong>${toDate}</strong></div>
+                </div>
+                <div style="text-align:left; font-size:12px;">
+                    <div>تاريخ الاستخراج: ${new Date().toLocaleDateString('ar-SA')}</div>
+                    <div>عدد السجلات: ${currentAttendanceData.length}</div>
+                </div>
+            </div>
+
+            <div class="summary-box">
+                <div class="stat-card" style="background:#fef2f2;">
+                    <div>إجمالي ساعات التأخير</div>
+                    <b style="color:#dc2626;">${(totalDelayMin/60).toFixed(1)} ساعة</b>
+                    <small>الخصم: ${totalDeduction.toFixed(1)} ﷼</small>
+                </div>
+                <div class="stat-card" style="background:#f0fdf4;">
+                    <div>إجمالي الأوفر تايم</div>
+                    <b style="color:#16a34a;">${(totalOvertimeMin/60).toFixed(1)} ساعة</b>
+                    <small>المكافأة: ${totalBonus.toFixed(1)} ﷼</small>
+                </div>
+                <div class="stat-card" style="background:#eff6ff;">
+                    <div>الفارق بالساعات</div>
+                    <b style="color:#2563eb;">${((totalOvertimeMin - totalDelayMin)/60).toFixed(1)} ساعة</b>
+                    <small>${(totalOvertimeMin - totalDelayMin) >= 0 ? 'إيجابي' : 'عجز في الساعات'}</small>
+                </div>
+                <div class="stat-card" style="background:#faf5ff;">
+                    <div>صافي الأثر المالي</div>
+                    <b style="color:#7c3aed;">${netTotal > 0 ? '+' : ''}${netTotal.toFixed(1)} ﷼</b>
+                    <small>محسوب على أساس الراتب</small>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>التاريخ</th>
+                        <th>اسم الموظف</th>
+                        <th>القسم</th>
+                        <th>حضور</th>
+                        <th>انصراف</th>
+                        <th>تأخير</th>
+                        <th>إضافي</th>
+                        <th>الأثر المالي</th>
+                        <th>الحالة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rowsHtml}
+                </tbody>
+            </table>
+
+            <div style="margin-top: 30px; display:flex; justify-content:space-between; text-align:center; font-size:13px;">
+                <div>توقيع المشرف المسؤول: .........................</div>
+                <div>اعتماد إدارة الموارد البشرية والرواتب: .........................</div>
+            </div>
+
+            <script>
+                window.onload = function() { window.print(); }
+            </script>
+        </body>
+        </html>
+    `);
+    printWin.document.close();
 }
 
 async function openShiftModal() {

@@ -103,6 +103,94 @@
             </div>
         </div>
 
+        <!-- Official Logo & Stamps Settings Box -->
+        <div class="section-box" style="border: 2px solid #3b82f6; background: #f8fafc;">
+            <div class="section-title" style="color: #1d4ed8; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-stamp" style="font-size: 20px;"></i>
+                    <span>الشعار والأختام الرسمية للطباعة (Logo & Official Stamps)</span>
+                </div>
+                <span style="font-size: 11.5px; background: #dbeafe; color: #1e40af; font-weight: 700; padding: 3px 10px; border-radius: 12px;">تلقائي في التسعيرة وأوامر العمل</span>
+            </div>
+            <p style="font-size:12.5px; color:#475569; margin-bottom:16px; line-height: 1.6;">
+                ارفع شعار المركز (Logo) ليظهر في رأس تسعيرة الأجور وأوامر العمل، وأختام الاعتماد الرسمية لتظهر تلقائياً أو اختيارياً عند طباعة التسعيرات والفواتير وأوامر العمل.
+            </p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+                <!-- 1. Workshop Logo -->
+                <div style="background: white; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <div style="font-weight: 800; font-size: 13.5px; color: #0f172a; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-image" style="color: #3b82f6;"></i>
+                            <span>شعار المركز (Logo)</span>
+                        </div>
+                        <div style="font-size: 11px; color: #64748b; margin-bottom: 10px;">يظهر في رأس التسعيرة وأمر العمل</div>
+                        <div style="border: 1.5px dashed #cbd5e1; border-radius: 10px; min-height: 100px; display: flex; align-items: center; justify-content: center; background: #f8fafc; padding: 8px; margin-bottom: 10px;">
+                            <img id="logoPreviewImg" src="" alt="شعار المركز" style="max-width: 100%; max-height: 90px; object-fit: contain; display: none;">
+                            <span id="logoPlaceholder" style="font-size: 11.5px; color: #94a3b8; text-align: center;">📷 لا يوجد شعار مرفوع</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                        <input type="file" id="logoFileInput" accept="image/*" style="display: none;" onchange="uploadBrandingFile('logo', this)">
+                        <button type="button" class="btn btn-primary" style="flex: 1; padding: 7px 10px; font-size: 12px; font-weight: 700;" onclick="document.getElementById('logoFileInput').click()">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> رفع شعار
+                        </button>
+                        <button type="button" id="deleteLogoBtn" class="btn btn-secondary" style="display: none; padding: 7px 10px; font-size: 12px; color: #dc2626; border-color: #fca5a5;" onclick="deleteBrandingFile('workshop_logo')">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. Quotation Stamp -->
+                <div style="background: white; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <div style="font-weight: 800; font-size: 13.5px; color: #0f172a; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-file-signature" style="color: #0284c7;"></i>
+                            <span>ختم تسعيرة أجور</span>
+                        </div>
+                        <div style="font-size: 11px; color: #64748b; margin-bottom: 10px;">يظهر في أسفل ورقة التسعيرة</div>
+                        <div style="border: 1.5px dashed #cbd5e1; border-radius: 10px; min-height: 100px; display: flex; align-items: center; justify-content: center; background: #f8fafc; padding: 8px; margin-bottom: 10px;">
+                            <img id="quoteStampPreviewImg" src="" alt="ختم التسعيرة" style="max-width: 100%; max-height: 90px; object-fit: contain; display: none;">
+                            <span id="quoteStampPlaceholder" style="font-size: 11.5px; color: #94a3b8; text-align: center;">💮 لا يوجد ختم تسعيرة</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                        <input type="file" id="quoteStampFileInput" accept="image/*" style="display: none;" onchange="uploadBrandingFile('quotation_stamp', this)">
+                        <button type="button" class="btn btn-primary" style="flex: 1; padding: 7px 10px; font-size: 12px; font-weight: 700; background: #0284c7;" onclick="document.getElementById('quoteStampFileInput').click()">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> رفع ختم التسعيرة
+                        </button>
+                        <button type="button" id="deleteQuoteStampBtn" class="btn btn-secondary" style="display: none; padding: 7px 10px; font-size: 12px; color: #dc2626; border-color: #fca5a5;" onclick="deleteBrandingFile('quotation_stamp')">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3. Invoice & Job Order Stamp -->
+                <div style="background: white; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div>
+                        <div style="font-weight: 800; font-size: 13.5px; color: #0f172a; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-certificate" style="color: #16a34a;"></i>
+                            <span>ختم الفاتورة وأمر العمل</span>
+                        </div>
+                        <div style="font-size: 11px; color: #64748b; margin-bottom: 10px;">يظهر في كرت التشغيل وأمر العمل المعتمد</div>
+                        <div style="border: 1.5px dashed #cbd5e1; border-radius: 10px; min-height: 100px; display: flex; align-items: center; justify-content: center; background: #f8fafc; padding: 8px; margin-bottom: 10px;">
+                            <img id="invoiceStampPreviewImg" src="" alt="ختم الفاتورة" style="max-width: 100%; max-height: 90px; object-fit: contain; display: none;">
+                            <span id="invoiceStampPlaceholder" style="font-size: 11.5px; color: #94a3b8; text-align: center;">🛡️ لا يوجد ختم فاتورة</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                        <input type="file" id="invoiceStampFileInput" accept="image/*" style="display: none;" onchange="uploadBrandingFile('invoice_stamp', this)">
+                        <button type="button" class="btn btn-primary" style="flex: 1; padding: 7px 10px; font-size: 12px; font-weight: 700; background: #16a34a;" onclick="document.getElementById('invoiceStampFileInput').click()">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> رفع ختم الفاتورة
+                        </button>
+                        <button type="button" id="deleteInvoiceStampBtn" class="btn btn-secondary" style="display: none; padding: 7px 10px; font-size: 12px; color: #dc2626; border-color: #fca5a5;" onclick="deleteBrandingFile('invoice_stamp')">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Marketing & Promo Codes Settings Card -->
         <div class="section-box" style="border: 2px solid #6366f1; background: #fdfefe;">
             <div class="section-title" style="color: #4f46e5; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
@@ -329,6 +417,75 @@
         }
 
         // Load Settings
+        
+        // ==========================
+        // 🎨 وظائف رفع وإدارة الشعار والأختام الرسمية
+        // ==========================
+        async function uploadBrandingFile(type, input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('brandingFile', file);
+            formData.append('type', type);
+
+            try {
+                const res = await fetch('/api/settings/upload-branding', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    alert('✅ ' + (data.message || 'تم حفظ الصورة بنجاح!'));
+                    await loadSettings();
+                } else {
+                    alert('❌ فشل رفع الملف: ' + (data.message || 'خطأ غير معروف'));
+                }
+            } catch (err) {
+                alert('❌ تعذر الاتصال بالسيرفر لرفع الصورة');
+            } finally {
+                input.value = '';
+            }
+        }
+
+        async function deleteBrandingFile(key) {
+            if (!confirm('هل أنت متأكد من حذف هذه الصورة/الختم؟')) return;
+            try {
+                const res = await fetch(`/api/settings/branding/${key}`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert('✅ تم حذف الملف بنجاح');
+                    await loadSettings();
+                } else {
+                    alert('❌ فشل الحذف');
+                }
+            } catch (e) {
+                alert('❌ خطأ في الاتصال');
+            }
+        }
+
+        function updateBrandingPreview(imgId, placeholderId, deleteBtnId, url) {
+            const img = document.getElementById(imgId);
+            const placeholder = document.getElementById(placeholderId);
+            const delBtn = document.getElementById(deleteBtnId);
+
+            if (url && url.trim()) {
+                const cleanUrl = url.startsWith('/') ? url : '/' + url;
+                if (img) {
+                    img.src = cleanUrl + '?v=' + Date.now();
+                    img.style.display = 'block';
+                }
+                if (placeholder) placeholder.style.display = 'none';
+                if (delBtn) delBtn.style.display = 'inline-flex';
+            } else {
+                if (img) {
+                    img.src = '';
+                    img.style.display = 'none';
+                }
+                if (placeholder) placeholder.style.display = 'inline';
+                if (delBtn) delBtn.style.display = 'none';
+            }
+        }
+
         async function loadSettings() {
             try {
                 const res = await fetch('/api/settings');
@@ -345,6 +502,11 @@
                 document.getElementById('workshopLongitude').value = settings.workshop_longitude || '';
                 document.getElementById('geofenceRadius').value = settings.geofence_radius_meters || '500';
                 document.getElementById('geofenceEnabled').checked = settings.geofence_enabled === 'true' || settings.geofence_enabled === true;
+
+                // Branding & Stamps Previews
+                updateBrandingPreview('logoPreviewImg', 'logoPlaceholder', 'deleteLogoBtn', settings.workshop_logo);
+                updateBrandingPreview('quoteStampPreviewImg', 'quoteStampPlaceholder', 'deleteQuoteStampBtn', settings.quotation_stamp);
+                updateBrandingPreview('invoiceStampPreviewImg', 'invoiceStampPlaceholder', 'deleteInvoiceStampBtn', settings.invoice_stamp);
 
                 const res2 = await fetch('/api/terms');
                 const terms = await res2.json();

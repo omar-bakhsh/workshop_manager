@@ -788,6 +788,10 @@ async function initDatabase() {
     await safeAddColumn('sections', 'can_inspect', "TINYINT DEFAULT 0");
     await safeAddColumn('sections', 'can_manage_parts', "TINYINT DEFAULT 0");
     await safeAddColumn('sections', 'permissions', "TEXT NULL");
+    await safeAddColumn('sections', 'target_enabled', "TINYINT DEFAULT 1");
+    await safeAddColumn('sections', 'target_type', "VARCHAR(50) DEFAULT 'percentage'");
+    await safeAddColumn('sections', 'target_percent', "DOUBLE DEFAULT 100");
+    await safeAddColumn('sections', 'default_target', "DOUBLE DEFAULT 0");
     await safeAddColumn('employees', 'bank_name', "VARCHAR(100) DEFAULT 'كاش'");
     await safeAddColumn('attendance', 'check_in', "DATETIME NULL");
     await safeAddColumn('attendance', 'check_out', "DATETIME NULL");

@@ -7,6 +7,7 @@
     <title>Atenza App | لوحة تحكم المدير</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="toast.css?v=5.2">
     <link rel="stylesheet" href="public/css/admin.css?v=5.6">
     <script src="toast.js?v=5.0"></script>
@@ -31,35 +32,11 @@
                 <button class="sidebar-close-btn" onclick="toggleMobileSidebar()" title="إغلاق">✕</button>
             </div>
             <nav class="sidebar-nav">
-                <div class="nav-separator">لوحة المتابعة والتشغيل</div>
-                <a href="#" class="nav-item active" onclick="showView('overview'); toggleMobileSidebar(false);" title="لوحة التحكم الرئيسية">
-                    <span class="nav-icon"><i class="fa-solid fa-chart-pie"></i></span>
-                    <span>لوحة التحكم الرئيسية</span>
+                <div class="nav-separator">العمليات والورشة (الأكثر استخداماً)</div>
+                <a href="job_orders_list.html" class="nav-item" title="أوامر العمل وحالات السيارات">
+                    <span class="nav-icon"><i class="fa-solid fa-screwdriver-wrench"></i></span>
+                    <span>أوامر العمل وحالات السيارات</span>
                 </a>
-                <a href="#" class="nav-item" onclick="openAttendanceModal(); toggleMobileSidebar(false);" title="سجل الحضور الذكي">
-                    <span class="nav-icon"><i class="fa-solid fa-calendar-check"></i></span>
-                    <span>سجل الحضور الذكي</span>
-                </a>
-                <a href="#" class="nav-item" onclick="openLeaveModal(); toggleMobileSidebar(false);" title="إدارة الإجازات">
-                    <span class="nav-icon"><i class="fa-solid fa-umbrella-beach"></i></span>
-                    <span>إدارة الإجازات</span>
-                </a>
-                <a href="#" class="nav-item" onclick="openShiftModal(); toggleMobileSidebar(false);" title="مواعيد العمل">
-                    <span class="nav-icon"><i class="fa-solid fa-clock"></i></span>
-                    <span>مواعيد العمل والورديات</span>
-                </a>
-                <a href="#" class="nav-item" onclick="openDocumentsModal(); toggleMobileSidebar(false);" title="مستندات وسكليفات الموظفين">
-                    <span class="nav-icon"><i class="fa-solid fa-folder-open"></i></span>
-                    <span>مستندات وسكليفات الموظفين</span>
-                    <span id="docsBadge" class="badge-status badge-status-danger" style="display:none; margin-right:auto; padding:2px 7px; font-size:11px; border-radius:12px;">0</span>
-                </a>
-                <a href="#" class="nav-item" onclick="toggleAdminChat(); toggleMobileSidebar(false);" title="دردشة الموظفين المباشرة">
-                    <span class="nav-icon"><i class="fa-solid fa-comments"></i></span>
-                    <span>دردشة الموظفين</span>
-                    <span id="sidebarChatBadge" class="badge-status badge-status-danger" style="display:none; margin-right:auto; padding:2px 7px; font-size:11px; border-radius:12px;">0</span>
-                </a>
-
-                <div class="nav-separator">العمليات والورشة</div>
                 <a href="inspector.html" class="nav-item" title="كشف فني وتسعيرة جديدة">
                     <span class="nav-icon"><i class="fa-solid fa-file-circle-plus"></i></span>
                     <span>كشف فني وتسعيرة جديدة</span>
@@ -68,13 +45,37 @@
                     <span class="nav-icon"><i class="fa-solid fa-clipboard-list"></i></span>
                     <span>سجل التسعيرات والفحوصات</span>
                 </a>
-                <a href="job_orders_list.html" class="nav-item" title="أوامر العمل وحالات السيارات">
-                    <span class="nav-icon"><i class="fa-solid fa-car-burst"></i></span>
-                    <span>أوامر العمل وحالات السيارات</span>
-                </a>
                 <a href="shortcuts_manager.html" class="nav-item" title="باقات الصيانة السريعة">
                     <span class="nav-icon"><i class="fa-solid fa-bolt"></i></span>
                     <span>باقات الصيانة السريعة</span>
+                </a>
+
+                <div class="nav-separator">المتابعة والتشغيل اليومي</div>
+                <a href="#" class="nav-item active" onclick="showView('overview'); toggleMobileSidebar(false);" title="لوحة التحكم الرئيسية">
+                    <span class="nav-icon"><i class="fa-solid fa-chart-pie"></i></span>
+                    <span>لوحة التحكم الرئيسية</span>
+                </a>
+                <a href="#" class="nav-item" onclick="openAttendanceModal(); toggleMobileSidebar(false);" title="سجل الحضور الذكي">
+                    <span class="nav-icon"><i class="fa-solid fa-calendar-check"></i></span>
+                    <span>سجل الحضور والانصراف الذكي</span>
+                </a>
+                <a href="#" class="nav-item" onclick="toggleAdminChat(); toggleMobileSidebar(false);" title="دردشة الموظفين المباشرة">
+                    <span class="nav-icon"><i class="fa-solid fa-comments"></i></span>
+                    <span>دردشة الموظفين المباشرة</span>
+                    <span id="sidebarChatBadge" class="badge-status badge-status-danger" style="display:none; margin-right:auto; padding:2px 7px; font-size:11px; border-radius:12px;">0</span>
+                </a>
+                <a href="#" class="nav-item" onclick="openShiftModal(); toggleMobileSidebar(false);" title="مواعيد العمل">
+                    <span class="nav-icon"><i class="fa-solid fa-clock"></i></span>
+                    <span>مواعيد العمل والورديات</span>
+                </a>
+                <a href="#" class="nav-item" onclick="openLeaveModal(); toggleMobileSidebar(false);" title="إدارة الإجازات">
+                    <span class="nav-icon"><i class="fa-solid fa-umbrella-beach"></i></span>
+                    <span>إدارة الإجازات الرسمية</span>
+                </a>
+                <a href="#" class="nav-item" onclick="openDocumentsModal(); toggleMobileSidebar(false);" title="مستندات وسكليفات الموظفين">
+                    <span class="nav-icon"><i class="fa-solid fa-folder-open"></i></span>
+                    <span>مستندات وسكليفات الموظفين</span>
+                    <span id="docsBadge" class="badge-status badge-status-danger" style="display:none; margin-right:auto; padding:2px 7px; font-size:11px; border-radius:12px;">0</span>
                 </a>
 
                 <div class="nav-separator">العملاء والتسويق</div>
@@ -87,7 +88,7 @@
                     <span>التسويق وأكواد الخصم</span>
                 </a>
 
-                <div class="nav-separator">الإدارة والتقارير</div>
+                <div class="nav-separator">الإدارة والتقارير المالية</div>
                 <a href="employees_manager.html" class="nav-item" title="إدارة فريق العمل والموظفين">
                     <span class="nav-icon"><i class="fa-solid fa-user-tie"></i></span>
                     <span>إدارة فريق العمل والموظفين</span>
@@ -619,56 +620,104 @@
 
     <!-- Smart Attendance Modal -->
     <div id="attendanceModal" class="modal">
-        <div class="modal-content" style="max-width: 900px;">
+        <div class="modal-content" style="max-width: 1050px; width: 95%;">
             <div class="modal-header">
-                <h2><i class="fa-solid fa-calendar-check" style="color: var(--success);"></i> سجل الحضور والانصراف الذكي</h2>
+                <h2><i class="fa-solid fa-calendar-check" style="color: var(--success);"></i> سجل الحضور والانصراف والأثر المالي</h2>
                 <button type="button" class="close-btn" onclick="closeModal('attendanceModal')">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
             <div class="modal-body">
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-bottom:15px; background:#f8fafc; padding:12px; border-radius:12px; border:1px solid var(--border-color);">
+                <!-- Filters Bar -->
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-bottom:15px; background:#f8fafc; padding:14px; border-radius:14px; border:1px solid var(--border-color);">
                     <div class="form-group" style="margin:0;">
-                        <label style="font-size:12px; margin-bottom:4px;">تصفية حسب الموظف</label>
-                        <select id="attendanceEmployeeFilter" onchange="loadAttendanceReport()" style="padding:8px; font-size:13px;"></select>
+                        <label style="font-size:12px; font-weight:700; margin-bottom:4px;"><i class="fa-solid fa-user"></i> الموظف</label>
+                        <select id="attendanceEmployeeFilter" onchange="loadAttendanceReport('filter')" style="padding:8px; font-size:13px; width:100%; border-radius:8px; border:1.5px solid var(--border-color);"></select>
                     </div>
                     <div class="form-group" style="margin:0;">
-                        <label style="font-size:12px; margin-bottom:4px;">تقرير اليوم</label>
-                        <div style="display:flex; gap:6px;">
-                            <input type="date" id="attendanceDate" style="padding:6px; font-size:13px;">
-                            <button class="btn btn-primary" style="padding:6px 12px; font-size:12px;" onclick="loadAttendanceReport('date')">عرض</button>
-                        </div>
+                        <label style="font-size:12px; font-weight:700; margin-bottom:4px;"><i class="fa-solid fa-calendar-days"></i> من تاريخ</label>
+                        <input type="date" id="attendanceFromDate" style="padding:7px; font-size:13px; width:100%; border-radius:8px; border:1.5px solid var(--border-color);">
                     </div>
                     <div class="form-group" style="margin:0;">
-                        <label style="font-size:12px; margin-bottom:4px;">تقرير الشهر</label>
-                        <div style="display:flex; gap:6px;">
-                            <input type="month" id="attendanceMonth" style="padding:6px; font-size:13px;">
-                            <button class="btn btn-secondary" style="padding:6px 12px; font-size:12px;" onclick="loadAttendanceReport('month')">عرض</button>
-                        </div>
+                        <label style="font-size:12px; font-weight:700; margin-bottom:4px;"><i class="fa-solid fa-calendar-days"></i> إلى تاريخ</label>
+                        <input type="date" id="attendanceToDate" style="padding:7px; font-size:13px; width:100%; border-radius:8px; border:1.5px solid var(--border-color);">
+                    </div>
+                    <div class="form-group" style="margin:0; display:flex; align-items:flex-end; gap:6px;">
+                        <button class="btn btn-primary" style="padding:9px 14px; font-size:12.5px; font-weight:700; flex:1;" onclick="loadAttendanceReport('range')"><i class="fa-solid fa-magnifying-glass"></i> بحث</button>
+                        <button class="btn btn-secondary" style="padding:9px 12px; font-size:12px;" onclick="setAttendanceTodayFilter()" title="عرض حضور اليوم">اليوم</button>
+                        <button class="btn btn-secondary" style="padding:9px 12px; font-size:12px;" onclick="setAttendanceMonthFilter()" title="عرض حضور الشهر الحالي">الشهر</button>
                     </div>
                 </div>
-                <div style="overflow-x:auto; border-radius:12px; border:1px solid var(--border-color); max-height: 400px;">
-                    <table class="table" style="margin:0; width:100%;">
-                        <thead>
+
+                <!-- Summary Statistics Cards -->
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:10px; margin-bottom:15px;">
+                    <div style="background:#fef2f2; border:1px solid #fecaca; padding:10px 12px; border-radius:12px;">
+                        <div style="font-size:11.5px; font-weight:700; color:#991b1b;"><i class="fa-solid fa-clock-rotate-left"></i> إجمالي التأخير</div>
+                        <div id="attStatDelayHours" style="font-size:16px; font-weight:900; color:#dc2626; margin-top:2px;">0.0 ساعة</div>
+                        <div id="attStatDelayDeduction" style="font-size:11px; color:#b91c1c; font-weight:700;">خصم: 0 ﷼</div>
+                    </div>
+
+                    <div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:10px 12px; border-radius:12px;">
+                        <div style="font-size:11.5px; font-weight:700; color:#166534;"><i class="fa-solid fa-bolt"></i> إجمالي الأوفر تايم</div>
+                        <div id="attStatOvertimeHours" style="font-size:16px; font-weight:900; color:#16a34a; margin-top:2px;">0.0 ساعة</div>
+                        <div id="attStatOvertimeBonus" style="font-size:11px; color:#15803d; font-weight:700;">إضافة: 0 ﷼</div>
+                    </div>
+
+                    <div style="background:#eff6ff; border:1px solid #bfdbfe; padding:10px 12px; border-radius:12px;">
+                        <div style="font-size:11.5px; font-weight:700; color:#1e40af;"><i class="fa-solid fa-scale-balanced"></i> الفارق بالساعات</div>
+                        <div id="attStatNetHours" style="font-size:16px; font-weight:900; color:#2563eb; margin-top:2px;">0.0 ساعة</div>
+                        <div id="attStatNetHoursLabel" style="font-size:11px; color:#3b82f6; font-weight:700;">متوازن</div>
+                    </div>
+
+                    <div style="background:#faf5ff; border:1px solid #e9d5ff; padding:10px 12px; border-radius:12px;">
+                        <div style="font-size:11.5px; font-weight:700; color:#6b21a8;"><i class="fa-solid fa-coins"></i> صافي الأثر المالي</div>
+                        <div id="attStatNetImpact" style="font-size:16px; font-weight:900; color:#7c3aed; margin-top:2px;">0 ﷼</div>
+                        <div id="attStatSalaryBasis" style="font-size:10.5px; color:#9333ea; font-weight:600;">محسوب من الراتب</div>
+                    </div>
+                </div>
+
+                <!-- Actions Bar (Export & Print) -->
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+                    <div style="font-size:12.5px; font-weight:800; color:var(--text-dark);">
+                        <span>سجلات الحضور (<span id="attRecordCount">0</span> سجل):</span>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn btn-success" style="padding:6px 13px; font-size:12px; background:#10b981; border:none; color:white; border-radius:8px; font-weight:700; cursor:pointer;" onclick="exportAttendanceToExcel()">
+                            <i class="fa-solid fa-file-excel"></i> تصدير إكسل
+                        </button>
+                        <button class="btn btn-primary" style="padding:6px 13px; font-size:12px; background:#4f46e5; border:none; color:white; border-radius:8px; font-weight:700; cursor:pointer;" onclick="printAttendanceReport()">
+                            <i class="fa-solid fa-print"></i> طباعة تقرير PDF
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Records Table -->
+                <div style="overflow-x:auto; border-radius:12px; border:1px solid var(--border-color); max-height: 420px;" id="printableAttendanceArea">
+                    <table class="table" style="margin:0; width:100%; font-size:12.5px;">
+                        <thead style="background:#f8fafc; position:sticky; top:0; z-index:1;">
                             <tr>
                                 <th>التاريخ</th>
                                 <th>الموظف</th>
+                                <th>القسم</th>
                                 <th>الوردية</th>
                                 <th>حضور</th>
                                 <th>انصراف</th>
                                 <th>تأخير</th>
-                                <th>خروج مبكر</th>
                                 <th>إضافي</th>
+                                <th>الأثر المالي</th>
                                 <th>الحالة</th>
                             </tr>
                         </thead>
                         <tbody id="attendanceTableBody">
-                            <tr><td colspan="9" style="text-align:center; padding:20px;">⏳ جاري التحميل...</td></tr>
+                            <tr><td colspan="10" style="text-align:center; padding:20px;">⏳ جاري التحميل...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer" style="display:flex; justify-content:space-between;">
+                <div style="font-size:11.5px; color:var(--text-gray);">
+                    * يتم احتساب قيمة ساعة العمل على أساس (الراتب الأساسي ÷ 240 ساعة شهرياً).
+                </div>
                 <button class="btn btn-secondary" onclick="closeModal('attendanceModal')">إغلاق</button>
             </div>
         </div>

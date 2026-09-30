@@ -396,11 +396,11 @@
 
         <div class="stats-summary">
             <div class="mini-stat">
-                <div class="label">إجمالي الدخل (بدون ضريبة)</div>
+                <div class="label"><i class="fa-solid fa-coins" style="color:var(--primary); margin-left:4px;"></i> إجمالي الدخل للجميع (بدون ضريبة)</div>
                 <div class="value" id="summaryTotalIncome">0 ﷼</div>
             </div>
             <div class="mini-stat">
-                <div class="label">إجمالي الدخل (مع ضريبة 15%)</div>
+                <div class="label"><i class="fa-solid fa-receipt" style="color:#7c3aed; margin-left:4px;"></i> إجمالي الدخل للجميع (شامل ضريبة 15%)</div>
                 <div class="value" id="summaryTotalIncomeWithTax" style="color:#7c3aed;">0 ﷼</div>
             </div>
             <div class="mini-stat">
@@ -421,8 +421,7 @@
                     <th>القسم</th>
                     <th style="text-align: center;">الهدف (Target)</th>
                     <th style="text-align: center;">نسبة الإنجاز</th>
-                    <th style="text-align: left;">الدخل (بدون ضريبة)</th>
-                    <th style="text-align: left;">الدخل (شامل 15%)</th>
+                    <th style="text-align: left;">الدخل المحقق للفني (بدون ضريبة)</th>
                 </tr>
             </thead>
             <tbody id="tableBody">
@@ -594,7 +593,7 @@
             let targetCount = 0;
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 25px; color:#64748b; font-weight:700;">لا توجد بيانات للأقسام المحددة (تأكد من تفعيل الأقسام في الفلتر)</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 25px; color:#64748b; font-weight:700;">لا توجد بيانات للأقسام المحددة (تأكد من تفعيل الأقسام في الفلتر)</td></tr>`;
             } else {
                 filtered.forEach((emp, index) => {
                     const inc = parseFloat(emp.total_income) || 0;
@@ -613,7 +612,6 @@
                     else if (index === 1 && inc > 0) rankDisplay = '🥈';
                     else if (index === 2 && inc > 0) rankDisplay = '🥉';
 
-                    const incWithTax = Math.round(inc * 1.15);
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td class="rank-col">${rankDisplay}</td>
@@ -623,8 +621,7 @@
                         <td class="target-col" style="font-weight:800; color: ${tgt > 0 ? (percent >= 100 ? '#059669' : percent >= 75 ? '#d97706' : '#dc2626') : '#475569'};">
                             ${tgt > 0 ? percent + '%' : '-'}
                         </td>
-                        <td class="amount-col">${inc.toLocaleString()} ﷼</td>
-                        <td style="text-align: left; font-weight:700; color: #6d28d9;">${incWithTax.toLocaleString()} ﷼</td>
+                        <td class="amount-col" style="font-weight:800; color:#059669; font-size:14.5px;">${inc.toLocaleString()} ﷼</td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -660,8 +657,7 @@
                     'القسم': emp.section_name || 'أخرى',
                     'الهدف (Target)': tgt > 0 ? tgt : 0,
                     'نسبة الإنجاز': tgt > 0 ? `${percent}%` : '-',
-                    'الدخل (بدون ضريبة)': inc,
-                    'الدخل (شامل ضريبة 15%)': Math.round(inc * 1.15)
+                    'الدخل الصافي للفني (بدون ضريبة)': inc
                 };
             });
 
