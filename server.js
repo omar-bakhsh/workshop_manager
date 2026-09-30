@@ -347,7 +347,7 @@ app.post('/api/sections', async (req, res) => {
 app.put('/api/sections/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, shift_start, shift_end, can_view_income, can_withdraw, can_inspect, can_manage_parts, permissions, target_enabled, target_type, target_percent, default_target } = req.body;
+        const { name, shift_start, shift_end, can_view_income, can_withdraw, can_inspect, can_job_orders, can_manage_parts, permissions, target_enabled, target_type, target_percent, default_target } = req.body;
         if (!name || !name.trim()) return res.status(400).json({ message: 'اسم القسم مطلوب' });
         const cleanName = name.trim();
 
