@@ -655,6 +655,10 @@
                     <span><i class="fa-solid fa-clipboard-list"></i></span>
                     <span>التسعيرات</span>
                 </button>
+                <button class="btn-top btn-secondary-top" onclick="window.location.href='sticker.html'" title="طباعة ستيكر تغيير الزيت والصيانة">
+                    <span><i class="fa-solid fa-tag"></i></span>
+                    <span>ستيكر الصيانة</span>
+                </button>
                 <button class="btn-top btn-secondary-top" onclick="goBackDashboard()">
                     <span>🔙</span>
                     <span>رجوع</span>
@@ -1040,6 +1044,7 @@
                     <td>
                         <div class="action-btns" style="justify-content: center;">
                             <button class="btn-action-icon btn-card" onclick="openJobOrderCard(${item.id})" title="كرت التشغيل"><i class="fa-solid fa-clipboard-list"></i> كرت العمل</button>
+                            <button class="btn-action-icon" style="background:#dc2626; color:#fff;" onclick="window.open('sticker.html?fileNo=' + encodeURIComponent(item.card_no || item.id) + '&currentKm=' + (item.odometer || item.km || 0) + '&jobId=' + item.id, '_blank')" title="طباعة ستيكر الصيانة"><i class="fa-solid fa-tag"></i> ستيكر</button>
                             <button class="btn-action-icon" style="background:#059669; color:#fff;" onclick="openTaxInvoice(${item.id})" title="فاتورة ضريبية"><i class="fa-solid fa-file-invoice-dollar"></i> فاتورة</button>
                             <button class="btn-action-icon btn-whatsapp" onclick='openWhatsAppModalFor(${JSON.stringify(item).replace(/'/g, "&apos;")})' title="واتساب"><i class="fa-solid fa-comment-dots"></i> واتساب</button>
                             ${canEditOrders ? `<button class="btn-action-icon btn-edit" onclick="openInspectionEditor(${item.id})" title="تعديل"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}

@@ -391,6 +391,9 @@
                     <a href="job_orders_list.html" class="nav-bar-link ${activePage === 'job_orders_list.html' ? 'active' : ''}">
                         <span><i class="fa-solid fa-car"></i></span> <span>${jobTitle}</span>
                     </a>
+                    <a href="sticker.html" class="nav-bar-link ${activePage === 'sticker.html' ? 'active' : ''}">
+                        <span><i class="fa-solid fa-tag"></i></span> <span>ستيكر الصيانة</span>
+                    </a>
                 `;
             }
 

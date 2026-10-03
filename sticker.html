@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ستيكر تغيير الزيت والصيانة - Atenza App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Changa:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="toast.css">
+    <script src="public/js/app-config.js"></script>
+    <script src="toast.js"></script>
+    <script src="toast_helpers.js"></script>
+
+    <style>
+        :root {
+            --mazda-red: #e60000;
+            --mazda-red-hover: #c50000;
+            --carbon-dark: #111827;
+            --surface-card: #ffffff;
+            --surface-bg: #f3f4f6;
+            --border-color: #d1d5db;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+        }
+
+        body.dark-mode {
+            --surface-card: #1f293d;
+            --surface-bg: #0f172a;
+            --border-color: #334155;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background-color: var(--surface-bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding-bottom: 40px;
+        }
+
+        .page-container {
+            max-width: 1100px;
+            margin: 20px auto;
+            padding: 0 16px;
+        }
+
+        /* Top Header */
+        .top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--surface-card);
+            padding: 16px 24px;
+            border-radius: 14px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .header-title-box h1 {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-title-box h1 i {
+            color: var(--mazda-red);
+        }
+
+        .header-title-box p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-nav-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            background: #e5e7eb;
+            color: #374151;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-nav-back:hover {
+            background: #d1d5db;
+        }
+
+        /* Layout Grid */
+        .sticker-layout {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 24px;
+            align-items: start;
+        }
+
+        @media (max-width: 860px) {
+            .sticker-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Controls Card */
+        .controls-card {
+            background: var(--surface-card);
+            border-radius: 14px;
+            padding: 24px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Mode Tabs */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 10px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 10px;
+            font-size: 14px;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            text-align: center;
+            font-weight: 800;
+            border-radius: 8px;
+            color: #64748b;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .tab.active {
+            background: #000;
+            color: #ffffff;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        }
+
+        /* Quick Search from Job Orders */
+        .job-order-import-box {
+            background: #f8fafc;
+            border: 1.5px dashed #cbd5e1;
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .job-order-import-box input {
+            flex: 1;
+            min-width: 140px;
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .btn-fetch {
+            padding: 8px 14px;
+            background: #4f46e5;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: 0.2s;
+        }
+
+        .btn-fetch:hover {
+            background: #4338ca;
+        }
+
+        /* Form elements */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--text-main);
+        }
+
+        label small {
+            font-weight: normal;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            background-color: var(--surface-card);
+            color: var(--text-main);
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--mazda-red);
+        }
+
+        select {
+            cursor: pointer;
+            border: 2px solid var(--mazda-red);
+            font-weight: 700;
+        }
+
+        /* Preset Chips */
+        .presets-wrapper {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+            margin-bottom: 16px;
+        }
+
+        .preset-chip {
+            padding: 5px 12px;
+            background: #eef2ff;
+            color: #4338ca;
+            border: 1px solid #c7d2fe;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .preset-chip:hover {
+            background: #4338ca;
+            color: #fff;
+        }
+
+        .preset-chip.active-chip {
+            background: var(--mazda-red);
+            color: #fff;
+            border-color: var(--mazda-red);
+        }
+
+        /* Preview Card */
+        .preview-card {
+            background: var(--surface-card);
+            border-radius: 14px;
+            padding: 24px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: sticky;
+            top: 20px;
+        }
+
+        .preview-title {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-container {
+            background: #ffffff;
+            padding: 12px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 20px;
+        }
+
+        canvas {
+            background: white;
+            border: 2px solid #000;
+            width: 300px;
+            height: 300px;
+            display: block;
+            border-radius: 4px;
+        }
+
+        /* Print Button */
+        .btn-print {
+            width: 100%;
+            padding: 14px;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            font-weight: 800;
+            background: var(--mazda-red);
+            color: white;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(230, 0, 0, 0.3);
+            transition: all 0.2s;
+        }
+
+        .btn-print:hover {
+            background: var(--mazda-red-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-print:active {
+            transform: translateY(1px);
+        }
+
+        .btn-download {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            cursor: pointer;
+            border: 1.5px solid var(--border-color);
+            border-radius: 8px;
+            font-weight: 700;
+            background: transparent;
+            color: var(--text-main);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-download:hover {
+            background: #f1f5f9;
+        }
+
+        .sticker-tips {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 14px;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        /* Customization collapsible */
+        .extra-options-toggle {
+            font-size: 13px;
+            font-weight: 700;
+            color: #4f46e5;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .extra-options-panel {
+            display: none;
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 14px;
+            margin-top: 10px;
+        }
+
+        .extra-options-panel.open {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Global App Navbar -->
+    <div id="atenzaNavbar"></div>
+
+    <div class="page-container">
+
+        <!-- Top Header & Breadcrumb -->
+        <div class="top-header">
+            <div class="header-title-box">
+                <h1><i class="fa-solid fa-tag"></i> ستيكر تغيير الزيت ومواعيد الصيانة</h1>
+                <p>طباعة الملصقات الحرارية لمواعيد صيانة المحرك والجربكس المعتمدة</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn-nav-back" onclick="if(window.history.length > 1) { history.back(); } else { window.location.href='admin.html'; }">
+                    <i class="fa-solid fa-arrow-right"></i> رجوع
+                </button>
+            </div>
+        </div>
+
+        <div class="sticker-layout">
+
+            <!-- Controls Side -->
+            <div class="controls-card">
+
+                <!-- Mode Tabs -->
+                <div class="tabs">
+                    <button type="button" class="tab active" id="tab-oil" onclick="changeMode('oil', this)">
+                        <i class="fa-solid fa-oil-can"></i> زيت محرك
+                    </button>
+                    <button type="button" class="tab" id="tab-gear" onclick="changeMode('gear', this)">
+                        <i class="fa-solid fa-gear"></i> زيت جربكس
+                    </button>
+                    <button type="button" class="tab" id="tab-both" onclick="changeMode('both', this)">
+                        <i class="fa-solid fa-wrench"></i> نموذج شامل
+                    </button>
+                </div>
+
+                <!-- Quick Import from Job Order / Inspections -->
+                <div class="job-order-import-box">
+                    <span style="font-size:13px; font-weight:700; color:#334155;"><i class="fa-solid fa-magnifying-glass"></i> استيراد سريع:</span>
+                    <input type="text" id="quickSearchInput" placeholder="أدخل رقم أمر العمل أو رقم الكرت..." onkeypress="if(event.key==='Enter') searchAndFillOrder()">
+                    <button type="button" class="btn-fetch" onclick="searchAndFillOrder()">
+                        <i class="fa-solid fa-download"></i> جلب
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <label for="fileNo">رقم الملف / الكرت:</label>
+                    <input type="text" id="fileNo" value="150" oninput="draw()">
+                </div>
+                
+                <div class="form-group">
+                    <label for="currentKm">الممشى الحالي (KM):</label>
+                    <input type="number" id="currentKm" value="100000" oninput="draw()">
+                </div>
+
+                <div class="form-group">
+                    <label for="scheduleSelect">اختر ممشى الجدولة القادمة:</label>
+                    <select id="scheduleSelect" onchange="updatePlusKm()">
+                        <!-- Dynamic options -->
+                    </select>
+                </div>
+
+                <!-- Quick Presets -->
+                <div>
+                    <label style="font-size:12px; margin-bottom:2px;">اختصارات سريعة للممشى الإضافي (+):</label>
+                    <div class="presets-wrapper">
+                        <button type="button" class="preset-chip" onclick="applyQuickInterval(5000)">+ 5,000 كم</button>
+                        <button type="button" class="preset-chip active-chip" id="chip-10000" onclick="applyQuickInterval(10000)">+ 10,000 كم (محرك)</button>
+                        <button type="button" class="preset-chip" onclick="applyQuickInterval(40000)">+ 40,000 كم</button>
+                        <button type="button" class="preset-chip" id="chip-60000" onclick="applyQuickInterval(60000)">+ 60,000 كم (جربكس)</button>
+                        <button type="button" class="preset-chip" onclick="applyQuickInterval(80000)">+ 80,000 كم</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="plusKm">موعد التغيير القادم بعد (+ كم):</label>
+                    <input type="number" id="plusKm" value="10000" oninput="draw()">
+                </div>
+
+                <!-- Next calculated KM Preview banner -->
+                <div style="background:#f0fdf4; border:1.5px solid #86efac; border-radius:8px; padding:12px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <span style="font-size:12px; font-weight:700; color:#15803d; display:block;">الممشى القادم المحسوب:</span>
+                        <b id="summaryNextKm" style="font-size:20px; color:#166534; font-family:'Changa', sans-serif;">110,000 KM</b>
+                    </div>
+                    <span style="background:#22c55e; color:#fff; font-size:11px; font-weight:800; padding:3px 8px; border-radius:12px;">مضبوط تلقائياً</span>
+                </div>
+
+                <!-- Collapsible Extra Options -->
+                <div>
+                    <button type="button" class="extra-options-toggle" onclick="toggleExtraOptions()">
+                        <i class="fa-solid fa-sliders"></i> خيارات وتخصيص إضافي للملصق ▼
+                    </button>
+                    <div class="extra-options-panel" id="extraOptionsPanel">
+                        <div class="form-group">
+                            <label for="shopNameInput">اسم المركز في الترويسة:</label>
+                            <input type="text" id="shopNameInput" value="مركز أتينزا" oninput="draw()">
+                        </div>
+                        <div class="form-group">
+                            <label for="stickerDateInput">تاريخ الملصق:</label>
+                            <input type="date" id="stickerDateInput" onchange="draw()">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label for="footerTextInput">النص التذييلي:</label>
+                            <input type="text" id="footerTextInput" value="يرجى الالتزام بموعد الصيانة" oninput="draw()">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Preview & Print Side -->
+            <div class="preview-card">
+                <div class="preview-title">
+                    <span><i class="fa-solid fa-eye"></i> معاينة الملصق المباشرة</span>
+                    <span style="font-size:11px; color:#16a34a; font-weight:700;">جاهز للطباعة</span>
+                </div>
+
+                <div class="preview-container">
+                    <canvas id="sticker" width="600" height="600"></canvas>
+                </div>
+
+                <button class="btn-print" onclick="printSticker()">
+                    <i class="fa-solid fa-print"></i> طباعة الملصق الآن
+                </button>
+
+                <button class="btn-download" onclick="downloadStickerImage()">
+                    <i class="fa-solid fa-download"></i> حفظ كصورة PNG
+                </button>
+
+                <div class="sticker-tips">
+                    💡 الملصق متوافق مع كافة طابعات الستيكرات الحرارية (مقاس 50mm × 50mm القياسي أو أي طابعة باركود).
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        const canvas = document.getElementById('sticker');
+        const ctx = canvas.getContext('2d');
+        let mode = 'oil';
+
+        // 1. Populate Schedule Dropdown (500 increments up to 10,000, plus common gear intervals)
+        const scheduleSelect = document.getElementById('scheduleSelect');
+        function initScheduleDropdown() {
+            scheduleSelect.innerHTML = '';
+            // 500 to 10000
+            for (let i = 500; i <= 10000; i += 500) {
+                let option = document.createElement('option');
+                option.value = i;
+                option.text = i.toLocaleString('en-US') + ' كم';
+                if (i === 10000) option.selected = true; // default 10k
+                scheduleSelect.appendChild(option);
+            }
+
+            // Extended gear/major maintenance intervals
+            const extended = [15000, 20000, 30000, 40000, 50000, 60000, 80000, 100000];
+            extended.forEach(val => {
+                let opt = document.createElement('option');
+                opt.value = val;
+                opt.text = val.toLocaleString('en-US') + ' كم';
+                scheduleSelect.appendChild(opt);
+            });
+        }
+
+        // 2. Update plusKm when dropdown changes
+        function updatePlusKm() {
+            const selectedValue = document.getElementById('scheduleSelect').value;
+            document.getElementById('plusKm').value = selectedValue;
+            highlightMatchingPreset(selectedValue);
+            draw();
+        }
+
+        // 3. Apply Quick Preset Interval
+        function applyQuickInterval(km) {
+            document.getElementById('plusKm').value = km;
+            document.getElementById('scheduleSelect').value = km;
+            highlightMatchingPreset(km);
+            draw();
+        }
+
+        function highlightMatchingPreset(km) {
+            document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active-chip'));
+            if (km == 10000) {
+                const el = document.getElementById('chip-10000');
+                if (el) el.classList.add('active-chip');
+            } else if (km == 60000) {
+                const el = document.getElementById('chip-60000');
+                if (el) el.classList.add('active-chip');
+            }
+        }
+
+        // 4. Change Mode (oil, gear, both)
+        function changeMode(m, el) {
+            mode = m;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            if (el) {
+                el.classList.add('active');
+            } else {
+                const tabEl = document.getElementById(`tab-${m}`);
+                if (tabEl) tabEl.classList.add('active');
+            }
+            
+            if (m === 'gear') {
+                document.getElementById('plusKm').value = 60000;
+                document.getElementById('scheduleSelect').value = 60000;
+                highlightMatchingPreset(60000);
+            } else {
+                const val = document.getElementById('scheduleSelect').value || 10000;
+                document.getElementById('plusKm').value = val;
+                highlightMatchingPreset(val);
+            }
+            
+            draw();
+        }
+
+        // 5. Draw Canvas Sticker
+        function draw() {
+            const fileNo = document.getElementById('fileNo').value.trim() || '-';
+            const currentKm = parseInt(document.getElementById('currentKm').value) || 0;
+            const plusKm = parseInt(document.getElementById('plusKm').value) || 0;
+            const nextKm = currentKm + plusKm;
+
+            // Update calculated text
+            const summaryNextEl = document.getElementById('summaryNextKm');
+            if (summaryNextEl) {
+                summaryNextEl.textContent = `${nextKm.toLocaleString('en-US')} KM`;
+            }
+
+            // Date
+            let dateStr = '';
+            const customDate = document.getElementById('stickerDateInput').value;
+            if (customDate) {
+                const parts = customDate.split('-');
+                if (parts.length === 3) {
+                    dateStr = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                } else {
+                    dateStr = customDate;
+                }
+            } else {
+                dateStr = new Date().toLocaleDateString('en-GB');
+            }
+
+            const shopName = document.getElementById('shopNameInput').value.trim() || 'مركز أتينزا';
+            const footerText = document.getElementById('footerTextInput').value.trim() || 'يرجى الالتزام بموعد الصيانة';
+
+            // High-resolution canvas dimensions (600x600 for sharp thermal prints)
+            const W = canvas.width;  // 600
+            const H = canvas.height; // 600
+
+            // Background
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, W, H);
+
+            // Outer Border
+            ctx.strokeStyle = "#000000";
+            ctx.lineWidth = 12;
+            ctx.strokeRect(10, 10, W - 20, H - 20);
+
+            // Header - Workshop Name
+            ctx.fillStyle = "#000000";
+            ctx.textAlign = "center";
+            ctx.font = "bold 52px Cairo, Arial, sans-serif";
+            ctx.fillText(shopName, W / 2, 90);
+
+            // Decorative Horizontal Line
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(60, 120);
+            ctx.lineTo(W - 60, 120);
+            ctx.stroke();
+
+            // Right-aligned Details
+            ctx.textAlign = "right";
+            ctx.font = "bold 34px Cairo, Arial, sans-serif";
+            
+            let startY = 180;
+            const rightMargin = W - 50;
+
+            ctx.fillText(`رقم الكرت : ${fileNo}`, rightMargin, startY);
+            ctx.fillText(`التاريخ : ${dateStr}`, rightMargin, startY + 65);
+            ctx.fillText(`الممشى الحالي : ${currentKm.toLocaleString('en-US')}`, rightMargin, startY + 130);
+
+            // Next Maintenance Box
+            const boxY = startY + 170;
+            const boxHeight = 160;
+            const boxMargin = 40;
+            const boxWidth = W - (boxMargin * 2);
+
+            ctx.lineWidth = 4;
+            ctx.strokeRect(boxMargin, boxY, boxWidth, boxHeight);
+            
+            // Box Title Label
+            ctx.textAlign = "center";
+            ctx.font = "bold 30px Cairo, Arial, sans-serif";
+            let label = "تغيير زيت المحرك القادم";
+            if (mode === 'gear') label = "تغيير زيت الجربكس القادم";
+            if (mode === 'both') label = "موعد الصيانة القادمة";
+            
+            ctx.fillText(label, W / 2, boxY + 48);
+            
+            // Next KM (Big, bold & prominent)
+            ctx.font = "900 62px Cairo, 'Changa', Arial, sans-serif";
+            ctx.fillText(`${nextKm.toLocaleString('en-US')} KM`, W / 2, boxY + 128);
+
+            // Footer Notice
+            ctx.font = "bold 24px Cairo, Arial, sans-serif";
+            ctx.fillText(footerText, W / 2, H - 30);
+        }
+
+        // 6. Direct Print Sticker (Optimized for thermal label printers)
+        function printSticker() {
+            const dataUrl = canvas.toDataURL('image/png');
+            const win = window.open('', '_blank', 'width=450,height=550');
+            if (!win) {
+                if (typeof Toast !== 'undefined') {
+                    Toast.error('يرجى السماح بالنوافذ المنبثقة للطباعة');
+                } else {
+                    alert('يرجى السماح بالنوافذ المنبثقة للطباعة');
+                }
+                return;
+            }
+            win.document.write(`
+                <!DOCTYPE html>
+                <html lang="ar" dir="rtl">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>طباعة الملصق</title>
+                    <style>
+                        @page { 
+                            size: auto; 
+                            margin: 0; 
+                        }
+                        body { 
+                            margin: 0; 
+                            padding: 0; 
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            background: #fff;
+                        }
+                        img { 
+                            width: 100%; 
+                            max-width: 50mm; 
+                            height: auto; 
+                            display: block; 
+                            image-rendering: -webkit-optimize-contrast;
+                        }
+                    </style>
+                </head>
+                <body onload="setTimeout(function(){ window.print(); window.close(); }, 250);">
+                    <img src="${dataUrl}" alt="ملصق صيانة">
+                </body>
+                </html>
+            `);
+            win.document.close();
+        }
+
+        // 7. Download Sticker PNG
+        function downloadStickerImage() {
+            const fileNo = document.getElementById('fileNo').value.trim() || 'sticker';
+            const link = document.createElement('a');
+            link.download = `sticker_${fileNo}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            if (typeof Toast !== 'undefined') {
+                Toast.success('تم تحميل صورة الملصق بنجاح');
+            }
+        }
+
+        // 8. Toggle Extra Options Panel
+        function toggleExtraOptions() {
+            const panel = document.getElementById('extraOptionsPanel');
+            panel.classList.toggle('open');
+        }
+
+        // 9. Quick Search / Auto-fill from System
+        async function searchAndFillOrder(paramVal) {
+            const query = paramVal || document.getElementById('quickSearchInput').value.trim();
+            if (!query) {
+                if (typeof Toast !== 'undefined') Toast.warning('يرجى كتابة رقم أمر العمل أو رقم الكرت');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/inspections?search=${encodeURIComponent(query)}&limit=1`);
+                if (!res.ok) throw new Error('فشل جلب البيانات');
+                const data = await res.json();
+                
+                if (data && data.length > 0) {
+                    const item = data[0];
+                    if (item.id || item.card_no) {
+                        document.getElementById('fileNo').value = item.card_no || item.id;
+                    }
+                    if (item.odometer || item.km) {
+                        document.getElementById('currentKm').value = item.odometer || item.km;
+                    }
+                    draw();
+                    if (typeof Toast !== 'undefined') {
+                        Toast.success(`تم استيراد بيانات أمر العمل #${item.id} بنجاح`);
+                    }
+                } else {
+                    if (typeof Toast !== 'undefined') {
+                        Toast.warning('لم يتم العثور على أمر عمل بهذا الرقم');
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                if (typeof Toast !== 'undefined') {
+                    Toast.error('تعذر جلب بيانات أمر العمل');
+                }
+            }
+        }
+
+        // 10. Initialization & URL Parameter parsing
+        window.addEventListener('DOMContentLoaded', () => {
+            initScheduleDropdown();
+
+            // Set default date picker to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('stickerDateInput').value = today;
+
+            // Load workshop name from APP_CONFIG if available
+            if (typeof APP_CONFIG !== 'undefined' && APP_CONFIG.getWorkshopName) {
+                const dynamicName = APP_CONFIG.getWorkshopName();
+                if (dynamicName && dynamicName.trim()) {
+                    document.getElementById('shopNameInput').value = dynamicName;
+                }
+            }
+
+            // Check URL search params
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('fileNo')) {
+                document.getElementById('fileNo').value = params.get('fileNo');
+            }
+            if (params.has('currentKm')) {
+                document.getElementById('currentKm').value = params.get('currentKm');
+            }
+            if (params.has('mode')) {
+                const m = params.get('mode');
+                if (['oil', 'gear', 'both'].includes(m)) {
+                    changeMode(m);
+                }
+            }
+            if (params.has('plusKm')) {
+                const p = parseInt(params.get('plusKm'));
+                if (p) {
+                    document.getElementById('plusKm').value = p;
+                }
+            }
+            if (params.has('jobId')) {
+                const jId = params.get('jobId');
+                document.getElementById('quickSearchInput').value = jId;
+                searchAndFillOrder(jId);
+            }
+
+            draw();
+
+            // Auto print if requested via query ?print=1
+            if (params.get('print') === '1' || params.get('autoprint') === '1') {
+                setTimeout(printSticker, 600);
+            }
+        });
+    </script>
+</body>
+</html>

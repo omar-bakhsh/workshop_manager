@@ -13,7 +13,7 @@ echo  💾 حفظ نسخة احتياطية...
 echo ========================================
 
 :: حفظ في Git
-git add admin.html employee.html server.js inspector.html login.html income_report.html services_manager.html shortcuts_manager.html 2>nul
+git add admin.html employee.html server.js inspector.html login.html income_report.html services_manager.html shortcuts_manager.html sticker.html 2>nul
 git commit -m "BACKUP %TIMESTAMP%" 2>nul
 
 if %errorlevel% == 0 (

@@ -26,9 +26,12 @@ $filesToInclude = @(
     "services_manager.html",
     "settings.html",
     "shortcuts_manager.html",
+    "sticker.html",
     "clients_manager.html",
     "marketing.html",
     "track.html",
+    "cash_box.html",
+    "reports.html",
     "demo.html",
     "toast_demo.html",
     "app-config.js",
@@ -36,12 +39,14 @@ $filesToInclude = @(
     "utils.js",
     "toast.js",
     "toast_helpers.js",
+    "zatca-qr.js",
     "toast.css",
     "style.css",
     "manifest.json",
     "sw.js",
     "ecosystem.config.js",
     "Procfile",
+    "README.md",
     "favicon.ico",
     "icon-192.svg",
     "icon-512.svg",
@@ -55,6 +60,7 @@ $zipStream = [System.IO.File]::Create($zipPath)
 $archive = New-Object System.IO.Compression.ZipArchive($zipStream, [System.IO.Compression.ZipArchiveMode]::Create)
 
 # 1. Add root files
+$totalFiles = 0
 foreach ($fileName in $filesToInclude) {
     $filePath = Join-Path $PSScriptRoot $fileName
     if (Test-Path $filePath) {
@@ -64,6 +70,7 @@ foreach ($fileName in $filesToInclude) {
         $fileStream.CopyTo($entryStream)
         $fileStream.Close()
         $entryStream.Close()
+        $totalFiles++
     } else {
         Write-Warning "File not found: $fileName"
     }
@@ -82,6 +89,7 @@ if (Test-Path $publicDir) {
         $fileStream.CopyTo($entryStream)
         $fileStream.Close()
         $entryStream.Close()
+        $totalFiles++
     }
 }
 
@@ -98,13 +106,17 @@ if (Test-Path $serverPartsDir) {
         $fileStream.CopyTo($entryStream)
         $fileStream.Close()
         $entryStream.Close()
+        $totalFiles++
     }
 }
 
-# 4. Add uploads directory structure with placeholder
-$nullEntry = $archive.CreateEntry("uploads/inspection_photos/", [System.IO.Compression.CompressionLevel]::Optimal)
-$nullStream = $nullEntry.Open()
-$nullStream.Close()
+# 4. Add uploads directory structure with placeholders
+$uploadDirs = @("uploads/inspection_photos/", "uploads/documents/", "uploads/branding/")
+foreach ($ud in $uploadDirs) {
+    $nullEntry = $archive.CreateEntry($ud, [System.IO.Compression.CompressionLevel]::Optimal)
+    $nullStream = $nullEntry.Open()
+    $nullStream.Close()
+}
 
 # 5. Add db.sqlite and default_seed.sqlite
 $dbFile = Join-Path $PSScriptRoot "db.sqlite"
@@ -116,15 +128,36 @@ if (Test-Path $dbFile) {
         $fileStream.CopyTo($entryStream)
         $fileStream.Close()
         $entryStream.Close()
+        $totalFiles++
+    } catch {
+        Write-Host "db.sqlite warning: $($_.Exception.Message)"
+    }
+}
 
+$seedFile = Join-Path $PSScriptRoot "default_seed.sqlite"
+if (Test-Path $seedFile) {
+    try {
+        $entrySeed = $archive.CreateEntry("default_seed.sqlite", [System.IO.Compression.CompressionLevel]::Optimal)
+        $entrySeedStream = $entrySeed.Open()
+        $fileSeedStream = [System.IO.File]::Open($seedFile, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
+        $fileSeedStream.CopyTo($entrySeedStream)
+        $fileSeedStream.Close()
+        $entrySeedStream.Close()
+        $totalFiles++
+    } catch {
+        Write-Host "default_seed.sqlite warning: $($_.Exception.Message)"
+    }
+} elseif (Test-Path $dbFile) {
+    try {
         $entrySeed = $archive.CreateEntry("default_seed.sqlite", [System.IO.Compression.CompressionLevel]::Optimal)
         $entrySeedStream = $entrySeed.Open()
         $fileSeedStream = [System.IO.File]::Open($dbFile, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
         $fileSeedStream.CopyTo($entrySeedStream)
         $fileSeedStream.Close()
         $entrySeedStream.Close()
+        $totalFiles++
     } catch {
-        Write-Host "db.sqlite warning: $($_.Exception.Message)"
+        Write-Host "fallback default_seed warning: $($_.Exception.Message)"
     }
 }
 
@@ -132,6 +165,13 @@ $archive.Dispose()
 $zipStream.Dispose()
 
 if (Test-Path $zipPath) {
-    $size = (Get-Item $zipPath).Length / 1KB
-    Write-Host "BUILD_SUCCESS: workshop_deploy.zip created successfully ($([math]::Round($size, 2)) KB)"
+    $item = Get-Item $zipPath
+    $sizeKb = [math]::Round($item.Length / 1KB, 2)
+    $sizeMb = [math]::Round($item.Length / 1MB, 2)
+    Write-Host "=========================================="
+    Write-Host "BUILD_SUCCESS: workshop_deploy.zip created!"
+    Write-Host "File: $($item.FullName)"
+    Write-Host "Size: $sizeKb KB ($sizeMb MB)"
+    Write-Host "Total Packed Files: $totalFiles"
+    Write-Host "=========================================="
 }
