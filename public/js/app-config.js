@@ -397,6 +397,12 @@
             // Admin extra pages
             if (user.role === 'admin') {
                 linksHtml += `
+                    <a href="cash_box.html" class="nav-bar-link ${activePage === 'cash_box.html' ? 'active' : ''}">
+                        <span><i class="fa-solid fa-cash-register"></i></span> <span>الصندوق</span>
+                    </a>
+                    <a href="reports.html" class="nav-bar-link ${activePage === 'reports.html' ? 'active' : ''}">
+                        <span><i class="fa-solid fa-file-invoice"></i></span> <span>التقارير</span>
+                    </a>
                     <a href="employees_manager.html" class="nav-bar-link ${activePage === 'employees_manager.html' ? 'active' : ''}">
                         <span><i class="fa-solid fa-user-tie"></i></span> <span>الموظفين</span>
                     </a>
@@ -407,7 +413,7 @@
                         <span><i class="fa-solid fa-tags"></i></span> <span>التسويق والخصومات</span>
                     </a>
                     <a href="income_report.html" class="nav-bar-link ${activePage === 'income_report.html' ? 'active' : ''}">
-                        <span><i class="fa-solid fa-chart-pie"></i></span> <span>التقارير</span>
+                        <span><i class="fa-solid fa-chart-pie"></i></span> <span>دخل الموظفين</span>
                     </a>
                     <a href="settings.html" class="nav-bar-link ${activePage === 'settings.html' ? 'active' : ''}">
                         <span><i class="fa-solid fa-gear"></i></span> <span>الإعدادات</span>

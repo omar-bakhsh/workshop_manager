@@ -7,199 +7,715 @@
     <title>إعدادات النظام - Atenza App</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="public/js/app-config.js"></script>
     <style>
-        .container {
-            max-width: 800px;
-            margin: 40px auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: var(--shadow-md);
-            padding: 30px;
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-soft: #eef2ff;
+            --secondary-color: #0284c7;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --bg-page: #f8fafc;
+            --card-border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
         }
 
-        .header {
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--bg-page);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            padding-bottom: 90px;
+            /* مسافة للشريط العائم في الأسفل */
+        }
+
+        .settings-container {
+            max-width: 1040px;
+            width: 94%;
+            margin: 24px auto 40px;
+        }
+
+        /* Glassmorphic Page Header */
+        .settings-header {
+            background: white;
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 22px 28px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.04);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 20px;
-            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 16px;
         }
 
-        .section-box {
-            background: #f8fafc;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
+        .settings-header-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .settings-header-icon {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+            color: white;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 8px 16px -4px rgba(79, 70, 229, 0.35);
+        }
+
+        .settings-header-title {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .settings-header-desc {
+            margin: 2px 0 0;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .settings-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Quick Filter Navigation Bar */
+        .settings-nav-bar {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 4px 2px 14px;
             margin-bottom: 20px;
+            scrollbar-width: thin;
+        }
+
+        .settings-nav-bar::-webkit-scrollbar {
+            height: 5px;
+        }
+
+        .settings-nav-bar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .nav-pill {
+            background: white;
+            border: 1px solid #cbd5e1;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #475569;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+        }
+
+        .nav-pill:hover {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+            color: #0f172a;
+        }
+
+        .nav-pill.active {
+            background: #4f46e5;
+            border-color: #4f46e5;
+            color: white;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+        }
+
+        /* Modern Card Boxes */
+        .section-box {
+            background: white;
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 22px;
+            box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.04);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .section-box:hover {
+            box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.06);
         }
 
         .section-title {
+            font-weight: 800;
+            font-size: 17px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .section-title-start {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title-badge {
+            font-size: 11.5px;
             font-weight: 700;
-            font-size: 18px;
-            margin-bottom: 15px;
-            color: var(--text-dark);
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+
+        .form-grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .form-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
         }
 
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 16px;
         }
 
         .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            margin-bottom: 7px;
+            font-weight: 700;
+            font-size: 13px;
+            color: #334155;
         }
 
         .form-group input,
+        .form-group select,
         .form-group textarea {
             width: 100%;
-            padding: 10px;
+            padding: 10px 14px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 9px;
+            font-size: 13.5px;
+            font-family: inherit;
+            color: #0f172a;
+            background: #fff;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+
+        .form-hint {
+            color: #64748b;
+            font-size: 11.5px;
+            display: block;
+            margin-top: 5px;
+            line-height: 1.5;
+        }
+
+        /* Buttons Styling */
+        .btn-modern {
+            padding: 9px 18px;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 9px;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            text-decoration: none;
+        }
+
+        .btn-modern:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-primary-m {
+            background: #4f46e5;
+            color: white;
+            box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25);
+        }
+
+        .btn-primary-m:hover {
+            background: #4338ca;
+        }
+
+        .btn-secondary-m {
+            background: #f1f5f9;
+            color: #334155;
             border: 1px solid #cbd5e1;
-            border-radius: 6px;
+        }
+
+        .btn-secondary-m:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .btn-success-m {
+            background: #10b981;
+            color: white;
+            box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);
+        }
+
+        .btn-success-m:hover {
+            background: #059669;
+        }
+
+        .btn-warning-m {
+            background: #f59e0b;
+            color: white;
+        }
+
+        /* Modern Drop Box for Stamps & Logo */
+        .upload-drop-zone {
+            background: #f8fafc;
+            border: 1.5px dashed #cbd5e1;
+            border-radius: 12px;
+            min-height: 125px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            margin-bottom: 12px;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .upload-drop-zone:hover {
+            background: #f1f5f9;
+            border-color: #6366f1;
+        }
+
+        /* Sticky Bottom Save Bar */
+        .sticky-save-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid #e2e8f0;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+            padding: 12px 24px;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+        }
+
+        .sticky-save-inner {
+            max-width: 1040px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .save-status-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .save-status-info kbd {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+            padding: 2px 6px;
+            font-size: 11px;
+            color: #475569;
+        }
+
+        .save-actions-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 24px;
+            left: 24px;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 380px;
+            width: 90%;
+            pointer-events: none;
+        }
+
+        .toast-item {
+            background: white;
+            border-radius: 12px;
+            padding: 14px 18px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            pointer-events: auto;
+            animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            transition: all 0.3s ease;
+        }
+
+        .toast-item.toast-success {
+            border-right: 4px solid #10b981;
+        }
+
+        .toast-item.toast-error {
+            border-right: 4px solid #ef4444;
+        }
+
+        .toast-item.toast-warning {
+            border-right: 4px solid #f59e0b;
+        }
+
+        .toast-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .toast-item.toast-success .toast-icon {
+            color: #10b981;
+        }
+
+        .toast-item.toast-error .toast-icon {
+            color: #ef4444;
+        }
+
+        .toast-item.toast-warning .toast-icon {
+            color: #f59e0b;
+        }
+
+        .toast-content {
+            flex: 1;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e293b;
+            line-height: 1.5;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 2px;
+            font-size: 14px;
+        }
+
+        .toast-fade-out {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        @keyframes toastSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
     <div id="atenzaNavbar"></div>
-    <div class="container">
-        <div class="header">
-            <h1><i class="fa-solid fa-gear"></i> إعدادات النظام</h1>
-            <button class="btn btn-secondary" onclick="APP_NAV.goBack('admin.html')">🔙 رجوع</button>
-        </div>
+    <div id="toastNotificationContainer" class="toast-container"></div>
 
-        <div class="section-box">
-            <div class="section-title"><i class="fa-solid fa-mobile-screen"></i> هوية واسم التطبيق (App Branding)</div>
-            <div class="form-group">
-                <label>اسم التطبيق العام (App Name)</label>
-                <input type="text" id="appName" placeholder="Atenza App">
-                <small style="color: #64748b; font-size: 12px; display: block; margin-top: 4px;">يظهر هذا الاسم في عناوين الصفحات، شاشات الدخول، الشريط الجانبي وتثبيت التطبيق.</small>
+    <div class="settings-container">
+        <!-- Modern Header -->
+        <div class="settings-header">
+            <div class="settings-header-info">
+                <div class="settings-header-icon">
+                    <i class="fa-solid fa-gear"></i>
+                </div>
+                <div>
+                    <h1 class="settings-header-title">إعدادات وتخصيص النظام</h1>
+                    <p class="settings-header-desc">لوحة التحكم المركزية لبيانات الورشة، العلامة التجارية، أختام
+                        الاعتماد، وبوابة تطبيق الأندرويد</p>
+                </div>
             </div>
-            <div class="form-group">
-                <label>🌐 رابط النظام العام / دومين التتبع (Public Base URL)</label>
-                <input type="url" id="publicAppUrl" placeholder="مثال: https://atenza-app.com أو الرابط المنشور">
-                <small style="color: #64748b; font-size: 12px; display: block; margin-top: 4px;">يُستخدم هذا الرابط لإنشاء روابط التتبع (track.html) في رسائل الواتساب للعملاء حتى تفتح معهم بدون مشاكل المعاينة الخاصة أو الروابط المحلية.</small>
-            </div>
-            <div class="form-group">
-                <label>اسم الورشة / المؤسسة (للفواتير والكشوفات والطباعة)</label>
-                <input type="text" id="workshopName" placeholder="Atenza App">
-            </div>
-            <div class="form-group">
-                <label>وصف النشاط</label>
-                <input type="text" id="workshopDesc" placeholder="صيانة سيارات - سمكرة - دهان">
-            </div>
-            <div class="form-group">
-                <label>رقم الجوال</label>
-                <input type="text" id="workshopPhone" placeholder="05xxxxxxxx">
-            </div>
-            <div class="form-group">
-                <label>الرقم الضريبي</label>
-                <input type="text" id="vatNumber" placeholder="30xxxxxxxxxxxxx">
+            <div class="settings-header-actions">
+                <button type="button" class="btn-modern btn-secondary-m" onclick="APP_NAV.goBack('admin.html')">
+                    <i class="fa-solid fa-arrow-right"></i> رجوع
+                </button>
+                <button type="button" class="btn-modern btn-primary-m" onclick="saveAllSettings()">
+                    <i class="fa-solid fa-floppy-disk"></i> حفظ كافة الإعدادات
+                </button>
             </div>
         </div>
 
-        <!-- Official Logo & Stamps Settings Box -->
-        <div class="section-box" style="border: 2px solid #3b82f6; background: #f8fafc;">
-            <div class="section-title" style="color: #1d4ed8; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                <div style="display: flex; align-items: center; gap: 8px;">
+        <!-- Quick Filter Navigation Bar -->
+        <div class="settings-nav-bar">
+            <button type="button" class="nav-pill active" onclick="filterSettingsSection('all', this)">
+                <i class="fa-solid fa-layer-group"></i> كافة الإعدادات
+            </button>
+            <button type="button" class="nav-pill" onclick="filterSettingsSection('branding', this)">
+                <i class="fa-solid fa-paintbrush"></i> الهوية والأختام
+            </button>
+            <button type="button" class="nav-pill" onclick="filterSettingsSection('android', this)">
+                <i class="fa-solid fa-mobile-screen-button"></i> تطبيق الأندرويد والـ API
+            </button>
+            <button type="button" class="nav-pill" onclick="filterSettingsSection('geofence', this)">
+                <i class="fa-solid fa-location-dot"></i> الحضور وGPS
+            </button>
+            <button type="button" class="nav-pill" onclick="filterSettingsSection('schedule', this)">
+                <i class="fa-solid fa-clock"></i> الدوام والشروط
+            </button>
+            <button type="button" class="nav-pill" onclick="filterSettingsSection('finance', this)">
+                <i class="fa-solid fa-building-columns"></i> البنوك والرواتب
+            </button>
+            <button type="button" class="nav-pill" onclick="filterSettingsSection('backup', this)">
+                <i class="fa-solid fa-database"></i> النسخ الاحتياطي
+            </button>
+        </div>
+
+        <!-- 1. App Identity & Branding Settings -->
+        <div id="secGeneral" class="section-box settings-sec-item" data-category="branding">
+            <div class="section-title">
+                <div class="section-title-start">
+                    <i class="fa-solid fa-mobile-screen" style="color: #4f46e5; font-size: 19px;"></i>
+                    <span>هوية واسم التطبيق والمركز (App Branding & Workshop Info)</span>
+                </div>
+                <span class="section-title-badge" style="background: #ede9fe; color: #5b21b6;">العلامة التجارية</span>
+            </div>
+
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label><i class="fa-solid fa-mobile-screen"></i> اسم التطبيق العام (App Name)</label>
+                    <input type="text" id="appName" placeholder="Atenza App">
+                    <small class="form-hint">يظهر هذا الاسم في عناوين الصفحات، شاشات الدخول، الشريط الجانبي وتثبيت
+                        التطبيق.</small>
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-globe"></i> رابط النظام العام / دومين التتبع (Public Base URL)</label>
+                    <input type="url" id="publicAppUrl" placeholder="مثال: https://atenza-app.com أو الرابط المنشور">
+                    <small class="form-hint">يُستخدم هذا الرابط لإنشاء روابط التتبع (track.html) في رسائل الواتساب
+                        للعملاء بدون مشاكل المعاينة.</small>
+                </div>
+            </div>
+
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label><i class="fa-solid fa-building"></i> اسم الورشة / المؤسسة (للفواتير والكشوفات
+                        والطباعة)</label>
+                    <input type="text" id="workshopName" placeholder="Atenza App">
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-wrench"></i> وصف النشاط</label>
+                    <input type="text" id="workshopDesc" placeholder="صيانة سيارات - سمكرة - دهان">
+                </div>
+            </div>
+
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label><i class="fa-solid fa-phone"></i> رقم الجوال</label>
+                    <input type="text" id="workshopPhone" placeholder="05xxxxxxxx">
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-receipt"></i> الرقم الضريبي</label>
+                    <input type="text" id="vatNumber" placeholder="30xxxxxxxxxxxxx">
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Official Logo & Stamps Settings Box -->
+        <div id="secBranding" class="section-box settings-sec-item" data-category="branding"
+            style="border: 2px solid #3b82f6; background: #fafcff;">
+            <div class="section-title" style="color: #1d4ed8;">
+                <div class="section-title-start">
                     <i class="fa-solid fa-stamp" style="font-size: 20px;"></i>
                     <span>الشعار والأختام الرسمية للطباعة (Logo & Official Stamps)</span>
                 </div>
-                <span style="font-size: 11.5px; background: #dbeafe; color: #1e40af; font-weight: 700; padding: 3px 10px; border-radius: 12px;">تلقائي في التسعيرة وأوامر العمل</span>
+                <span class="section-title-badge" style="background: #dbeafe; color: #1e40af;">تلقائي في التسعيرة وأوامر
+                    العمل</span>
             </div>
-            <p style="font-size:12.5px; color:#475569; margin-bottom:12px; line-height: 1.6;">
-                ارفع شعار المركز (Logo) ليظهر في ترويسة الأوراق، وأختام الاعتماد لتظهر تلقائياً أو اختيارياً عند طباعة التسعيرات والفواتير وأوامر العمل. تم تحسين مساحات الأختام لتتسع للصور <b>المربعة والمستطيلة والدائرية</b> بدون قص أو مط.
+            <p style="font-size: 12.5px; color: #475569; margin-bottom: 12px; line-height: 1.6;">
+                ارفع شعار المركز (Logo) ليظهر في ترويسة الأوراق، وأختام الاعتماد لتظهر تلقائياً أو اختيارياً عند طباعة
+                التسعيرات والفواتير وأوامر العمل. تم تحسين مساحات الأختام لتتسع للصور المربعة والمستطيلة والدائرية بدون
+                قص.
             </p>
 
             <!-- Guide Box for Recommended Dimensions -->
-            <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: 12px; color: #1e40af; line-height: 1.6;">
+            <div
+                style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; font-size: 12px; color: #1e40af; line-height: 1.6;">
                 <div style="font-weight: 800; display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                     <i class="fa-solid fa-circle-info"></i>
                     <span>دليل المقاسات الموصى به لتجهيز الصور بجودة عالية (PNG بخلفية شفافة):</span>
                 </div>
                 <ul style="margin: 0; padding-right: 18px; list-style-type: disc; font-size: 11.5px; color: #1e3a8a;">
-                    <li><b>الأختام المربعة والدائرية:</b> المقاس المثالي <code style="background:#dbeafe; padding:1px 5px; border-radius:4px; font-weight:700;">300×300 px</code> إلى <code style="background:#dbeafe; padding:1px 5px; border-radius:4px; font-weight:700;">500×500 px</code></li>
-                    <li><b>الأختام المستطيلة العريضة:</b> المقاس المثالي <code style="background:#dbeafe; padding:1px 5px; border-radius:4px; font-weight:700;">400×200 px</code> إلى <code style="background:#dbeafe; padding:1px 5px; border-radius:4px; font-weight:700;">600×250 px</code></li>
-                    <li><b>شعار المركز (Logo):</b> المقاس المثالي <code style="background:#dbeafe; padding:1px 5px; border-radius:4px; font-weight:700;">400×150 px</code> أو <code style="background:#dbeafe; padding:1px 5px; border-radius:4px; font-weight:700;">300×300 px</code></li>
+                    <li><b>الأختام المربعة والدائرية:</b> المقاس المثالي <code
+                            style="background:#dbeafe; padding:1px 5px; border-radius:4px; font-weight:700;">300×300 px</code>
+                        إلى <code
+                            style="background:#dbeafe; padding:1px 5px; border-radius:4px; font-weight:700;">500×500 px</code>
+                    </li>
+                    <li><b>الأختام المستطيلة العريضة:</b> المقاس المثالي <code
+                            style="background:#dbeafe; padding:1px 5px; border-radius:4px; font-weight:700;">400×200 px</code>
+                        إلى <code
+                            style="background:#dbeafe; padding:1px 5px; border-radius:4px; font-weight:700;">600×250 px</code>
+                    </li>
+                    <li><b>شعار المركز (Logo):</b> المقاس المثالي <code
+                            style="background:#dbeafe; padding:1px 5px; border-radius:4px; font-weight:700;">400×150 px</code>
+                        أو <code
+                            style="background:#dbeafe; padding:1px 5px; border-radius:4px; font-weight:700;">300×300 px</code>
+                    </li>
                 </ul>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
                 <!-- 1. Workshop Logo -->
-                <div style="background: white; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div
+                    style="background: white; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between;">
                     <div>
-                        <div style="font-weight: 800; font-size: 13.5px; color: #0f172a; margin-bottom: 3px; display: flex; align-items: center; gap: 6px;">
+                        <div
+                            style="font-weight: 800; font-size: 14px; color: #0f172a; margin-bottom: 3px; display: flex; align-items: center; gap: 6px;">
                             <i class="fa-solid fa-image" style="color: #3b82f6;"></i>
                             <span>شعار المركز (Logo)</span>
                         </div>
-                        <div style="font-size: 11px; color: #64748b; margin-bottom: 4px;">يظهر في رأس التسعيرة وأمر العمل</div>
-                        <div style="font-size: 10.5px; color: #0284c7; font-weight: 700; margin-bottom: 8px;">📐 المقاس الموصى به: 400×150 بكسل (PNG)</div>
-                        <div style="border: 1.5px dashed #cbd5e1; border-radius: 10px; min-height: 120px; display: flex; align-items: center; justify-content: center; background: #f8fafc; padding: 10px; margin-bottom: 10px;">
-                            <img id="logoPreviewImg" src="" alt="شعار المركز" style="max-width: 100%; max-height: 105px; object-fit: contain; display: none;">
-                            <span id="logoPlaceholder" style="font-size: 11.5px; color: #94a3b8; text-align: center;">📷 لا يوجد شعار مرفوع</span>
+                        <div style="font-size: 11px; color: #64748b; margin-bottom: 4px;">يظهر في رأس التسعيرة وأمر
+                            العمل</div>
+                        <div style="font-size: 11px; color: #0284c7; font-weight: 700; margin-bottom: 8px;">
+                            <i class="fa-solid fa-ruler-combined"></i> المقاس الموصى به: 400×150 بكسل (PNG)
+                        </div>
+                        <div class="upload-drop-zone">
+                            <img id="logoPreviewImg" src="" alt="شعار المركز"
+                                style="max-width: 100%; max-height: 105px; object-fit: contain; display: none;">
+                            <span id="logoPlaceholder" style="font-size: 12px; color: #94a3b8; text-align: center;"><i
+                                    class="fa-solid fa-image"></i> لا يوجد شعار مرفوع</span>
                         </div>
                     </div>
                     <div style="display: flex; gap: 6px;">
-                        <input type="file" id="logoFileInput" accept="image/*" style="display: none;" onchange="uploadBrandingFile('logo', this)">
-                        <button type="button" class="btn btn-primary" style="flex: 1; padding: 7px 10px; font-size: 12px; font-weight: 700;" onclick="document.getElementById('logoFileInput').click()">
+                        <input type="file" id="logoFileInput" accept="image/*" style="display: none;"
+                            onchange="uploadBrandingFile('logo', this)">
+                        <button type="button" class="btn-modern btn-primary-m"
+                            style="flex: 1; justify-content: center; font-size: 12px;"
+                            onclick="document.getElementById('logoFileInput').click()">
                             <i class="fa-solid fa-cloud-arrow-up"></i> رفع شعار
                         </button>
-                        <button type="button" id="deleteLogoBtn" class="btn btn-secondary" style="display: none; padding: 7px 10px; font-size: 12px; color: #dc2626; border-color: #fca5a5;" onclick="deleteBrandingFile('workshop_logo')">
+                        <button type="button" id="deleteLogoBtn" class="btn-modern btn-secondary-m"
+                            style="display: none; padding: 7px 12px; color: #dc2626; border-color: #fca5a5;"
+                            onclick="deleteBrandingFile('workshop_logo')">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
                 </div>
 
                 <!-- 2. Quotation Stamp -->
-                <div style="background: white; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div
+                    style="background: white; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between;">
                     <div>
-                        <div style="font-weight: 800; font-size: 13.5px; color: #0f172a; margin-bottom: 3px; display: flex; align-items: center; gap: 6px;">
+                        <div
+                            style="font-weight: 800; font-size: 14px; color: #0f172a; margin-bottom: 3px; display: flex; align-items: center; gap: 6px;">
                             <i class="fa-solid fa-file-signature" style="color: #0284c7;"></i>
                             <span>ختم تسعيرة أجور</span>
                         </div>
-                        <div style="font-size: 11px; color: #64748b; margin-bottom: 4px;">يظهر في أسفل ورقة التسعيرة</div>
-                        <div style="font-size: 10.5px; color: #0284c7; font-weight: 700; margin-bottom: 8px;">📐 المقاس: 300×300 إلى 400×200 بكسل</div>
-                        <div style="border: 1.5px dashed #cbd5e1; border-radius: 10px; min-height: 120px; display: flex; align-items: center; justify-content: center; background: #f8fafc; padding: 10px; margin-bottom: 10px;">
-                            <img id="quoteStampPreviewImg" src="" alt="ختم التسعيرة" style="max-width: 100%; max-height: 105px; object-fit: contain; display: none;">
-                            <span id="quoteStampPlaceholder" style="font-size: 11.5px; color: #94a3b8; text-align: center;">💮 لا يوجد ختم تسعيرة</span>
+                        <div style="font-size: 11px; color: #64748b; margin-bottom: 4px;">يظهر في أسفل ورقة التسعيرة
+                        </div>
+                        <div style="font-size: 11px; color: #0284c7; font-weight: 700; margin-bottom: 8px;">
+                            <i class="fa-solid fa-ruler-combined"></i> المقاس: 300×300 إلى 400×200 بكسل
+                        </div>
+                        <div class="upload-drop-zone">
+                            <img id="quoteStampPreviewImg" src="" alt="ختم التسعيرة"
+                                style="max-width: 100%; max-height: 105px; object-fit: contain; display: none;">
+                            <span id="quoteStampPlaceholder"
+                                style="font-size: 12px; color: #94a3b8; text-align: center;"><i
+                                    class="fa-solid fa-stamp"></i> لا يوجد ختم تسعيرة</span>
                         </div>
                     </div>
                     <div style="display: flex; gap: 6px;">
-                        <input type="file" id="quoteStampFileInput" accept="image/*" style="display: none;" onchange="uploadBrandingFile('quotation_stamp', this)">
-                        <button type="button" class="btn btn-primary" style="flex: 1; padding: 7px 10px; font-size: 12px; font-weight: 700; background: #0284c7;" onclick="document.getElementById('quoteStampFileInput').click()">
+                        <input type="file" id="quoteStampFileInput" accept="image/*" style="display: none;"
+                            onchange="uploadBrandingFile('quotation_stamp', this)">
+                        <button type="button" class="btn-modern btn-primary-m"
+                            style="flex: 1; justify-content: center; font-size: 12px; background: #0284c7;"
+                            onclick="document.getElementById('quoteStampFileInput').click()">
                             <i class="fa-solid fa-cloud-arrow-up"></i> رفع ختم التسعيرة
                         </button>
-                        <button type="button" id="deleteQuoteStampBtn" class="btn btn-secondary" style="display: none; padding: 7px 10px; font-size: 12px; color: #dc2626; border-color: #fca5a5;" onclick="deleteBrandingFile('quotation_stamp')">
+                        <button type="button" id="deleteQuoteStampBtn" class="btn-modern btn-secondary-m"
+                            style="display: none; padding: 7px 12px; color: #dc2626; border-color: #fca5a5;"
+                            onclick="deleteBrandingFile('quotation_stamp')">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
                 </div>
 
                 <!-- 3. Invoice & Job Order Stamp -->
-                <div style="background: white; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div
+                    style="background: white; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between;">
                     <div>
-                        <div style="font-weight: 800; font-size: 13.5px; color: #0f172a; margin-bottom: 3px; display: flex; align-items: center; gap: 6px;">
+                        <div
+                            style="font-weight: 800; font-size: 14px; color: #0f172a; margin-bottom: 3px; display: flex; align-items: center; gap: 6px;">
                             <i class="fa-solid fa-certificate" style="color: #16a34a;"></i>
                             <span>ختم الفاتورة وأمر العمل</span>
                         </div>
-                        <div style="font-size: 11px; color: #64748b; margin-bottom: 4px;">يظهر في كرت التشغيل وأمر العمل المعتمد</div>
-                        <div style="font-size: 10.5px; color: #16a34a; font-weight: 700; margin-bottom: 8px;">📐 المقاس: 300×300 إلى 400×200 بكسل</div>
-                        <div style="border: 1.5px dashed #cbd5e1; border-radius: 10px; min-height: 120px; display: flex; align-items: center; justify-content: center; background: #f8fafc; padding: 10px; margin-bottom: 10px;">
-                            <img id="invoiceStampPreviewImg" src="" alt="ختم الفاتورة" style="max-width: 100%; max-height: 105px; object-fit: contain; display: none;">
-                            <span id="invoiceStampPlaceholder" style="font-size: 11.5px; color: #94a3b8; text-align: center;">🛡️ لا يوجد ختم فاتورة</span>
+                        <div style="font-size: 11px; color: #64748b; margin-bottom: 4px;">يظهر في كرت التشغيل وأمر العمل
+                            المعتمد</div>
+                        <div style="font-size: 11px; color: #16a34a; font-weight: 700; margin-bottom: 8px;">
+                            <i class="fa-solid fa-ruler-combined"></i> المقاس: 300×300 إلى 400×200 بكسل
+                        </div>
+                        <div class="upload-drop-zone">
+                            <img id="invoiceStampPreviewImg" src="" alt="ختم الفاتورة"
+                                style="max-width: 100%; max-height: 105px; object-fit: contain; display: none;">
+                            <span id="invoiceStampPlaceholder"
+                                style="font-size: 12px; color: #94a3b8; text-align: center;"><i
+                                    class="fa-solid fa-stamp"></i> لا يوجد ختم فاتورة</span>
                         </div>
                     </div>
                     <div style="display: flex; gap: 6px;">
-                        <input type="file" id="invoiceStampFileInput" accept="image/*" style="display: none;" onchange="uploadBrandingFile('invoice_stamp', this)">
-                        <button type="button" class="btn btn-primary" style="flex: 1; padding: 7px 10px; font-size: 12px; font-weight: 700; background: #16a34a;" onclick="document.getElementById('invoiceStampFileInput').click()">
+                        <input type="file" id="invoiceStampFileInput" accept="image/*" style="display: none;"
+                            onchange="uploadBrandingFile('invoice_stamp', this)">
+                        <button type="button" class="btn-modern btn-primary-m"
+                            style="flex: 1; justify-content: center; font-size: 12px; background: #16a34a;"
+                            onclick="document.getElementById('invoiceStampFileInput').click()">
                             <i class="fa-solid fa-cloud-arrow-up"></i> رفع ختم الفاتورة
                         </button>
-                        <button type="button" id="deleteInvoiceStampBtn" class="btn btn-secondary" style="display: none; padding: 7px 10px; font-size: 12px; color: #dc2626; border-color: #fca5a5;" onclick="deleteBrandingFile('invoice_stamp')">
+                        <button type="button" id="deleteInvoiceStampBtn" class="btn-modern btn-secondary-m"
+                            style="display: none; padding: 7px 12px; color: #dc2626; border-color: #fca5a5;"
+                            onclick="deleteBrandingFile('invoice_stamp')">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
@@ -207,200 +723,818 @@
             </div>
         </div>
 
-        <!-- Marketing & Promo Codes Settings Card -->
-        <div class="section-box" style="border: 2px solid #6366f1; background: #fdfefe;">
-            <div class="section-title" style="color: #4f46e5; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+        <!-- 3. Android Mobile REST API Integration Box -->
+        <div id="secAndroid" class="section-box settings-sec-item" data-category="android"
+            style="border: 2px solid #6366f1; background: #faf5ff;">
+            <div class="section-title" style="color: #4338ca;">
+                <div class="section-title-start">
+                    <span
+                        style="background: #e0e7ff; color: #4338ca; width: 38px; height: 38px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; font-size: 18px;">
+                        <i class="fa-solid fa-mobile-screen-button"></i>
+                    </span>
+                    <div>
+                        <span style="font-size: 18px; font-weight: 800;">بوابة ربط تطبيق الأندرويد والـ API (Android
+                            Mobile REST API)</span>
+                        <div style="font-size: 11.5px; color: #6366f1; font-weight: 600; margin-top: 2px;">RESTful JSON
+                            API لكافة بيانات الورشة مع دعم كامل (PULL, PUSH, EDIT, DELETE, SYNC)</div>
+                    </div>
+                </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <span>🏷️</span>
+                    <span id="apiOnlineBadge" class="section-title-badge"
+                        style="background: #dcfce7; color: #15803d; display: inline-flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-circle-check"></i> متصل ويعمل
+                    </span>
+                    <span class="section-title-badge" style="background: #ede9fe; color: #6d28d9;">v1.0 JSON</span>
+                </div>
+            </div>
+
+            <p style="font-size: 12.5px; color: #475569; margin-bottom: 16px; line-height: 1.6;">
+                تتيح لك هذه الواجهة ربط تطبيق الأندرويد (Android App) بكافة جداول قاعدة بيانات الورشة (أوامر العمل،
+                العملاء، الموظفين، الصندوق اليومي، والخدمات) مع إمكانية القراءة (PULL)، الإضافة (PUSH)، التعديل (EDIT)،
+                الحذف (DELETE)، والمزامنة الدفعية للمركبات بدون اتصال.
+            </p>
+
+            <!-- API Configuration Form -->
+            <div
+                style="background: white; border: 1.5px solid #e0e7ff; border-radius: 12px; padding: 18px; margin-bottom: 18px;">
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; align-items: start;">
+                    <!-- Toggle Enable / Disable -->
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label
+                            style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #1e1b4b; cursor: pointer;">
+                            <input type="checkbox" id="mobileApiEnabled" checked
+                                style="width: 18px; height: 18px; accent-color: #6366f1; cursor: pointer;">
+                            <span>تفعيل واجهة برمجة التطبيقات (Enable Mobile API)</span>
+                        </label>
+                        <small class="form-hint">عند إلغاء التفعيل، سيتم حجب كافة طلبات الربط الخارجية من أجهزة وتطبيقات
+                            الأندرويد لأمان النظام.</small>
+                    </div>
+
+                    <!-- Test Connection Quick Button -->
+                    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px;">
+                        <button type="button" class="btn-modern btn-primary-m" onclick="testMobileApiPing(event)"
+                            style="background: #4f46e5;">
+                            <i class="fa-solid fa-bolt"></i> فحص الاتصال الفوري (Ping)
+                        </button>
+                    </div>
+                </div>
+
+                <div
+                    style="margin-top: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px;">
+                    <!-- Base URL for Android -->
+                    <div>
+                        <label><i class="fa-solid fa-wifi" style="color: #6366f1;"></i> رابط الـ API الأساسي لتطبيق
+                            الأندرويد (Base URL)</label>
+                        <div style="display: flex; gap: 6px;">
+                            <input type="text" id="mobileApiBaseUrl" readonly
+                                style="flex: 1; padding: 8px 12px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; font-family: monospace; font-size: 12px; direction: ltr; text-align: left; color: #1e293b;">
+                            <button type="button" class="btn-modern btn-secondary-m"
+                                onclick="copyToClipboard('mobileApiBaseUrl', 'تم نسخ رابط الـ API بنجاح!')"
+                                title="نسخ الرابط" style="padding: 8px 12px;">
+                                <i class="fa-solid fa-copy"></i>
+                            </button>
+                        </div>
+                        <div id="mobileApiUrlHints"
+                            style="font-size: 11px; color: #64748b; margin-top: 5px; line-height: 1.5;">
+                            • للمحاكي (Android Emulator): <code
+                                style="direction:ltr; display:inline-block; font-weight:bold; background:#e0e7ff; color:#3730a3; padding:1px 5px; border-radius:4px;">http://10.0.2.2:8080/api/v1</code>
+                        </div>
+                    </div>
+
+                    <!-- Secret API Key -->
+                    <div>
+                        <label style="display: flex; align-items: center; justify-content: space-between;">
+                            <span style="display: flex; align-items: center; gap: 6px;">
+                                <i class="fa-solid fa-key" style="color: #f59e0b;"></i>
+                                <span>مفتاح الأمان السري (Mobile API Key)</span>
+                            </span>
+                            <span style="font-size: 11px; font-weight: normal; color: #64748b;">(Header:
+                                x-api-key)</span>
+                        </label>
+                        <div style="display: flex; gap: 6px;">
+                            <div style="position: relative; flex: 1;">
+                                <input type="password" id="mobileApiKey" placeholder="atenza_apk_..."
+                                    style="width: 100%; padding: 8px 36px 8px 12px; background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; font-family: monospace; font-size: 12px; direction: ltr; text-align: left;">
+                                <button type="button" onclick="toggleApiKeyVisibility()"
+                                    style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #64748b; cursor: pointer;">
+                                    <i id="apiKeyVisIcon" class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                            <button type="button" class="btn-modern btn-secondary-m"
+                                onclick="copyToClipboard('mobileApiKey', 'تم نسخ مفتاح API بنجاح!')" title="نسخ المفتاح"
+                                style="padding: 8px 12px;">
+                                <i class="fa-solid fa-copy"></i>
+                            </button>
+                            <button type="button" class="btn-modern" onclick="generateNewApiKey()"
+                                title="توليد مفتاح جديد مشفر"
+                                style="padding: 8px 12px; background: #0284c7; color: white; border-radius: 8px;">
+                                <i class="fa-solid fa-arrows-rotate"></i>
+                            </button>
+                        </div>
+                        <small class="form-hint">يتم إرساله مع كل طلب أندرويد في الـ Header أو كـ Query Parameter باسم
+                            <code
+                                style="background:#e2e8f0; padding:1px 4px; border-radius:3px;">api_key</code>.</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Developer Guide & Prompt Card (Download & Copy) -->
+            <div style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); color: white; border-radius: 14px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.25); border: 1px solid #4338ca;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+                    <div style="display: flex; align-items: center; gap: 12px; max-width: 650px;">
+                        <div style="width: 46px; height: 46px; min-width: 46px; border-radius: 12px; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 22px; color: #a5b4fc;">
+                            <i class="fa-solid fa-robot"></i>
+                        </div>
+                        <div>
+                            <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <span>دليل الذكاء الاصطناعي لربط الـ API وتطبيق الأندرويد (AI Prompt & System Guide)</span>
+                                <span style="font-size: 11px; background: #4f46e5; color: #e0e7ff; padding: 2px 8px; border-radius: 12px; font-weight: 700;">جاهز للـ AI</span>
+                            </h3>
+                            <p style="margin: 4px 0 0; font-size: 12px; color: #c7d2fe; line-height: 1.5;">
+                                دليل شامل ومُهندس بالكامل لتقديمه لأي مساعد ذكاء اصطناعي (ChatGPT, Claude, Gemini, Cursor, Android Studio AI) ليتعرف على كافة الجداول الـ 27، عناوين الاتصال، المفتاح السري، وبناء تطبيق الأندرويد (Kotlin / Retrofit / Room) بكفاءة تامة.
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Action Buttons -->
+                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <button type="button" class="btn-modern" onclick="downloadAiApiGuide('markdown')" style="background: #10b981; color: white; font-weight: 700; padding: 9px 16px; border-radius: 9px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(16,185,129,0.3); border: none; cursor: pointer;">
+                            <i class="fa-solid fa-file-arrow-down"></i>
+                            <span>تحميل دليل الـ AI (.md)</span>
+                        </button>
+                        <button type="button" class="btn-modern" onclick="copyAiPromptToClipboard()" style="background: #6366f1; color: white; font-weight: 700; padding: 9px 16px; border-radius: 9px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(99,102,241,0.3); border: none; cursor: pointer;">
+                            <i class="fa-solid fa-copy"></i>
+                            <span id="copyPromptBtnText">نسخ برومبت الـ AI للحافظة</span>
+                        </button>
+                        <button type="button" class="btn-modern" onclick="downloadAiApiGuide('json')" style="background: rgba(255,255,255,0.12); color: #e0e7ff; border: 1px solid rgba(255,255,255,0.25); font-weight: 600; padding: 9px 14px; border-radius: 9px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+                            <i class="fa-solid fa-code"></i>
+                            <span>تصدير JSON Schema</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Quick Tips Bar -->
+                <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-size: 11.5px; color: #e0e7ff;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-circle-info" style="color: #38bdf8;"></i>
+                        <span>كيف تستخدم هذا الدليل؟ اضغط على <b>نسخ برومبت الـ AI</b> أو <b>تحميل الدليل (.md)</b> وزوّده لـ ChatGPT أو Claude أو Android Studio AI واطلب منه بناء واجهات التطبيق أو دوال المزامنة وسينفذها فوراً وبدون أي أخطاء!</span>
+                    </div>
+                    <a href="/api/v1/meta/ai-guide" target="_blank" style="color: #93c5fd; text-decoration: underline; display: inline-flex; align-items: center; gap: 4px;">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> استعراض الدليل مباشرة
+                    </a>
+                </div>
+            </div>
+
+            <!-- Tab Navigation for API Tools -->
+            <div
+                style="display: flex; gap: 8px; border-bottom: 2px solid #e2e8f0; margin-bottom: 16px; overflow-x: auto;">
+                <button type="button" id="apiTabBtnTester" onclick="switchApiTab('tester')"
+                    style="background: none; border: none; border-bottom: 3px solid #6366f1; color: #4338ca; font-weight: 700; padding: 8px 16px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-terminal"></i>
+                    <span>مختبر فحص الـ API المباشر (Live Tester)</span>
+                </button>
+                <button type="button" id="apiTabBtnDocs" onclick="switchApiTab('docs')"
+                    style="background: none; border: none; border-bottom: 3px solid transparent; color: #64748b; font-weight: 700; padding: 8px 16px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-book"></i>
+                    <span>دليل الروابط والأكواد (Endpoints Guide)</span>
+                </button>
+                <button type="button" id="apiTabBtnTables" onclick="switchApiTab('tables')"
+                    style="background: none; border: none; border-bottom: 3px solid transparent; color: #64748b; font-weight: 700; padding: 8px 16px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-table"></i>
+                    <span>خريطة الجداول والبيانات (Database Map)</span>
+                </button>
+            </div>
+
+            <!-- TAB 1: Live Interactive API Tester -->
+            <div id="apiTabContentTester">
+                <div style="background: white; border: 1px solid #cbd5e1; border-radius: 12px; padding: 18px;">
+                    <div
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px;">
+                        <!-- Select Action -->
+                        <div>
+                            <label
+                                style="font-size: 12px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">نوع
+                                العملية (Operation)</label>
+                            <select id="apiTestOperation" onchange="onApiActionChange()"
+                                style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 700; font-size: 12.5px;">
+                                <option value="PULL_ALL">PULL (GET) - جلب سجلات الجدول</option>
+                                <option value="PULL_ONE">PULL (GET One) - جلب سجل فردي محدد</option>
+                                <option value="PUSH">PUSH (POST) - إضافة سجل جديد</option>
+                                <option value="EDIT">EDIT (PUT) - تعديل وتحديث سجل</option>
+                                <option value="DELETE">DELETE - حذف سجل</option>
+                                <option value="FULL_SYNC">FULL SYNC (GET) - سحب شامل للبيانات</option>
+                                <option value="SCHEMA">SCHEMA (GET) - استعراض بنية الجداول</option>
+                            </select>
+                        </div>
+
+                        <!-- Select Table -->
+                        <div id="apiTestTableWrapper">
+                            <label
+                                style="font-size: 12px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">الجدول
+                                (Database Table)</label>
+                            <select id="apiTestTable" onchange="onApiTableChange()"
+                                style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12.5px; font-weight: 600;">
+                                <option value="inspections">inspections (أوامر العمل والفحص)</option>
+                                <option value="clients">clients (دليل العملاء)</option>
+                                <option value="employees">employees (الموظفين والفنيين)</option>
+                                <option value="cash_box_entries">cash_box_entries (سندات الصندوق اليومي)</option>
+                                <option value="services">services (دليل الخدمات والأجور)</option>
+                                <option value="sections">sections (أقسام الورشة)</option>
+                                <option value="banks">banks (البنوك وطرق الصرف)</option>
+                                <option value="withdrawals">withdrawals (سحبيات الموظفين)</option>
+                                <option value="leave_requests">leave_requests (طلبات الإجازات)</option>
+                                <option value="attendance">attendance (سجل الحضور والانصراف)</option>
+                                <option value="workshop_lifts">workshop_lifts (الرافعات والمسارات)</option>
+                                <option value="settings">settings (إعدادات النظام)</option>
+                            </select>
+                        </div>
+
+                        <!-- Record ID -->
+                        <div id="apiTestIdWrapper" style="display: none;">
+                            <label
+                                style="font-size: 12px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">معرّف
+                                السجل (Record ID)</label>
+                            <input type="text" id="apiTestRecordId" placeholder="مثال: 1"
+                                style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px;">
+                        </div>
+
+                        <!-- Query Params -->
+                        <div id="apiTestQueryWrapper">
+                            <label
+                                style="font-size: 12px; font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">معاملات
+                                الفلترة والبحث (Query Params)</label>
+                            <input type="text" id="apiTestQueryParams" value="limit=5&sort=id&order=DESC"
+                                placeholder="limit=10&search=..."
+                                style="width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12px; font-family: monospace; direction: ltr;">
+                        </div>
+                    </div>
+
+                    <!-- JSON Body Editor (for PUSH & EDIT) -->
+                    <div id="apiTestJsonWrapper" style="display: none; margin-bottom: 12px;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <label style="font-size: 12px; font-weight: 700; color: #334155;">جسم الطلب (JSON Request
+                                Body):</label>
+                            <button type="button" class="btn-modern btn-secondary-m" onclick="generateSamplePayload()"
+                                style="padding: 4px 10px; font-size: 11.5px; border-radius: 6px;">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> توليد نموذج JSON افتراضي
+                            </button>
+                        </div>
+                        <textarea id="apiTestJsonBody" rows="5"
+                            style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: monospace; font-size: 12px; direction: ltr; text-align: left; background: #0f172a; color: #38bdf8;"></textarea>
+                    </div>
+
+                    <!-- Send Request Button -->
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                        <div id="apiTestEndpointPreview"
+                            style="font-family: monospace; font-size: 12px; color: #4338ca; background: #e0e7ff; padding: 6px 12px; border-radius: 6px; direction: ltr; font-weight: 700;">
+                            GET /api/v1/db/inspections?limit=5&sort=id&order=DESC
+                        </div>
+                        <button type="button" class="btn-modern btn-success-m" id="apiSendBtn"
+                            onclick="executeLiveApiTest()">
+                            <i class="fa-solid fa-play"></i>
+                            <span>إرسال وفحص الطلب (Send Request)</span>
+                        </button>
+                    </div>
+
+                    <!-- Response Viewer -->
+                    <div id="apiTestResultBox"
+                        style="display: none; margin-top: 16px; border-top: 1px solid #e2e8f0; padding-top: 14px;">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span id="apiResultStatus"
+                                    style="font-size: 12px; font-weight: 800; padding: 3px 8px; border-radius: 4px;"></span>
+                                <span id="apiResultTime"
+                                    style="font-size: 11.5px; color: #64748b; font-weight: 600;"></span>
+                            </div>
+                            <button type="button" class="btn-modern btn-secondary-m"
+                                onclick="copyToClipboard('apiResultPre', 'تم نسخ الاستجابة بنجاح!')"
+                                style="padding: 4px 10px; font-size: 11.5px;">
+                                <i class="fa-solid fa-copy"></i> نسخ النتيجة
+                            </button>
+                        </div>
+                        <pre id="apiResultPre"
+                            style="background: #0f172a; color: #a5f3fc; padding: 14px; border-radius: 8px; font-family: monospace; font-size: 12px; max-height: 280px; overflow-y: auto; direction: ltr; text-align: left; margin: 0;"></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: Documentation & Android Guide -->
+            <div id="apiTabContentDocs" style="display: none;">
+                <div
+                    style="background: white; border: 1px solid #cbd5e1; border-radius: 12px; padding: 16px; margin-bottom: 12px;">
+                    <div
+                        style="font-weight: 800; font-size: 14px; color: #1e1b4b; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-list-check" style="color: #6366f1;"></i>
+                        <span>جدول مسارات الـ API المدعومة لتطبيق الأندرويد (Endpoints Cheat Sheet):</span>
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: right;">
+                            <thead>
+                                <tr style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
+                                    <th style="padding: 8px 10px;">العملية</th>
+                                    <th style="padding: 8px 10px; text-align: left; direction: ltr;">HTTP Method & Path
+                                    </th>
+                                    <th style="padding: 8px 10px;">الوصف والغرض</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="border-bottom: 1px solid #eee;">
+                                    <td style="padding: 8px 10px;"><span
+                                            style="background:#dcfce7; color:#15803d; font-weight:700; padding:2px 6px; border-radius:4px;">PULL</span>
+                                    </td>
+                                    <td
+                                        style="padding: 8px 10px; font-family: monospace; direction: ltr; text-align: left;">
+                                        <b style="color:#059669;">GET</b> /api/v1/db/:table</td>
+                                    <td style="padding: 8px 10px;">سحب السجلات مع دعم الفلترة <code
+                                            style="direction:ltr;">?status=...&limit=50</code></td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #eee;">
+                                    <td style="padding: 8px 10px;"><span
+                                            style="background:#dcfce7; color:#15803d; font-weight:700; padding:2px 6px; border-radius:4px;">PULL
+                                            ONE</span></td>
+                                    <td
+                                        style="padding: 8px 10px; font-family: monospace; direction: ltr; text-align: left;">
+                                        <b style="color:#059669;">GET</b> /api/v1/db/:table/:id</td>
+                                    <td style="padding: 8px 10px;">جلب بيانات سجل واحد محدد بمعرفه (ID)</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #eee;">
+                                    <td style="padding: 8px 10px;"><span
+                                            style="background:#dbeafe; color:#1d4ed8; font-weight:700; padding:2px 6px; border-radius:4px;">PUSH</span>
+                                    </td>
+                                    <td
+                                        style="padding: 8px 10px; font-family: monospace; direction: ltr; text-align: left;">
+                                        <b style="color:#2563eb;">POST</b> /api/v1/db/:table</td>
+                                    <td style="padding: 8px 10px;">إرسال وإضافة سجل جديد (أو مصفوفة سجلات) بصيغة JSON
+                                    </td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #eee;">
+                                    <td style="padding: 8px 10px;"><span
+                                            style="background:#fef3c7; color:#b45309; font-weight:700; padding:2px 6px; border-radius:4px;">EDIT</span>
+                                    </td>
+                                    <td
+                                        style="padding: 8px 10px; font-family: monospace; direction: ltr; text-align: left;">
+                                        <b style="color:#d97706;">PUT</b> /api/v1/db/:table/:id</td>
+                                    <td style="padding: 8px 10px;">تعديل وتحديث بيانات السجل القائم</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #eee;">
+                                    <td style="padding: 8px 10px;"><span
+                                            style="background:#fee2e2; color:#b91c1c; font-weight:700; padding:2px 6px; border-radius:4px;">DELETE</span>
+                                    </td>
+                                    <td
+                                        style="padding: 8px 10px; font-family: monospace; direction: ltr; text-align: left;">
+                                        <b style="color:#dc2626;">DELETE</b> /api/v1/db/:table/:id</td>
+                                    <td style="padding: 8px 10px;">حذف السجل نهائياً من قاعدة البيانات</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #eee;">
+                                    <td style="padding: 8px 10px;"><span
+                                            style="background:#ede9fe; color:#6d28d9; font-weight:700; padding:2px 6px; border-radius:4px;">FULL
+                                            SYNC</span></td>
+                                    <td
+                                        style="padding: 8px 10px; font-family: monospace; direction: ltr; text-align: left;">
+                                        <b style="color:#7c3aed;">GET</b> /api/v1/sync/pull</td>
+                                    <td style="padding: 8px 10px;">تصدير كامل قاعدة البيانات لتطبيق الأندرويد للعمل
+                                        أوفلاين</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 10px;"><span
+                                            style="background:#ede9fe; color:#6d28d9; font-weight:700; padding:2px 6px; border-radius:4px;">BATCH
+                                            PUSH</span></td>
+                                    <td
+                                        style="padding: 8px 10px; font-family: monospace; direction: ltr; text-align: left;">
+                                        <b style="color:#7c3aed;">POST</b> /api/v1/sync/push</td>
+                                    <td style="padding: 8px 10px;">مزامنة ورفع حزم البيانات المعدلة من الأندرويد دفعة
+                                        واحدة</td>
+                                </tr>
+                                <tr style="border-top: 1px solid #e0e7ff; background: #faf5ff;">
+                                    <td style="padding: 8px 10px;"><span
+                                            style="background:#4f46e5; color:#ffffff; font-weight:700; padding:2px 6px; border-radius:4px;">AI GUIDE</span></td>
+                                    <td
+                                        style="padding: 8px 10px; font-family: monospace; direction: ltr; text-align: left;">
+                                        <b style="color:#4338ca;">GET</b> /api/v1/meta/ai-guide</td>
+                                    <td style="padding: 8px 10px;">دليل وبرومبت الذكاء الاصطناعي الشامل للربط البرمجي وتطبيق الأندرويد (Markdown / JSON)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Android Kotlin / Retrofit Sample -->
+                <div style="background: #0f172a; color: #f8fafc; border-radius: 12px; padding: 14px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 12px; font-weight: 700; color: #38bdf8;">
+                            <i class="fa-brands fa-android"></i> مثال كود Kotlin / Retrofit لتطبيق الأندرويد:
+                        </span>
+                        <button type="button" class="btn-modern btn-secondary-m"
+                            onclick="copyToClipboard('kotlinCodeSnippet', 'تم نسخ كود الأندرويد!')"
+                            style="padding: 3px 8px; font-size: 11px; background: #1e293b; color: #cbd5e1; border-color: #334155;">
+                            <i class="fa-solid fa-copy"></i> نسخ الكود
+                        </button>
+                    </div>
+                    <pre id="kotlinCodeSnippet"
+                        style="margin: 0; font-family: monospace; font-size: 11.5px; color: #a5f3fc; direction: ltr; text-align: left; overflow-x: auto; line-height: 1.5;">
+// Atenza Workshop API Service Interface (Kotlin / Retrofit2)
+interface WorkshopApiService {
+    @GET("db/{table}")
+    suspend fun getRecords(
+        @Path("table") table: String,
+        @Header("x-api-key") apiKey: String,
+        @Query("limit") limit: Int = 100,
+        @Query("offset") offset: Int = 0
+    ): Response&lt;JsonObject&gt;
+
+    @POST("db/{table}")
+    suspend fun createRecord(
+        @Path("table") table: String,
+        @Header("x-api-key") apiKey: String,
+        @Body record: JsonObject
+    ): Response&lt;JsonObject&gt;
+
+    @PUT("db/{table}/{id}")
+    suspend fun updateRecord(
+        @Path("table") table: String,
+        @Path("id") id: String,
+        @Header("x-api-key") apiKey: String,
+        @Body updates: JsonObject
+    ): Response&lt;JsonObject&gt;
+
+    @DELETE("db/{table}/{id}")
+    suspend fun deleteRecord(
+        @Path("table") table: String,
+        @Path("id") id: String,
+        @Header("x-api-key") apiKey: String
+    ): Response&lt;JsonObject&gt;
+
+    @GET("sync/pull")
+    suspend fun pullFullSync(
+        @Header("x-api-key") apiKey: String
+    ): Response&lt;JsonObject&gt;
+}</pre>
+                </div>
+            </div>
+
+            <!-- TAB 3: Database Tables Map -->
+            <div id="apiTabContentTables" style="display: none;">
+                <div style="background: white; border: 1px solid #cbd5e1; border-radius: 12px; padding: 16px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <div style="font-weight: 800; font-size: 13.5px; color: #1e1b4b;">
+                            <i class="fa-solid fa-database" style="color: #6366f1;"></i>
+                            <span>خريطة كافة الجداول المدعومة في الـ API:</span>
+                        </div>
+                        <button type="button" class="btn-modern btn-secondary-m" onclick="loadApiSchemaForTablesTab()"
+                            style="padding: 4px 10px; font-size: 11.5px;">
+                            <i class="fa-solid fa-rotate"></i> تحديث الإحصائيات
+                        </button>
+                    </div>
+                    <div id="apiTablesGrid"
+                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px;">
+                        <!-- Dynamically populated tables -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Marketing & Promo Codes Settings Card -->
+        <div id="secMarketing" class="section-box settings-sec-item" data-category="branding"
+            style="border: 1.5px solid #6366f1; background: #fdfefe;">
+            <div class="section-title" style="color: #4f46e5;">
+                <div class="section-title-start">
+                    <i class="fa-solid fa-tags" style="font-size: 18px;"></i>
                     <span>إعدادات التسويق وأكواد الخصم</span>
                 </div>
-                <a href="marketing.html" class="btn btn-primary" style="font-size: 13px; text-decoration: none; padding: 6px 14px; background:#4f46e5; color:white; border-radius:8px;">
+                <a href="marketing.html" class="btn-modern btn-primary-m"
+                    style="font-size: 12.5px; padding: 6px 14px; background:#4f46e5; border-radius:8px;">
                     <i class="fa-solid fa-arrow-up-right-from-square"></i> إدارة أكواد الخصم والحملات
                 </a>
             </div>
-            <p style="font-size:12.5px; color:var(--text-gray); margin-bottom:10px; line-height: 1.6;">
-                يمكنك إنشاء وتوليد كوبونات وأكواد الخصم للحملات التسويقية بنسبة مئوية (%) أو مبلغ ثابت (﷼)، وتحديد تواريخ الصلاحية وحدود الاستخدام. يراعي النظام استثناء بنود المخرطة وقطع الغيار تلقائياً.
+            <p style="font-size:12.5px; color:var(--text-muted); margin-bottom:6px; line-height: 1.6;">
+                يمكنك إنشاء وتوليد كوبونات وأكواد الخصم للحملات التسويقية بنسبة مئوية (%) أو مبلغ ثابت (﷼)، وتحديد
+                تواريخ الصلاحية وحدود الاستخدام. يراعي النظام استثناء بنود المخرطة وقطع الغيار تلقائياً.
             </p>
         </div>
 
-        <!-- Geofence Attendance Settings -->
-        <div class="section-box" style="border: 2px solid #059669; background: #f0fdf4;">
-            <div class="section-title" style="color: #047857; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                <div style="display: flex; align-items: center; gap: 8px;">
+        <!-- 5. Geofence Attendance Settings -->
+        <div id="secGeofence" class="section-box settings-sec-item" data-category="geofence"
+            style="border: 2px solid #059669; background: #f0fdf4;">
+            <div class="section-title" style="color: #047857;">
+                <div class="section-title-start">
                     <i class="fa-solid fa-location-dot" style="font-size: 20px;"></i>
                     <span>النطاق الجغرافي لتسجيل الحضور والانصراف (GPS Geofencing)</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <label style="font-size: 13px; font-weight: 700; color: #047857; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                        <input type="checkbox" id="geofenceEnabled" style="width: 18px; height: 18px;">
+                    <label
+                        style="font-size: 13px; font-weight: 700; color: #047857; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                        <input type="checkbox" id="geofenceEnabled"
+                            style="width: 18px; height: 18px; accent-color: #059669;">
                         تفعيل التحقق من موقع المركز عند الحضور/الانصراف
                     </label>
                 </div>
             </div>
             <p style="font-size:12.5px; color:#374151; margin-bottom:14px; line-height: 1.6;">
-                يضمن هذا الخيار ألا يتمكن الموظف من تسجيل الحضور أو الانصراف إلا إذا كان متواجداً فعلياً داخل نطاق محدد من المركز (الافتراضي 500 متر).
+                يضمن هذا الخيار ألا يتمكن الموظف من تسجيل الحضور أو الانصراف إلا إذا كان متواجداً فعلياً داخل نطاق محدد
+                من المركز (الافتراضي 500 متر).
             </p>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+            <div class="form-grid-3" style="margin-bottom: 15px;">
                 <div class="form-group" style="margin-bottom: 0;">
-                    <label>📍 خط العرض (Latitude)</label>
+                    <label><i class="fa-solid fa-location-crosshairs"></i> خط العرض (Latitude)</label>
                     <input type="number" step="any" id="workshopLatitude" placeholder="مثال: 24.7136">
                 </div>
                 <div class="form-group" style="margin-bottom: 0;">
-                    <label>📍 خط الطول (Longitude)</label>
+                    <label><i class="fa-solid fa-location-crosshairs"></i> خط الطول (Longitude)</label>
                     <input type="number" step="any" id="workshopLongitude" placeholder="مثال: 46.6753">
                 </div>
                 <div class="form-group" style="margin-bottom: 0;">
-                    <label>📏 نصف قطر النطاق المسموح (بالمتر)</label>
+                    <label><i class="fa-solid fa-circle-dot"></i> نصف قطر النطاق المسموح (بالمتر)</label>
                     <input type="number" id="geofenceRadius" placeholder="500" value="500">
                 </div>
             </div>
 
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button type="button" class="btn" onclick="captureCurrentLocationForWorkshop(event)" style="flex: 1; min-width: 220px; justify-content: center; background: #047857; color: white; height: 42px; font-weight: 700; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                <button type="button" class="btn-modern btn-success-m"
+                    onclick="captureCurrentLocationForWorkshop(event)"
+                    style="flex: 1; min-width: 220px; justify-content: center; height: 42px;">
                     <i class="fa-solid fa-crosshairs"></i> تحديد إحداثيات موقعي الحالي كمركز للورشة
                 </button>
-                <button type="button" class="btn" onclick="testGeofenceLocation()" style="min-width: 150px; justify-content: center; background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; height: 42px; font-weight: 700; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                <button type="button" class="btn-modern" onclick="testGeofenceLocation()"
+                    style="min-width: 150px; justify-content: center; background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; height: 42px;">
                     <i class="fa-solid fa-map-location-dot"></i> اختبار المسافة الآن
                 </button>
             </div>
         </div>
 
-        <!-- Work Schedule Settings -->
-        <div class="section-box">
-            <div class="section-title">⏱️ مواعيد الدوام الإسبوعية</div>
-            <p style="font-size:12px; color:#666; margin-bottom:15px;">حدد أوقات العمل اليومية أو اختر "مغلق" للإجازة.</p>
-            <table style="width:100%; border-collapse: collapse; font-size: 14px;">
-                <thead style="background: #f1f5f9;">
-                    <tr>
-                        <th style="padding:10px; text-align:right;">اليوم</th>
-                        <th style="padding:10px; text-align:center;">من</th>
-                        <th style="padding:10px; text-align:center;">إلى</th>
-                        <th style="padding:10px; text-align:center;">مغلق</th>
-                    </tr>
-                </thead>
-                <tbody id="scheduleTableBody">
-                    <!-- Schedule rows inserted here -->
-                </tbody>
-            </table>
+        <!-- 6. Work Schedule Settings -->
+        <div id="secSchedule" class="section-box settings-sec-item" data-category="schedule">
+            <div class="section-title">
+                <div class="section-title-start">
+                    <i class="fa-solid fa-clock" style="color: #4f46e5;"></i>
+                    <span>مواعيد الدوام الإسبوعية (Work Schedule)</span>
+                </div>
+                <span class="section-title-badge" style="background: #ede9fe; color: #5b21b6;">الورديات</span>
+            </div>
+            <p style="font-size:12px; color:#64748b; margin-bottom:15px;">حدد أوقات العمل اليومية أو اختر "مغلق" لأيام
+                العطلات والإجازات.</p>
+            <div style="overflow-x: auto;">
+                <table style="width:100%; border-collapse: collapse; font-size: 13.5px;">
+                    <thead style="background: #f1f5f9;">
+                        <tr>
+                            <th style="padding:10px; text-align:right; border-radius: 0 8px 8px 0;">اليوم</th>
+                            <th style="padding:10px; text-align:center;">وقت الحضور (من)</th>
+                            <th style="padding:10px; text-align:center;">وقت الانصراف (إلى)</th>
+                            <th style="padding:10px; text-align:center; border-radius: 8px 0 0 8px;">مغلق (عطلة)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scheduleTableBody">
+                        <!-- Schedule rows inserted here -->
+                    </tbody>
+                </table>
+            </div>
         </div>
 
-        <!-- Terms & Conditions Settings -->
-        <div class="section-box">
-            <div class="section-title">📜 الشروط والأحكام</div>
-            <p style="font-size:12px; color:#666; margin-bottom:10px;">أضف الشروط التي ستظهر في أسفل ورقة الكشف وأمر العمل.</p>
+        <!-- 7. Terms & Conditions Settings -->
+        <div id="secTerms" class="section-box settings-sec-item" data-category="schedule">
+            <div class="section-title">
+                <div class="section-title-start">
+                    <i class="fa-solid fa-file-contract" style="color: #0284c7;"></i>
+                    <span>الشروط والأحكام والبنود الرسمية (Terms & Conditions)</span>
+                </div>
+                <span class="section-title-badge" style="background: #e0f2fe; color: #0369a1;">الفواتير والطباعة</span>
+            </div>
+            <p style="font-size:12px; color:#64748b; margin-bottom:12px;">أضف الشروط التي ستظهر في أسفل ورقة الفحص وأمر
+                العمل وكشف التسعير.</p>
 
-            <div class="form-group">
-                <input type="text" id="newTerm" placeholder="اكتب الشرط واضغط Enter..." onkeypress="addTerm(event)">
-                <button class="btn btn-primary" onclick="addTermManual()" style="margin-top:5px;">إضافة شرط</button>
+            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                <input type="text" id="newTerm" placeholder="اكتب نص الشرط واضغط Enter أو زر الإضافة..."
+                    onkeypress="addTerm(event)"
+                    style="flex: 1; padding: 10px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px;">
+                <button type="button" class="btn-modern btn-primary-m" onclick="addTermManual()">
+                    <i class="fa-solid fa-plus"></i> إضافة شرط
+                </button>
             </div>
 
-            <ul id="termsList" style="list-style:none; padding:0;">
+            <ul id="termsList" style="list-style:none; padding:0; margin:0;">
                 <!-- Terms loaded here -->
             </ul>
         </div>
 
-        <!-- Banks Management Settings -->
-        <div class="section-box" style="border: 2px solid #0284c7; background: #f0f9ff;">
-            <div class="section-title" style="color: #0369a1; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span>🏦</span>
+        <!-- 8. Banks Management Settings -->
+        <div id="secBanks" class="section-box settings-sec-item" data-category="finance"
+            style="border: 2px solid #0284c7; background: #f0f9ff;">
+            <div class="section-title" style="color: #0369a1;">
+                <div class="section-title-start">
+                    <i class="fa-solid fa-building-columns" style="font-size: 18px;"></i>
                     <span>إدارة البنوك وطرق التحويل والصرف</span>
                 </div>
-                <span style="font-size: 12px; font-weight: normal; color: #0284c7;">تظهر هذه البنوك في خيارات حسابات الموظفين والتقارير المالية</span>
+                <span class="section-title-badge" style="background: #e0f2fe; color: #0284c7;">الحسابات المالية</span>
             </div>
             <p style="font-size:12px; color:#475569; margin-bottom:12px; line-height: 1.6;">
-                يمكنك إضافة أسماء بنوك جديدة، تعديل البنوك الحالية، أو حذفها. يتم تحديث سجلات الموظفين المرتبطين تلقائياً عند تغيير اسم البنك.
+                يمكنك إضافة أسماء بنوك جديدة، تعديل البنوك الحالية، أو حذفها. يتم تحديث سجلات الموظفين المرتبطين
+                تلقائياً عند تغيير اسم البنك.
             </p>
 
             <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <input type="text" id="newBankName" placeholder="اكتب اسم البنك الجديد (مثال: بنك الإنماء، مصرف الراجحي)..." style="flex: 1; padding: 10px 14px; border: 1px solid #bae6fd; border-radius: 8px; font-family: inherit;" onkeypress="if(event.key==='Enter') addBankManual()">
-                <button type="button" class="btn" onclick="addBankManual()" style="background: #0284c7; color: white; padding: 0 20px; font-weight: bold; border-radius: 8px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="text" id="newBankName"
+                    placeholder="اكتب اسم البنك الجديد (مثال: بنك الإنماء، مصرف الراجحي)..."
+                    style="flex: 1; padding: 10px 14px; border: 1px solid #bae6fd; border-radius: 8px; font-family: inherit;"
+                    onkeypress="if(event.key==='Enter') addBankManual()">
+                <button type="button" class="btn-modern" onclick="addBankManual()"
+                    style="background: #0284c7; color: white; padding: 0 20px; font-weight: bold; border-radius: 8px;">
                     <i class="fa-solid fa-plus"></i> إضافة بنك
                 </button>
             </div>
 
-            <div id="banksListContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;">
+            <div id="banksListContainer"
+                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;">
                 <!-- Banks dynamically loaded here -->
             </div>
         </div>
 
-        <!-- Employees Excel Import Section -->
-        <div class="section-box" style="border: 2px solid #10b981; background: #f0fdf4;">
-            <div class="section-title" style="color: #047857; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <i class="fa-solid fa-users-gear" style="font-size: 20px;"></i>
-                    <span>استيراد بيانات الموظفين من ملف Excel</span>
+        <!-- 9. Smart Excel Imports (Employees & Salaries) -->
+        <div id="secExcel" class="section-box settings-sec-item" data-category="finance">
+            <div class="section-title">
+                <div class="section-title-start">
+                    <i class="fa-solid fa-file-excel" style="color: #10b981; font-size: 20px;"></i>
+                    <span>استيراد وتحديث البيانات ومسير الرواتب من Excel</span>
                 </div>
-                <span style="font-size: 12px; font-weight: normal; color: #047857;">(جدول الموظفين، الأقسام، الحسابات، الأهداف)</span>
+                <span class="section-title-badge" style="background: #dcfce7; color: #065f46;">الموارد البشرية</span>
             </div>
-            <p style="font-size:12.5px; color:#374151; margin-bottom:14px; line-height: 1.6;">
-                مخصص لإضافة موظفين جدد أو تحديث بياناتهم الأساسية (الاسم، القسم، الراتب، المستهدف، اسم المستخدم، كلمة المرور، واسم البنك).
-            </p>
 
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button type="button" class="btn" onclick="downloadEmployeeTemplate()" style="flex: 1; min-width: 200px; justify-content: center; background: #059669; color: white; height: 42px; font-weight: 700;">
-                    <i class="fa-solid fa-file-arrow-down"></i> تحميل نموذج الموظفين الاسترشادي
-                </button>
-                <button type="button" class="btn" onclick="document.getElementById('importEmployeesExcelInput').click()" style="flex: 1; min-width: 200px; justify-content: center; background: #10b981; color: white; height: 42px; font-weight: 700;">
-                    <i class="fa-solid fa-file-excel"></i> اختيار ورفع ملف الموظفين (Excel)
-                </button>
-                <input type="file" id="importEmployeesExcelInput" style="display: none;" accept=".xlsx,.xls" onchange="importEmployeesFromExcel(this)">
-            </div>
-        </div>
-
-        <!-- Salaries Excel Import Section -->
-        <div class="section-box" style="border: 2px solid #8b5cf6; background: #f5f3ff;">
-            <div class="section-title" style="color: #6d28d9; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <i class="fa-solid fa-money-bill-transfer" style="font-size: 20px;"></i>
-                    <span>استيراد مسير الرواتب من ملف Excel</span>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+                <!-- Employees Import Card -->
+                <div style="background: #f0fdf4; border: 1.5px solid #a7f3d0; border-radius: 12px; padding: 16px;">
+                    <div
+                        style="font-weight: 800; font-size: 14px; color: #065f46; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-users-gear"></i>
+                        <span>بيانات الموظفين والأقسام والحسابات</span>
+                    </div>
+                    <p style="font-size: 12px; color: #374151; margin-bottom: 12px; line-height: 1.5;">
+                        مخصص لإضافة موظفين جدد أو تحديث بياناتهم الأساسية (الاسم، القسم، الراتب، المستهدف، وحساب البنك).
+                    </p>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button type="button" class="btn-modern" onclick="downloadEmployeeTemplate()"
+                            style="flex: 1; min-width: 140px; justify-content: center; background: #059669; color: white; font-size: 12px;">
+                            <i class="fa-solid fa-file-arrow-down"></i> تحميل النموذج
+                        </button>
+                        <button type="button" class="btn-modern btn-success-m"
+                            onclick="document.getElementById('importEmployeesExcelInput').click()"
+                            style="flex: 1; min-width: 140px; justify-content: center; font-size: 12px;">
+                            <i class="fa-solid fa-file-excel"></i> رفع ملف Excel
+                        </button>
+                        <input type="file" id="importEmployeesExcelInput" style="display: none;" accept=".xlsx,.xls"
+                            onchange="importEmployeesFromExcel(this)">
+                    </div>
                 </div>
-                <span style="font-size: 12px; font-weight: normal; color: #6d28d9;">(كشف الرواتب، السحبيات، الإيداعات، وصافي المتبقي)</span>
-            </div>
-            <p style="font-size:12.5px; color:#374151; margin-bottom:14px; line-height: 1.6;">
-                مخصص لرفع كشف مسير الرواتب الدوري (مثل كشوفات الرواتب الشهرية) لتحديث الرواتب الأساسية، السحبيات، الإيداعات، ومكافأة التارجت وصافي المستحقات تلقائياً.
-            </p>
 
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button type="button" class="btn" onclick="document.getElementById('importSalariesExcelInput').click()" style="flex: 1; min-width: 220px; justify-content: center; background: #7c3aed; color: white; height: 42px; font-weight: 700;">
-                    <i class="fa-solid fa-file-invoice-dollar"></i> اختيار ورفع كشف مسير الرواتب (Excel)
-                </button>
-                <input type="file" id="importSalariesExcelInput" style="display: none;" accept=".xlsx,.xls" onchange="importSalariesFromExcel(this)">
-            </div>
-        </div>
-
-        <!-- Database Backup and Restore -->
-        <div class="section-box" style="border: 2px solid var(--primary); background: #f8fafc;">
-            <div class="section-title" style="color: var(--primary); display: flex; align-items: center; gap: 8px;">
-                <span>💾</span>
-                <span>النسخ الاحتياطي واستعادة قاعدة البيانات</span>
-            </div>
-            <p style="font-size:12px; color:var(--text-gray); margin-bottom:14px; line-height: 1.6;">
-                يمكنك تصدير نسخة احتياطية كاملة من قاعدة بيانات النظام (تشمل سجلات الموظفين، الدخل، السحوبات، والتسعيرات) أو رفع واستعادة ملف نسخة سابقة (.sqlite أو .db) لتحديث بيانات السيرفر مباشرة.
-            </p>
-
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button type="button" class="btn btn-primary" onclick="downloadDbBackup()" style="flex: 1; min-width: 170px; justify-content: center; height: 42px;">
-                    <span><i class="fa-solid fa-file-import"></i> تحميل نسخة احتياطية</span>
-                </button>
-                <button type="button" class="btn" onclick="document.getElementById('dbRestoreFileInput').click()" style="flex: 1; min-width: 170px; justify-content: center; background: #f59e0b; color: white; height: 42px; font-weight: 700;">
-                    <span>📤 رفع واستعادة قاعدة البيانات</span>
-                </button>
-                <button type="button" class="btn" onclick="syncDefaultSeedData()" style="flex: 1; min-width: 170px; justify-content: center; background: #0284c7; color: white; height: 42px; font-weight: 700;">
-                    <span>🔄 مزامنة واستيراد البيانات الافتراضية</span>
-                </button>
-                <input type="file" id="dbRestoreFileInput" style="display: none;" accept=".sqlite,.db,.json" onchange="uploadAndRestoreDatabase(this)">
+                <!-- Salaries Import Card -->
+                <div style="background: #f5f3ff; border: 1.5px solid #ddd6fe; border-radius: 12px; padding: 16px;">
+                    <div
+                        style="font-weight: 800; font-size: 14px; color: #6d28d9; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                        <i class="fa-solid fa-money-bill-transfer"></i>
+                        <span>كشف ومسير الرواتب الدوري</span>
+                    </div>
+                    <p style="font-size: 12px; color: #374151; margin-bottom: 12px; line-height: 1.5;">
+                        مخصص لرفع كشف الرواتب الشهري لتحديث الرواتب الأساسية، السحبيات، الإيداعات، ومكافأة التارجت وصافي
+                        المستحقات.
+                    </p>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button type="button" class="btn-modern"
+                            onclick="document.getElementById('importSalariesExcelInput').click()"
+                            style="flex: 1; justify-content: center; background: #7c3aed; color: white; font-size: 12px;">
+                            <i class="fa-solid fa-file-invoice-dollar"></i> اختيار ورفع كشف المسير (Excel)
+                        </button>
+                        <input type="file" id="importSalariesExcelInput" style="display: none;" accept=".xlsx,.xls"
+                            onchange="importSalariesFromExcel(this)">
+                    </div>
+                </div>
             </div>
         </div>
 
-        <button class="btn btn-success btn-full" onclick="saveAllSettings()">💾 حفظ كافة الإعدادات</button>
+        <!-- 10. Database Backup and Restore -->
+        <div id="secBackup" class="section-box settings-sec-item" data-category="backup"
+            style="border: 2px solid var(--primary-color); background: #f8fafc;">
+            <div class="section-title" style="color: var(--primary-color);">
+                <div class="section-title-start">
+                    <i class="fa-solid fa-database"></i>
+                    <span>النسخ الاحتياطي واستعادة قاعدة البيانات</span>
+                </div>
+                <span class="section-title-badge" style="background: #e0e7ff; color: #3730a3;">أمان البيانات</span>
+            </div>
+            <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px; line-height: 1.6;">
+                يمكنك تصدير نسخة احتياطية كاملة من قاعدة بيانات النظام (تشمل سجلات الموظفين، الدخل، السحوبات،
+                والتسعيرات) أو رفع واستعادة ملف نسخة سابقة (.sqlite أو .db أو .json) لتحديث بيانات السيرفر مباشرة.
+            </p>
+
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button type="button" class="btn-modern btn-primary-m" onclick="downloadDbBackup()"
+                    style="flex: 1; min-width: 170px; justify-content: center; height: 42px;">
+                    <i class="fa-solid fa-file-import"></i> تحميل نسخة احتياطية
+                </button>
+                <button type="button" class="btn-modern" onclick="document.getElementById('dbRestoreFileInput').click()"
+                    style="flex: 1; min-width: 170px; justify-content: center; background: #f59e0b; color: white; height: 42px;">
+                    <i class="fa-solid fa-upload"></i> رفع واستعادة قاعدة البيانات
+                </button>
+                <button type="button" class="btn-modern" onclick="syncDefaultSeedData()"
+                    style="flex: 1; min-width: 170px; justify-content: center; background: #0284c7; color: white; height: 42px;">
+                    <i class="fa-solid fa-arrows-rotate"></i> مزامنة واستيراد البيانات الافتراضية
+                </button>
+                <input type="file" id="dbRestoreFileInput" style="display: none;" accept=".sqlite,.db,.json"
+                    onchange="uploadAndRestoreDatabase(this)">
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky Floating Bottom Save Bar -->
+    <div class="sticky-save-bar">
+        <div class="sticky-save-inner">
+            <div class="save-status-info">
+                <i class="fa-solid fa-circle-check" style="color: #10b981; font-size: 16px;"></i>
+                <span>لوحة التحكم وإعدادات النظام جاهزة ومحدثة</span>
+                <span style="font-size: 12px; color: #64748b;"><kbd>Ctrl + S</kbd> للحفظ السريع في أي وقت</span>
+            </div>
+            <div class="save-actions-group">
+                <button type="button" class="btn-modern btn-secondary-m" onclick="APP_NAV.goBack('admin.html')">
+                    <i class="fa-solid fa-arrow-right"></i> رجوع
+                </button>
+                <button type="button" class="btn-modern btn-success-m" onclick="saveAllSettings()"
+                    style="padding: 10px 24px; font-size: 14px;">
+                    <i class="fa-solid fa-floppy-disk"></i> حفظ كافة الإعدادات
+                </button>
+            </div>
+        </div>
     </div>
 
     <script>
+        // ==========================================
+        // Toast Notification System
+        // ==========================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastNotificationContainer');
+            if (!container) {
+                return;
+            }
+
+            const toast = document.createElement('div');
+            toast.className = `toast-item toast-${type}`;
+
+            let iconHtml = '<i class="fa-solid fa-circle-check"></i>';
+            if (type === 'error') iconHtml = '<i class="fa-solid fa-circle-xmark"></i>';
+            else if (type === 'warning') iconHtml = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            else if (type === 'info') iconHtml = '<i class="fa-solid fa-circle-info"></i>';
+
+            toast.innerHTML = `
+                <div class="toast-icon">${iconHtml}</div>
+                <div class="toast-content">${message.replace(/\n/g, '<br>')}</div>
+                <button type="button" class="toast-close" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>
+            `;
+
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('toast-fade-out');
+                setTimeout(() => toast.remove(), 400);
+            }, 4500);
+        }
+
+        // ==========================================
+        // Section Filter Pills Handling
+        // ==========================================
+        function filterSettingsSection(category, pillBtn) {
+            document.querySelectorAll('.nav-pill').forEach(btn => btn.classList.remove('active'));
+            if (pillBtn) pillBtn.classList.add('active');
+
+            const sections = document.querySelectorAll('.settings-sec-item');
+            sections.forEach(sec => {
+                if (category === 'all' || sec.dataset.category === category) {
+                    sec.style.display = 'block';
+                } else {
+                    sec.style.display = 'none';
+                }
+            });
+
+            // Smooth scroll to first matching section if not 'all'
+            if (category !== 'all') {
+                const target = document.querySelector(`.settings-sec-item[data-category="${category}"]`);
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        }
+
+        // Keyboard Shortcut Ctrl+S
+        window.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+                e.preventDefault();
+                saveAllSettings();
+            }
+        });
+
         // Work Schedule Handling
         const daysMap = {
-            'Sunday': 'الأحد', 'Monday': 'الاثنين', 'Tuesday': 'الثلاثاء', 
+            'Sunday': 'الأحد', 'Monday': 'الاثنين', 'Tuesday': 'الثلاثاء',
             'Wednesday': 'الأربعاء', 'Thursday': 'الخميس', 'Friday': 'الجمعة', 'Saturday': 'السبت'
         };
         let currentSchedule = [];
@@ -409,18 +1543,21 @@
             currentSchedule = schedule;
             const tbody = document.getElementById('scheduleTableBody');
             tbody.innerHTML = schedule.map(day => `
-                <tr style="border-bottom: 1px solid #eee;">
-                    <td style="padding:10px; font-weight:600;">${daysMap[day.day_of_week]}</td>
+                <tr style="border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding:10px; font-weight:700; color:#1e293b;">${daysMap[day.day_of_week]}</td>
                     <td style="padding:10px; text-align:center;">
                         <input type="time" value="${day.start_time || ''}" ${day.is_closed ? 'disabled' : ''} 
+                            style="padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px;"
                             onchange="updateScheduleDay('${day.day_of_week}', 'start_time', this.value)">
                     </td>
                     <td style="padding:10px; text-align:center;">
                         <input type="time" value="${day.end_time || ''}" ${day.is_closed ? 'disabled' : ''} 
+                            style="padding:6px 10px; border:1px solid #cbd5e1; border-radius:6px;"
                             onchange="updateScheduleDay('${day.day_of_week}', 'end_time', this.value)">
                     </td>
                     <td style="padding:10px; text-align:center;">
                         <input type="checkbox" ${day.is_closed ? 'checked' : ''} 
+                            style="width: 18px; height: 18px; cursor: pointer; accent-color: #ef4444;"
                             onchange="updateScheduleDay('${day.day_of_week}', 'is_closed', this.checked); loadSettings();">
                     </td>
                 </tr>
@@ -432,10 +1569,8 @@
             if (day) day[field] = value;
         }
 
-        // Load Settings
-        
         // ==========================
-        // 🎨 وظائف رفع وإدارة الشعار والأختام الرسمية
+        // Logo & Official Stamps Upload Functions
         // ==========================
         async function uploadBrandingFile(type, input) {
             const file = input.files[0];
@@ -452,13 +1587,13 @@
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
-                    alert('✅ ' + (data.message || 'تم حفظ الصورة بنجاح!'));
+                    showToast(data.message || 'تم حفظ الصورة بنجاح!', 'success');
                     await loadSettings();
                 } else {
-                    alert('❌ فشل رفع الملف: ' + (data.message || 'خطأ غير معروف'));
+                    showToast('فشل رفع الملف: ' + (data.message || 'خطأ غير معروف'), 'error');
                 }
             } catch (err) {
-                alert('❌ تعذر الاتصال بالسيرفر لرفع الصورة');
+                showToast('تعذر الاتصال بالسيرفر لرفع الصورة', 'error');
             } finally {
                 input.value = '';
             }
@@ -469,13 +1604,13 @@
             try {
                 const res = await fetch(`/api/settings/branding/${key}`, { method: 'DELETE' });
                 if (res.ok) {
-                    alert('✅ تم حذف الملف بنجاح');
+                    showToast('تم حذف الملف بنجاح', 'success');
                     await loadSettings();
                 } else {
-                    alert('❌ فشل الحذف');
+                    showToast('فشل حذف الملف', 'error');
                 }
             } catch (e) {
-                alert('❌ خطأ في الاتصال');
+                showToast('خطأ في الاتصال بالسيرفر', 'error');
             }
         }
 
@@ -533,15 +1668,20 @@
                 renderSchedule(schedule);
 
                 await loadBanks();
+
+                // Android Mobile API Settings
+                const apiRes = await fetch('/api/v1/ping').catch(() => null);
+                const apiInfo = (apiRes && apiRes.ok) ? await apiRes.json() : null;
+                initMobileApiSettingsUI(apiInfo, settings);
             } catch (e) { console.error(e); }
         }
 
         // ==========================
-        // 📍 أدوات النطاق الجغرافي GPS
+        // GPS Geofence Functions
         // ==========================
         function captureCurrentLocationForWorkshop(event) {
             if (!navigator.geolocation) {
-                alert('❌ متصفحك لا يدعم خاصية تحديد الموقع الجغرافي GPS.');
+                showToast('متصفحك لا يدعم خاصية تحديد الموقع الجغرافي GPS.', 'error');
                 return;
             }
             const btn = event ? (event.currentTarget || event.target) : null;
@@ -564,7 +1704,7 @@
                     document.getElementById('workshopLatitude').value = lat;
                     document.getElementById('workshopLongitude').value = lng;
                     document.getElementById('geofenceEnabled').checked = true;
-                    alert(`✅ تم التقاط إحداثيات الموقع بنجاح!\n• خط العرض: ${lat}\n• خط الطول: ${lng}\n• دقة الإشارة: ±${acc} متر\n\nتذكر الضغط على "حفظ كافة الإعدادات" في الأسفل.`);
+                    showToast(`تم التقاط إحداثيات الموقع بنجاح!\n• خط العرض: ${lat}\n• خط الطول: ${lng}\n• دقة الإشارة: ±${acc} متر\n\nتذكر الضغط على "حفظ كافة الإعدادات".`, 'success');
                 },
                 (err) => {
                     if (btn) {
@@ -575,7 +1715,7 @@
                     if (err.code === 1) msg = 'تم رفض إذن الوصول إلى الموقع GPS من المتصفح. يرجى تفعيل الموقع في المتصفح.';
                     else if (err.code === 2) msg = 'إشارة الموقع GPS غير متوفرة حالياً.';
                     else if (err.code === 3) msg = 'انتهت مهلة قراءة إشارة الموقع.';
-                    alert('❌ ' + msg);
+                    showToast(msg, 'error');
                 },
                 { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
             );
@@ -587,12 +1727,12 @@
             const radius = parseFloat(document.getElementById('geofenceRadius').value) || 500;
 
             if (!wLat || !wLng) {
-                alert('يرجى تحديد إحداثيات المركز أولاً أو الضغط على زر تحديد الموقع الحالي.');
+                showToast('يرجى تحديد إحداثيات المركز أولاً أو الضغط على زر تحديد الموقع الحالي.', 'warning');
                 return;
             }
 
             if (!navigator.geolocation) {
-                alert('❌ متصفحك لا يدعم خاصية تحديد الموقع GPS.');
+                showToast('متصفحك لا يدعم خاصية تحديد الموقع GPS.', 'error');
                 return;
             }
 
@@ -610,20 +1750,20 @@
                     const distance = Math.round(R * c);
 
                     if (distance <= radius) {
-                        alert(`✅ أنت داخل النطاق المسموح للورشة!\n• المسافة الحالية عن المركز: ${distance} متر\n• النطاق المسموح: ${radius} متر`);
+                        showToast(`أنت داخل النطاق المسموح للورشة!\n• المسافة الحالية عن المركز: ${distance} متر\n• النطاق المسموح: ${radius} متر`, 'success');
                     } else {
-                        alert(`⚠️ أنت خارج النطاق المسموح!\n• المسافة الحالية عن المركز: ${distance} متر\n• النطاق المسموح: ${radius} متر\n(فارق الزيادة: ${distance - radius} متر)`);
+                        showToast(`أنت خارج النطاق المسموح!\n• المسافة الحالية: ${distance} متر\n• النطاق المسموح: ${radius} متر\n(فارق الزيادة: ${distance - radius} متر)`, 'warning');
                     }
                 },
                 (err) => {
-                    alert('❌ تعذر قراءة موقعك الحالي لاختبار المسافة: ' + err.message);
+                    showToast('تعذر قراءة موقعك الحالي لاختبار المسافة: ' + err.message, 'error');
                 },
                 { enableHighAccuracy: true, timeout: 15000 }
             );
         }
 
         // ==========================
-        // 🏦 إدارة البنوك (Banks Management)
+        // Banks Management Functions
         // ==========================
         let currentBanks = [];
 
@@ -646,7 +1786,7 @@
             }
 
             container.innerHTML = banks.map(bank => `
-                <div style="background: white; border: 1px solid #e0f2fe; border-radius: 8px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+                <div style="background: white; border: 1px solid #e0f2fe; border-radius: 9px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
                     <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #0f172a; font-size: 13.5px;">
                         <span style="color: #0284c7;"><i class="fa-solid fa-building-columns"></i></span>
                         <span>${bank.name}</span>
@@ -667,7 +1807,7 @@
             const input = document.getElementById('newBankName');
             const name = input.value.trim();
             if (!name) {
-                alert('يرجى كتابة اسم البنك أولاً');
+                showToast('يرجى كتابة اسم البنك أولاً', 'warning');
                 return;
             }
 
@@ -681,12 +1821,12 @@
                 if (res.ok) {
                     input.value = '';
                     await loadBanks();
+                    showToast('تمت إضافة البنك بنجاح', 'success');
                 } else {
-                    alert('❌ ' + (result.message || 'فشل إضافة البنك'));
+                    showToast(result.message || 'فشل إضافة البنك', 'error');
                 }
             } catch (e) {
-                console.error(e);
-                alert('❌ تعذر الاتصال بالسيرفر لإضافة البنك');
+                showToast('تعذر الاتصال بالسيرفر لإضافة البنك', 'error');
             }
         }
 
@@ -695,7 +1835,7 @@
             if (newName === null) return;
             const cleanName = newName.trim();
             if (!cleanName) {
-                alert('لا يمكن ترك اسم البنك فارغاً');
+                showToast('لا يمكن ترك اسم البنك فارغاً', 'warning');
                 return;
             }
             if (cleanName === currentName) return;
@@ -709,12 +1849,12 @@
                 const result = await res.json();
                 if (res.ok) {
                     await loadBanks();
+                    showToast('تم تعديل اسم البنك بنجاح', 'success');
                 } else {
-                    alert('❌ ' + (result.message || 'فشل تعديل اسم البنك'));
+                    showToast(result.message || 'فشل تعديل اسم البنك', 'error');
                 }
             } catch (e) {
-                console.error(e);
-                alert('❌ تعذر الاتصال بالسيرفر لتعديل البنك');
+                showToast('تعذر الاتصال بالسيرفر لتعديل البنك', 'error');
             }
         }
 
@@ -724,22 +1864,22 @@
             }
 
             try {
-                const res = await fetch(`/api/banks/${id}`, {
-                    method: 'DELETE'
-                });
+                const res = await fetch(`/api/banks/${id}`, { method: 'DELETE' });
                 const result = await res.json();
                 if (res.ok) {
                     await loadBanks();
+                    showToast('تم حذف البنك بنجاح', 'success');
                 } else {
-                    alert('❌ ' + (result.message || 'فشل حذف البنك'));
+                    showToast(result.message || 'فشل حذف البنك', 'error');
                 }
             } catch (e) {
-                console.error(e);
-                alert('❌ تعذر الاتصال بالسيرفر لحذف البنك');
+                showToast('تعذر الاتصال بالسيرفر لحذف البنك', 'error');
             }
         }
 
-        // Terms Management
+        // ==========================
+        // Terms Management Functions
+        // ==========================
         let currentTerms = [];
 
         function renderTerms(terms) {
@@ -749,10 +1889,10 @@
 
             currentTerms.forEach((term, index) => {
                 const li = document.createElement('li');
-                li.style.cssText = 'background: white; padding: 10px; border-bottom: 1px solid #eee; display:flex; justify-content:space-between; align-items:center;';
+                li.style.cssText = 'background: white; padding: 10px 14px; border: 1px solid #f1f5f9; border-radius: 8px; margin-bottom: 6px; display:flex; justify-content:space-between; align-items:center;';
                 li.innerHTML = `
-                    <span>• ${term}</span>
-                    <button onclick="removeTerm(${index})" style="background:none; border:none; color:red; cursor:pointer;"><i class="fa-solid fa-circle-xmark"></i></button>
+                    <span style="font-size: 13px; color: #1e293b; font-weight: 600;"><i class="fa-solid fa-circle-check" style="color: #4f46e5; margin-left: 6px;"></i> ${term}</span>
+                    <button type="button" onclick="removeTerm(${index})" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:16px;" title="حذف الشرط"><i class="fa-solid fa-circle-xmark"></i></button>
                 `;
                 list.appendChild(li);
             });
@@ -784,7 +1924,9 @@
             renderTerms(currentTerms);
         }
 
+        // ==========================
         // Save All Settings
+        // ==========================
         async function saveAllSettings() {
             const settings = {
                 app_name: document.getElementById('appName').value,
@@ -796,7 +1938,9 @@
                 workshop_latitude: document.getElementById('workshopLatitude').value.trim(),
                 workshop_longitude: document.getElementById('workshopLongitude').value.trim(),
                 geofence_radius_meters: document.getElementById('geofenceRadius').value.trim() || '500',
-                geofence_enabled: document.getElementById('geofenceEnabled').checked ? 'true' : 'false'
+                geofence_enabled: document.getElementById('geofenceEnabled').checked ? 'true' : 'false',
+                mobile_api_enabled: document.getElementById('mobileApiEnabled') ? (document.getElementById('mobileApiEnabled').checked ? 'true' : 'false') : 'true',
+                mobile_api_key: document.getElementById('mobileApiKey') ? document.getElementById('mobileApiKey').value.trim() : ''
             };
 
             try {
@@ -822,28 +1966,28 @@
                 });
 
                 if (res.ok) {
-                    alert('✅ تم حفظ كافة الإعدادات والشروط ومواعيد العمل بنجاح!');
+                    showToast('تم حفظ كافة الإعدادات والشروط ومواعيد العمل بنجاح!', 'success');
                     if (window.APP_CONFIG && APP_CONFIG.initBranding) {
                         APP_CONFIG.initBranding();
                     }
                 } else {
-                    alert('❌ حدث خطأ أثناء حفظ الإعدادات');
+                    showToast('حدث خطأ أثناء حفظ الإعدادات', 'error');
                 }
             } catch (e) {
                 console.error(e);
-                alert('❌ تعذر الاتصال بالسيرفر');
+                showToast('تعذر الاتصال بالسيرفر', 'error');
             }
         }
 
         // ==========================
-        // 💾 وظائف النسخ الاحتياطي والاستعادة ومزامنة البذر
+        // Database Backup & Restore Functions
         // ==========================
         async function downloadDbBackup() {
             try {
                 const res = await fetch('/api/backup/download-json');
                 if (!res.ok) throw new Error('فشل جلب ملف النسخة الاحتياطية');
                 const data = await res.json();
-                
+
                 const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -854,8 +1998,9 @@
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
+                showToast('تم تحميل ملف النسخة الاحتياطية بنجاح!', 'success');
             } catch (error) {
-                alert('خطأ أثناء تحميل النسخة الاحتياطية: ' + error.message);
+                showToast('خطأ أثناء تحميل النسخة الاحتياطية: ' + error.message, 'error');
             }
         }
 
@@ -863,7 +2008,7 @@
             const file = input.files[0];
             if (!file) return;
 
-            if (!confirm(`⚠️ تحذير هـام جداً:\nأنت على وشك استعادة قاعدة البيانات من الملف (${file.name}).\nقد يؤدي هذا إلى استبدال أو دمج السجلات الحالية. هل تود المتابعة؟`)) {
+            if (!confirm(`تحذير هام جداً:\nأنت على وشك استعادة قاعدة البيانات من الملف (${file.name}).\nقد يؤدي هذا إلى استبدال أو دمج السجلات الحالية. هل تود المتابعة؟`)) {
                 input.value = '';
                 return;
             }
@@ -878,13 +2023,13 @@
                 });
                 const result = await res.json();
                 if (res.ok) {
-                    alert('✅ ' + (result.message || 'تمت استعادة قاعدة البيانات بنجاح!'));
-                    window.location.reload();
+                    showToast(result.message || 'تمت استعادة قاعدة البيانات بنجاح!', 'success');
+                    setTimeout(() => window.location.reload(), 1200);
                 } else {
-                    alert('❌ خطأ في الاستعادة: ' + (result.message || 'فشلت العملية'));
+                    showToast('خطأ في الاستعادة: ' + (result.message || 'فشلت العملية'), 'error');
                 }
             } catch (error) {
-                alert('❌ تعذر رفع الملف أو استعادة البيانات: ' + error.message);
+                showToast('تعذر رفع الملف أو استعادة البيانات: ' + error.message, 'error');
             } finally {
                 input.value = '';
             }
@@ -896,13 +2041,13 @@
                 const res = await fetch('/api/backup/sync-seed', { method: 'POST' });
                 const result = await res.json();
                 if (res.ok) {
-                    alert('✅ ' + (result.message || 'تمت مزامنة البيانات الأساسية بنجاح!'));
-                    window.location.reload();
+                    showToast(result.message || 'تمت مزامنة البيانات الأساسية بنجاح!', 'success');
+                    setTimeout(() => window.location.reload(), 1200);
                 } else {
-                    alert('❌ خطأ في المزامنة: ' + (result.message || 'فشلت العملية'));
+                    showToast('خطأ في المزامنة: ' + (result.message || 'فشلت العملية'), 'error');
                 }
             } catch (error) {
-                alert('❌ تعذر إتمام المزامنة: ' + error.message);
+                showToast('تعذر إتمام المزامنة: ' + error.message, 'error');
             }
         }
 
@@ -921,6 +2066,7 @@
             a.download = 'نموذج_استيراد_موظفين.xls';
             a.click();
             URL.revokeObjectURL(url);
+            showToast('تم تحميل نموذج استيراد الموظفين', 'info');
         }
 
         async function importEmployeesFromExcel(input) {
@@ -942,16 +2088,16 @@
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
-                    let msg = `✅ ${data.message || 'تم استيراد الموظفين بنجاح!'}`;
+                    let msg = data.message || 'تم استيراد الموظفين بنجاح!';
                     if (data.addedCount !== undefined) msg += `\n• الموظفون المضافون: ${data.addedCount}`;
                     if (data.updatedCount !== undefined) msg += `\n• الموظفون المحدثون: ${data.updatedCount}`;
                     if (data.createdSectionsCount > 0) msg += `\n• تم إنشاء أقسام جديدة: ${data.createdSectionsCount}`;
-                    alert(msg);
+                    showToast(msg, 'success');
                 } else {
-                    alert('❌ ' + (data.message || 'فشل استيراد ملف الموظفين'));
+                    showToast(data.message || 'فشل استيراد ملف الموظفين', 'error');
                 }
             } catch (e) {
-                alert('❌ تعذر رفع ملف الموظفين: ' + e.message);
+                showToast('تعذر رفع ملف الموظفين: ' + e.message, 'error');
             } finally {
                 input.value = '';
             }
@@ -976,17 +2122,438 @@
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
-                    let msg = `✅ ${data.message || 'تم استيراد مسير الرواتب بنجاح!'}`;
+                    let msg = data.message || 'تم استيراد مسير الرواتب بنجاح!';
                     if (data.updatedCount !== undefined) msg += `\n• سجلات الرواتب المحدثة: ${data.updatedCount}`;
                     if (data.addedCount !== undefined && data.addedCount > 0) msg += `\n• الموظفون الجدد المضافون: ${data.addedCount}`;
-                    alert(msg);
+                    showToast(msg, 'success');
                 } else {
-                    alert('❌ ' + (data.message || 'فشل استيراد مسير الرواتب'));
+                    showToast(data.message || 'فشل استيراد مسير الرواتب', 'error');
                 }
             } catch (e) {
-                alert('❌ تعذر رفع ملف مسير الرواتب: ' + e.message);
+                showToast('تعذر رفع ملف مسير الرواتب: ' + e.message, 'error');
             } finally {
                 input.value = '';
+            }
+        }
+
+        // ==========================================
+        // Android Mobile REST API Functions
+        // ==========================================
+        let currentApiSchema = null;
+        let currentNetworkIps = [];
+
+        async function initMobileApiSettingsUI(pingData, settings) {
+            const isEnabled = settings.mobile_api_enabled !== 'false';
+            const enabledInput = document.getElementById('mobileApiEnabled');
+            if (enabledInput) enabledInput.checked = isEnabled;
+
+            const apiKeyInput = document.getElementById('mobileApiKey');
+            if (apiKeyInput) {
+                apiKeyInput.value = settings.mobile_api_key || ('atenza_apk_' + Math.random().toString(36).substring(2, 12) + Math.random().toString(36).substring(2, 12));
+            }
+
+            const baseUrlInput = document.getElementById('mobileApiBaseUrl');
+            const hints = document.getElementById('mobileApiUrlHints');
+            const badge = document.getElementById('apiOnlineBadge');
+
+            if (pingData && pingData.success) {
+                if (badge) {
+                    badge.style.background = '#dcfce7';
+                    badge.style.color = '#15803d';
+                    badge.innerHTML = '<i class="fa-solid fa-circle-check"></i> متصل ويعمل';
+                }
+                currentNetworkIps = pingData.network_connection?.local_ips || [];
+                const port = window.location.port || '8080';
+                const host = window.location.hostname || 'localhost';
+                const primaryIp = currentNetworkIps[0] || host;
+
+                const defaultUrl = `http://${primaryIp}:${port}/api/v1`;
+                if (baseUrlInput) baseUrlInput.value = defaultUrl;
+
+                if (hints) {
+                    hints.innerHTML = `
+                        <div>• واي فاي محلي (Local WiFi): <code style="direction:ltr; font-weight:bold; background:#e0e7ff; color:#3730a3; padding:1px 5px; border-radius:4px;">http://${primaryIp}:${port}/api/v1</code></div>
+                        <div>• لمحاكي الأندرويد (Android Emulator): <code style="direction:ltr; font-weight:bold; background:#e0e7ff; color:#3730a3; padding:1px 5px; border-radius:4px;">http://10.0.2.2:${port}/api/v1</code></div>
+                        ${settings.public_app_url ? `<div>• رابط عام سحابي: <code style="direction:ltr; font-weight:bold; background:#dcfce7; color:#15803d; padding:1px 5px; border-radius:4px;">${settings.public_app_url}/api/v1</code></div>` : ''}
+                    `;
+                }
+            } else {
+                if (badge) {
+                    badge.style.background = '#fee2e2';
+                    badge.style.color = '#dc2626';
+                    badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> غير متصل';
+                }
+                if (baseUrlInput) baseUrlInput.value = `${window.location.origin}/api/v1`;
+            }
+
+            updateApiPreviewText();
+        }
+
+        function toggleApiKeyVisibility() {
+            const input = document.getElementById('mobileApiKey');
+            const icon = document.getElementById('apiKeyVisIcon');
+            if (!input || !icon) return;
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye';
+            }
+        }
+
+        async function generateNewApiKey() {
+            if (!confirm('هل تريد توليد مفتاح API جديد؟\nسيتم استبدال المفتاح القديم، وستحتاج لتحديثه في تطبيق الأندرويد.')) return;
+            try {
+                const res = await fetch('/api/settings/mobile-api/generate-key', { method: 'POST' });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    document.getElementById('mobileApiKey').value = data.api_key;
+                    document.getElementById('mobileApiEnabled').checked = true;
+                    showToast('تم توليد وتفعيل مفتاح API جديد بنجاح!', 'success');
+                } else {
+                    showToast('فشل توليد المفتاح: ' + (data.message || 'خطأ غير معروف'), 'error');
+                }
+            } catch (e) {
+                showToast('تعذر الاتصال بالسيرفر لتوليد المفتاح', 'error');
+            }
+        }
+
+        async function testMobileApiPing(event) {
+            const btn = event ? (event.currentTarget || event.target) : null;
+            let oldText = '';
+            if (btn) {
+                oldText = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الفحص...';
+                btn.disabled = true;
+            }
+
+            try {
+                const t0 = performance.now();
+                const res = await fetch('/api/v1/ping');
+                const dt = Math.round(performance.now() - t0);
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    showToast(`اتصال API الأندرويد ناجح وسريع!\n• زمن الاستجابة: ${dt} ms\n• إصدار الـ API: ${data.version}\n• الجداول المتاحة: ${data.total_tables_available}`, 'success');
+                } else {
+                    showToast('لم ينجح الفحص: ' + (data.error || 'استجابة غير متوقعة'), 'warning');
+                }
+            } catch (e) {
+                showToast('تعذر الاتصال بواجهة برمجة التطبيقات: ' + e.message, 'error');
+            } finally {
+                if (btn) {
+                    btn.innerHTML = oldText;
+                    btn.disabled = false;
+                }
+            }
+        }
+
+        function switchApiTab(tab) {
+            const tabs = ['tester', 'docs', 'tables'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`apiTabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                const content = document.getElementById(`apiTabContent${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                if (btn && content) {
+                    if (t === tab) {
+                        btn.style.borderBottomColor = '#6366f1';
+                        btn.style.color = '#4338ca';
+                        content.style.display = 'block';
+                    } else {
+                        btn.style.borderBottomColor = 'transparent';
+                        btn.style.color = '#64748b';
+                        content.style.display = 'none';
+                    }
+                }
+            });
+            if (tab === 'tables') loadApiSchemaForTablesTab();
+        }
+
+        function onApiActionChange() {
+            const op = document.getElementById('apiTestOperation').value;
+            const tableWrap = document.getElementById('apiTestTableWrapper');
+            const idWrap = document.getElementById('apiTestIdWrapper');
+            const queryWrap = document.getElementById('apiTestQueryWrapper');
+            const jsonWrap = document.getElementById('apiTestJsonWrapper');
+
+            if (op === 'FULL_SYNC' || op === 'SCHEMA') {
+                tableWrap.style.display = 'none';
+                idWrap.style.display = 'none';
+                jsonWrap.style.display = 'none';
+                queryWrap.style.display = op === 'FULL_SYNC' ? 'block' : 'none';
+                if (op === 'FULL_SYNC') document.getElementById('apiTestQueryParams').value = 'limit_per_table=100';
+            } else if (op === 'PULL_ONE' || op === 'DELETE') {
+                tableWrap.style.display = 'block';
+                idWrap.style.display = 'block';
+                queryWrap.style.display = 'none';
+                jsonWrap.style.display = 'none';
+            } else if (op === 'EDIT') {
+                tableWrap.style.display = 'block';
+                idWrap.style.display = 'block';
+                queryWrap.style.display = 'none';
+                jsonWrap.style.display = 'block';
+            } else if (op === 'PUSH') {
+                tableWrap.style.display = 'block';
+                idWrap.style.display = 'none';
+                queryWrap.style.display = 'none';
+                jsonWrap.style.display = 'block';
+            } else { // PULL_ALL
+                tableWrap.style.display = 'block';
+                idWrap.style.display = 'none';
+                queryWrap.style.display = 'block';
+                jsonWrap.style.display = 'none';
+                document.getElementById('apiTestQueryParams').value = 'limit=5&sort=id&order=DESC';
+            }
+
+            updateApiPreviewText();
+        }
+
+        function onApiTableChange() {
+            updateApiPreviewText();
+        }
+
+        function updateApiPreviewText() {
+            const preview = document.getElementById('apiTestEndpointPreview');
+            if (!preview) return;
+            const op = document.getElementById('apiTestOperation')?.value || 'PULL_ALL';
+            const table = document.getElementById('apiTestTable')?.value || 'inspections';
+            const id = document.getElementById('apiTestRecordId')?.value.trim() || '1';
+            const q = document.getElementById('apiTestQueryParams')?.value.trim() || '';
+
+            let text = '';
+            if (op === 'PULL_ALL') text = `GET /api/v1/db/${table}${q ? '?' + q : ''}`;
+            else if (op === 'PULL_ONE') text = `GET /api/v1/db/${table}/${id}`;
+            else if (op === 'PUSH') text = `POST /api/v1/db/${table}`;
+            else if (op === 'EDIT') text = `PUT /api/v1/db/${table}/${id}`;
+            else if (op === 'DELETE') text = `DELETE /api/v1/db/${table}/${id}`;
+            else if (op === 'FULL_SYNC') text = `GET /api/v1/sync/pull${q ? '?' + q : ''}`;
+            else if (op === 'SCHEMA') text = `GET /api/v1/meta/schema`;
+
+            preview.innerText = text;
+        }
+
+        function generateSamplePayload() {
+            const table = document.getElementById('apiTestTable').value;
+            const samples = {
+                clients: { name: "عميل تجريبي من أندرويد", phone: "0501234567" },
+                inspections: { customer_name: "عميل أندرويد", customer_phone: "0501234567", car_type: "تويوتا كامري", plate_number: "أ ب ج 1234", status: "فحص مبدئي", final_amount: 150 },
+                cash_box_entries: { type: "income", category: "إيرادات فحص سيارات", amount: 200, payment_method: "cash", description: "سند قبض تجريبي من تطبيق أندرويد" },
+                services: { name: "خدمة وزن أذرعة", price: 120, category: "ميزان" },
+                employees: { name: "فني جديد", target: 3000, base_salary: 2500, is_active: 1 },
+                banks: { name: "مصرف الإنماء" }
+            };
+
+            const payload = samples[table] || { name: "سجل تجريبي", notes: "تم إنشاؤه عبر الـ API" };
+            document.getElementById('apiTestJsonBody').value = JSON.stringify(payload, null, 2);
+        }
+
+        async function executeLiveApiTest() {
+            const op = document.getElementById('apiTestOperation').value;
+            const table = document.getElementById('apiTestTable').value;
+            const id = document.getElementById('apiTestRecordId').value.trim() || '1';
+            const query = document.getElementById('apiTestQueryParams').value.trim();
+            const apiKey = document.getElementById('mobileApiKey').value.trim();
+
+            const sendBtn = document.getElementById('apiSendBtn');
+            const resultBox = document.getElementById('apiTestResultBox');
+            const resultStatus = document.getElementById('apiResultStatus');
+            const resultTime = document.getElementById('apiResultTime');
+            const resultPre = document.getElementById('apiResultPre');
+
+            let method = 'GET';
+            let url = '';
+            let body = null;
+
+            if (op === 'PULL_ALL') {
+                method = 'GET';
+                url = `/api/v1/db/${table}${query ? '?' + query : ''}`;
+            } else if (op === 'PULL_ONE') {
+                method = 'GET';
+                url = `/api/v1/db/${table}/${id}`;
+            } else if (op === 'PUSH') {
+                method = 'POST';
+                url = `/api/v1/db/${table}`;
+                try {
+                    body = JSON.parse(document.getElementById('apiTestJsonBody').value.trim() || '{}');
+                } catch (err) {
+                    showToast('صيغة JSON غير صالحة في جسم الطلب:\n' + err.message, 'error');
+                    return;
+                }
+            } else if (op === 'EDIT') {
+                method = 'PUT';
+                url = `/api/v1/db/${table}/${id}`;
+                try {
+                    body = JSON.parse(document.getElementById('apiTestJsonBody').value.trim() || '{}');
+                } catch (err) {
+                    showToast('صيغة JSON غير صالحة في جسم الطلب:\n' + err.message, 'error');
+                    return;
+                }
+            } else if (op === 'DELETE') {
+                method = 'DELETE';
+                url = `/api/v1/db/${table}/${id}`;
+            } else if (op === 'FULL_SYNC') {
+                method = 'GET';
+                url = `/api/v1/sync/pull${query ? '?' + query : ''}`;
+            } else if (op === 'SCHEMA') {
+                method = 'GET';
+                url = `/api/v1/meta/schema`;
+            }
+
+            const oldBtnText = sendBtn.innerHTML;
+            sendBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري الإرسال...';
+            sendBtn.disabled = true;
+
+            try {
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                if (apiKey) headers['x-api-key'] = apiKey;
+
+                const options = { method, headers };
+                if (body && ['POST', 'PUT', 'PATCH'].includes(method)) {
+                    options.body = JSON.stringify(body);
+                }
+
+                const t0 = performance.now();
+                const res = await fetch(url, options);
+                const dt = Math.round(performance.now() - t0);
+
+                let data;
+                const text = await res.text();
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    data = { raw: text };
+                }
+
+                resultBox.style.display = 'block';
+                if (res.ok) {
+                    resultStatus.style.background = '#dcfce7';
+                    resultStatus.style.color = '#15803d';
+                    resultStatus.innerText = `${res.status} ${res.statusText || 'OK'}`;
+                } else {
+                    resultStatus.style.background = '#fee2e2';
+                    resultStatus.style.color = '#dc2626';
+                    resultStatus.innerText = `${res.status} ${res.statusText || 'Error'}`;
+                }
+
+                resultTime.innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${dt} ms`;
+                resultPre.innerText = JSON.stringify(data, null, 2);
+
+            } catch (e) {
+                resultBox.style.display = 'block';
+                resultStatus.style.background = '#fee2e2';
+                resultStatus.style.color = '#dc2626';
+                resultStatus.innerText = 'Network Error';
+                resultTime.innerText = '';
+                resultPre.innerText = 'Error: ' + e.message;
+            } finally {
+                sendBtn.innerHTML = oldBtnText;
+                sendBtn.disabled = false;
+            }
+        }
+
+        async function loadApiSchemaForTablesTab() {
+            const grid = document.getElementById('apiTablesGrid');
+            if (!grid) return;
+            grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #64748b; padding: 20px;"><i class="fa-solid fa-spinner fa-spin"></i> جاري قراءة الجداول...</div>';
+
+            try {
+                const res = await fetch('/api/v1/meta/tables');
+                const data = await res.json();
+                if (res.ok && data.tables) {
+                    grid.innerHTML = data.tables.map(t => `
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 9px; padding: 10px 12px; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.borderColor='#6366f1'" onmouseout="this.style.borderColor='#e2e8f0'" onclick="document.getElementById('apiTestTable').value='${t.table}'; switchApiTab('tester'); onApiActionChange();">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <span style="font-weight: 700; font-size: 13px; color: #1e293b; font-family: monospace;">${t.table}</span>
+                                <span style="background: #e0e7ff; color: #4338ca; font-weight: 800; font-size: 11px; padding: 2px 7px; border-radius: 10px;">${t.total_rows} سجل</span>
+                            </div>
+                            <div style="font-size: 11px; color: #64748b;">Primary Key: <code style="color: #0284c7;">${t.primary_key}</code></div>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                grid.innerHTML = '<div style="grid-column: 1/-1; color: #ef4444; text-align: center;">فشل جلب قائمة الجداول</div>';
+            }
+        }
+
+        function copyToClipboard(elementIdOrText, successMsg) {
+            let textToCopy = '';
+            const el = document.getElementById(elementIdOrText);
+            if (el) {
+                textToCopy = el.value || el.innerText || '';
+            } else {
+                textToCopy = elementIdOrText;
+            }
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    showToast(successMsg || 'تم النسخ للحافظة بنجاح!', 'success');
+                }).catch(() => fallbackCopy(textToCopy, successMsg));
+            } else {
+                fallbackCopy(textToCopy, successMsg);
+            }
+        }
+
+        function fallbackCopy(text, successMsg) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast(successMsg || 'تم النسخ بنجاح!', 'success');
+            } catch (e) {
+                prompt('انسخ النص التالي يدوياً:', text);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        async function downloadAiApiGuide(format = 'markdown') {
+            try {
+                showToast('جاري تحضير وتنزيل دليل الـ AI...', 'info');
+                const url = format === 'json' ? '/api/v1/meta/ai-guide?format=json' : '/api/v1/meta/ai-guide?download=1';
+                const filename = format === 'json' ? 'ATENZA_WORKSHOP_API_SCHEMA.json' : 'ATENZA_WORKSHOP_AI_API_GUIDE.md';
+
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('فشل جلب ملف الدليل من الخادم');
+
+                const blob = await res.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(downloadUrl);
+
+                showToast(format === 'json' ? 'تم تنزيل ملف Schema JSON بنجاح!' : 'تم تنزيل دليل الـ AI البرمجي (.md) بنجاح!', 'success');
+            } catch (err) {
+                console.error(err);
+                showToast('خطأ أثناء تنزيل الدليل: ' + err.message, 'error');
+            }
+        }
+
+        async function copyAiPromptToClipboard() {
+            const btnText = document.getElementById('copyPromptBtnText');
+            const originalText = btnText ? btnText.innerText : '';
+            if (btnText) btnText.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري النسخ...';
+
+            try {
+                const res = await fetch('/api/v1/meta/ai-guide');
+                if (!res.ok) throw new Error('تعذر جلب برومبت الـ AI من السيرفر');
+                const text = await res.text();
+
+                copyToClipboard(text, 'تم نسخ برومبت ودليل الـ AI كاملاً للحافظة! يمكنك الآن لصقه مباشرة في ChatGPT أو Claude أو Android Studio.');
+            } catch (err) {
+                console.error(err);
+                showToast('فشل نسخ برومبت الـ AI: ' + err.message, 'error');
+            } finally {
+                if (btnText) btnText.innerText = originalText;
             }
         }
 

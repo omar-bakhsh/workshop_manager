@@ -361,7 +361,7 @@
             const isHomeActive = activePage === 'admin.html' || activePage.includes('employee.html');
             linksHtml += `
                 <a href="${this.getHomeUrl()}" class="nav-bar-link ${isHomeActive ? 'active' : ''}">
-                    <span>🏠</span> <span>الرئيسية</span>
+                    <span><i class="fa-solid fa-house"></i></span> <span>الرئيسية</span>
                 </a>
             `;
 
@@ -370,7 +370,7 @@
                 const isInspActive = activePage === 'inspector.html' && !window.location.search.includes('mode=job_order');
                 linksHtml += `
                     <a href="inspector.html" class="nav-bar-link ${isInspActive ? 'active' : ''}">
-                        <span>🔍</span> <span>تسعيرة جديدة</span>
+                        <span><i class="fa-solid fa-magnifying-glass"></i></span> <span>تسعيرة جديدة</span>
                     </a>
                 `;
             }
@@ -379,7 +379,7 @@
             if (canViewInsp) {
                 linksHtml += `
                     <a href="inspections_list.html" class="nav-bar-link ${activePage === 'inspections_list.html' ? 'active' : ''}">
-                        <span>📋</span> <span>سجل التسعيرات</span>
+                        <span><i class="fa-solid fa-clipboard-list"></i></span> <span>سجل التسعيرات</span>
                     </a>
                 `;
             }
@@ -389,7 +389,7 @@
                 const jobTitle = isTechOnly ? 'أوامر العمل المسندة إليّ' : 'أوامر العمل والسيارات';
                 linksHtml += `
                     <a href="job_orders_list.html" class="nav-bar-link ${activePage === 'job_orders_list.html' ? 'active' : ''}">
-                        <span>🚗</span> <span>${jobTitle}</span>
+                        <span><i class="fa-solid fa-car"></i></span> <span>${jobTitle}</span>
                     </a>
                 `;
             }
@@ -397,17 +397,26 @@
             // Admin extra pages
             if (user.role === 'admin') {
                 linksHtml += `
+                    <a href="cash_box.html" class="nav-bar-link ${activePage === 'cash_box.html' ? 'active' : ''}">
+                        <span><i class="fa-solid fa-cash-register"></i></span> <span>الصندوق</span>
+                    </a>
+                    <a href="reports.html" class="nav-bar-link ${activePage === 'reports.html' ? 'active' : ''}">
+                        <span><i class="fa-solid fa-file-invoice"></i></span> <span>التقارير</span>
+                    </a>
+                    <a href="employees_manager.html" class="nav-bar-link ${activePage === 'employees_manager.html' ? 'active' : ''}">
+                        <span><i class="fa-solid fa-user-tie"></i></span> <span>الموظفين</span>
+                    </a>
                     <a href="services_manager.html" class="nav-bar-link ${activePage === 'services_manager.html' ? 'active' : ''}">
-                        <span>🛠️</span> <span>الخدمات</span>
+                        <span><i class="fa-solid fa-screwdriver-wrench"></i></span> <span>الخدمات</span>
                     </a>
                     <a href="marketing.html" class="nav-bar-link ${activePage === 'marketing.html' ? 'active' : ''}">
-                        <span>🏷️</span> <span>التسويق والخصومات</span>
+                        <span><i class="fa-solid fa-tags"></i></span> <span>التسويق والخصومات</span>
                     </a>
                     <a href="income_report.html" class="nav-bar-link ${activePage === 'income_report.html' ? 'active' : ''}">
-                        <span>📊</span> <span>التقارير</span>
+                        <span><i class="fa-solid fa-chart-pie"></i></span> <span>دخل الموظفين</span>
                     </a>
                     <a href="settings.html" class="nav-bar-link ${activePage === 'settings.html' ? 'active' : ''}">
-                        <span>⚙️</span> <span>الإعدادات</span>
+                        <span><i class="fa-solid fa-gear"></i></span> <span>الإعدادات</span>
                     </a>
                 `;
             }

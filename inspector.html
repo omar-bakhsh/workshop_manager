@@ -3318,7 +3318,10 @@
                 </div>
                 <div class="ops-bottom-info">
                     <div><span>User Name : </span><b id="opsUserName">ADMIN</b><span style="margin-right: 4px;">اسم المستخدم</span></div>
-                    <div><span id="opsFooterBrand">Atenza Service - Mazda Specialists</span></div>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <span id="opsFooterBrand">Atenza Service - Mazda Specialists</span>
+                        <span style="font-size: 8.5px; color: #94a3b8; font-weight: 600;">• برمجة وتطوير: م. عمر</span>
+                    </div>
                 </div>
             </footer>
         </div>
@@ -3462,29 +3465,48 @@
                     <img src="car_diagram.svg" class="jc-diagram-img" alt="Car Diagram" onerror="this.src='car_diagram.png'">
                 </div>
 
-                <div style="position: relative;">
-                    <table class="jc-receipt-table">
-                        <tbody>
-                            <tr>
-                                <td style="width: 50%; font-size: 11px; font-weight: 700;">تم إستلام المركبة بدون فوارق Without Discrepancies</td>
-                                <td style="width: 25%; text-align: center; font-size: 12px; font-weight: 800;" id="jcSignCustName"></td>
-                                <td style="width: 25%; background: #f1f5f9; font-size: 11px; font-weight: 800;">اسم العميل Customer Name</td>
-                            </tr>
-                            <tr>
-                                <td style="font-size: 11px; font-weight: 700;">توقيع العميل Customer's Signature : &nbsp; ..............................</td>
-                                <td style="text-align: center;">..........................................</td>
-                                <td style="background: #f1f5f9; font-size: 11px; font-weight: 800;">توقيع العميل Customer's Signature</td>
-                            </tr>
-                            <tr>
-                                <td style="font-size: 11px; font-weight: 700;">تاريخ الاستلام Collected Date : &nbsp; ...................................</td>
-                                <td colspan="2"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div id="jcPrintStampContainer" style="display:none; align-items:center; justify-content:center; position:absolute; left:30%; bottom:15px; pointer-events:none; z-index:10;">
-                        <img id="jcPrintStampImg" src="" alt="ختم الفاتورة وأمر العمل" style="max-height:100px; max-width:180px; width:auto; height:auto; object-fit:contain; opacity:0.95; transform:rotate(-3deg); filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));">
-                    </div>
-                </div>
+                <table class="jc-receipt-table">
+                    <tbody>
+                        <tr>
+                            <!-- 1. موافقة وتوقيع العميل على أمر العمل (Job Order Approval & Signature) -->
+                            <td style="width: 36%; vertical-align: top; padding: 6px 10px; text-align: right;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dotted #94a3b8; padding-bottom: 3px; margin-bottom: 6px;">
+                                    <span style="font-size: 11px; font-weight: 800; color: #000;">اسم العميل Customer:</span>
+                                    <b id="jcSignCustName" style="font-size: 11.5px; color: #000;"></b>
+                                </div>
+                                <div style="font-size: 11px; font-weight: 800; margin-top: 6px;">
+                                    توقيع أمر العمل Order Approval:
+                                    <div style="margin-top: 10px; font-size: 11px; letter-spacing: 2px; color: #64748b; text-align: center;">..........................................</div>
+                                </div>
+                            </td>
+
+                            <!-- 2. توقيع واستلام العميل للمركبة (Customer Vehicle Receipt) -->
+                            <td style="width: 36%; vertical-align: top; padding: 6px 10px; text-align: right;">
+                                <div style="font-size: 11px; font-weight: 800; color: #000; border-bottom: 1px dotted #94a3b8; padding-bottom: 3px; margin-bottom: 6px;">
+                                    توقيع واستلام العميل
+                                    <span style="font-size: 9.5px; font-weight: 700; color: #475569; display: block;">Customer Receipt & Handover</span>
+                                </div>
+                                <div style="font-size: 11px; font-weight: 700; margin-top: 8px;">
+                                    التوقيع Sign: &nbsp; <span style="letter-spacing: 1px; color: #64748b;">...................................</span>
+                                </div>
+                                <div style="font-size: 11px; font-weight: 700; margin-top: 6px;">
+                                    تاريخ الاستلام Date: &nbsp; <span style="letter-spacing: 1px; color: #64748b;">...................................</span>
+                                </div>
+                            </td>
+
+                            <!-- 3. الختم والاعتماد الرسمي للمركز (Official Workshop Stamp) -->
+                            <td style="width: 28%; vertical-align: middle; text-align: center; background: #fafafa; padding: 4px;">
+                                <div style="font-size: 10.5px; font-weight: 800; color: #1e293b; margin-bottom: 2px;">
+                                    الختم والاعتماد الرسمي
+                                    <div style="font-size: 9px; font-weight: 700; color: #64748b;">Official Workshop Stamp</div>
+                                </div>
+                                <div id="jcPrintStampContainer" style="display:none; align-items:center; justify-content:center; min-height:65px; margin:2px auto;">
+                                    <img id="jcPrintStampImg" src="" alt="ختم الفاتورة وأمر العمل" style="max-height:65px; max-width:130px; width:auto; height:auto; object-fit:contain; opacity:0.95; transform:rotate(-3deg); filter:drop-shadow(0 2px 4px rgba(0,0,0,0.12));">
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
 
                 <div class="jc-footer-bar">
                     <div class="jc-footer-contacts" id="jcFooterContacts">
@@ -3494,6 +3516,7 @@
                     </div>
                     <div><span>نسخه &nbsp; 1 &nbsp; copy</span></div>
                     <div><span>user name &nbsp;&nbsp; <b id="jcUserName">ADMIN</b> &nbsp;&nbsp; اسم المستخدم</span></div>
+                    <div style="font-size: 9.5px; color: #64748b; font-weight: 600;">برمجة وتطوير: م. عمر</div>
                 </div>
             </div>
         </div>
@@ -3647,7 +3670,10 @@
             <!-- Footer -->
             <div class="inv-footer-bar">
                 <div><span>شكراً لتعاملكم معنا • Thank you for your business</span></div>
-                <div><span id="invFooterBrand">Atenza Workshop Management System</span></div>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <span id="invFooterBrand">Atenza Workshop Management System</span>
+                    <span style="font-size: 8.5px; color: #94a3b8; font-weight: 600;">• برمجة وتطوير: م. عمر</span>
+                </div>
             </div>
         </div>
     </div>

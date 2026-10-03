@@ -4001,3 +4001,1592 @@ app.post('/api/promo-codes/validate', async (req, res) => {
         res.status(500).json({ valid: false, message: 'خطأ في فحص كود الخصم: ' + error.message });
     }
 });
+
+// ==========================================
+// 💰 صندوق المصاريف والإيرادات اليومية (CASH BOX & TREASURY API)
+// ==========================================
+
+// Helper: Ensure cash_box_entries table exists and seed from recent paid job orders if empty
+async function ensureCashBoxInitialized() {
+    try {
+        await dbRun(`CREATE TABLE IF NOT EXISTS cash_box_entries (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            entry_type VARCHAR(20) NOT NULL,
+            payment_method VARCHAR(20) DEFAULT 'cash',
+            amount DOUBLE NOT NULL,
+            category VARCHAR(100) NULL,
+            description TEXT NOT NULL,
+            job_order_id INT NULL,
+            created_by VARCHAR(100) DEFAULT 'admin',
+            balance_before DOUBLE DEFAULT 0,
+            entry_date DATE NULL,
+            entry_time VARCHAR(20) NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`);
+    } catch (e) {
+        try {
+            await dbRun(`CREATE TABLE IF NOT EXISTS cash_box_entries (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                entry_type TEXT NOT NULL,
+                payment_method TEXT DEFAULT 'cash',
+                amount REAL NOT NULL,
+                category TEXT,
+                description TEXT NOT NULL,
+                job_order_id INTEGER,
+                created_by TEXT DEFAULT 'admin',
+                balance_before REAL DEFAULT 0,
+                entry_date DATE,
+                entry_time TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );`);
+        } catch (err) {}
+    }
+
+    try {
+        const countRow = await dbGet('SELECT COUNT(*) as cnt FROM cash_box_entries');
+        if (countRow && (countRow.cnt === 0 || countRow.cnt === '0')) {
+            // Seed recent paid inspections as initial receipts to give immediate realistic data
+            const recentPaid = await dbAll(`
+                SELECT id, customer_name, paid_amount, payment_method, created_at
+                FROM inspections 
+                WHERE paid_amount > 0
+                ORDER BY id DESC LIMIT 15
+            `);
+            let runningBal = 2678580.20; // Default opening base
+            for (const ins of recentPaid.reverse()) {
+                const dateStr = ins.created_at ? new Date(ins.created_at).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
+                const timeStr = ins.created_at ? new Date(ins.created_at).toLocaleTimeString('en-US') : '10:00:00 AM';
+                const pMethod = (ins.payment_method && String(ins.payment_method).includes('شبكة')) ? 'card' : 'cash';
+                await dbRun(`
+                    INSERT INTO cash_box_entries (entry_type, payment_method, amount, category, description, job_order_id, created_by, balance_before, entry_date, entry_time)
+                    VALUES (?, ?, ?, 'فاتورة أمر عمل', ?, ?, 'admin', ?, ?, ?)
+                `, [
+                    'receipt',
+                    pMethod,
+                    ins.paid_amount,
+                    `تم إستلام مبلغ قيمة الفاتورة الخاصة بالعميل ${ins.customer_name || 'عميل نقدي'}`,
+                    ins.id,
+                    runningBal,
+                    dateStr,
+                    timeStr
+                ]);
+                runningBal += ins.paid_amount;
+            }
+        }
+    } catch (seedErr) {
+        console.warn('Cashbox seed note:', seedErr.message);
+    }
+}
+
+// 1. Get Cash Box Transactions & Realtime Summary
+app.get('/api/cash-box', async (req, res) => {
+    try {
+        await ensureCashBoxInitialized();
+        const { start_date, end_date, payment_method, entry_type, search } = req.query;
+
+        let whereClause = ' WHERE 1=1 ';
+        const params = [];
+
+        if (start_date) {
+            whereClause += ' AND (entry_date >= ? OR (entry_date IS NULL AND DATE(created_at) >= ?)) ';
+            params.push(start_date, start_date);
+        }
+        if (end_date) {
+            whereClause += ' AND (entry_date <= ? OR (entry_date IS NULL AND DATE(created_at) <= ?)) ';
+            params.push(end_date, end_date);
+        }
+        if (payment_method && payment_method !== 'all') {
+            whereClause += ' AND payment_method = ? ';
+            params.push(payment_method);
+        }
+        if (entry_type && entry_type !== 'all') {
+            whereClause += ' AND entry_type = ? ';
+            params.push(entry_type);
+        }
+        if (search && search.trim()) {
+            whereClause += ' AND (description LIKE ? OR job_order_id LIKE ? OR created_by LIKE ?) ';
+            const s = `%${search.trim()}%`;
+            params.push(s, s, s);
+        }
+
+        const entries = await dbAll(`
+            SELECT * FROM cash_box_entries 
+            ${whereClause}
+            ORDER BY id DESC
+        `, params);
+
+        // Compute overall and period totals
+        const allEntries = await dbAll(`SELECT * FROM cash_box_entries ORDER BY id ASC`);
+        let totalCashDrawer = 0;
+        let totalCardPos = 0;
+        let totalBankBalance = 0;
+        let periodReceipts = 0;
+        let periodExpenses = 0;
+        let periodBankDeposits = 0;
+
+        for (const e of allEntries) {
+            const amt = Number(e.amount) || 0;
+            if (e.entry_type === 'receipt') {
+                if (e.payment_method === 'card') {
+                    totalCardPos += amt;
+                } else if (e.payment_method === 'bank') {
+                    totalBankBalance += amt;
+                } else {
+                    totalCashDrawer += amt;
+                }
+            } else if (e.entry_type === 'expense') {
+                if (e.payment_method === 'card') {
+                    totalCardPos -= amt;
+                } else if (e.payment_method === 'bank') {
+                    totalBankBalance -= amt;
+                } else {
+                    totalCashDrawer -= amt;
+                }
+            } else if (e.entry_type === 'bank_deposit') {
+                totalCashDrawer -= amt;
+                totalBankBalance += amt;
+            }
+        }
+
+        for (const e of entries) {
+            const amt = Number(e.amount) || 0;
+            if (e.entry_type === 'receipt') {
+                periodReceipts += amt;
+            } else if (e.entry_type === 'expense') {
+                periodExpenses += amt;
+            } else if (e.entry_type === 'bank_deposit') {
+                periodBankDeposits += amt;
+            }
+        }
+
+        const baseOpening = 2678580.20;
+        const totalCurrentBalance = baseOpening + totalCashDrawer + totalCardPos;
+
+        res.json({
+            success: true,
+            entries,
+            summary: {
+                opening_balance: baseOpening,
+                total_current_balance: +totalCurrentBalance.toFixed(2),
+                total_cash_drawer: +totalCashDrawer.toFixed(2),
+                total_card_pos: +totalCardPos.toFixed(2),
+                total_bank_balance: +totalBankBalance.toFixed(2),
+                period_receipts: +periodReceipts.toFixed(2),
+                period_expenses: +periodExpenses.toFixed(2),
+                period_bank_deposits: +periodBankDeposits.toFixed(2),
+                net_balance: +(periodReceipts - periodExpenses).toFixed(2),
+                transactions_count: entries.length
+            }
+        });
+    } catch (error) {
+        console.error('Fetch Cash Box Error:', error);
+        res.status(500).json({ success: false, message: 'خطأ في جلب بيانات الصندوق: ' + error.message });
+    }
+});
+
+// 2. Add New Cash Box Transaction (Receipt, Expense, Bank Deposit)
+app.post('/api/cash-box', async (req, res) => {
+    try {
+        await ensureCashBoxInitialized();
+        const { entry_type, payment_method, amount, category, description, job_order_id, created_by, entry_date, entry_time } = req.body;
+
+        if (!entry_type || !amount || Number(amount) <= 0) {
+            return res.status(400).json({ success: false, message: 'نوع العملية والمبلغ مطلوبان وقيمتهما أكبر من الصفر' });
+        }
+        if (!description || !description.trim()) {
+            return res.status(400).json({ success: false, message: 'بيان العملية مطلوب' });
+        }
+
+        const dateStr = entry_date || new Date().toISOString().slice(0, 10);
+        const timeStr = entry_time || new Date().toLocaleTimeString('en-US');
+        const numAmt = Number(amount);
+
+        // Get last balance
+        const lastEntry = await dbGet('SELECT balance_before, amount, entry_type FROM cash_box_entries ORDER BY id DESC LIMIT 1');
+        let currentBal = 2678580.20;
+        if (lastEntry) {
+            currentBal = Number(lastEntry.balance_before) || currentBal;
+            if (lastEntry.entry_type === 'receipt') currentBal += Number(lastEntry.amount);
+            else currentBal -= Number(lastEntry.amount);
+        }
+
+        const result = await dbRun(`
+            INSERT INTO cash_box_entries (entry_type, payment_method, amount, category, description, job_order_id, created_by, balance_before, entry_date, entry_time)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+            entry_type,
+            payment_method || 'cash',
+            numAmt,
+            category || (entry_type === 'receipt' ? 'إيراد متنوع' : 'مصروف عام'),
+            description.trim(),
+            job_order_id || null,
+            created_by || 'admin',
+            currentBal,
+            dateStr,
+            timeStr
+        ]);
+
+        res.json({
+            success: true,
+            id: result.lastID || result.insertId,
+            message: 'تم تسجيل العملية في الصندوق بنجاح'
+        });
+    } catch (error) {
+        console.error('Add Cash Box Entry Error:', error);
+        res.status(500).json({ success: false, message: 'خطأ في حفظ قيد الصندوق: ' + error.message });
+    }
+});
+
+// 3. Delete Cash Box Transaction
+app.delete('/api/cash-box/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await dbRun('DELETE FROM cash_box_entries WHERE id = ?', [id]);
+        res.json({ success: true, message: 'تم حذف القيد من الصندوق' });
+    } catch (error) {
+        console.error('Delete Cash Box Entry Error:', error);
+        res.status(500).json({ success: false, message: 'خطأ في حذف القيد: ' + error.message });
+    }
+});
+
+// 4. Bank Transfer from Cash Drawer
+app.post('/api/cash-box/bank-transfer', async (req, res) => {
+    try {
+        await ensureCashBoxInitialized();
+        const { amount, bank_name, notes, created_by, entry_date } = req.body;
+        const numAmt = Number(amount);
+        if (!numAmt || numAmt <= 0) {
+            return res.status(400).json({ success: false, message: 'مبلغ التحويل غير صحيح' });
+        }
+
+        const dateStr = entry_date || new Date().toISOString().slice(0, 10);
+        const timeStr = new Date().toLocaleTimeString('en-US');
+        const bankTitle = bank_name || 'الحساب البنكي الرئيسي';
+
+        await dbRun(`
+            INSERT INTO cash_box_entries (entry_type, payment_method, amount, category, description, created_by, entry_date, entry_time)
+            VALUES (?, 'bank', ?, 'إيداع بنكي', ?, ?, ?, ?)
+        `, [
+            'bank_deposit',
+            numAmt,
+            `سحب نقدي من الدرج وإيداع في ${bankTitle} ${notes ? ' - ' + notes : ''}`,
+            created_by || 'admin',
+            dateStr,
+            timeStr
+        ]);
+
+        res.json({ success: true, message: `تم إيداع مبلغ ${numAmt} ﷼ في ${bankTitle} بنجاح` });
+    } catch (error) {
+        console.error('Bank Transfer Error:', error);
+        res.status(500).json({ success: false, message: 'خطأ في إجراء الإيداع: ' + error.message });
+    }
+});
+
+// ==========================================
+// 📊 شاشة التقارير الشاملة (COMPREHENSIVE WORKSHOP REPORTS API)
+// ==========================================
+app.get('/api/reports/comprehensive', async (req, res) => {
+    try {
+        const { type, start_date, end_date, extra_filter } = req.query;
+        const fromDate = start_date || new Date().toISOString().slice(0, 7) + '-01';
+        const toDate = end_date || new Date().toISOString().slice(0, 10);
+
+        let data = [];
+        let summary = {};
+
+        switch (type) {
+            // 1. استطلاع دخول سيارات للمركز
+            case 'vehicle_entries': {
+                data = await dbAll(`
+                    SELECT 
+                        i.id, i.customer_name, i.customer_phone, i.car_type, i.car_model, 
+                        i.plate_number, i.odometer, i.final_amount, i.paid_amount, i.status, 
+                        i.car_status, i.created_at,
+                        e.name as inspector_name,
+                        t.name as technician_name
+                    FROM inspections i
+                    LEFT JOIN employees e ON i.inspector_id = e.id
+                    LEFT JOIN employees t ON i.assigned_technician_id = t.id
+                    WHERE DATE(i.created_at) BETWEEN ? AND ?
+                    ORDER BY i.id DESC
+                `, [fromDate, toDate]);
+
+                let totalCars = data.length;
+                let totalAmount = data.reduce((sum, d) => sum + (Number(d.final_amount) || 0), 0);
+                let totalPaid = data.reduce((sum, d) => sum + (Number(d.paid_amount) || 0), 0);
+
+                summary = {
+                    title: 'تقرير استطلاع دخول السيارات للمركز (سجل الاستقبال)',
+                    total_count: totalCars,
+                    total_amount: +totalAmount.toFixed(2),
+                    total_paid: +totalPaid.toFixed(2),
+                    columns: [
+                        { key: 'id', title: 'رقم أمر العمل' },
+                        { key: 'created_at', title: 'تاريخ ووقت الدخول' },
+                        { key: 'customer_name', title: 'اسم العميل' },
+                        { key: 'customer_phone', title: 'رقم الجوال' },
+                        { key: 'car_type', title: 'نوع وموديل السيارة' },
+                        { key: 'plate_number', title: 'رقم اللوحة' },
+                        { key: 'odometer', title: 'قراءة العداد' },
+                        { key: 'inspector_name', title: 'مسؤول الاستقبال' },
+                        { key: 'technician_name', title: 'الفني المسند' },
+                        { key: 'final_amount', title: 'إجمالي الفاتورة' },
+                        { key: 'car_status', title: 'حالة السيارة' }
+                    ]
+                };
+                break;
+            }
+
+            // 2. استطلاع خروج وتسليم سيارات من المركز
+            case 'vehicle_deliveries': {
+                data = await dbAll(`
+                    SELECT 
+                        i.id, i.customer_name, i.customer_phone, i.car_type, i.plate_number, 
+                        i.final_amount, i.paid_amount, i.remaining_amount, i.payment_method, 
+                        i.created_at, e.name as inspector_name
+                    FROM inspections i
+                    LEFT JOIN employees e ON i.inspector_id = e.id
+                    WHERE i.car_status = 'delivered' AND DATE(i.created_at) BETWEEN ? AND ?
+                    ORDER BY i.id DESC
+                `, [fromDate, toDate]);
+
+                let totalDelivered = data.length;
+                let totalCollected = data.reduce((sum, d) => sum + (Number(d.paid_amount) || 0), 0);
+                let totalDue = data.reduce((sum, d) => sum + (Number(d.remaining_amount) || 0), 0);
+
+                summary = {
+                    title: 'تقرير خروج وتسليم السيارات المكتملة',
+                    total_count: totalDelivered,
+                    total_collected: +totalCollected.toFixed(2),
+                    total_due: +totalDue.toFixed(2),
+                    columns: [
+                        { key: 'id', title: 'رقم الفاتورة / أمر العمل' },
+                        { key: 'customer_name', title: 'اسم العميل' },
+                        { key: 'customer_phone', title: 'الجوال' },
+                        { key: 'car_type', title: 'السيارة' },
+                        { key: 'plate_number', title: 'اللوحة' },
+                        { key: 'final_amount', title: 'المبلغ الإجمالي' },
+                        { key: 'paid_amount', title: 'المدفوع' },
+                        { key: 'remaining_amount', title: 'المتبقي' },
+                        { key: 'payment_method', title: 'طريقة السداد' },
+                        { key: 'created_at', title: 'تاريخ الإنجاز' }
+                    ]
+                };
+                break;
+            }
+
+            // 3. السيارات الموجودة بالورشة حالياً (قيد العمل - لم تطبع فاتورة)
+            case 'in_progress_cars': {
+                data = await dbAll(`
+                    SELECT 
+                        i.id, i.customer_name, i.customer_phone, i.car_type, i.plate_number, 
+                        i.car_status, i.created_at, i.final_amount,
+                        e.name as inspector_name,
+                        t.name as technician_name,
+                        wl.name as lift_name
+                    FROM inspections i
+                    LEFT JOIN employees e ON i.inspector_id = e.id
+                    LEFT JOIN employees t ON i.assigned_technician_id = t.id
+                    LEFT JOIN workshop_lifts wl ON wl.technician_id = i.assigned_technician_id
+                    WHERE (i.car_status IN ('in_progress', 'ready', 'pending_approval') OR i.status != 'completed')
+                    ORDER BY i.id DESC
+                `);
+
+                summary = {
+                    title: 'تقرير السيارات المتواجدة داخل الورشة قيد الصيانة',
+                    total_count: data.length,
+                    total_amount: +(data.reduce((sum, d) => sum + (Number(d.final_amount) || 0), 0)).toFixed(2),
+                    columns: [
+                        { key: 'id', title: 'كرت العمل' },
+                        { key: 'customer_name', title: 'العميل' },
+                        { key: 'customer_phone', title: 'الجوال' },
+                        { key: 'car_type', title: 'السيارة' },
+                        { key: 'plate_number', title: 'اللوحة' },
+                        { key: 'lift_name', title: 'الرافعة / الموقع' },
+                        { key: 'technician_name', title: 'الفني المباشر' },
+                        { key: 'car_status', title: 'مرحلة العمل' },
+                        { key: 'created_at', title: 'تاريخ الدخول' }
+                    ]
+                };
+                break;
+            }
+
+            // 4. استطلاع الدخل والمبيعات حسب القسم
+            case 'revenue_by_section': {
+                data = await dbAll(`
+                    SELECT 
+                        COALESCE(NULLIF(TRIM(ii.category), ''), 'صيانة عامة') as category,
+                        COUNT(ii.id) as jobs_count,
+                        SUM(ii.quantity) as total_qty,
+                        SUM(ii.total) as total_revenue
+                    FROM inspection_items ii
+                    JOIN inspections i ON ii.inspection_id = i.id
+                    WHERE DATE(i.created_at) BETWEEN ? AND ?
+                    GROUP BY category
+                    ORDER BY total_revenue DESC
+                `, [fromDate, toDate]);
+
+                const overallRev = data.reduce((sum, d) => sum + (Number(d.total_revenue) || 0), 0);
+                data = data.map(d => ({
+                    ...d,
+                    percent: overallRev > 0 ? ((Number(d.total_revenue) / overallRev) * 100).toFixed(1) + '%' : '0%'
+                }));
+
+                summary = {
+                    title: 'تقرير توزيع الدخل والمبيعات حسب الأقسام الفنية',
+                    total_count: data.length,
+                    total_revenue: +overallRev.toFixed(2),
+                    columns: [
+                        { key: 'category', title: 'القسم / نوع الخدمة' },
+                        { key: 'jobs_count', title: 'عدد العمليات المنفذة' },
+                        { key: 'total_qty', title: 'إجمالي الكميات' },
+                        { key: 'total_revenue', title: 'إجمالي الدخل (﷼)' },
+                        { key: 'percent', title: 'النسبة المئوية من الإجمالي' }
+                    ]
+                };
+                break;
+            }
+
+            // 5. استطلاع الإيرادات والمصروفات وصافي الأرباح (P&L)
+            case 'income_expenses_pnl': {
+                const inspRev = await dbGet(`
+                    SELECT 
+                        COALESCE(SUM(paid_amount), 0) as total_paid,
+                        COALESCE(SUM(final_amount), 0) as total_billed,
+                        COALESCE(SUM(vat_amount), 0) as total_vat,
+                        COUNT(id) as total_orders
+                    FROM inspections
+                    WHERE DATE(created_at) BETWEEN ? AND ?
+                `, [fromDate, toDate]);
+
+                const cashboxExpenses = await dbGet(`
+                    SELECT COALESCE(SUM(amount), 0) as total_exp 
+                    FROM cash_box_entries 
+                    WHERE entry_type = 'expense' AND (entry_date BETWEEN ? AND ? OR (entry_date IS NULL AND DATE(created_at) BETWEEN ? AND ?))
+                `, [fromDate, toDate, fromDate, toDate]);
+
+                const withdrawals = await dbGet(`
+                    SELECT COALESCE(SUM(amount), 0) as total_with 
+                    FROM withdrawals 
+                    WHERE status = 'approved' AND (date BETWEEN ? AND ? OR (date IS NULL AND DATE(created_at) BETWEEN ? AND ?))
+                `, [fromDate, toDate, fromDate, toDate]);
+
+                const grossIncome = Number(inspRev?.total_paid || 0);
+                const totalExpenses = Number(cashboxExpenses?.total_exp || 0) + Number(withdrawals?.total_with || 0);
+                const netProfit = grossIncome - totalExpenses;
+
+                data = [
+                    { item: 'إجمالي مقبوضات أوامر العمل والفواتير', type: 'إيراد (+)', amount: grossIncome.toFixed(2) },
+                    { item: 'مصروفات ومشتريات الصندوق اليومية', type: 'مصروف (-)', amount: Number(cashboxExpenses?.total_exp || 0).toFixed(2) },
+                    { item: 'مسحوبات وسلف الموظفين المعتمدة', type: 'مصروف (-)', amount: Number(withdrawals?.total_with || 0).toFixed(2) },
+                    { item: 'إجمالي المصروفات الكلية', type: 'إجمالي (-)', amount: totalExpenses.toFixed(2) },
+                    { item: 'صافي الربح التشغيلي للمركز', type: 'صافي الأرباح (=)', amount: netProfit.toFixed(2) }
+                ];
+
+                summary = {
+                    title: 'تقرير الأرباح والخسائر الشامل (P&L Statement)',
+                    gross_income: +grossIncome.toFixed(2),
+                    total_expenses: +totalExpenses.toFixed(2),
+                    net_profit: +netProfit.toFixed(2),
+                    columns: [
+                        { key: 'item', title: 'البند المالي' },
+                        { key: 'type', title: 'طبيعة القيد' },
+                        { key: 'amount', title: 'المبلغ الإجمالي (﷼)' }
+                    ]
+                };
+                break;
+            }
+
+            // 6. استطلاع القيمة المضافة والإقرار الضريبي VAT (هيئة الزكاة ZATCA)
+            case 'vat_tax_report': {
+                data = await dbAll(`
+                    SELECT 
+                        id as invoice_no,
+                        DATE(created_at) as invoice_date,
+                        customer_name,
+                        customer_phone,
+                        (total_amount - discount_amount) as taxable_amount,
+                        vat_amount,
+                        final_amount as gross_total,
+                        payment_method
+                    FROM inspections
+                    WHERE DATE(created_at) BETWEEN ? AND ?
+                    ORDER BY id DESC
+                `, [fromDate, toDate]);
+
+                let totalTaxable = data.reduce((s, d) => s + (Number(d.taxable_amount) || 0), 0);
+                let totalVat = data.reduce((s, d) => s + (Number(d.vat_amount) || 0), 0);
+                let totalGross = data.reduce((s, d) => s + (Number(d.gross_total) || 0), 0);
+
+                summary = {
+                    title: 'تقرير ضريبة القيمة المضافة 15% المعتمد (إقرار الزكاة والضريبة)',
+                    total_count: data.length,
+                    total_taxable: +totalTaxable.toFixed(2),
+                    total_vat: +totalVat.toFixed(2),
+                    total_gross: +totalGross.toFixed(2),
+                    columns: [
+                        { key: 'invoice_no', title: 'رقم الفاتورة' },
+                        { key: 'invoice_date', title: 'تاريخ الفاتورة' },
+                        { key: 'customer_name', title: 'اسم العميل' },
+                        { key: 'customer_phone', title: 'رقم الجوال' },
+                        { key: 'taxable_amount', title: 'المبلغ الخاضع للضريبة' },
+                        { key: 'vat_amount', title: 'ضريبة 15%' },
+                        { key: 'gross_total', title: 'المجموع شامل الضريبة' },
+                        { key: 'payment_method', title: 'طريقة السداد' }
+                    ]
+                };
+                break;
+            }
+
+            // 7. استطلاع دخل وإنتاجية الفنيين والموظفين
+            case 'technician_performance': {
+                data = await dbAll(`
+                    SELECT 
+                        e.id as emp_id,
+                        e.name as emp_name,
+                        s.name as section_name,
+                        e.target as target_goal,
+                        COUNT(i.id) as total_jobs,
+                        COALESCE(SUM(i.final_amount), 0) as total_revenue,
+                        COALESCE(SUM(i.paid_amount), 0) as total_collected
+                    FROM employees e
+                    LEFT JOIN sections s ON e.section_id = s.id
+                    LEFT JOIN inspections i ON (i.assigned_technician_id = e.id OR i.inspector_id = e.id) AND DATE(i.created_at) BETWEEN ? AND ?
+                    WHERE e.is_active = 1
+                    GROUP BY e.id, e.name, s.name, e.target
+                    ORDER BY total_revenue DESC
+                `, [fromDate, toDate]);
+
+                summary = {
+                    title: 'تقرير إنتاجية ودخل الفنيين ومسؤولي الفحص',
+                    total_count: data.length,
+                    total_revenue: +(data.reduce((s, d) => s + (Number(d.total_revenue) || 0), 0)).toFixed(2),
+                    columns: [
+                        { key: 'emp_id', title: 'الرقم الوظيفي' },
+                        { key: 'emp_name', title: 'اسم الموظف / الفني' },
+                        { key: 'section_name', title: 'القسم' },
+                        { key: 'total_jobs', title: 'عدد السيارات المنجزة' },
+                        { key: 'total_revenue', title: 'إجمالي المبيعات المحققة' },
+                        { key: 'total_collected', title: 'المبالغ المحصلة' }
+                    ]
+                };
+                break;
+            }
+
+            // 8. كشف خاص بالشركات والمؤسسات والعملاء المميزين
+            case 'corporate_accounts': {
+                data = await dbAll(`
+                    SELECT 
+                        customer_name,
+                        customer_phone,
+                        COUNT(id) as total_orders,
+                        SUM(final_amount) as total_billed,
+                        SUM(paid_amount) as total_paid,
+                        SUM(remaining_amount) as total_due
+                    FROM inspections
+                    WHERE customer_name IS NOT NULL AND TRIM(customer_name) != '' 
+                      AND DATE(created_at) BETWEEN ? AND ?
+                    GROUP BY customer_name, customer_phone
+                    ORDER BY total_billed DESC
+                `, [fromDate, toDate]);
+
+                summary = {
+                    title: 'كشف حساب العملاء والشركات والأساطيل',
+                    total_count: data.length,
+                    total_billed: +(data.reduce((s, d) => s + (Number(d.total_billed) || 0), 0)).toFixed(2),
+                    total_paid: +(data.reduce((s, d) => s + (Number(d.total_paid) || 0), 0)).toFixed(2),
+                    total_due: +(data.reduce((s, d) => s + (Number(d.total_due) || 0), 0)).toFixed(2),
+                    columns: [
+                        { key: 'customer_name', title: 'اسم العميل / الشركة' },
+                        { key: 'customer_phone', title: 'رقم الهاتف' },
+                        { key: 'total_orders', title: 'عدد المركبات / الأوامر' },
+                        { key: 'total_billed', title: 'إجمالي التعاملات' },
+                        { key: 'total_paid', title: 'إجمالي المدفوع' },
+                        { key: 'total_due', title: 'المبالغ المتبقية والذمم' }
+                    ]
+                };
+                break;
+            }
+
+            default:
+                return res.status(400).json({ success: false, message: 'نوع التقرير غير محدد' });
+        }
+
+        res.json({
+            success: true,
+            report_type: type,
+            from_date: fromDate,
+            to_date: toDate,
+            summary,
+            data
+        });
+
+    } catch (error) {
+        console.error('Comprehensive Report Error:', error);
+        res.status(500).json({ success: false, message: 'خطأ في استخراج التقرير: ' + error.message });
+    }
+});
+
+// ========================================================
+// 📱 ANDROID MOBILE REST API & FULL DATABASE SYNC (v1)
+// ========================================================
+const os = require('os');
+const crypto = require('crypto');
+
+// قائمة الجداول المسموح بالوصول إليها عبر الـ API (حماية من الحقن)
+const ALLOWED_API_TABLES = [
+    'inspections',
+    'inspection_items',
+    'inspection_photos',
+    'inspection_technicians',
+    'inspection_bundles',
+    'inspection_bundle_items',
+    'inspection_terms',
+    'clients',
+    'employees',
+    'sections',
+    'banks',
+    'services',
+    'cash_box_entries',
+    'entries',
+    'withdrawals',
+    'absences',
+    'leave_requests',
+    'attendance',
+    'workshop_lifts',
+    'branch_shifts',
+    'work_schedule',
+    'promo_codes',
+    'messages',
+    'sys_notifications',
+    'employee_documents',
+    'users',
+    'settings'
+];
+
+// دالة جلب عناوين IP المحلية للربط مع أجهزة الأندرويد والمحاكي
+function getMobileNetworkIps() {
+    const interfaces = os.networkInterfaces();
+    const ips = [];
+    for (const name of Object.keys(interfaces)) {
+        for (const iface of interfaces[name]) {
+            if (iface.family === 'IPv4' && !iface.internal) {
+                ips.push(iface.address);
+            }
+        }
+    }
+    return ips;
+}
+
+// دالة جلب أعمدة الجدول بدقة وأمان
+async function getTableColumns(tableName) {
+    if (!ALLOWED_API_TABLES.includes(tableName)) return [];
+    try {
+        if (isMySQL) {
+            const rows = await dbAll(`DESCRIBE \`${tableName}\``);
+            return rows.map(r => ({
+                name: r.Field,
+                type: r.Type,
+                notnull: r.Null === 'NO' ? 1 : 0,
+                pk: r.Key === 'PRI' ? 1 : 0,
+                dflt_value: r.Default
+            }));
+        } else {
+            const rows = await dbAll(`PRAGMA table_info(\`${tableName}\`)`);
+            return rows.map(r => ({
+                name: r.name,
+                type: r.type,
+                notnull: r.notnull,
+                pk: r.pk,
+                dflt_value: r.dflt_value
+            }));
+        }
+    } catch (e) {
+        console.error(`Error reading schema for ${tableName}:`, e.message);
+        return [];
+    }
+}
+
+// وسيط التحقق من مفتاح الـ API وتفعيل الربط
+async function checkMobileApiAuth(req, res, next) {
+    try {
+        const enabledSetting = await dbGet(`SELECT value FROM settings WHERE key = 'mobile_api_enabled'`);
+        if (enabledSetting && enabledSetting.value === 'false') {
+            return res.status(403).json({
+                success: false,
+                error: 'Mobile API access is disabled in Workshop Settings.',
+                error_ar: 'الوصول إلى واجهة برمجة التطبيقات (API) معطل حالياً من إعدادات النظام'
+            });
+        }
+
+        // السماح بالوصول لمسارات الفحص ومعلومات الميتا ودليل الـ AI دون حجب لتسهيل التحميل والمزامنة
+        if (req.path === '/ping' || req.path === '/info' || req.path.startsWith('/meta/')) {
+            return next();
+        }
+
+        const apiKeySetting = await dbGet(`SELECT value FROM settings WHERE key = 'mobile_api_key'`);
+        const requiredKey = apiKeySetting && apiKeySetting.value ? apiKeySetting.value.trim() : '';
+
+        if (requiredKey && requiredKey.length > 0) {
+            const clientKey = req.headers['x-api-key'] ||
+                (req.headers['authorization'] ? req.headers['authorization'].replace(/^Bearer\s+/i, '').trim() : '') ||
+                req.query.api_key;
+
+            if (!clientKey || clientKey !== requiredKey) {
+                return res.status(401).json({
+                    success: false,
+                    error: 'Unauthorized: Invalid or missing API key.',
+                    error_ar: 'غير مصرح: مفتاح الـ API مفقود أو غير مطابق',
+                    hint: 'Provide the API key via Header "x-api-key", "Authorization: Bearer <key>", or query parameter "?api_key=<key>"'
+                });
+            }
+        }
+        next();
+    } catch (err) {
+        console.error('Mobile Auth Middleware Error:', err);
+        next();
+    }
+}
+
+const apiRouter = express.Router();
+apiRouter.use(checkMobileApiAuth);
+
+// 1. فحص الاتصال ومعلومات السيرفر وشبكة الأندرويد
+apiRouter.get(['/ping', '/info'], async (req, res) => {
+    try {
+        const appNameRow = await dbGet(`SELECT value FROM settings WHERE key = 'app_name'`);
+        const workshopNameRow = await dbGet(`SELECT value FROM settings WHERE key = 'workshop_name'`);
+        const localIps = getMobileNetworkIps();
+        
+        res.json({
+            success: true,
+            status: 'online',
+            message: 'Workshop Manager Android REST API is operational',
+            timestamp: new Date().toISOString(),
+            app_name: appNameRow ? appNameRow.value : 'Atenza App',
+            workshop_name: workshopNameRow ? workshopNameRow.value : 'Workshop',
+            version: '2.0.0',
+            database_engine: isMySQL ? 'MySQL' : 'SQLite',
+            server_port: PORT,
+            network_connection: {
+                local_ips: localIps,
+                primary_wifi_url: localIps.length > 0 ? `http://${localIps[0]}:${PORT}/api/v1` : `http://localhost:${PORT}/api/v1`,
+                android_emulator_url: `http://10.0.2.2:${PORT}/api/v1`,
+                localhost_url: `http://127.0.0.1:${PORT}/api/v1`
+            },
+            supported_operations: ['PULL (GET)', 'PUSH (POST)', 'EDIT (PUT/PATCH)', 'DELETE (DELETE)', 'FULL SYNC'],
+            total_tables_available: ALLOWED_API_TABLES.length
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+// 2. استعراض بنية الجداول والحقول (Database Schema Discovery) لتطبيق الأندرويد
+apiRouter.get('/meta/schema', async (req, res) => {
+    try {
+        const schema = {};
+        for (const table of ALLOWED_API_TABLES) {
+            const cols = await getTableColumns(table);
+            const countRow = await dbGet(`SELECT COUNT(*) as cnt FROM \`${table}\``).catch(() => ({ cnt: 0 }));
+            schema[table] = {
+                columns: cols,
+                primary_key: table === 'settings' ? 'key' : (cols.find(c => c.pk === 1)?.name || 'id'),
+                total_records: countRow ? countRow.cnt : 0
+            };
+        }
+        res.json({
+            success: true,
+            tables_count: ALLOWED_API_TABLES.length,
+            schema
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+// 3. قائمة الجداول المتاحة مع إحصائيات السجلات
+apiRouter.get('/meta/tables', async (req, res) => {
+    try {
+        const tablesInfo = [];
+        for (const table of ALLOWED_API_TABLES) {
+            const countRow = await dbGet(`SELECT COUNT(*) as cnt FROM \`${table}\``).catch(() => ({ cnt: 0 }));
+            tablesInfo.push({
+                table,
+                primary_key: table === 'settings' ? 'key' : 'id',
+                total_rows: countRow ? countRow.cnt : 0,
+                endpoints: {
+                    pull_all: `/api/v1/db/${table}`,
+                    pull_one: `/api/v1/db/${table}/:id`,
+                    push: `/api/v1/db/${table}`,
+                    edit: `/api/v1/db/${table}/:id`,
+                    delete: `/api/v1/db/${table}/:id`
+                }
+            });
+        }
+        res.json({ success: true, tables: tablesInfo });
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+// 4. دليل الـ AI للربط البرمجي الشامل (AI System Prompt & Developer Integration Guide)
+const API_TABLE_META_DICT = {
+    inspections: { title_ar: 'أوامر العمل وفحص المركبات', title_en: 'Vehicle Inspections & Work Orders', desc: 'الجدول الرئيسي لبطاقات الفحص ودخول المركبات، يحتوي على رقم اللوحة، رقم الشاصي (VIN)، الممشى، بيانات السيارة، حالة الأمر (pending, in_progress, completed, cancelled)، إجمالي المبالغ، والخصومات.' },
+    inspection_items: { title_ar: 'بنود وتفاصيل الفحص', title_en: 'Inspection Checklist Items', desc: 'عناصر الفحص الفردية التابعة لأمر العمل (اسم البند، الحالة: سليم/يحتاج استبدال/تم الإصلاح، السعر، ملاحظات الفني). مرتبط بـ inspection_id.' },
+    inspection_photos: { title_ar: 'صور توثيق الفحص', title_en: 'Inspection Photos & Documentation', desc: 'الصور المرفقة ببطاقة فحص المركبة قبل وأثناء وبعد الإصلاح مع تحديد الجزء والملاحظات. مرتبط بـ inspection_id.' },
+    inspection_technicians: { title_ar: 'فنيي أمر العمل', title_en: 'Assigned Technicians', desc: 'ربط الفنيين والميكانيكيين بأمر العمل مع تحديد حصة أو نسبة الإنجاز وشغل اليد. مرتبط بـ inspection_id و employee_id.' },
+    inspection_bundles: { title_ar: 'باقات الفحص الجاهزة', title_en: 'Inspection Packages / Bundles', desc: 'باقات الفحص المعرفة مسبقاً في المركز مثل (الفحص الشامل، فحص كمبيوتر، فحص القير والمحرك، فحص الشراء).' },
+    inspection_bundle_items: { title_ar: 'بنود باقات الفحص', title_en: 'Bundle Items Details', desc: 'تفاصيل البنود الافتراضية التابعة لكل باقة فحص لإضافتها دفعة واحدة لأمر العمل.' },
+    inspection_terms: { title_ar: 'الشروط والأحكام والضمانات', title_en: 'Terms, Conditions & Warranty', desc: 'الشروط القانونية والضمانات المطبوعة على كروت أوامر العمل وسندات التسليم للعملاء.' },
+    clients: { title_ar: 'سجل العملاء والشركات', title_en: 'Customers & Fleet Directory', desc: 'دليل العملاء والشركات (الاسم، رقم الجوال، الهوية الوطنية أو الرقم الضريبي، العنوان، الملاحظات، الرصيد).' },
+    employees: { title_ar: 'سجل الموظفين والفنيين', title_en: 'Employees & Technicians', desc: 'ملفات الموظفين، التخصصات، الراتب الأساسي، التارجت، نسبة الدخل، البنك، والحسابات المالية.' },
+    sections: { title_ar: 'أقسام وتخصصات الورشة', title_en: 'Workshop Departments & Sections', desc: 'أقسام المركز (ميكانيكا عامة، كهرباء وتشخيص كمبيوتر، فحص سريان سوائل، سمكرة ودهان، صيانة دورية).' },
+    banks: { title_ar: 'البنوك وطرق الدفع والصناديق', title_en: 'Banks, POS & Payment Methods', desc: 'الحسابات البنكية، الخزينة النقدية (الكاش)، نقاط البيع (مدى / فيزا)، والحسابات الدائنة.' },
+    services: { title_ar: 'دليل الخدمات والأجور', title_en: 'Services Catalog & Standard Rates', desc: 'قائمة الخدمات الافتراضية بالمركز مع الأجور القياسية لسرعة إدراجها في أوامر الفحص.' },
+    cash_box_entries: { title_ar: 'سندات الخزينة والصندوق اليومي', title_en: 'Daily Cash Box Transactions', desc: 'سجل سندات القبض والصرف بالخزينة، الفئات، أرقام السندات، الحساب البنكي، والمبالغ المقبوضة أو المصروفة.' },
+    entries: { title_ar: 'سجل العمليات والمداخيل', title_en: 'Income Entries Log', desc: 'حركات الإيرادات التشغيلية المنفذة ونسب الإنجاز المسجلة للموظفين.' },
+    withdrawals: { title_ar: 'سحبيات وسلف الموظفين', title_en: 'Employee Advances & Withdrawals', desc: 'سلف وسحبيات الموظفين المؤقتة وخصميات الراتب مع حالة الموافقة الإدارية.' },
+    absences: { title_ar: 'سجل الغيابات والخصميات', title_en: 'Employee Absences Log', desc: 'سجل غياب وتأخر الموظفين وأيام الخصم والجزاءات.' },
+    leave_requests: { title_ar: 'طلبات الإجازات', title_en: 'Leave Requests & Approvals', desc: 'طلبات الإجازات السنوية والمرضية والاضطرارية وتواريخ البداية والنهاية والاعتماد.' },
+    attendance: { title_ar: 'سجل الحضور والانصراف', title_en: 'Daily Attendance Log', desc: 'سجل البصمة وتسجيل حضور وانصراف الموظفين اليومي وأوقات الدخول والخروج.' },
+    workshop_lifts: { title_ar: 'رافعات ومسارات الورشة', title_en: 'Workshop Lifts & Service Bays', desc: 'رافعات الورشة والمسارات وحالتها الحالية (متاحة، مشغولة، قيد الصيانة) وتعيينها لأوامر العمل.' },
+    branch_shifts: { title_ar: 'ورديات وفترات الدوام', title_en: 'Work Shifts & Schedules', desc: 'الفترات الصباحية والمسائية وساعات بدء وانتهاء الدوام.' },
+    work_schedule: { title_ar: 'جدولة مواعيد الموظفين', title_en: 'Employee Work Schedule', desc: 'توزيع الموظفين والفنيين على أيام الأسبوع والورديات المختلفة.' },
+    promo_codes: { title_ar: 'كوبونات وأكواد الخصم', title_en: 'Promotional Promo Codes', desc: 'أكواد الخصومات الترويجية، نسبة أو مبلغ الخصم، وتاريخ الانتهاء والحد الأدنى.' },
+    messages: { title_ar: 'سجل الرسائل والإشعارات', title_en: 'SMS & WhatsApp Messages', desc: 'سجل الرسائل النصية الموجهة للعملاء بتحديثات أوامر الفحص وجاهزية السيارة.' },
+    sys_notifications: { title_ar: 'إشعارات النظام الداخلية', title_en: 'System Alerts & Notifications', desc: 'تنبيهات الإدارة والمسؤولين بمواعيد تجديد الإقامات والوثائق والمهام المعلقة.' },
+    employee_documents: { title_ar: 'أرشيف وثائق الموظفين', title_en: 'Employee Documents & Files', desc: 'وثائق الموظفين (الهويات، رخص القيادة، عقود العمل، الإقامات) وتواريخ انتهائها.' },
+    users: { title_ar: 'مستخدمي النظام والصلاحيات', title_en: 'System Users & Roles', desc: 'حسابات الدخول للنظام وصلاحيات الأدمن والمحاسبين (يتم حجب وإخفاء كلمات المرور تلقائياً في الـ API للأمان).' },
+    settings: { title_ar: 'إعدادات النظام العامة', title_en: 'System Configuration Store', desc: 'تكوين الورشة، الاسم، الشعار، الضريبة، الهاتف، مفاتيح الـ API بصيغة Key-Value.' }
+};
+
+async function buildDynamicAiGuideMarkdown() {
+    const localIps = getMobileNetworkIps();
+    const primaryIp = localIps.length > 0 ? localIps[0] : '192.168.1.100';
+    
+    const appNameRow = await dbGet(`SELECT value FROM settings WHERE key = 'app_name'`).catch(() => null);
+    const workshopNameRow = await dbGet(`SELECT value FROM settings WHERE key = 'workshop_name'`).catch(() => null);
+    const apiKeyRow = await dbGet(`SELECT value FROM settings WHERE key = 'mobile_api_key'`).catch(() => null);
+    const apiEnabledRow = await dbGet(`SELECT value FROM settings WHERE key = 'mobile_api_enabled'`).catch(() => null);
+
+    const appName = appNameRow?.value || 'Atenza Workshop Manager';
+    const workshopName = workshopNameRow?.value || 'مركز صيانة وفحص المركبات';
+    const activeApiKey = apiKeyRow?.value || 'atenza_mobile_secret_key';
+    const isApiEnabled = apiEnabledRow ? apiEnabledRow.value !== 'false' : true;
+
+    const tableSchemas = [];
+    for (const tableName of ALLOWED_API_TABLES) {
+        const meta = API_TABLE_META_DICT[tableName] || {
+            title_ar: tableName,
+            title_en: tableName,
+            desc: 'جدول قاعدة بيانات نظام الورشة'
+        };
+
+        const cols = await getTableColumns(tableName);
+        const countRow = await dbGet(`SELECT COUNT(*) as cnt FROM \`${tableName}\``).catch(() => ({ cnt: 0 }));
+
+        tableSchemas.push({
+            table: tableName,
+            primary_key: tableName === 'settings' ? 'key' : (cols.find(c => c.pk === 1)?.name || 'id'),
+            ...meta,
+            count: countRow ? countRow.cnt : 0,
+            columns: cols
+        });
+    }
+
+    let md = '';
+    md += `# 🤖 ATENZA WORKSHOP REST API & DATABASE INTEGRATION SPECIFICATION\n`;
+    md += `> **System Prompt for AI Assistants & Senior Android Developer Integration Guide**\n`;
+    md += `> **Application:** ${appName} (${workshopName})\n`;
+    md += `> **Engine:** RESTful JSON API v1.0 & Bidirectional Sync Engine v2.0\n`;
+    md += `> **Architecture:** Offline-First Android (Kotlin + Room + Retrofit 2 + Coroutines + WorkManager)\n`;
+    md += `> **Developer & Programmer:** م. عمر\n`;
+    md += `> **Generated At:** ${new Date().toISOString()}\n\n`;
+
+    md += `---\n\n`;
+
+    md += `## 🧭 ROLE & OBJECTIVE FOR THE AI ASSISTANT (تعليمات النظام للذكاء الاصطناعي)\n\n`;
+    md += `You are acting as an expert Senior Android Software Architect and Kotlin Engineer. You are provided with the complete, ground-truth schema, RESTful API specifications, and database dictionary for the **${appName}** workshop management system.\n\n`;
+    md += `### Guiding Rules When Assisting the Developer:\n`;
+    md += `1. **Strict Data Accuracy**: When generating Android entities, DTOs, Room DAOs, or queries, adhere strictly to the exact column names, data types, and primary keys provided in the **Database Tables Dictionary** below. Never invent arbitrary columns.\n`;
+    md += `2. **Offline-First Resilience**: Mobile devices inside automotive workshops frequently lose Wi-Fi. Always prioritize an offline-first architecture where the Android application writes to a local Room Database immediately, and queues network sync requests using Android \`WorkManager\` or background coroutines.\n`;
+    md += `3. **API Key Transmission**: Always include the \`x-api-key\` header in every Retrofit request.\n`;
+    md += `4. **Batch Synchronization**: For syncing large datasets or offline queues, utilize the batch sync endpoints (\`GET /api/v1/sync/pull\` and \`POST /api/v1/sync/push\`) to preserve battery and reduce network round-trips.\n`;
+    md += `5. **Password Redaction**: Notice that the \`users\` table in this API automatically redacts password hashes. Never expect or send unencrypted passwords.\n\n`;
+
+    md += `---\n\n`;
+
+    md += `## 🌐 1. NETWORK & CONNECTION MATRIX (عناوين وخوادم الاتصال)\n\n`;
+    md += `The server runs locally on port \`8080\` and serves the REST API under \`/api/v1\`. Depending on the Android runtime environment, use the appropriate base URL:\n\n`;
+
+    md += `| Target Environment | Base URL | Description & Instructions |\n`;
+    md += `|---|---|---|\n`;
+    md += `| **Android Studio Emulator** | \`http://10.0.2.2:8080/api/v1/\` | Android emulator loopback IP that resolves to the host machine's \`127.0.0.1\` |\n`;
+    md += `| **Physical Android Phone (Wi-Fi)** | \`http://${primaryIp}:8080/api/v1/\` | Connect phone and host PC to the same Wi-Fi network |\n`;
+    md += `| **Public Domain / Production VPS** | \`https://<your-domain-or-ip>/api/v1/\` | Cloud production URL with reverse proxy and SSL certificate |\n`;
+    md += `| **Host PC (Local Browser/Postman)** | \`http://127.0.0.1:8080/api/v1/\` | Direct local testing URL on the host machine |\n\n`;
+
+    md += `> 💡 **Important Android Manifest Configuration (\`AndroidManifest.xml\`):**\n`;
+    md += `> Because local development occurs over HTTP, ensure your \`AndroidManifest.xml\` allows cleartext traffic for local subnets:\n`;
+    md += `\`\`\`xml\n`;
+    md += `<manifest xmlns:android="http://schemas.android.com/apk/res/android">\n`;
+    md += `    <uses-permission android:name="android.permission.INTERNET" />\n`;
+    md += `    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />\n\n`;
+    md += `    <application\n`;
+    md += `        android:usesCleartextTraffic="true"\n`;
+    md += `        ... >\n`;
+    md += `    </application>\n`;
+    md += `</manifest>\n`;
+    md += `\`\`\`\n\n`;
+
+    md += `---\n\n`;
+
+    md += `## 🔐 2. AUTHENTICATION & SECURITY (المصادقة والأمان)\n\n`;
+    md += `The API secures all CRUD endpoints with an API Key verification middleware. Health checks (\`/ping\`) and documentation metadata (\`/meta/*\`) are public.\n\n`;
+    md += `- **Active Workshop Mobile API Key**: \`${activeApiKey}\`\n`;
+    md += `- **API Status**: \`${isApiEnabled ? 'Enabled (نشط ومفعل)' : 'Disabled in Settings (معطل من الإعدادات)'}\`\n\n`;
+
+    md += `### How to Send the API Key in Android Requests:\n`;
+    md += `1. **HTTP Header (Recommended)**:\n`;
+    md += `   \`\`\`http\n`;
+    md += `   x-api-key: ${activeApiKey}\n`;
+    md += `   \`\`\`\n`;
+    md += `2. **Authorization Bearer Header**:\n`;
+    md += `   \`\`\`http\n`;
+    md += `   Authorization: Bearer ${activeApiKey}\n`;
+    md += `   \`\`\`\n`;
+    md += `3. **Query Parameter (Fallback)**:\n`;
+    md += `   \`\`\`http\n`;
+    md += `   GET /api/v1/db/inspections?api_key=${activeApiKey}\n`;
+    md += `   \`\`\`\n\n`;
+
+    md += `---\n\n`;
+
+    md += `## 🚀 3. RESTFUL API ENDPOINTS SPECIFICATION (المسارات والعمليات)\n\n`;
+
+    md += `### 3.1 System Discovery & Health Check\n\n`;
+    md += `#### \`GET /api/v1/ping\`\n`;
+    md += `- **Purpose**: Verifies server connection, returns server timestamp, active workshop details, and local network IPs.\n\n`;
+
+    md += `#### \`GET /api/v1/meta/schema\`\n`;
+    md += `- **Purpose**: Returns the real-time SQLite/MySQL schema for all tables, column types, nullability, and primary keys.\n\n`;
+
+    md += `#### \`GET /api/v1/meta/tables\`\n`;
+    md += `- **Purpose**: Returns a list of all 27 supported tables with their primary keys and current live record counts.\n\n`;
+
+    md += `#### \`GET /api/v1/meta/ai-guide\`\n`;
+    md += `- **Purpose**: Generates this exact Markdown specification (\`?format=markdown\`) or structured JSON (\`?format=json\`) dynamically.\n\n`;
+
+    md += `### 3.2 Dynamic Database CRUD Endpoints\n\n`;
+    md += `You can perform complete CRUD operations on any of the **27 tables** using the standardized \`/api/v1/db/:table\` routes:\n\n`;
+
+    md += `#### A. [PULL] Get Records List: \`GET /api/v1/db/:table\`\n`;
+    md += `- **Query Parameters**:\n`;
+    md += `  - \`limit\` (integer, default: 200, max: 2000): Number of rows to return.\n`;
+    md += `  - \`offset\` (integer, default: 0): Pagination offset.\n`;
+    md += `  - \`sort\` (string): Column to sort by (e.g. \`id\`, \`created_at\`, \`name\`).\n`;
+    md += `  - \`order\` (string): \`ASC\` or \`DESC\` (default: \`DESC\`).\n`;
+    md += `  - \`search\` (string): Full-text wildcard search across text columns.\n`;
+    md += `  - Column filters: Any valid column name can be passed directly as a query parameter (e.g., \`?status=in_progress&client_id=12\`).\n`;
+    md += `- **Example Request**:\n`;
+    md += `  \`GET /api/v1/db/inspections?status=completed&limit=10&sort=id&order=DESC\`\n\n`;
+
+    md += `#### B. [PULL ONE] Get Single Record: \`GET /api/v1/db/:table/:id\`\n`;
+    md += `- **Purpose**: Fetches a single record by primary key (ID or key).\n`;
+    md += `- **Example Request**: \`GET /api/v1/db/clients/5\`\n\n`;
+
+    md += `#### C. [PUSH] Create New Record: \`POST /api/v1/db/:table\`\n`;
+    md += `- **Purpose**: Inserts a new record (or array of records for batch insertion).\n\n`;
+
+    md += `#### D. [EDIT] Update Record: \`PUT /api/v1/db/:table/:id\`\n`;
+    md += `- **Purpose**: Updates specific fields of an existing record.\n\n`;
+
+    md += `#### E. [DELETE] Delete Record: \`DELETE /api/v1/db/:table/:id\`\n`;
+    md += `- **Purpose**: Permanently removes a record by ID.\n\n`;
+
+    md += `### 3.3 Bidirectional Synchronization Endpoints (Offline-First Sync Engine)\n\n`;
+    md += `#### A. [SYNC PULL] Pull Changes: \`GET /api/v1/sync/pull\`\n`;
+    md += `- **Purpose**: Pulls complete or incremental updates across multiple tables simultaneously for offline caching.\n`;
+    md += `- **Query Parameters**:\n`;
+    md += `  - \`since\` (string, optional): ISO timestamp (e.g. \`2026-03-01T00:00:00Z\`). When supplied, only records created/updated after this date are returned.\n`;
+    md += `  - \`tables\` (string, optional): Comma-separated list of tables to pull (e.g. \`inspections,clients,services,cash_box_entries\`).\n\n`;
+
+    md += `#### B. [SYNC PUSH] Batch Push Changes: \`POST /api/v1/sync/push\`\n`;
+    md += `- **Purpose**: Pushes a dictionary of modified or created records from mobile cache to server in a single atomic transaction.\n\n`;
+
+    md += `---\n\n`;
+
+    md += `## 📊 4. DATABASE TABLES DICTIONARY (قاموس الجداول الـ 27 بالتفصيل)\n\n`;
+
+    for (const t of tableSchemas) {
+        md += `### 4.${tableSchemas.indexOf(t) + 1} جدول \`${t.table}\` (${t.title_ar} - ${t.title_en})\n`;
+        md += `- **الوصف**: ${t.desc}\n`;
+        md += `- **المفتاح الأساسي (Primary Key)**: \`${t.primary_key}\`\n`;
+        md += `- **عدد السجلات الحالي**: ${t.count} سجل\n\n`;
+
+        md += `| اسم الحقل (Column) | النوع (Type) | إلزامي (Not Null) | الافتراضي (Default) | المفتاح (PK) |\n`;
+        md += `|---|---|---|---|---|\n`;
+        for (const col of t.columns) {
+            md += `| \`${col.name}\` | \`${col.type || 'TEXT'}\` | ${col.notnull ? 'نعم (YES)' : 'لا (NULL)'} | ${col.dflt_value !== null ? `\`${col.dflt_value}\`` : '—'} | ${col.pk ? '🔑 PK' : '—'} |\n`;
+        }
+        md += `\n`;
+    }
+
+    md += `---\n\n`;
+
+    md += `## 📱 5. PRODUCTION ANDROID KOTLIN CODE SAMPLES (نماذج الأكواد الجاهزة للأندرويد)\n\n`;
+
+    md += `### 5.1 Retrofit API Client with Authentication Interceptor (\`ApiClient.kt\`)\n`;
+    md += `\`\`\`kotlin\n`;
+    md += `package com.atenza.workshop.network\n\n`;
+    md += `import okhttp3.Interceptor\n`;
+    md += `import okhttp3.OkHttpClient\n`;
+    md += `import okhttp3.logging.HttpLoggingInterceptor\n`;
+    md += `import retrofit2.Retrofit\n`;
+    md += `import retrofit2.converter.gson.GsonConverterFactory\n`;
+    md += `import java.util.concurrent.TimeUnit\n\n`;
+    md += `object ApiClient {\n`;
+    md += `    private const val BASE_URL = "http://10.0.2.2:8080/api/v1/"\n`;
+    md += `    private const val API_KEY = "${activeApiKey}"\n\n`;
+    md += `    private val authInterceptor = Interceptor { chain ->\n`;
+    md += `        val request = chain.request().newBuilder()\n`;
+    md += `            .addHeader("x-api-key", API_KEY)\n`;
+    md += `            .addHeader("Content-Type", "application/json")\n`;
+    md += `            .addHeader("Accept", "application/json")\n`;
+    md += `            .build()\n`;
+    md += `        chain.proceed(request)\n`;
+    md += `    }\n\n`;
+    md += `    private val okHttpClient = OkHttpClient.Builder()\n`;
+    md += `        .addInterceptor(authInterceptor)\n`;
+    md += `        .addInterceptor(HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY })\n`;
+    md += `        .connectTimeout(30, TimeUnit.SECONDS)\n`;
+    md += `        .readTimeout(30, TimeUnit.SECONDS)\n`;
+    md += `        .build()\n\n`;
+    md += `    val apiService: WorkshopApiService = Retrofit.Builder()\n`;
+    md += `        .baseUrl(BASE_URL)\n`;
+    md += `        .client(okHttpClient)\n`;
+    md += `        .addConverterFactory(GsonConverterFactory.create())\n`;
+    md += `        .build()\n`;
+    md += `        .create(WorkshopApiService::class.java)\n`;
+    md += `}\n`;
+    md += `\`\`\`\n\n`;
+
+    md += `### 5.2 Retrofit Service Interface (\`WorkshopApiService.kt\`)\n`;
+    md += `\`\`\`kotlin\n`;
+    md += `package com.atenza.workshop.network\n\n`;
+    md += `import com.google.gson.JsonObject\n`;
+    md += `import retrofit2.Response\n`;
+    md += `import retrofit2.http.*\n\n`;
+    md += `interface WorkshopApiService {\n`;
+    md += `    @GET("ping")\n`;
+    md += `    suspend fun ping(): Response<JsonObject>\n\n`;
+    md += `    @GET("db/{table}")\n`;
+    md += `    suspend fun getRecords(\n`;
+    md += `        @Path("table") table: String,\n`;
+    md += `        @Query("limit") limit: Int = 100,\n`;
+    md += `        @Query("offset") offset: Int = 0,\n`;
+    md += `        @Query("sort") sort: String? = null,\n`;
+    md += `        @Query("order") order: String? = "DESC",\n`;
+    md += `        @Query("search") search: String? = null,\n`;
+    md += `        @QueryMap filters: Map<String, String> = emptyMap()\n`;
+    md += `    ): Response<JsonObject>\n\n`;
+    md += `    @GET("db/{table}/{id}")\n`;
+    md += `    suspend fun getRecordById(\n`;
+    md += `        @Path("table") table: String,\n`;
+    md += `        @Path("id") id: String\n`;
+    md += `    ): Response<JsonObject>\n\n`;
+    md += `    @POST("db/{table}")\n`;
+    md += `    suspend fun createRecord(\n`;
+    md += `        @Path("table") table: String,\n`;
+    md += `        @Body body: Any\n`;
+    md += `    ): Response<JsonObject>\n\n`;
+    md += `    @PUT("db/{table}/{id}")\n`;
+    md += `    suspend fun updateRecord(\n`;
+    md += `        @Path("table") table: String,\n`;
+    md += `        @Path("id") id: String,\n`;
+    md += `        @Body updates: JsonObject\n`;
+    md += `    ): Response<JsonObject>\n\n`;
+    md += `    @DELETE("db/{table}/{id}")\n`;
+    md += `    suspend fun deleteRecord(\n`;
+    md += `        @Path("table") table: String,\n`;
+    md += `        @Path("id") id: String\n`;
+    md += `    ): Response<JsonObject>\n\n`;
+    md += `    @GET("sync/pull")\n`;
+    md += `    suspend fun syncPull(\n`;
+    md += `        @Query("since") since: String? = null,\n`;
+    md += `        @Query("tables") tables: String? = null\n`;
+    md += `    ): Response<JsonObject>\n\n`;
+    md += `    @POST("sync/push")\n`;
+    md += `    suspend fun syncPush(\n`;
+    md += `        @Body payload: JsonObject\n`;
+    md += `    ): Response<JsonObject>\n`;
+    md += `}\n`;
+    md += `\`\`\`\n\n`;
+
+    md += `---\n\n`;
+    md += `**Atenza Workshop Management System** — Automotive Management Architecture. (برمجة وتطوير: م. عمر)\n`;
+
+    return md;
+}
+
+apiRouter.get('/meta/ai-guide', async (req, res) => {
+    try {
+        const format = (req.query.format || '').toLowerCase();
+        const shouldDownload = req.query.download === '1' || req.query.download === 'true';
+
+        if (format === 'json') {
+            const schemaData = {};
+            for (const table of ALLOWED_API_TABLES) {
+                const cols = await getTableColumns(table);
+                schemaData[table] = {
+                    meta: API_TABLE_META_DICT[table] || {},
+                    columns: cols
+                };
+            }
+            return res.json({
+                success: true,
+                system: 'Atenza Workshop Manager API',
+                version: '2.0.0',
+                allowed_tables: ALLOWED_API_TABLES,
+                schema: schemaData
+            });
+        }
+
+        const markdownContent = await buildDynamicAiGuideMarkdown();
+
+        res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
+        if (shouldDownload) {
+            res.setHeader('Content-Disposition', 'attachment; filename="ATENZA_WORKSHOP_AI_API_GUIDE.md"');
+        }
+
+        res.send(markdownContent);
+    } catch (e) {
+        console.error('AI Guide Generation Error:', e);
+        res.status(500).json({ success: false, error: 'Failed to generate AI guide: ' + e.message });
+    }
+});
+
+apiRouter.get('/meta/ai-prompt.md', async (req, res) => {
+    try {
+        const markdownContent = await buildDynamicAiGuideMarkdown();
+        res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
+        res.setHeader('Content-Disposition', 'attachment; filename="ATENZA_WORKSHOP_AI_API_GUIDE.md"');
+        res.send(markdownContent);
+    } catch (e) {
+        res.status(500).send('Error generating AI prompt: ' + e.message);
+    }
+});
+
+// 4. السحب الكامل لكافة بيانات النظام بضغطة واحدة (Full Database Pull / Sync)
+apiRouter.get('/sync/pull', async (req, res) => {
+    try {
+        const requestedTables = req.query.tables ? req.query.tables.split(',').map(t => t.trim()) : ALLOWED_API_TABLES;
+        const validTables = requestedTables.filter(t => ALLOWED_API_TABLES.includes(t));
+        const limitPerTable = Math.min(parseInt(req.query.limit_per_table || '2000', 10), 5000);
+        const since = req.query.since ? req.query.since.trim() : null;
+
+        const syncData = {
+            version: '2.0.0',
+            exported_at: new Date().toISOString(),
+            tables: {}
+        };
+
+        for (const table of validTables) {
+            let sql = `SELECT * FROM \`${table}\``;
+            const params = [];
+
+            if (since) {
+                const cols = await getTableColumns(table);
+                const timeCol = cols.find(c => ['updated_at', 'created_at', 'date'].includes(c.name));
+                if (timeCol) {
+                    sql += ` WHERE \`${timeCol.name}\` >= ?`;
+                    params.push(since);
+                }
+            }
+
+            const primaryCol = table === 'settings' ? 'key' : 'id';
+            sql += ` ORDER BY \`${primaryCol}\` DESC LIMIT ${limitPerTable}`;
+
+            let rows = await dbAll(sql, params).catch(() => []);
+            // إخفاء كلمات المرور عند تصدير جدول المستخدمين
+            if (table === 'users') {
+                rows = rows.map(u => {
+                    const clean = { ...u };
+                    delete clean.password;
+                    return clean;
+                });
+            }
+            syncData.tables[table] = rows;
+        }
+
+        res.json({
+            success: true,
+            synced_tables: Object.keys(syncData.tables).length,
+            ...syncData
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, error: 'Sync Pull Error: ' + e.message });
+    }
+});
+
+// 5. الرفع والمزامنة الدفعية من تطبيق الأندرويد إلى السيرفر (Batch Sync Push)
+apiRouter.post('/sync/push', async (req, res) => {
+    try {
+        const payloadTables = req.body.tables;
+        if (!payloadTables || typeof payloadTables !== 'object') {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid payload: "tables" object is required { tables: { tableName: [rows...] } }'
+            });
+        }
+
+        const summary = {};
+        for (const tableName of Object.keys(payloadTables)) {
+            if (!ALLOWED_API_TABLES.includes(tableName)) {
+                summary[tableName] = { status: 'skipped', error: 'Table not allowed' };
+                continue;
+            }
+
+            const rows = payloadTables[tableName];
+            if (!Array.isArray(rows) || rows.length === 0) {
+                summary[tableName] = { status: 'empty', inserted: 0 };
+                continue;
+            }
+
+            const validColumns = (await getTableColumns(tableName)).map(c => c.name);
+            let insertedCount = 0;
+
+            for (const row of rows) {
+                const rowKeys = Object.keys(row).filter(k => validColumns.includes(k));
+                if (rowKeys.length === 0) continue;
+
+                const quotedKeys = rowKeys.map(k => `\`${k}\``).join(', ');
+                const placeholders = rowKeys.map(() => '?').join(', ');
+                const values = rowKeys.map(k => row[k]);
+
+                await dbRun(
+                    `REPLACE INTO \`${tableName}\` (${quotedKeys}) VALUES (${placeholders})`,
+                    values
+                );
+                insertedCount++;
+            }
+
+            summary[tableName] = { status: 'success', synced_count: insertedCount };
+        }
+
+        res.json({
+            success: true,
+            message: 'Batch sync push completed successfully',
+            summary
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, error: 'Sync Push Error: ' + e.message });
+    }
+});
+
+// 6. [PULL] جلب سجلات أي جدول (GET /api/v1/db/:table)
+apiRouter.get('/db/:table', async (req, res) => {
+    const table = req.params.table;
+    if (!ALLOWED_API_TABLES.includes(table)) {
+        return res.status(400).json({
+            success: false,
+            error: `Table '${table}' is not supported or access is forbidden.`,
+            allowed_tables: ALLOWED_API_TABLES
+        });
+    }
+
+    try {
+        const cols = await getTableColumns(table);
+        const colNames = cols.map(c => c.name);
+        const primaryKey = table === 'settings' ? 'key' : (cols.find(c => c.pk === 1)?.name || 'id');
+
+        const limit = Math.min(Math.max(parseInt(req.query.limit || '200', 10), 1), 2000);
+        const offset = Math.max(parseInt(req.query.offset || '0', 10), 0);
+        const sort = colNames.includes(req.query.sort) ? req.query.sort : primaryKey;
+        const order = (req.query.order || 'DESC').toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+
+        const whereClauses = [];
+        const params = [];
+
+        // فلترة مباشرة عبر مطابقة أسماء الأعمدة في الـ query params
+        for (const [key, val] of Object.entries(req.query)) {
+            if (['limit', 'offset', 'sort', 'order', 'search', 'api_key'].includes(key)) continue;
+            if (colNames.includes(key)) {
+                whereClauses.push(`\`${key}\` = ?`);
+                params.push(val);
+            }
+        }
+
+        // بحث نصي عام إذا تم تمرير ?search=
+        if (req.query.search && req.query.search.trim()) {
+            const searchTerm = `%${req.query.search.trim()}%`;
+            const textCols = cols.filter(c => (c.type || '').toUpperCase().includes('TEXT') || (c.type || '').toUpperCase().includes('CHAR')).map(c => c.name);
+            if (textCols.length > 0) {
+                const searchClauses = textCols.slice(0, 5).map(c => `\`${c}\` LIKE ?`);
+                whereClauses.push(`(${searchClauses.join(' OR ')})`);
+                for (let i = 0; i < Math.min(textCols.length, 5); i++) params.push(searchTerm);
+            }
+        }
+
+        const whereSQL = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+        const totalRow = await dbGet(`SELECT COUNT(*) as total FROM \`${table}\` ${whereSQL}`, params);
+        const total = totalRow ? totalRow.total : 0;
+
+        const dataSQL = `SELECT * FROM \`${table}\` ${whereSQL} ORDER BY \`${sort}\` ${order} LIMIT ${limit} OFFSET ${offset}`;
+        let rows = await dbAll(dataSQL, params);
+
+        if (table === 'users') {
+            rows = rows.map(u => {
+                const clean = { ...u };
+                delete clean.password;
+                return clean;
+            });
+        }
+
+        res.json({
+            success: true,
+            table,
+            count: rows.length,
+            total,
+            limit,
+            offset,
+            primary_key: primaryKey,
+            data: rows
+        });
+    } catch (e) {
+        console.error(`PULL Error [${table}]:`, e);
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+// 7. [PULL] جلب سجل فردي محدد (GET /api/v1/db/:table/:id)
+apiRouter.get('/db/:table/:id', async (req, res) => {
+    const table = req.params.table;
+    const id = req.params.id;
+
+    if (!ALLOWED_API_TABLES.includes(table)) {
+        return res.status(400).json({ success: false, error: `Table '${table}' not allowed.` });
+    }
+
+    try {
+        const primaryKey = table === 'settings' ? 'key' : 'id';
+        const row = await dbGet(`SELECT * FROM \`${table}\` WHERE \`${primaryKey}\` = ?`, [id]);
+
+        if (!row) {
+            return res.status(404).json({
+                success: false,
+                error: `Record with ${primaryKey}='${id}' was not found in '${table}'.`
+            });
+        }
+
+        if (table === 'users') delete row.password;
+
+        res.json({
+            success: true,
+            table,
+            primary_key: primaryKey,
+            id,
+            data: row
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, error: e.message });
+    }
+});
+
+// 8. [PUSH] إضافة سجل جديد أو قائمة سجلات (POST /api/v1/db/:table)
+apiRouter.post('/db/:table', async (req, res) => {
+    const table = req.params.table;
+    if (!ALLOWED_API_TABLES.includes(table)) {
+        return res.status(400).json({ success: false, error: `Table '${table}' not allowed.` });
+    }
+
+    try {
+        const cols = await getTableColumns(table);
+        const colNames = cols.map(c => c.name);
+        const hasCreatedAt = colNames.includes('created_at');
+        const hasUpdatedAt = colNames.includes('updated_at');
+
+        const isArray = Array.isArray(req.body);
+        const items = isArray ? req.body : [req.body];
+
+        if (items.length === 0) {
+            return res.status(400).json({ success: false, error: 'Empty payload provided.' });
+        }
+
+        const insertedIds = [];
+        for (const item of items) {
+            if (typeof item !== 'object' || item === null) continue;
+
+            const record = { ...item };
+            if (hasCreatedAt && !record.created_at) record.created_at = new Date().toISOString();
+            if (hasUpdatedAt && !record.updated_at) record.updated_at = new Date().toISOString();
+
+            // تعيين قيم افتراضية ذكية للحقول الإلزامية التي لم يتم تمريرها
+            for (const col of cols) {
+                if (col.notnull && !col.pk && col.dflt_value === null && record[col.name] === undefined) {
+                    const colType = (col.type || '').toUpperCase();
+                    if (colType.includes('INT') || colType.includes('REAL') || colType.includes('FLOAT') || colType.includes('DOUBLE') || colType.includes('NUM')) {
+                        record[col.name] = 0;
+                    } else {
+                        record[col.name] = '';
+                    }
+                }
+            }
+
+            const validKeys = Object.keys(record).filter(k => colNames.includes(k));
+            if (validKeys.length === 0) continue;
+
+            const quotedCols = validKeys.map(k => `\`${k}\``).join(', ');
+            const placeholders = validKeys.map(() => '?').join(', ');
+            const values = validKeys.map(k => record[k]);
+
+            const result = await dbRun(
+                `INSERT INTO \`${table}\` (${quotedCols}) VALUES (${placeholders})`,
+                values
+            );
+            insertedIds.push(result.lastID || result.insertId || record[table === 'settings' ? 'key' : 'id']);
+        }
+
+        if (isArray) {
+            res.status(201).json({
+                success: true,
+                message: `Successfully inserted ${insertedIds.length} records into '${table}'.`,
+                inserted_count: insertedIds.length,
+                ids: insertedIds
+            });
+        } else {
+            const newId = insertedIds[0];
+            const primaryKey = table === 'settings' ? 'key' : 'id';
+            const createdRecord = newId ? await dbGet(`SELECT * FROM \`${table}\` WHERE \`${primaryKey}\` = ?`, [newId]) : null;
+            if (createdRecord && table === 'users') delete createdRecord.password;
+
+            res.status(201).json({
+                success: true,
+                message: `Record created successfully in '${table}'.`,
+                id: newId,
+                data: createdRecord || items[0]
+            });
+        }
+    } catch (e) {
+        console.error(`PUSH Error [${table}]:`, e);
+        res.status(500).json({ success: false, error: 'PUSH Error: ' + e.message });
+    }
+});
+
+// 9. [EDIT] تعديل وتحديث سجل قائم (PUT/PATCH /api/v1/db/:table/:id)
+const handleEditRecord = async (req, res) => {
+    const table = req.params.table;
+    const id = req.params.id;
+
+    if (!ALLOWED_API_TABLES.includes(table)) {
+        return res.status(400).json({ success: false, error: `Table '${table}' not allowed.` });
+    }
+
+    try {
+        const cols = await getTableColumns(table);
+        const colNames = cols.map(c => c.name);
+        const primaryKey = table === 'settings' ? 'key' : 'id';
+
+        const existing = await dbGet(`SELECT * FROM \`${table}\` WHERE \`${primaryKey}\` = ?`, [id]);
+        if (!existing) {
+            return res.status(404).json({
+                success: false,
+                error: `Record with ${primaryKey}='${id}' was not found in '${table}'.`
+            });
+        }
+
+        const updateData = { ...req.body };
+        delete updateData[primaryKey]; // لا يتم تغيير المفتاح الأساسي
+
+        if (colNames.includes('updated_at') && !updateData.updated_at) {
+            updateData.updated_at = new Date().toISOString();
+        }
+
+        const validKeys = Object.keys(updateData).filter(k => colNames.includes(k));
+        if (validKeys.length === 0) {
+            return res.status(400).json({ success: false, error: 'No valid columns provided for update.' });
+        }
+
+        const setClause = validKeys.map(k => `\`${k}\` = ?`).join(', ');
+        const values = validKeys.map(k => updateData[k]);
+        values.push(id);
+
+        const result = await dbRun(
+            `UPDATE \`${table}\` SET ${setClause} WHERE \`${primaryKey}\` = ?`,
+            values
+        );
+
+        const updatedRecord = await dbGet(`SELECT * FROM \`${table}\` WHERE \`${primaryKey}\` = ?`, [id]);
+        if (updatedRecord && table === 'users') delete updatedRecord.password;
+
+        res.json({
+            success: true,
+            message: `Record with ${primaryKey}='${id}' updated successfully in '${table}'.`,
+            id,
+            affected_rows: result.changes !== undefined ? result.changes : result.affectedRows,
+            data: updatedRecord
+        });
+    } catch (e) {
+        console.error(`EDIT Error [${table}]:`, e);
+        res.status(500).json({ success: false, error: 'EDIT Error: ' + e.message });
+    }
+};
+
+apiRouter.put('/db/:table/:id', handleEditRecord);
+apiRouter.patch('/db/:table/:id', handleEditRecord);
+
+// 10. [DELETE] حذف سجل من جدول (DELETE /api/v1/db/:table/:id)
+apiRouter.delete('/db/:table/:id', async (req, res) => {
+    const table = req.params.table;
+    const id = req.params.id;
+
+    if (!ALLOWED_API_TABLES.includes(table)) {
+        return res.status(400).json({ success: false, error: `Table '${table}' not allowed.` });
+    }
+
+    try {
+        const primaryKey = table === 'settings' ? 'key' : 'id';
+        const existing = await dbGet(`SELECT * FROM \`${table}\` WHERE \`${primaryKey}\` = ?`, [id]);
+        if (!existing) {
+            return res.status(404).json({
+                success: false,
+                error: `Record with ${primaryKey}='${id}' was not found in '${table}'.`
+            });
+        }
+
+        const result = await dbRun(`DELETE FROM \`${table}\` WHERE \`${primaryKey}\` = ?`, [id]);
+
+        res.json({
+            success: true,
+            message: `Record with ${primaryKey}='${id}' was deleted successfully from '${table}'.`,
+            id,
+            affected_rows: result.changes !== undefined ? result.changes : result.affectedRows
+        });
+    } catch (e) {
+        console.error(`DELETE Error [${table}]:`, e);
+        res.status(500).json({ success: false, error: 'DELETE Error: ' + e.message });
+    }
+});
+
+// ربط موجه الـ API تحت المسارين v1 و android
+app.use('/api/v1', apiRouter);
+app.use('/api/android', apiRouter);
+
+// مسار إضافي لتوليد مفتاح API جديد عشوائي مشفر
+app.post('/api/settings/mobile-api/generate-key', async (req, res) => {
+    try {
+        const newKey = 'atenza_apk_' + crypto.randomBytes(16).toString('hex');
+        await dbRun(`INSERT OR REPLACE INTO settings (\`key\`, \`value\`) VALUES ('mobile_api_key', ?)`, [newKey]);
+        await dbRun(`INSERT OR REPLACE INTO settings (\`key\`, \`value\`) VALUES ('mobile_api_enabled', 'true')`);
+        res.json({
+            success: true,
+            api_key: newKey,
+            message: 'تم توليد وتفعيل مفتاح API جديد لتطبيق الأندرويد بنجاح'
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+

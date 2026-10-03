@@ -995,6 +995,10 @@ function printAttendanceReport() {
                 <div>اعتماد إدارة الموارد البشرية والرواتب: .........................</div>
             </div>
 
+            <div style="margin-top: 20px; font-size: 9.5px; color: #64748b; text-align: center; border-top: 1px dotted #cbd5e1; padding-top: 4px;">
+                نظام إدارة الورش والموظفين • برمجة وتطوير: م. عمر
+            </div>
+
             <script>
                 window.onload = function() { window.print(); }
             </script>
@@ -1190,7 +1194,8 @@ async function printWithdrawalList() {
             });
         }
         html += `<tr style="background:#f9f9f9; font-weight:bold;"><td colspan="2">الإجمالي</td><td></td><td>${tNet.toLocaleString()}</td></tr></tbody></table>
-                <div class="footer"><span>ملاحظات: ____________________</span><span>* الحد الأعلى للسحب: ${maxLimit} ﷼</span></div></div>`;
+                <div class="footer"><span>ملاحظات: ____________________</span><span>* الحد الأعلى للسحب: ${maxLimit} ﷼</span></div>
+                <div style="margin-top: 12px; font-size: 9.5px; color: #64748b; text-align: center;">نظام إدارة الورش • برمجة وتطوير: م. عمر</div></div>`;
 
         const win = window.open('', '_blank');
         win.document.write(`<html><head><link href="https://fonts.googleapis.com/css2?family=Cairo&display=swap" rel="stylesheet"></head><body>${html}</body></html>`);

@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شاشة التقارير الشاملة - Atenza App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="public/js/app-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --rep-primary: #0284c7;
+            --rep-primary-dark: #0369a1;
+            --rep-primary-light: #e0f2fe;
+            --rep-success: #10b981;
+            --rep-success-dark: #059669;
+            --rep-danger: #ef4444;
+            --rep-danger-dark: #dc2626;
+            --rep-warning: #f59e0b;
+            --rep-purple: #8b5cf6;
+            --rep-dark: #0f172a;
+            --rep-slate: #334155;
+            --rep-muted: #64748b;
+            --rep-bg: #f8fafc;
+            --rep-card: #ffffff;
+            --rep-border: #e2e8f0;
+            --rep-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+            --rep-shadow-hover: 0 10px 25px -3px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+            --rep-radius: 14px;
+        }
+
+        body {
+            background: var(--rep-bg);
+            color: var(--rep-slate);
+            font-family: 'Cairo', sans-serif;
+            margin: 0;
+            padding-bottom: 50px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .reports-container {
+            max-width: 1440px;
+            margin: 24px auto;
+            padding: 0 18px;
+        }
+
+        /* --- Hero Header Bar --- */
+        .rep-hero-header {
+            background: var(--rep-card);
+            border: 1px solid var(--rep-border);
+            border-radius: var(--rep-radius);
+            padding: 18px 24px;
+            margin-bottom: 22px;
+            box-shadow: var(--rep-shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .rep-hero-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .rep-hero-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+            flex-shrink: 0;
+        }
+
+        .rep-hero-left h1 {
+            font-size: 20px;
+            font-weight: 900;
+            margin: 0;
+            color: var(--rep-dark);
+            letter-spacing: -0.3px;
+        }
+
+        .rep-hero-left p {
+            font-size: 13px;
+            color: var(--rep-muted);
+            margin: 3px 0 0 0;
+            font-weight: 600;
+        }
+
+        .rep-hero-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        /* --- Buttons Styling --- */
+        .cb-btn {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 18px;
+            font-size: 13.5px;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+            white-space: nowrap;
+        }
+
+        .cb-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .cb-btn:active {
+            transform: scale(0.97);
+        }
+
+        .cb-btn-primary {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: white;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+        }
+
+        .cb-btn-secondary {
+            background: #ffffff;
+            color: var(--rep-slate);
+            border: 1.5px solid var(--rep-border);
+        }
+        .cb-btn-secondary:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        /* --- Two-Column Layout (Matching Image 2 Reference) --- */
+        .rep-selection-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.65fr;
+            gap: 22px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .rep-selection-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Left Filter Box */
+        .rep-filters-card {
+            background: var(--rep-card);
+            border: 1px solid var(--rep-border);
+            border-radius: var(--rep-radius);
+            padding: 22px;
+            box-shadow: var(--rep-shadow);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 18px;
+        }
+
+        .rep-card-title {
+            font-size: 15.5px;
+            font-weight: 900;
+            margin: 0 0 16px 0;
+            color: var(--rep-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .rep-date-row {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .rep-date-field {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            border: 1.5px solid var(--rep-border);
+            border-radius: 10px;
+            padding: 10px 14px;
+            background: #fafafa;
+            transition: all 0.2s;
+        }
+
+        .rep-date-field:focus-within {
+            background: #ffffff;
+            border-color: var(--rep-primary);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+        }
+
+        .rep-date-field label {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--rep-slate);
+            white-space: nowrap;
+        }
+
+        .rep-date-field input {
+            border: 1px solid var(--rep-border);
+            border-radius: 8px;
+            padding: 7px 12px;
+            font-size: 13.5px;
+            font-weight: 700;
+            outline: none;
+            background: #fff;
+            width: 160px;
+            text-align: center;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .rep-quick-dates {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .rep-pill-btn {
+            background: #f1f5f9;
+            border: 1px solid var(--rep-border);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--rep-slate);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .rep-pill-btn:hover, .rep-pill-btn.active {
+            background: var(--rep-primary);
+            color: white;
+            border-color: var(--rep-primary);
+        }
+
+        /* 4 Main Action Buttons (2x2 Grid) */
+        .rep-actions-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .rep-main-btn {
+            border: none;
+            border-radius: 12px;
+            padding: 14px 10px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-weight: 900;
+            font-size: 14px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .rep-main-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .rep-main-btn:active {
+            transform: scale(0.97);
+        }
+
+        .rep-main-btn.btn-preview {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: white;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+        }
+
+        .rep-main-btn.btn-print {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+        }
+
+        .rep-main-btn.btn-excel {
+            background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+            color: white;
+            box-shadow: 0 4px 14px rgba(13, 148, 136, 0.3);
+        }
+
+        .rep-main-btn.btn-pdf {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+        }
+
+        .rep-main-btn i {
+            font-size: 24px;
+        }
+
+        /* Right Radio Reports Box (Matching Image 2 Reference) */
+        .rep-options-card {
+            background: var(--rep-card);
+            border: 1px solid var(--rep-border);
+            border-radius: var(--rep-radius);
+            padding: 18px 22px;
+            box-shadow: var(--rep-shadow);
+        }
+
+        .rep-options-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1.5px solid var(--rep-border);
+            padding-bottom: 12px;
+            margin-bottom: 14px;
+        }
+
+        .rep-options-header span {
+            font-size: 14px;
+            font-weight: 900;
+        }
+
+        .rep-radio-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .rep-radio-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1.5px solid var(--rep-border);
+            background: #ffffff;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .rep-radio-item:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            transform: translateX(-3px);
+        }
+
+        .rep-radio-item.selected {
+            background: #f0f9ff;
+            border-color: #0284c7;
+            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.12);
+        }
+
+        .rep-radio-item input[type="radio"] {
+            width: 19px;
+            height: 19px;
+            accent-color: #0284c7;
+            cursor: pointer;
+        }
+
+        .rep-radio-item .rep-radio-text {
+            font-size: 13.5px;
+            font-weight: 800;
+            color: var(--rep-dark);
+            flex: 1;
+        }
+
+        .rep-radio-item .rep-radio-tag {
+            font-size: 11px;
+            font-weight: 800;
+            padding: 3px 10px;
+            border-radius: 12px;
+            background: #f1f5f9;
+            color: var(--rep-muted);
+        }
+
+        .rep-radio-item.selected .rep-radio-tag {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+        /* --- Results & Preview Grid --- */
+        .rep-results-panel {
+            background: var(--rep-card);
+            border: 1px solid var(--rep-border);
+            border-radius: var(--rep-radius);
+            padding: 24px;
+            box-shadow: var(--rep-shadow);
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .rep-results-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        /* Summary KPI Cards Grid (Totals of Amounts) */
+        .rep-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+
+        .rep-summary-card {
+            background: #ffffff;
+            border: 1px solid var(--rep-border);
+            border-radius: 12px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: var(--rep-shadow);
+            border-right: 5px solid var(--rep-primary);
+            transition: all 0.25s ease;
+        }
+
+        .rep-summary-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--rep-shadow-hover);
+        }
+
+        .rep-summary-card.green { border-right-color: #10b981; }
+        .rep-summary-card.amber { border-right-color: #f59e0b; }
+        .rep-summary-card.red { border-right-color: #ef4444; }
+        .rep-summary-card.purple { border-right-color: #8b5cf6; }
+
+        .rep-summary-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: #f0f9ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: var(--rep-primary);
+            flex-shrink: 0;
+        }
+
+        .rep-summary-card.green .rep-summary-icon { background: #ecfdf5; color: #10b981; }
+        .rep-summary-card.amber .rep-summary-icon { background: #fffbeb; color: #f59e0b; }
+        .rep-summary-card.red .rep-summary-icon { background: #fef2f2; color: #ef4444; }
+        .rep-summary-card.purple .rep-summary-icon { background: #f5f3ff; color: #8b5cf6; }
+
+        .rep-summary-info {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .rep-summary-label {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--rep-muted);
+            margin-bottom: 2px;
+        }
+
+        .rep-summary-value {
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--rep-dark);
+            white-space: nowrap;
+            letter-spacing: -0.4px;
+        }
+
+        /* Interactive Data Table */
+        .rep-table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--rep-border);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .rep-data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .rep-data-table th {
+            background: #f8fafc;
+            border-bottom: 2px solid var(--rep-border);
+            border-left: 1px solid #edf2f7;
+            padding: 12px 10px;
+            font-weight: 900;
+            color: var(--rep-dark);
+            white-space: nowrap;
+        }
+
+        .rep-data-table td {
+            padding: 10px 10px;
+            border-bottom: 1px solid #f1f5f9;
+            border-left: 1px solid #f8fafc;
+            font-weight: 700;
+            color: var(--rep-slate);
+            transition: background 0.15s;
+        }
+
+        .rep-data-table tbody tr:hover {
+            background: #f0f9ff;
+        }
+
+        /* Totals Footer Row */
+        .rep-data-table tfoot th,
+        .rep-data-table tfoot td {
+            padding: 12px 10px;
+            border-top: 2.5px solid var(--rep-primary);
+            border-bottom: 2px solid var(--rep-border);
+            border-left: 1px solid #e2e8f0;
+            font-size: 13.5px;
+            font-weight: 900;
+            color: var(--rep-dark);
+            background: #f8fafc;
+            white-space: nowrap;
+        }
+
+        /* Search input styling */
+        .cb-input {
+            border: 1.5px solid var(--rep-border);
+            border-radius: 9px;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--rep-dark);
+            background: #ffffff;
+            outline: none;
+            transition: all 0.2s;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .cb-input:focus {
+            border-color: var(--rep-primary);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+        }
+
+        /* Print formatting */
+        @media print {
+            body * { visibility: hidden; }
+            #repPrintArea, #repPrintArea * { visibility: visible; }
+            #repPrintArea {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: #fff;
+                padding: 15px;
+                color: #000;
+                font-family: 'Cairo', sans-serif;
+            }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div id="atenzaNavbar"></div>
+
+    <div class="reports-container">
+        <!-- Top Hero Bar -->
+        <div class="rep-hero-header no-print">
+            <div class="rep-hero-left">
+                <div class="rep-hero-icon">
+                    <i class="fa-solid fa-chart-pie"></i>
+                </div>
+                <div>
+                    <h1>مركز التقارير الشاملة واستطلاع المركز</h1>
+                    <p>استخراج، معاينة، وتصدير التقارير المالية والتشغيلية المعتمدة بصيغة PDF و Excel مع الإجماليات</p>
+                </div>
+            </div>
+
+            <div class="rep-hero-actions">
+                <button class="cb-btn cb-btn-secondary" onclick="exportCurrentReportExcel()" title="تصدير التقرير المعروض كملف Excel">
+                    <i class="fa-solid fa-file-excel" style="color:#10b981;"></i> تصدير Excel
+                </button>
+                <button class="cb-btn cb-btn-secondary" onclick="exportCurrentReportPDF()" style="color:#dc2626;" title="تصدير التقرير المعروض كملف PDF">
+                    <i class="fa-solid fa-file-pdf" style="color:#ef4444;"></i> تصدير PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- Two Column Main Grid (Inspired by Image 2 Reference) -->
+        <div class="rep-selection-grid no-print">
+            <!-- Left Side: Date Pickers & Actions -->
+            <div class="rep-filters-card">
+                <div>
+                    <h3 class="rep-card-title">
+                        <i class="fa-solid fa-calendar-days"></i> نطاق الفترة الزمنية
+                    </h3>
+
+                    <div class="rep-date-row">
+                        <div class="rep-date-field">
+                            <label><i class="fa-solid fa-calendar-check" style="color:var(--rep-primary);"></i> من تاريخ:</label>
+                            <input type="date" id="repStartDate">
+                        </div>
+                        <div class="rep-date-field">
+                            <label><i class="fa-solid fa-calendar-xmark" style="color:var(--rep-primary);"></i> إلى تاريخ:</label>
+                            <input type="date" id="repEndDate">
+                        </div>
+                    </div>
+
+                    <div class="rep-quick-dates">
+                        <button type="button" class="rep-pill-btn active" onclick="setQuickDate('month', this)">هذا الشهر</button>
+                        <button type="button" class="rep-pill-btn" onclick="setQuickDate('today', this)">اليوم</button>
+                        <button type="button" class="rep-pill-btn" onclick="setQuickDate('week', this)">هذا الأسبوع</button>
+                        <button type="button" class="rep-pill-btn" onclick="setQuickDate('year', this)">هذا العام</button>
+                    </div>
+                </div>
+
+                <div class="rep-actions-bar">
+                    <button class="rep-main-btn btn-preview" onclick="fetchAndDisplayReport(false)">
+                        <i class="fa-solid fa-magnifying-glass-chart"></i>
+                        <span>معاينة الاستطلاع</span>
+                    </button>
+                    <button class="rep-main-btn btn-print" onclick="fetchAndDisplayReport(true)">
+                        <i class="fa-solid fa-print"></i>
+                        <span>طباعة A4</span>
+                    </button>
+                    <button class="rep-main-btn btn-excel" onclick="exportCurrentReportExcel()">
+                        <i class="fa-solid fa-file-excel"></i>
+                        <span>تصدير Excel</span>
+                    </button>
+                    <button class="rep-main-btn btn-pdf" onclick="exportCurrentReportPDF()">
+                        <i class="fa-solid fa-file-pdf"></i>
+                        <span>تصدير PDF</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Side: Essential Reports Radio Selection List -->
+            <div class="rep-options-card">
+                <div class="rep-options-header">
+                    <span style="color:var(--rep-dark);"><i class="fa-solid fa-list-check" style="color:var(--rep-primary);"></i> حدد نوع التقرير المطلوب:</span>
+                    <span style="color:#ef4444; font-weight:800; font-size:12.5px;">* اختر تقريراً للمعاينة</span>
+                </div>
+
+                <div class="rep-radio-list">
+                    <label class="rep-radio-item selected" onclick="highlightItem(this)">
+                        <input type="radio" name="reportOption" value="vehicle_entries" checked>
+                        <span class="rep-radio-text"><i class="fa-solid fa-car-side" style="color:var(--rep-primary); margin-left:6px;"></i> استطلاع دخول سيارات للمركز (سجل الاستقبال)</span>
+                        <span class="rep-radio-tag">استقبال</span>
+                    </label>
+
+                    <label class="rep-radio-item" onclick="highlightItem(this)">
+                        <input type="radio" name="reportOption" value="vehicle_deliveries">
+                        <span class="rep-radio-text"><i class="fa-solid fa-flag-checkered" style="color:#10b981; margin-left:6px;"></i> استطلاع خروج وتسليم سيارات من المركز</span>
+                        <span class="rep-radio-tag">تسليم</span>
+                    </label>
+
+                    <label class="rep-radio-item" onclick="highlightItem(this)">
+                        <input type="radio" name="reportOption" value="in_progress_cars">
+                        <span class="rep-radio-text"><i class="fa-solid fa-stopwatch" style="color:#f59e0b; margin-left:6px;"></i> السيارات الموجودة بالورشة ولم يطبع لها فاتورة (قيد الصيانة)</span>
+                        <span class="rep-radio-tag">تشغيل</span>
+                    </label>
+
+                    <label class="rep-radio-item" onclick="highlightItem(this)">
+                        <input type="radio" name="reportOption" value="revenue_by_section">
+                        <span class="rep-radio-text"><i class="fa-solid fa-screwdriver-wrench" style="color:var(--rep-primary); margin-left:6px;"></i> استطلاع الدخل والمبيعات حسب القسم الفني</span>
+                        <span class="rep-radio-tag">أقسام</span>
+                    </label>
+
+                    <label class="rep-radio-item" onclick="highlightItem(this)">
+                        <input type="radio" name="reportOption" value="income_expenses_pnl">
+                        <span class="rep-radio-text"><i class="fa-solid fa-scale-balanced" style="color:#10b981; margin-left:6px;"></i> استطلاع الإيرادات والمصروفات وصافي الأرباح (P&L)</span>
+                        <span class="rep-radio-tag">مالية</span>
+                    </label>
+
+                    <label class="rep-radio-item" onclick="highlightItem(this)">
+                        <input type="radio" name="reportOption" value="vat_tax_report">
+                        <span class="rep-radio-text"><i class="fa-solid fa-file-invoice-dollar" style="color:#8b5cf6; margin-left:6px;"></i> استطلاع القيمة المضافة والإقرار الضريبي VAT (15%)</span>
+                        <span class="rep-radio-tag">ضرائب</span>
+                    </label>
+
+                    <label class="rep-radio-item" onclick="highlightItem(this)">
+                        <input type="radio" name="reportOption" value="technician_performance">
+                        <span class="rep-radio-text"><i class="fa-solid fa-user-gear" style="color:var(--rep-primary); margin-left:6px;"></i> استطلاع دخل وإنتاجية الفنيين ومسؤولي الفحص</span>
+                        <span class="rep-radio-tag">موظفين</span>
+                    </label>
+
+                    <label class="rep-radio-item" onclick="highlightItem(this)">
+                        <input type="radio" name="reportOption" value="corporate_accounts">
+                        <span class="rep-radio-text"><i class="fa-solid fa-building" style="color:#475569; margin-left:6px;"></i> كشف خاص بالشركات والمؤسسات والعملاء المميزين</span>
+                        <span class="rep-radio-tag">أساطيل</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Interactive Results Grid -->
+        <div class="rep-results-panel no-print" id="repResultsPanel">
+            <div class="rep-results-top">
+                <div>
+                    <h2 style="font-size:18px; font-weight:900; margin:0; color:var(--rep-dark);" id="repResultTitle">عنوان التقرير</h2>
+                    <p style="font-size:12.5px; color:var(--rep-muted); margin:3px 0 0 0;" id="repResultSub">نطاق التقرير...</p>
+                </div>
+                <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                    <input type="text" id="repTableSearch" class="cb-input" placeholder="فلترة سريعة بالنتائج..." onkeyup="filterReportTable()" style="width:220px;">
+                    <button class="cb-btn cb-btn-secondary" onclick="exportCurrentReportExcel()" title="تصدير Excel مع الإجماليات">
+                        <i class="fa-solid fa-file-excel" style="color:#10b981;"></i> Excel
+                    </button>
+                    <button class="cb-btn cb-btn-secondary" onclick="exportCurrentReportPDF()" style="color:#dc2626;" title="تصدير PDF مع الإجماليات">
+                        <i class="fa-solid fa-file-pdf" style="color:#ef4444;"></i> PDF
+                    </button>
+                    <button class="cb-btn cb-btn-primary" onclick="printReportSheet()" title="طباعة فورية A4">
+                        <i class="fa-solid fa-print"></i> طباعة A4
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dynamic Summary Metric Cards (Totals of Amounts) -->
+            <div id="repSummaryCards" class="rep-summary-grid"></div>
+
+            <div class="rep-table-wrap">
+                <table class="rep-data-table" id="repLiveTable">
+                    <thead id="repTableThead"></thead>
+                    <tbody id="repTableTbody"></tbody>
+                    <tfoot id="repTableTfoot"></tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Official Printable A4 Sheet -->
+    <div id="repPrintArea" style="display:none;">
+        <div style="border: 2px solid #000; padding: 15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #000; padding-bottom:10px; margin-bottom:12px;">
+                <div>
+                    <h2 style="margin:0; font-size:19px;" id="prRepShopName">مركز صيانة السيارات</h2>
+                    <p style="margin:3px 0 0 0; font-size:12px;" id="prRepTitle">التقرير المالي والتشغيلي</p>
+                </div>
+                <div style="text-align:left; font-size:11.5px;">
+                    <div>الفترة: من <b id="prRepFrom">---</b> إلى <b id="prRepTo">---</b></div>
+                    <div>تاريخ الاستخراج: <b id="prRepDate">---</b></div>
+                </div>
+            </div>
+
+            <!-- Summary Totals Banner in Print Area -->
+            <div id="prSummaryBanner" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:6px; margin-bottom:12px; background:#f8fafc; border:1px solid #000; padding:6px 10px; font-size:11px;">
+            </div>
+
+            <table style="width:100%; border-collapse:collapse; text-align:center; font-size:10.5px; border:1px solid #000;">
+                <thead id="prThead"></thead>
+                <tbody id="prTbody"></tbody>
+                <tfoot id="prTfoot"></tfoot>
+            </table>
+
+            <div style="margin-top:35px; display:flex; justify-content:space-between; text-align:center; font-size:11.5px; font-weight:800;">
+                <div>إعداد الموظف المسؤول: ...........................</div>
+                <div>مراجعة المحاسب: ...........................</div>
+                <div>اعتماد الإدارة والختم: ...........................</div>
+            </div>
+
+            <div style="margin-top:25px; text-align:center; font-size:9.5px; color:#64748b; border-top:1px dotted #ccc; padding-top:4px;">
+                نظام إدارة الورش المتكامل • برمجة وتطوير: م. عمر
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentReportData = null;
+        let currentColumns = [];
+        let currentRawRows = [];
+        let currentDisplayedRows = [];
+
+        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        if (!currentUser || !currentUser.role) window.location.href = 'login.html';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().slice(0, 10);
+            const firstDay = today.slice(0, 7) + '-01';
+            document.getElementById('repStartDate').value = firstDay;
+            document.getElementById('repEndDate').value = today;
+        });
+
+        function highlightItem(label) {
+            document.querySelectorAll('.rep-radio-item').forEach(el => el.classList.remove('selected'));
+            label.classList.add('selected');
+        }
+
+        function setQuickDate(range, btn) {
+            if (btn) {
+                document.querySelectorAll('.rep-pill-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+            const now = new Date();
+            const todayStr = now.toISOString().slice(0, 10);
+            let startStr = todayStr;
+
+            if (range === 'today') {
+                startStr = todayStr;
+            } else if (range === 'week') {
+                const day = now.getDay();
+                const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+                const monday = new Date(now.setDate(diff));
+                startStr = monday.toISOString().slice(0, 10);
+            } else if (range === 'month') {
+                startStr = todayStr.slice(0, 7) + '-01';
+            } else if (range === 'year') {
+                startStr = todayStr.slice(0, 4) + '-01-01';
+            }
+
+            document.getElementById('repStartDate').value = startStr;
+            document.getElementById('repEndDate').value = todayStr;
+        }
+
+        function formatCurrency(val) {
+            const num = Number(val);
+            if (isNaN(num)) return val || '0.00';
+            return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        async function fetchAndDisplayReport(autoPrint = false) {
+            const selectedRadio = document.querySelector('input[name="reportOption"]:checked');
+            if (!selectedRadio) {
+                Swal.fire('تنبيه', 'الرجاء اختيار نوع التقرير أولاً', 'info');
+                return;
+            }
+
+            const repType = selectedRadio.value;
+            const sDate = document.getElementById('repStartDate').value;
+            const eDate = document.getElementById('repEndDate').value;
+
+            try {
+                Swal.fire({ title: 'جاري تجهيز التقرير واستخراج الإجماليات...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                const res = await fetch(`/api/reports/comprehensive?type=${repType}&start_date=${sDate}&end_date=${eDate}`);
+                const resData = await res.json();
+                Swal.close();
+
+                if (resData.success) {
+                    currentReportData = resData;
+                    currentColumns = resData.summary?.columns || [];
+                    currentRawRows = resData.data || [];
+                    currentDisplayedRows = [...currentRawRows];
+
+                    renderLiveReport(resData);
+
+                    if (autoPrint) {
+                        printReportSheet();
+                    }
+                } else {
+                    Swal.fire('خطأ', resData.message, 'error');
+                }
+            } catch (err) {
+                Swal.close();
+                console.error(err);
+                Swal.fire('خطأ', 'فشل في استخراج بيانات التقرير', 'error');
+            }
+        }
+
+        function renderLiveReport(res) {
+            const panel = document.getElementById('repResultsPanel');
+            panel.style.display = 'block';
+
+            document.getElementById('repResultTitle').textContent = res.summary?.title || 'تقرير مركز الصيانة';
+            document.getElementById('repResultSub').textContent = `الفترة من: ${res.from_date} إلى: ${res.to_date} | عدد السجلات: ${res.data?.length || 0}`;
+
+            // Render KPI Summary Cards
+            renderSummaryCards(res, currentDisplayedRows);
+
+            // Render Header
+            const thead = document.getElementById('repTableThead');
+            const cols = res.summary?.columns || [];
+            thead.innerHTML = `<tr>${cols.map(c => `<th>${c.title}</th>`).join('')}</tr>`;
+
+            // Render Body & Totals Footer
+            renderTableBody(currentDisplayedRows, cols);
+            renderTableTfoot(currentDisplayedRows, cols, 'repTableTfoot');
+
+            panel.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function calculateColumnsTotals(rows, cols) {
+            const totals = {};
+            const numericKeys = new Set([
+                'final_amount', 'paid_amount', 'remaining_amount', 'taxable_amount', 
+                'vat_amount', 'gross_total', 'total_revenue', 'total_collected', 
+                'total_billed', 'total_paid', 'total_due', 'amount', 'jobs_count', 
+                'total_qty', 'total_orders', 'total_jobs', 'total_amount'
+            ]);
+
+            cols.forEach(col => {
+                const k = col.key;
+                let sum = 0;
+                let hasNumber = false;
+
+                for (const r of rows) {
+                    let v = r[k];
+                    if (v !== undefined && v !== null && v !== '') {
+                        if (typeof v === 'string') {
+                            v = v.replace(/﷼/g, '').replace(/,/g, '').trim();
+                        }
+                        const num = parseFloat(v);
+                        if (!isNaN(num) && isFinite(num) && (numericKeys.has(k) || (!k.includes('id') && !k.includes('phone') && !k.includes('date') && !k.includes('plate') && !k.includes('odometer') && !k.includes('no')))) {
+                            sum += num;
+                            hasNumber = true;
+                        }
+                    }
+                }
+
+                if (hasNumber) {
+                    const isInt = k.includes('count') || k.includes('qty') || k.includes('jobs') || k.includes('orders');
+                    totals[k] = isInt ? Math.round(sum) : sum.toFixed(2);
+                } else {
+                    totals[k] = null;
+                }
+            });
+            return totals;
+        }
+
+        function renderSummaryCards(res, rows) {
+            const container = document.getElementById('repSummaryCards');
+            const repType = res.report_type;
+            const summary = res.summary || {};
+            const totals = calculateColumnsTotals(rows, res.summary?.columns || []);
+
+            let cardsHtml = '';
+
+            if (repType === 'vehicle_entries') {
+                const totalBilled = totals.final_amount !== null ? totals.final_amount : (summary.total_amount || 0);
+                const totalPaid = totals.paid_amount !== null ? totals.paid_amount : (summary.total_paid || 0);
+                const totalRemaining = Number(totalBilled) - Number(totalPaid);
+
+                cardsHtml = `
+                    <div class="rep-summary-card">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-car"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">إجمالي سيارات الاستقبال</span>
+                            <span class="rep-summary-value">${rows.length} سيارة</span>
+                        </div>
+                    </div>
+                    <div class="rep-summary-card green">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-receipt"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">إجمالي مبالغ الفواتير</span>
+                            <span class="rep-summary-value">${formatCurrency(totalBilled)} ﷼</span>
+                        </div>
+                    </div>
+                    <div class="rep-summary-card purple">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-money-bill-wave"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">إجمالي المدفوع والمحصل</span>
+                            <span class="rep-summary-value">${formatCurrency(totalPaid)} ﷼</span>
+                        </div>
+                    </div>
+                    <div class="rep-summary-card ${totalRemaining > 0 ? 'red' : 'green'}">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">المتبقي تحت التحصيل</span>
+                            <span class="rep-summary-value">${formatCurrency(totalRemaining)} ﷼</span>
+                        </div>
+                    </div>
+                `;
+            } else if (repType === 'vehicle_deliveries') {
+                const collected = totals.paid_amount !== null ? totals.paid_amount : (summary.total_collected || 0);
+                const due = totals.remaining_amount !== null ? totals.remaining_amount : (summary.total_due || 0);
+                const totalGross = Number(collected) + Number(due);
+
+                cardsHtml = `
+                    <div class="rep-summary-card green">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-circle-check"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">سيارات مكتملة ومسلّمة</span>
+                            <span class="rep-summary-value">${rows.length} سيارة</span>
+                        </div>
+                    </div>
+                    <div class="rep-summary-card">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">إجمالي قيمة الفواتير</span>
+                            <span class="rep-summary-value">${formatCurrency(totalGross)} ﷼</span>
+                        </div>
+                    </div>
+                    <div class="rep-summary-card purple">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">إجمالي المحصل نقداً وشبكة</span>
+                            <span class="rep-summary-value">${formatCurrency(collected)} ﷼</span>
+                        </div>
+                    </div>
+                    <div class="rep-summary-card ${due > 0 ? 'amber' : 'green'}">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">المتبقي (الذمم والآجل)</span>
+                            <span class="rep-summary-value">${formatCurrency(due)} ﷼</span>
+                        </div>
+                    </div>
+                `;
+            } else if (repType === 'in_progress_cars') {
+                const totalAmt = totals.final_amount !== null ? totals.final_amount : (summary.total_amount || 0);
+                cardsHtml = `
+                    <div class="rep-summary-card amber">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">سيارات قيد الصيانة بالورشة</span>
+                            <span class="rep-summary-value">${rows.length} مركبة</span>
+                        </div>
+                    </div>
+                    <div class="rep-summary-card green">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-coins"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">إجمالي القيمة التقديرية</span>
+                            <span class="rep-summary-value">${formatCurrency(totalAmt)} ﷼</span>
+                        </div>
+                    </div>
+                `;
+            } else if (repType === 'revenue_by_section') {
+                const totalRev = totals.total_revenue !== null ? totals.total_revenue : (summary.total_revenue || 0);
+                const totalJobs = totals.jobs_count !== null ? totals.jobs_count : 0;
+                cardsHtml = `
+                    <div class="rep-summary-card">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-layer-group"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">عدد الأقسام الفنية</span>
+                            <span class="rep-summary-value">${rows.length} أقسام</span>
+                        </div>
+                    </div>
+                    <div class="rep-summary-card purple">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-list-check"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">إجمالي العمليات المنجزة</span>
+                            <span class="rep-summary-value">${totalJobs} عملية</span>
+                        </div>
+                    </div>
+                    <div class="rep-summary-card green">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">إجمالي مبيعات كافة الأقسام</span>
+                            <span class="rep-summary-value">${formatCurrency(totalRev)} ﷼</span>
+                        </div>
+                    </div>
+                `;
+            } else if (repType === 'income_expenses_pnl') {
+                const income = summary.gross_income || 0;
+                const exp = summary.total_expenses || 0;
+                const net = summary.net_profit || 0;
+                cardsHtml = `
+                    <div class="rep-summary-card green">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">إجمالي الإيرادات والمقبوضات (+)</span>
+                            <span class="rep-summary-value">${formatCurrency(income)} ﷼</span>
+                        </div>
+                    </div>
+                    <div class="rep-summary-card red">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-arrow-trend-down"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">إجمالي المصروفات والمسحوبات (-)</span>
+                            <span class="rep-summary-value">${formatCurrency(exp)} ﷼</span>
+                        </div>
+                    </div>
+                    <div class="rep-summary-card ${net >= 0 ? 'purple' : 'red'}">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">صافي الربح التشغيلي (=)</span>
+                            <span class="rep-summary-value">${formatCurrency(net)} ﷼</span>
+                        </div>
+                    </div>
+                `;
+            } else if (repType === 'vat_tax_report') {
+                const taxable = totals.taxable_amount !== null ? totals.taxable_amount : (summary.total_taxable || 0);
+                const vat = totals.vat_amount !== null ? totals.vat_amount : (summary.total_vat || 0);
+                const gross = totals.gross_total !== null ? totals.gross_total : (summary.total_gross || 0);
+                cardsHtml = `
+                    <div class="rep-summary-card">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-receipt"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">عدد الفواتير الضريبية</span>
+                            <span class="rep-summary-value">${rows.length} فاتورة</span>
+                        </div>
+                    </div>
+                    <div class="rep-summary-card">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-calculator"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">المبلغ الخاضع للضريبة</span>
+                            <span class="rep-summary-value">${formatCurrency(taxable)} ﷼</span>
+                        </div>
+                    </div>
+                    <div class="rep-summary-card amber">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-percent"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">إجمالي ضريبة 15% (VAT)</span>
+                            <span class="rep-summary-value">${formatCurrency(vat)} ﷼</span>
+                        </div>
+                    </div>
+                    <div class="rep-summary-card green">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-wallet"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">المجموع الإجمالي شامل الضريبة</span>
+                            <span class="rep-summary-value">${formatCurrency(gross)} ﷼</span>
+                        </div>
+                    </div>
+                `;
+            } else if (repType === 'technician_performance') {
+                const totalRev = totals.total_revenue !== null ? totals.total_revenue : (summary.total_revenue || 0);
+                const totalColl = totals.total_collected !== null ? totals.total_collected : (summary.total_collected || 0);
+                const totalJobs = totals.total_jobs !== null ? totals.total_jobs : 0;
+                cardsHtml = `
+                    <div class="rep-summary-card">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-user-gear"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">عدد الفنيين والموظفين</span>
+                            <span class="rep-summary-value">${rows.length} موظف</span>
+                        </div>
+                    </div>
+                    <div class="rep-summary-card purple">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-car-side"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">إجمالي السيارات المنجزة</span>
+                            <span class="rep-summary-value">${totalJobs} سيارة</span>
+                        </div>
+                    </div>
+                    <div class="rep-summary-card green">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-chart-line"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">إجمالي المبيعات المحققة</span>
+                            <span class="rep-summary-value">${formatCurrency(totalRev)} ﷼</span>
+                        </div>
+                    </div>
+                    <div class="rep-summary-card">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">إجمالي المبالغ المحصلة</span>
+                            <span class="rep-summary-value">${formatCurrency(totalColl)} ﷼</span>
+                        </div>
+                    </div>
+                `;
+            } else if (repType === 'corporate_accounts') {
+                const billed = totals.total_billed !== null ? totals.total_billed : (summary.total_billed || 0);
+                const paid = totals.total_paid !== null ? totals.total_paid : (summary.total_paid || 0);
+                const due = totals.total_due !== null ? totals.total_due : (summary.total_due || 0);
+                cardsHtml = `
+                    <div class="rep-summary-card">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-building"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">عدد الشركات والعملاء</span>
+                            <span class="rep-summary-value">${rows.length} عميل</span>
+                        </div>
+                    </div>
+                    <div class="rep-summary-card green">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">إجمالي التعاملات (المفوتر)</span>
+                            <span class="rep-summary-value">${formatCurrency(billed)} ﷼</span>
+                        </div>
+                    </div>
+                    <div class="rep-summary-card purple">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-money-bill-trend-up"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">إجمالي المدفوع</span>
+                            <span class="rep-summary-value">${formatCurrency(paid)} ﷼</span>
+                        </div>
+                    </div>
+                    <div class="rep-summary-card ${due > 0 ? 'red' : 'green'}">
+                        <div class="rep-summary-icon"><i class="fa-solid fa-clock"></i></div>
+                        <div class="rep-summary-info">
+                            <span class="rep-summary-label">المتبقي (الذمم المستحقة)</span>
+                            <span class="rep-summary-value">${formatCurrency(due)} ﷼</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = cardsHtml;
+        }
+
+        function renderTableBody(rows, cols) {
+            const tbody = document.getElementById('repTableTbody');
+            if (!rows || rows.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="${cols.length || 5}" style="padding:35px; color:#94a3b8; font-weight:700;"><i class="fa-solid fa-magnifying-glass" style="font-size:24px; display:block; margin-bottom:8px; color:#cbd5e1;"></i>لا توجد بيانات مطابقة في هذه الفترة</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = rows.map(r => `
+                <tr>
+                    ${cols.map(c => {
+                        let val = r[c.key];
+                        if (val === null || val === undefined) val = '---';
+                        if (c.key === 'created_at' && typeof val === 'string' && val.includes('T')) {
+                            val = val.replace('T', ' ').slice(0, 19);
+                        }
+                        if (c.key === 'id' || c.key === 'invoice_no') {
+                            return `<td><span style="color:#0284c7; font-weight:900; background:#e0f2fe; padding:2px 8px; border-radius:6px;">#${val}</span></td>`;
+                        }
+                        return `<td>${val}</td>`;
+                    }).join('')}
+                </tr>
+            `).join('');
+        }
+
+        function renderTableTfoot(rows, cols, targetId) {
+            const tfoot = document.getElementById(targetId);
+            if (!tfoot) return;
+
+            if (!rows || rows.length === 0) {
+                tfoot.innerHTML = '';
+                return;
+            }
+
+            const totals = calculateColumnsTotals(rows, cols);
+
+            tfoot.innerHTML = `
+                <tr>
+                    ${cols.map((c, idx) => {
+                        if (idx === 0) {
+                            return `<th style="text-align:center; font-weight:900; background:#e2e8f0; color:#0f172a;">الإجمالي الكلي (المجموع)</th>`;
+                        }
+                        const tot = totals[c.key];
+                        if (tot !== null && tot !== undefined) {
+                            const isMoney = !c.key.includes('count') && !c.key.includes('qty') && !c.key.includes('jobs') && !c.key.includes('orders');
+                            return `<th style="background:#e0f2fe; color:#0369a1; font-weight:900; font-size:13.5px;">${formatCurrency(tot)}${isMoney ? ' ﷼' : ''}</th>`;
+                        }
+                        return `<th style="background:#f8fafc; color:#94a3b8;">-</th>`;
+                    }).join('')}
+                </tr>
+            `;
+        }
+
+        function filterReportTable() {
+            const q = document.getElementById('repTableSearch').value.trim().toLowerCase();
+            if (!q) {
+                currentDisplayedRows = [...currentRawRows];
+            } else {
+                currentDisplayedRows = currentRawRows.filter(r => 
+                    Object.values(r).some(v => String(v).toLowerCase().includes(q))
+                );
+            }
+            renderTableBody(currentDisplayedRows, currentColumns);
+            renderTableTfoot(currentDisplayedRows, currentColumns, 'repTableTfoot');
+            if (currentReportData) {
+                renderSummaryCards(currentReportData, currentDisplayedRows);
+            }
+        }
+
+        function preparePrintSheet(res) {
+            const shopName = window.APP_CONFIG?.settings?.workshop_name || 'مركز صيانة السيارات المتخصص';
+            document.getElementById('prRepShopName').textContent = shopName;
+            document.getElementById('prRepTitle').textContent = res.summary?.title || 'تقرير مركز الصيانة';
+            document.getElementById('prRepFrom').textContent = res.from_date;
+            document.getElementById('prRepTo').textContent = res.to_date;
+            document.getElementById('prRepDate').textContent = new Date().toLocaleString('ar-SA');
+
+            const cols = res.summary?.columns || [];
+            document.getElementById('prThead').innerHTML = `<tr style="background:#eee;">${cols.map(c => `<th style="border:1px solid #000; padding:6px; font-weight:900;">${c.title}</th>`).join('')}</tr>`;
+
+            const rows = currentDisplayedRows.length > 0 ? currentDisplayedRows : (res.data || []);
+            document.getElementById('prTbody').innerHTML = rows.map(r => `
+                <tr>
+                    ${cols.map(c => {
+                        let val = r[c.key];
+                        if (val === null || val === undefined) val = '-';
+                        if (c.key === 'created_at' && typeof val === 'string' && val.includes('T')) {
+                            val = val.replace('T', ' ').slice(0, 19);
+                        }
+                        return `<td style="border:1px solid #000; padding:5px;">${val}</td>`;
+                    }).join('')}
+                </tr>
+            `).join('');
+
+            // Render Print Totals Row
+            renderTableTfoot(rows, cols, 'prTfoot');
+
+            // Render Print Summary Totals Banner
+            const prBanner = document.getElementById('prSummaryBanner');
+            const totals = calculateColumnsTotals(rows, cols);
+            const sumItems = [];
+
+            sumItems.push(`<div><b>عدد السجلات:</b> ${rows.length}</div>`);
+            cols.forEach(c => {
+                if (totals[c.key] !== null && totals[c.key] !== undefined) {
+                    const isMoney = !c.key.includes('count') && !c.key.includes('qty') && !c.key.includes('jobs');
+                    sumItems.push(`<div><b>${c.title}:</b> ${formatCurrency(totals[c.key])}${isMoney ? ' ﷼' : ''}</div>`);
+                }
+            });
+
+            prBanner.innerHTML = sumItems.join('');
+        }
+
+        function printReportSheet() {
+            if (!currentReportData) {
+                fetchAndDisplayReport(true);
+                return;
+            }
+            preparePrintSheet(currentReportData);
+            const pArea = document.getElementById('repPrintArea');
+            pArea.style.display = 'block';
+            window.print();
+            setTimeout(() => { pArea.style.display = 'none'; }, 1000);
+        }
+
+        // ==========================
+        // تصدير Excel مع الإجماليات
+        // ==========================
+        function exportCurrentReportExcel() {
+            if (!currentReportData || !currentRawRows || currentRawRows.length === 0) {
+                Swal.fire('تنبيه', 'الرجاء معاينة التقرير أولاً لتحميل البيانات وتصديرها', 'info');
+                return;
+            }
+
+            const rowsToExport = currentDisplayedRows.length > 0 ? currentDisplayedRows : currentRawRows;
+            const cols = currentColumns;
+            const repTitle = currentReportData.summary?.title || 'تقرير مركز الصيانة';
+            const sDate = currentReportData.from_date || '';
+            const eDate = currentReportData.to_date || '';
+
+            // Build data objects
+            const exportData = rowsToExport.map(r => {
+                const obj = {};
+                cols.forEach(c => {
+                    let val = r[c.key];
+                    if (val === null || val === undefined) val = '-';
+                    if (c.key === 'created_at' && typeof val === 'string' && val.includes('T')) {
+                        val = val.replace('T', ' ').slice(0, 19);
+                    }
+                    if (typeof val === 'number') {
+                        obj[c.title] = val;
+                    } else if (typeof val === 'string' && !isNaN(val) && !c.key.includes('phone') && !c.key.includes('plate') && !c.key.includes('id')) {
+                        obj[c.title] = parseFloat(val);
+                    } else {
+                        obj[c.title] = val;
+                    }
+                });
+                return obj;
+            });
+
+            // Add Grand Totals Row at Bottom of Excel
+            const totals = calculateColumnsTotals(rowsToExport, cols);
+            const totalsRow = {};
+            cols.forEach((c, idx) => {
+                if (idx === 0) {
+                    totalsRow[c.title] = 'الإجمالي الكلي (TOTAL)';
+                } else if (totals[c.key] !== null && totals[c.key] !== undefined) {
+                    totalsRow[c.title] = Number(totals[c.key]) || totals[c.key];
+                } else {
+                    totalsRow[c.title] = '';
+                }
+            });
+            exportData.push(totalsRow);
+
+            const ws = XLSX.utils.json_to_sheet(exportData);
+
+            const colWidths = cols.map(c => ({ wch: Math.max(c.title.length * 2, 16) }));
+            ws['!cols'] = colWidths;
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "تقرير_المركز");
+
+            const cleanFileName = repTitle.replace(/[/\\?%*:|"<>]/g, '_');
+            XLSX.writeFile(wb, `${cleanFileName}_${sDate}_إلى_${eDate}.xlsx`);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'تم تصدير ملف Excel بنجاح',
+                text: 'تم تضمين كافة الصفوف وسطر الإجماليات بدقة.',
+                timer: 2200,
+                showConfirmButton: false
+            });
+        }
+
+        // ==========================
+        // تصدير PDF مع الإجماليات
+        // ==========================
+        async function exportCurrentReportPDF() {
+            if (!currentReportData || !currentRawRows || currentRawRows.length === 0) {
+                const selectedRadio = document.querySelector('input[name="reportOption"]:checked');
+                if (!selectedRadio) {
+                    Swal.fire('تنبيه', 'الرجاء اختيار نوع التقرير أولاً', 'info');
+                    return;
+                }
+                await fetchAndDisplayReport(false);
+                if (!currentReportData) return;
+            }
+
+            preparePrintSheet(currentReportData);
+
+            const printElement = document.getElementById('repPrintArea');
+            printElement.style.display = 'block';
+
+            Swal.fire({
+                title: 'جاري إنشاء ملف PDF...',
+                html: 'يتم الآن تنسيق الجداول والبيانات والإجماليات الرسمية',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+
+            const repTitle = (currentReportData.summary?.title || 'تقرير').replace(/[/\\?%*:|"<>]/g, '_');
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const isLandscape = currentColumns.length > 5;
+
+            const opt = {
+                margin: [8, 8, 8, 8],
+                filename: `${repTitle}_${todayStr}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: isLandscape ? 'landscape' : 'portrait' }
+            };
+
+            try {
+                if (typeof html2pdf !== 'undefined') {
+                    await html2pdf().set(opt).from(printElement).save();
+                    printElement.style.display = 'none';
+                    Swal.close();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'تم تصدير ملف PDF بنجاح',
+                        text: `تم حفظ الملف: ${opt.filename}`,
+                        timer: 2500,
+                        showConfirmButton: false
+                    });
+                } else {
+                    printElement.style.display = 'block';
+                    Swal.close();
+                    window.print();
+                    setTimeout(() => { printElement.style.display = 'none'; }, 1000);
+                }
+            } catch (err) {
+                console.error('PDF Export Error:', err);
+                printElement.style.display = 'none';
+                Swal.close();
+                Swal.fire({
+                    title: 'تنبيه الطباعة',
+                    text: 'سيتم فتح نافذة الطباعة لاختيار حفظ كملف PDF (Save as PDF)',
+                    icon: 'info',
+                    confirmButtonText: 'موافق'
+                }).then(() => {
+                    printReportSheet();
+                });
+            }
+        }
+    </script>
+</body>
+</html>

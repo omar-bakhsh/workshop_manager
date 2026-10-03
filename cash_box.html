@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الصندوق والخزينة اليومية - Atenza App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="public/js/app-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --cb-primary: #0284c7;
+            --cb-primary-dark: #0369a1;
+            --cb-primary-light: #e0f2fe;
+            --cb-success: #10b981;
+            --cb-success-dark: #059669;
+            --cb-success-light: #ecfdf5;
+            --cb-danger: #ef4444;
+            --cb-danger-dark: #dc2626;
+            --cb-danger-light: #fef2f2;
+            --cb-warning: #f59e0b;
+            --cb-warning-light: #fffbeb;
+            --cb-purple: #8b5cf6;
+            --cb-purple-light: #f5f3ff;
+            --cb-dark: #0f172a;
+            --cb-slate: #334155;
+            --cb-muted: #64748b;
+            --cb-bg: #f8fafc;
+            --cb-card: #ffffff;
+            --cb-border: #e2e8f0;
+            --cb-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+            --cb-shadow-hover: 0 10px 25px -3px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+            --cb-radius: 14px;
+        }
+
+        body {
+            background: var(--cb-bg);
+            color: var(--cb-slate);
+            font-family: 'Cairo', sans-serif;
+            margin: 0;
+            padding-bottom: 50px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .cashbox-container {
+            max-width: 1440px;
+            margin: 24px auto;
+            padding: 0 18px;
+        }
+
+        /* --- Hero Header Bar --- */
+        .cb-hero-header {
+            background: var(--cb-card);
+            border: 1px solid var(--cb-border);
+            border-radius: var(--cb-radius);
+            padding: 18px 24px;
+            margin-bottom: 20px;
+            box-shadow: var(--cb-shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .cb-hero-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .cb-hero-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+            flex-shrink: 0;
+        }
+
+        .cb-hero-left h1 {
+            font-size: 20px;
+            font-weight: 900;
+            margin: 0;
+            color: var(--cb-dark);
+            letter-spacing: -0.3px;
+        }
+
+        .cb-hero-left p {
+            font-size: 13px;
+            color: var(--cb-muted);
+            margin: 3px 0 0 0;
+            font-weight: 600;
+        }
+
+        .cb-actions-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        /* --- Modern Buttons --- */
+        .cb-btn {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 18px;
+            font-size: 13.5px;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+            white-space: nowrap;
+        }
+
+        .cb-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .cb-btn:active {
+            transform: scale(0.97);
+        }
+
+        .cb-btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+        }
+        .cb-btn-success:hover {
+            box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4);
+        }
+
+        .cb-btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+        }
+        .cb-btn-danger:hover {
+            box-shadow: 0 6px 18px rgba(239, 68, 68, 0.4);
+        }
+
+        .cb-btn-primary {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: white;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+        }
+        .cb-btn-primary:hover {
+            box-shadow: 0 6px 18px rgba(2, 132, 199, 0.4);
+        }
+
+        .cb-btn-secondary {
+            background: #ffffff;
+            color: var(--cb-slate);
+            border: 1.5px solid var(--cb-border);
+        }
+        .cb-btn-secondary:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        /* --- Top Balances Grid --- */
+        .cb-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .cb-metrics-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .cb-metrics-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 500px) {
+            .cb-metrics-grid { grid-template-columns: 1fr; }
+        }
+
+        .cb-metric-card {
+            background: var(--cb-card);
+            border: 1px solid var(--cb-border);
+            border-radius: var(--cb-radius);
+            padding: 16px 18px;
+            box-shadow: var(--cb-shadow);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.25s ease;
+        }
+
+        .cb-metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--cb-shadow-hover);
+        }
+
+        .cb-metric-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .cb-metric-lbl {
+            font-size: 12.5px;
+            font-weight: 800;
+            color: var(--cb-muted);
+        }
+
+        .cb-metric-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+        }
+
+        .cb-metric-val {
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--cb-dark);
+            direction: ltr;
+            text-align: right;
+            letter-spacing: -0.5px;
+        }
+
+        .cb-metric-val small {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--cb-muted);
+            margin-right: 4px;
+        }
+
+        /* Card color themes */
+        .cb-metric-card.drawer .cb-metric-icon { background: var(--cb-success-light); color: var(--cb-success-dark); }
+        .cb-metric-card.drawer { border-top: 4px solid var(--cb-success); }
+
+        .cb-metric-card.card-pos .cb-metric-icon { background: var(--cb-purple-light); color: var(--cb-purple); }
+        .cb-metric-card.card-pos { border-top: 4px solid var(--cb-purple); }
+
+        .cb-metric-card.bank .cb-metric-icon { background: var(--cb-primary-light); color: var(--cb-primary); }
+        .cb-metric-card.bank { border-top: 4px solid var(--cb-primary); }
+
+        .cb-metric-card.total .cb-metric-icon { background: var(--cb-warning-light); color: var(--cb-warning); }
+        .cb-metric-card.total { border-top: 4px solid var(--cb-warning); }
+
+        .cb-metric-card.opening .cb-metric-icon { background: #f1f5f9; color: var(--cb-muted); }
+        .cb-metric-card.opening { border-top: 4px solid #94a3b8; }
+
+        /* --- Filters & Search Controls --- */
+        .cb-filters-panel {
+            background: var(--cb-card);
+            border: 1px solid var(--cb-border);
+            border-radius: var(--cb-radius);
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--cb-shadow);
+        }
+
+        .cb-filters-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .cb-filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .cb-input {
+            border: 1.5px solid var(--cb-border);
+            border-radius: 9px;
+            padding: 8px 12px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--cb-dark);
+            background: #ffffff;
+            outline: none;
+            transition: all 0.2s;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .cb-input:focus {
+            border-color: var(--cb-primary);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+        }
+
+        .cb-quick-presets {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .cb-preset-btn {
+            background: #f1f5f9;
+            border: 1px solid var(--cb-border);
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--cb-slate);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .cb-preset-btn:hover, .cb-preset-btn.active {
+            background: var(--cb-primary);
+            color: white;
+            border-color: var(--cb-primary);
+        }
+
+        /* --- Main Table Styling --- */
+        .cb-table-wrapper {
+            background: var(--cb-card);
+            border: 1px solid var(--cb-border);
+            border-radius: var(--cb-radius);
+            overflow: hidden;
+            box-shadow: var(--cb-shadow);
+            margin-bottom: 20px;
+        }
+
+        .cb-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .cb-table thead th {
+            background: #f8fafc;
+            border-bottom: 2px solid var(--cb-border);
+            border-left: 1px solid #edf2f7;
+            padding: 12px 10px;
+            font-weight: 900;
+            color: var(--cb-dark);
+            white-space: nowrap;
+        }
+
+        .cb-table tbody td {
+            padding: 11px 10px;
+            border-bottom: 1px solid #f1f5f9;
+            border-left: 1px solid #f8fafc;
+            font-weight: 700;
+            color: var(--cb-slate);
+            transition: background 0.15s;
+        }
+
+        .cb-table tbody tr:hover {
+            background: #f0f9ff;
+        }
+
+        /* Status & Type Badges */
+        .badge-type {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11.5px;
+            font-weight: 800;
+        }
+
+        .badge-receipt { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .badge-expense { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+        .badge-deposit { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+
+        .badge-pm {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 800;
+            background: #f1f5f9;
+            color: var(--cb-slate);
+        }
+
+        .val-plus { color: #16a34a; font-weight: 900; }
+        .val-minus { color: #dc2626; font-weight: 900; }
+
+        /* Action buttons in row */
+        .cb-row-btn {
+            border: none;
+            background: #fee2e2;
+            color: #dc2626;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .cb-row-btn:hover {
+            background: #dc2626;
+            color: white;
+            transform: scale(1.08);
+        }
+
+        /* --- Footer Summary Panel --- */
+        .cb-footer-panel {
+            background: var(--cb-card);
+            border: 1px solid var(--cb-border);
+            border-radius: var(--cb-radius);
+            padding: 16px 20px;
+            box-shadow: var(--cb-shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .cb-totals-boxes {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .cb-total-box {
+            border: 1.5px solid var(--cb-border);
+            border-radius: 10px;
+            padding: 8px 16px;
+            text-align: center;
+            min-width: 120px;
+            background: #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .cb-total-box span {
+            font-size: 11.5px;
+            font-weight: 800;
+            color: var(--cb-muted);
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .cb-total-box b {
+            font-size: 16px;
+            font-weight: 900;
+        }
+
+        /* --- Modal Styling --- */
+        .cb-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(6px);
+            align-items: center;
+            justify-content: center;
+            direction: rtl;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .cb-modal-box {
+            background: #ffffff;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 520px;
+            padding: 24px 26px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--cb-border);
+            animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .cb-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1.5px solid #f1f5f9;
+            padding-bottom: 12px;
+        }
+
+        .cb-modal-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 900;
+            color: var(--cb-dark);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cb-close-btn {
+            background: #f1f5f9;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            color: var(--cb-muted);
+            transition: all 0.2s;
+        }
+
+        .cb-close-btn:hover {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12.5px;
+            font-weight: 800;
+            color: var(--cb-slate);
+            margin-bottom: 6px;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            border: 1.5px solid var(--cb-border);
+            border-radius: 9px;
+            padding: 9px 12px;
+            font-size: 13.5px;
+            font-weight: 700;
+            font-family: 'Cairo', sans-serif;
+            outline: none;
+            box-sizing: border-box;
+            transition: all 0.2s;
+            background: #fafafa;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            background: #ffffff;
+            border-color: var(--cb-primary);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+        }
+
+        /* --- Print Sheet --- */
+        @media print {
+            body * { visibility: hidden; }
+            #cbPrintArea, #cbPrintArea * { visibility: visible; }
+            #cbPrintArea {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: #fff;
+                padding: 15px;
+                color: #000;
+                font-family: 'Cairo', sans-serif;
+            }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div id="atenzaNavbar"></div>
+
+    <div class="cashbox-container">
+        <!-- Hero Header Bar -->
+        <div class="cb-hero-header no-print">
+            <div class="cb-hero-left">
+                <div class="cb-hero-icon">
+                    <i class="fa-solid fa-cash-register"></i>
+                </div>
+                <div>
+                    <h1>صندوق المصاريف والإيرادات اليومية (الخزينة)</h1>
+                    <p>متابعة الكاش بالدرج، المقبوضات، المصروفات، والإيداعات البنكية المباشرة</p>
+                </div>
+            </div>
+
+            <div class="cb-actions-group">
+                <button class="cb-btn cb-btn-success" onclick="openNewEntryModal('receipt')">
+                    <i class="fa-solid fa-circle-plus"></i> سند قبض / إيراد (+)
+                </button>
+                <button class="cb-btn cb-btn-danger" onclick="openNewEntryModal('expense')">
+                    <i class="fa-solid fa-circle-minus"></i> سند صرف / مصروف (-)
+                </button>
+                <button class="cb-btn cb-btn-primary" onclick="openBankTransferModal()">
+                    <i class="fa-solid fa-building-columns"></i> إيداع بنكي من الكاش
+                </button>
+            </div>
+        </div>
+
+        <!-- 5 Metric Balance Cards -->
+        <div class="cb-metrics-grid">
+            <div class="cb-metric-card drawer">
+                <div class="cb-metric-top">
+                    <span class="cb-metric-lbl">الكاش بالدرج (السيولة)</span>
+                    <div class="cb-metric-icon"><i class="fa-solid fa-money-bill-wave"></i></div>
+                </div>
+                <div class="cb-metric-val" id="dispCashDrawer" style="color:#10b981;">0.00 <small>﷼</small></div>
+            </div>
+
+            <div class="cb-metric-card card-pos">
+                <div class="cb-metric-top">
+                    <span class="cb-metric-lbl">مقبوضات الشبكة (مدى/POS)</span>
+                    <div class="cb-metric-icon"><i class="fa-solid fa-credit-card"></i></div>
+                </div>
+                <div class="cb-metric-val" id="dispCardPos" style="color:#8b5cf6;">0.00 <small>﷼</small></div>
+            </div>
+
+            <div class="cb-metric-card bank">
+                <div class="cb-metric-top">
+                    <span class="cb-metric-lbl">رصيد الحساب البنكي</span>
+                    <div class="cb-metric-icon"><i class="fa-solid fa-building-columns"></i></div>
+                </div>
+                <div class="cb-metric-val" id="dispBankBalance" style="color:#0284c7;">0.00 <small>﷼</small></div>
+            </div>
+
+            <div class="cb-metric-card total">
+                <div class="cb-metric-top">
+                    <span class="cb-metric-lbl">إجمالي الرصيد الحالي</span>
+                    <div class="cb-metric-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+                </div>
+                <div class="cb-metric-val" id="dispCurrentBalance" style="color:#d97706;">0.00 <small>﷼</small></div>
+            </div>
+
+            <div class="cb-metric-card opening">
+                <div class="cb-metric-top">
+                    <span class="cb-metric-lbl">رصيد أول الفترة</span>
+                    <div class="cb-metric-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                </div>
+                <div class="cb-metric-val" id="dispOpeningBalance" style="color:#475569;">0.00 <small>﷼</small></div>
+            </div>
+        </div>
+
+        <!-- Filter & Search Controls -->
+        <div class="cb-filters-panel no-print">
+            <div class="cb-filters-row">
+                <div class="cb-filter-group">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span style="font-size:12px; font-weight:800; color:var(--cb-muted);">من:</span>
+                        <input type="date" id="cbStartDate" class="cb-input">
+                    </div>
+
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span style="font-size:12px; font-weight:800; color:var(--cb-muted);">إلى:</span>
+                        <input type="date" id="cbEndDate" class="cb-input">
+                    </div>
+
+                    <div class="cb-quick-presets">
+                        <button type="button" class="cb-preset-btn" onclick="setCashboxQuickDate('today')">اليوم</button>
+                        <button type="button" class="cb-preset-btn" onclick="setCashboxQuickDate('week')">هذا الأسبوع</button>
+                        <button type="button" class="cb-preset-btn" onclick="setCashboxQuickDate('month')">هذا الشهر</button>
+                    </div>
+
+                    <select id="cbPaymentMethod" class="cb-input">
+                        <option value="all">كافة طرق الدفع</option>
+                        <option value="cash">نقدي / كاش (101)</option>
+                        <option value="card">شبكة / مدى (102)</option>
+                        <option value="bank">تحويل بنكي</option>
+                    </select>
+
+                    <select id="cbEntryType" class="cb-input">
+                        <option value="all">كافة أنواع القيود</option>
+                        <option value="receipt">مقبوضات (سند قبض +)</option>
+                        <option value="expense">مصروفات (سند صرف -)</option>
+                        <option value="bank_deposit">إيداعات بنكية</option>
+                    </select>
+
+                    <button class="cb-btn cb-btn-primary" onclick="loadCashBoxData()">
+                        <i class="fa-solid fa-filter"></i> تطبيق الفلتر
+                    </button>
+                </div>
+
+                <div class="cb-filter-group">
+                    <input type="text" id="cbSearchInput" class="cb-input" placeholder="بحث سريع بالبيان، رقم القيد، كرت العمل..." onkeyup="filterLocalTable()" style="width:230px;">
+                    <span style="font-size:12.5px; font-weight:800; color:var(--cb-muted); background:#f1f5f9; padding:6px 12px; border-radius:20px;">
+                        العمليات: <b id="dispOpsCount" style="color:var(--cb-primary);">0</b>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transactions Table -->
+        <div class="cb-table-wrapper">
+            <table class="cb-table" id="cbMainTable">
+                <thead>
+                    <tr>
+                        <th style="width: 75px;">رقم القيد</th>
+                        <th style="width: 95px;">نوع العملية</th>
+                        <th style="width: 85px;">طريقة الدفع</th>
+                        <th>البيان والتفاصيل</th>
+                        <th style="width: 105px;">كرت العمل</th>
+                        <th style="width: 110px;">الرصيد قبل</th>
+                        <th style="width: 105px;">المبلغ (+)</th>
+                        <th style="width: 105px;">المبلغ (-)</th>
+                        <th style="width: 85px;">الوقت</th>
+                        <th style="width: 95px;">التاريخ</th>
+                        <th style="width: 90px;">المسؤول</th>
+                        <th style="width: 65px;">إجراء</th>
+                    </tr>
+                </thead>
+                <tbody id="cbTableTbody">
+                    <tr><td colspan="12" style="padding:35px; text-align:center; color:#94a3b8;">جاري تحميل حركة الصندوق...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Bottom Footer Summary Bar -->
+        <div class="cb-footer-panel no-print">
+            <div class="cb-totals-boxes">
+                <div class="cb-total-box" style="border-color:#86efac; background:#f0fdf4;">
+                    <span style="color:#15803d;"><i class="fa-solid fa-arrow-down-left"></i> إجمالي المقبوضات (+)</span>
+                    <b id="dispTotalReceipts" style="color:#16a34a;">0.00</b>
+                </div>
+                <div class="cb-total-box" style="border-color:#fca5a5; background:#fef2f2;">
+                    <span style="color:#b91c1c;"><i class="fa-solid fa-arrow-up-right"></i> إجمالي المصروفات (-)</span>
+                    <b id="dispTotalExpenses" style="color:#dc2626;">0.00</b>
+                </div>
+                <div class="cb-total-box" style="border-color:#bae6fd; background:#f0f9ff;">
+                    <span style="color:#0369a1;"><i class="fa-solid fa-scale-balanced"></i> صافي الصندوق</span>
+                    <b id="dispNetBalance" style="color:#0284c7;">0.00</b>
+                </div>
+                <div class="cb-total-box" style="border-color:#cbd5e1; background:#f8fafc;">
+                    <span style="color:#475569;"><i class="fa-solid fa-building-columns"></i> إيداعات البنك</span>
+                    <b id="dispBankDeposits" style="color:#334155;">0.00</b>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:10px; align-items:center;">
+                <button class="cb-btn cb-btn-secondary" onclick="exportToExcel()">
+                    <i class="fa-solid fa-file-excel" style="color:#16a34a;"></i> تصدير Excel
+                </button>
+                <button class="cb-btn cb-btn-primary" onclick="printCashBoxReport()">
+                    <i class="fa-solid fa-print"></i> طباعة كشف الصندوق A4
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: New Entry (Receipt / Expense) -->
+    <div id="newEntryModal" class="cb-modal">
+        <div class="cb-modal-box">
+            <div class="cb-modal-header">
+                <h3 id="modalEntryTitle"><i class="fa-solid fa-pen-to-square"></i> تسجيل قيد جديد بالصندوق</h3>
+                <button type="button" class="cb-close-btn" onclick="closeModal('newEntryModal')">&times;</button>
+            </div>
+            <form id="newEntryForm" onsubmit="submitNewEntry(event)">
+                <input type="hidden" id="modalEntryType" value="receipt">
+
+                <div class="form-group">
+                    <label><i class="fa-solid fa-wallet"></i> طريقة الدفع:</label>
+                    <select id="modalPaymentMethod" required>
+                        <option value="cash">نقدي / كاش (101)</option>
+                        <option value="card">شبكة / مدى (102)</option>
+                        <option value="bank">تحويل بنكي</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fa-solid fa-coins"></i> المبلغ (﷼):</label>
+                    <input type="number" id="modalAmount" step="0.01" min="0.1" required placeholder="0.00">
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fa-solid fa-tags"></i> التصنيف / البند:</label>
+                    <select id="modalCategory">
+                        <option value="إيراد متنوع">إيراد متنوع / خدمات إضافية</option>
+                        <option value="فاتورة أمر عمل">فاتورة أمر عمل</option>
+                        <option value="مشتريات وقطع غيار">مشتريات وقطع غيار</option>
+                        <option value="إيجار وفواتير">إيجار وفواتير خدمات</option>
+                        <option value="ضيافة ونظافة">ضيافة ونظافة</option>
+                        <option value="رواتب وسلف">رواتب وسلف موظفين</option>
+                        <option value="صيانة ومعدات">صيانة ومعدات ورشة</option>
+                        <option value="مصروفات أخرى">مصروفات أخرى</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fa-solid fa-file-pen"></i> البيان / تفاصيل العملية:</label>
+                    <textarea id="modalDescription" rows="3" required placeholder="اكتب وصف العملية واسم الشخص أو الجهة..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fa-solid fa-hashtag"></i> رقم كرت العمل / المرجع (اختياري):</label>
+                    <input type="number" id="modalJobNo" placeholder="مثال: 4945">
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                    <button type="button" class="cb-btn cb-btn-secondary" onclick="closeModal('newEntryModal')">إلغاء</button>
+                    <button type="submit" class="cb-btn cb-btn-success" id="modalSubmitBtn">حفظ القيد</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Bank Transfer -->
+    <div id="bankTransferModal" class="cb-modal">
+        <div class="cb-modal-box">
+            <div class="cb-modal-header">
+                <h3><i class="fa-solid fa-building-columns"></i> سحب نقدي من الدرج وإيداع في البنك</h3>
+                <button type="button" class="cb-close-btn" onclick="closeModal('bankTransferModal')">&times;</button>
+            </div>
+            <form id="bankTransferForm" onsubmit="submitBankTransfer(event)">
+                <div class="form-group">
+                    <label><i class="fa-solid fa-money-bill-transfer"></i> المبلغ المراد سحبه وإيداعه بالبنك (﷼):</label>
+                    <input type="number" id="btAmount" step="0.01" min="1" required placeholder="0.00">
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fa-solid fa-building-columns"></i> اسم الحساب البنكي / المصرف:</label>
+                    <select id="btBankName">
+                        <option value="مصرف الراجحي">مصرف الراجحي</option>
+                        <option value="البنك الأهلي السعودي">البنك الأهلي السعودي</option>
+                        <option value="بنك الرياض">بنك الرياض</option>
+                        <option value="بنك الإنماء">بنك الإنماء</option>
+                        <option value="حساب بنكي رئيسي">حساب بنكي رئيسي</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fa-solid fa-note-sticky"></i> ملاحظات إضافية / رقم الإيصال:</label>
+                    <input type="text" id="btNotes" placeholder="مثال: إيداع مبيعات الوردية الصباحية">
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                    <button type="button" class="cb-btn cb-btn-secondary" onclick="closeModal('bankTransferModal')">إلغاء</button>
+                    <button type="submit" class="cb-btn cb-btn-primary">تأكيد الإيداع البنكي</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Print Template (Hidden on Screen, Visible on Print) -->
+    <div id="cbPrintArea" style="display:none;">
+        <div style="border: 2px solid #000; padding: 15px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #000; padding-bottom:10px; margin-bottom:12px;">
+                <div>
+                    <h2 style="margin:0; font-size:20px;" id="prWorkshopName">مركز صيانة السيارات</h2>
+                    <p style="margin:3px 0 0 0; font-size:12px;" id="prWorkshopDesc">تقرير حركة الصندوق والمصروفات اليومية</p>
+                </div>
+                <div style="text-align:left; font-size:12px;">
+                    <div>الفترة: من <b id="prFromDate">---</b> إلى <b id="prToDate">---</b></div>
+                    <div>تاريخ الطباعة: <b id="prPrintDate">---</b></div>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px; border:1px solid #000; padding:8px; margin-bottom:12px; background:#f9f9f9; text-align:center; font-size:12px;">
+                <div>الكاش بالدرج: <b id="prCashDrawer">0.00 ﷼</b></div>
+                <div>الشبكة: <b id="prCardPos">0.00 ﷼</b></div>
+                <div>الحساب البنكي: <b id="prBankBalance">0.00 ﷼</b></div>
+                <div>إجمالي الرصيد: <b id="prCurrentBalance">0.00 ﷼</b></div>
+            </div>
+
+            <table style="width:100%; border-collapse:collapse; text-align:center; font-size:11.5px; border:1px solid #000;">
+                <thead>
+                    <tr style="background:#eee;">
+                        <th style="border:1px solid #000; padding:5px;">رقم القيد</th>
+                        <th style="border:1px solid #000; padding:5px;">النوع</th>
+                        <th style="border:1px solid #000; padding:5px;">طريقة الدفع</th>
+                        <th style="border:1px solid #000; padding:5px;">البيان والتفاصيل</th>
+                        <th style="border:1px solid #000; padding:5px;">كرت العمل</th>
+                        <th style="border:1px solid #000; padding:5px;">المبلغ (+)</th>
+                        <th style="border:1px solid #000; padding:5px;">المبلغ (-)</th>
+                        <th style="border:1px solid #000; padding:5px;">التاريخ والوقت</th>
+                    </tr>
+                </thead>
+                <tbody id="prTableTbody"></tbody>
+            </table>
+
+            <div style="margin-top:30px; display:flex; justify-content:space-between; text-align:center; font-size:12px; font-weight:800;">
+                <div>توقيع أمين الصندوق: ...........................</div>
+                <div>توقيع المحاسب المسؤول: ...........................</div>
+                <div>اعتماد الإدارة والختم: ...........................</div>
+            </div>
+
+            <div style="margin-top:20px; text-align:center; font-size:9.5px; color:#64748b; border-top:1px dotted #ccc; padding-top:4px;">
+                نظام إدارة الورش والصندوق • برمجة وتطوير: م. عمر
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let rawEntries = [];
+        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        if (!currentUser || !currentUser.role) window.location.href = 'login.html';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().slice(0, 10);
+            const firstDay = today.slice(0, 7) + '-01';
+            document.getElementById('cbStartDate').value = firstDay;
+            document.getElementById('cbEndDate').value = today;
+            loadCashBoxData();
+        });
+
+        function setCashboxQuickDate(range) {
+            const now = new Date();
+            const todayStr = now.toISOString().slice(0, 10);
+            let startStr = todayStr;
+
+            if (range === 'today') {
+                startStr = todayStr;
+            } else if (range === 'week') {
+                const day = now.getDay();
+                const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+                const monday = new Date(now.setDate(diff));
+                startStr = monday.toISOString().slice(0, 10);
+            } else if (range === 'month') {
+                startStr = todayStr.slice(0, 7) + '-01';
+            }
+
+            document.getElementById('cbStartDate').value = startStr;
+            document.getElementById('cbEndDate').value = todayStr;
+            loadCashBoxData();
+        }
+
+        async function loadCashBoxData() {
+            const sDate = document.getElementById('cbStartDate').value;
+            const eDate = document.getElementById('cbEndDate').value;
+            const pm = document.getElementById('cbPaymentMethod').value;
+            const et = document.getElementById('cbEntryType').value;
+
+            try {
+                const res = await fetch(`/api/cash-box?start_date=${sDate}&end_date=${eDate}&payment_method=${pm}&entry_type=${et}`);
+                const resData = await res.json();
+
+                if (resData.success) {
+                    rawEntries = resData.entries || [];
+                    renderSummary(resData.summary);
+                    renderTable(rawEntries);
+                } else {
+                    document.getElementById('cbTableTbody').innerHTML = `<tr><td colspan="12" style="padding:25px; color:#ef4444; font-weight:800;">${resData.message}</td></tr>`;
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('cbTableTbody').innerHTML = `<tr><td colspan="12" style="padding:25px; color:#ef4444; font-weight:800;">فشل الاتصال بالخادم</td></tr>`;
+            }
+        }
+
+        function renderSummary(s) {
+            if (!s) return;
+            document.getElementById('dispOpeningBalance').innerHTML = (s.opening_balance || 0).toLocaleString(undefined, {minimumFractionDigits:2}) + ' <small>﷼</small>';
+            document.getElementById('dispCurrentBalance').innerHTML = (s.total_current_balance || 0).toLocaleString(undefined, {minimumFractionDigits:2}) + ' <small>﷼</small>';
+            document.getElementById('dispCashDrawer').innerHTML = (s.total_cash_drawer || 0).toLocaleString(undefined, {minimumFractionDigits:2}) + ' <small>﷼</small>';
+            document.getElementById('dispCardPos').innerHTML = (s.total_card_pos || 0).toLocaleString(undefined, {minimumFractionDigits:2}) + ' <small>﷼</small>';
+            document.getElementById('dispBankBalance').innerHTML = (s.total_bank_balance || 0).toLocaleString(undefined, {minimumFractionDigits:2}) + ' <small>﷼</small>';
+            
+            document.getElementById('dispTotalReceipts').textContent = (s.period_receipts || 0).toLocaleString(undefined, {minimumFractionDigits:2}) + ' ﷼';
+            document.getElementById('dispTotalExpenses').textContent = (s.period_expenses || 0).toLocaleString(undefined, {minimumFractionDigits:2}) + ' ﷼';
+            document.getElementById('dispNetBalance').textContent = (s.net_balance || 0).toLocaleString(undefined, {minimumFractionDigits:2}) + ' ﷼';
+            document.getElementById('dispBankDeposits').textContent = (s.period_bank_deposits || 0).toLocaleString(undefined, {minimumFractionDigits:2}) + ' ﷼';
+            document.getElementById('dispOpsCount').textContent = s.transactions_count || 0;
+        }
+
+        function renderTable(list) {
+            const tbody = document.getElementById('cbTableTbody');
+            if (!list || list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="12" style="padding:35px; text-align:center; color:#94a3b8; font-weight:700;"><i class="fa-solid fa-box-open" style="font-size:24px; display:block; margin-bottom:8px; color:#cbd5e1;"></i>لا توجد قيود مسجلة في هذه الفترة</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = list.map(e => {
+                const isReceipt = e.entry_type === 'receipt';
+                const isExpense = e.entry_type === 'expense';
+                const isDeposit = e.entry_type === 'bank_deposit';
+
+                let typeBadge = '';
+                if (isReceipt) typeBadge = '<span class="badge-type badge-receipt"><i class="fa-solid fa-circle-plus"></i> قبض</span>';
+                else if (isExpense) typeBadge = '<span class="badge-type badge-expense"><i class="fa-solid fa-circle-minus"></i> صرف</span>';
+                else typeBadge = '<span class="badge-type badge-deposit"><i class="fa-solid fa-building-columns"></i> إيداع</span>';
+
+                let pmBadge = '<span class="badge-pm"><i class="fa-solid fa-money-bill-wave"></i> نقدي / كاش</span>';
+                if (e.payment_method === 'card') pmBadge = '<span class="badge-pm" style="background:#f5f3ff; color:#7c3aed;"><i class="fa-solid fa-credit-card"></i> شبكة / مدى</span>';
+                else if (e.payment_method === 'bank') pmBadge = '<span class="badge-pm" style="background:#e0f2fe; color:#0284c7;"><i class="fa-solid fa-building-columns"></i> تحويل بنكي</span>';
+
+                const amtPlus = isReceipt ? Number(e.amount).toFixed(2) : '0.00';
+                const amtMinus = (isExpense || isDeposit) ? Number(e.amount).toFixed(2) : '0.00';
+
+                const dateStr = e.entry_date || (e.created_at ? e.created_at.slice(0, 10) : '---');
+                const timeStr = e.entry_time || '---';
+
+                return `
+                    <tr>
+                        <td><b>#${e.id}</b></td>
+                        <td>${typeBadge}</td>
+                        <td>${pmBadge}</td>
+                        <td style="text-align:right; font-weight:800; color:var(--cb-dark);">${e.description}</td>
+                        <td>${e.job_order_id ? `<span style="color:#0284c7; font-weight:900; background:#e0f2fe; padding:3px 8px; border-radius:6px;">#${e.job_order_id}</span>` : '<span style="color:#cbd5e1;">---</span>'}</td>
+                        <td style="color:#64748b; direction:ltr;">${Number(e.balance_before || 0).toLocaleString(undefined, {minimumFractionDigits:2})}</td>
+                        <td class="${isReceipt ? 'val-plus' : ''}">${isReceipt ? '+' + amtPlus : '0.00'}</td>
+                        <td class="${(isExpense || isDeposit) ? 'val-minus' : ''}">${(isExpense || isDeposit) ? '-' + amtMinus : '0.00'}</td>
+                        <td style="font-size:11.5px; direction:ltr; color:#64748b;">${timeStr}</td>
+                        <td style="font-size:12px; color:#475569;">${dateStr}</td>
+                        <td><span style="font-size:11px; background:#f1f5f9; padding:2px 8px; border-radius:6px; font-weight:700;">${e.created_by || 'admin'}</span></td>
+                        <td>
+                            <button onclick="deleteEntry(${e.id})" class="cb-row-btn" title="حذف القيد">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterLocalTable() {
+            const query = document.getElementById('cbSearchInput').value.trim().toLowerCase();
+            if (!query) {
+                renderTable(rawEntries);
+                return;
+            }
+            const filtered = rawEntries.filter(e => 
+                (e.description && e.description.toLowerCase().includes(query)) ||
+                (e.job_order_id && String(e.job_order_id).includes(query)) ||
+                (e.created_by && e.created_by.toLowerCase().includes(query)) ||
+                (String(e.id).includes(query))
+            );
+            renderTable(filtered);
+        }
+
+        function openNewEntryModal(type) {
+            document.getElementById('modalEntryType').value = type;
+            const titleText = type === 'receipt' ? 'تسجيل سند قبض جديد (إيراد +)' : 'تسجيل سند صرف جديد (مصروف -)';
+            const iconHtml = type === 'receipt' ? '<i class="fa-solid fa-circle-plus" style="color:#10b981;"></i> ' : '<i class="fa-solid fa-circle-minus" style="color:#ef4444;"></i> ';
+            document.getElementById('modalEntryTitle').innerHTML = iconHtml + titleText;
+            document.getElementById('modalSubmitBtn').className = type === 'receipt' ? 'cb-btn cb-btn-success' : 'cb-btn cb-btn-danger';
+            document.getElementById('modalAmount').value = '';
+            document.getElementById('modalDescription').value = '';
+            document.getElementById('modalJobNo').value = '';
+            document.getElementById('newEntryModal').style.display = 'flex';
+        }
+
+        function openBankTransferModal() {
+            document.getElementById('btAmount').value = '';
+            document.getElementById('btNotes').value = '';
+            document.getElementById('bankTransferModal').style.display = 'flex';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        async function submitNewEntry(e) {
+            e.preventDefault();
+            const entryType = document.getElementById('modalEntryType').value;
+            const paymentMethod = document.getElementById('modalPaymentMethod').value;
+            const amount = document.getElementById('modalAmount').value;
+            const category = document.getElementById('modalCategory').value;
+            const description = document.getElementById('modalDescription').value;
+            const jobOrderId = document.getElementById('modalJobNo').value;
+
+            try {
+                const res = await fetch('/api/cash-box', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        entry_type: entryType,
+                        payment_method: paymentMethod,
+                        amount: Number(amount),
+                        category: category,
+                        description: description,
+                        job_order_id: jobOrderId ? Number(jobOrderId) : null,
+                        created_by: currentUser.username || currentUser.employee_name || 'admin'
+                    })
+                });
+                const resData = await res.json();
+                if (resData.success) {
+                    closeModal('newEntryModal');
+                    Swal.fire({ icon: 'success', title: 'تم الحفظ بنجاح', text: resData.message, timer: 1500, showConfirmButton: false });
+                    loadCashBoxData();
+                } else {
+                    Swal.fire('خطأ', resData.message, 'error');
+                }
+            } catch (err) {
+                Swal.fire('خطأ', 'تعذر حفظ القيد', 'error');
+            }
+        }
+
+        async function submitBankTransfer(e) {
+            e.preventDefault();
+            const amount = document.getElementById('btAmount').value;
+            const bankName = document.getElementById('btBankName').value;
+            const notes = document.getElementById('btNotes').value;
+
+            try {
+                const res = await fetch('/api/cash-box/bank-transfer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        amount: Number(amount),
+                        bank_name: bankName,
+                        notes: notes,
+                        created_by: currentUser.username || currentUser.employee_name || 'admin'
+                    })
+                });
+                const resData = await res.json();
+                if (resData.success) {
+                    closeModal('bankTransferModal');
+                    Swal.fire({ icon: 'success', title: 'تم الإيداع بنجاح', text: resData.message, timer: 1500, showConfirmButton: false });
+                    loadCashBoxData();
+                } else {
+                    Swal.fire('خطأ', resData.message, 'error');
+                }
+            } catch (err) {
+                Swal.fire('خطأ', 'تعذر تسجيل الإيداع البنكي', 'error');
+            }
+        }
+
+        async function deleteEntry(id) {
+            const confirm = await Swal.fire({
+                title: 'تأكيد الحذف',
+                text: `هل تريد بالتأكيد حذف القيد رقم #${id} من سجل الصندوق؟`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'نعم، احذف',
+                cancelButtonText: 'إلغاء',
+                confirmButtonColor: '#dc2626'
+            });
+
+            if (confirm.isConfirmed) {
+                try {
+                    const res = await fetch(`/api/cash-box/${id}`, { method: 'DELETE' });
+                    const resData = await res.json();
+                    if (resData.success) {
+                        Swal.fire({ icon: 'success', title: 'تم الحذف', text: resData.message, timer: 1200, showConfirmButton: false });
+                        loadCashBoxData();
+                    } else {
+                        Swal.fire('خطأ', resData.message, 'error');
+                    }
+                } catch (err) {
+                    Swal.fire('خطأ', 'تعذر حذف القيد', 'error');
+                }
+            }
+        }
+
+        function exportToExcel() {
+            if (!rawEntries || rawEntries.length === 0) {
+                Swal.fire('تنبيه', 'لا توجد بيانات لتصديرها', 'info');
+                return;
+            }
+            const dataToExport = rawEntries.map(e => ({
+                'رقم القيد': e.id,
+                'نوع العملية': e.entry_type === 'receipt' ? 'قبض' : (e.entry_type === 'expense' ? 'صرف' : 'إيداع بنكي'),
+                'طريقة الدفع': e.payment_method === 'card' ? 'شبكة' : (e.payment_method === 'bank' ? 'بنك' : 'كاش'),
+                'البيان': e.description,
+                'رقم كرت العمل': e.job_order_id || '-',
+                'المبلغ (+)': e.entry_type === 'receipt' ? e.amount : 0,
+                'المبلغ (-)': e.entry_type !== 'receipt' ? e.amount : 0,
+                'التاريخ': e.entry_date || (e.created_at ? e.created_at.slice(0, 10) : '-'),
+                'الوقت': e.entry_time || '-',
+                'المسؤول': e.created_by
+            }));
+            const ws = XLSX.utils.json_to_sheet(dataToExport);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "حركة الصندوق");
+            XLSX.writeFile(wb, `CashBox_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        }
+
+        function printCashBoxReport() {
+            const shopName = window.APP_CONFIG?.settings?.workshop_name || 'مركز صيانة السيارات المتخصص';
+            const shopDesc = window.APP_CONFIG?.settings?.workshop_desc || 'تقرير حركة الصندوق والخزينة';
+            
+            document.getElementById('prWorkshopName').textContent = shopName;
+            document.getElementById('prWorkshopDesc').textContent = shopDesc;
+            document.getElementById('prFromDate').textContent = document.getElementById('cbStartDate').value;
+            document.getElementById('prToDate').textContent = document.getElementById('cbEndDate').value;
+            document.getElementById('prPrintDate').textContent = new Date().toLocaleString('ar-SA');
+
+            document.getElementById('prCashDrawer').textContent = document.getElementById('dispCashDrawer').textContent;
+            document.getElementById('prCardPos').textContent = document.getElementById('dispCardPos').textContent;
+            document.getElementById('prBankBalance').textContent = document.getElementById('dispBankBalance').textContent;
+            document.getElementById('prCurrentBalance').textContent = document.getElementById('dispCurrentBalance').textContent;
+
+            const tbody = document.getElementById('prTableTbody');
+            tbody.innerHTML = rawEntries.map(e => `
+                <tr>
+                    <td style="border:1px solid #000; padding:5px;">${e.id}</td>
+                    <td style="border:1px solid #000; padding:5px;">${e.entry_type === 'receipt' ? 'قبض (+)' : (e.entry_type === 'expense' ? 'صرف (-)' : 'إيداع')}</td>
+                    <td style="border:1px solid #000; padding:5px;">${e.payment_method === 'card' ? 'شبكة' : (e.payment_method === 'bank' ? 'بنكي' : 'كاش')}</td>
+                    <td style="border:1px solid #000; padding:5px; text-align:right;">${e.description}</td>
+                    <td style="border:1px solid #000; padding:5px;">${e.job_order_id ? '#' + e.job_order_id : '-'}</td>
+                    <td style="border:1px solid #000; padding:5px;">${e.entry_type === 'receipt' ? e.amount.toFixed(2) : '-'}</td>
+                    <td style="border:1px solid #000; padding:5px;">${e.entry_type !== 'receipt' ? e.amount.toFixed(2) : '-'}</td>
+                    <td style="border:1px solid #000; padding:5px;">${e.entry_date || ''} ${e.entry_time || ''}</td>
+                </tr>
+            `).join('');
+
+            const prArea = document.getElementById('cbPrintArea');
+            prArea.style.display = 'block';
+            window.print();
+            setTimeout(() => { prArea.style.display = 'none'; }, 1000);
+        }
+    </script>
+</body>
+</html>

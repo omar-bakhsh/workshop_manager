@@ -478,6 +478,21 @@ async function initDatabase() {
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+
+        `CREATE TABLE IF NOT EXISTS cash_box_entries (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            entry_type VARCHAR(20) NOT NULL,
+            payment_method VARCHAR(20) DEFAULT 'cash',
+            amount DOUBLE NOT NULL,
+            category VARCHAR(100) NULL,
+            description TEXT NOT NULL,
+            job_order_id INT NULL,
+            created_by VARCHAR(100) DEFAULT 'admin',
+            balance_before DOUBLE DEFAULT 0,
+            entry_date DATE NULL,
+            entry_time VARCHAR(20) NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`
     ];
 
@@ -756,10 +771,25 @@ async function initDatabase() {
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
         )`,
+        `CREATE TABLE IF NOT EXISTS cash_box_entries (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            entry_type TEXT NOT NULL,
+            payment_method TEXT DEFAULT 'cash',
+            amount REAL NOT NULL,
+            category TEXT,
+            description TEXT NOT NULL,
+            job_order_id INTEGER,
+            created_by TEXT DEFAULT 'admin',
+            balance_before REAL DEFAULT 0,
+            entry_date DATE,
+            entry_time TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )`,
         `CREATE INDEX IF NOT EXISTS idx_clients_phone ON clients(phone)`,
         `CREATE INDEX IF NOT EXISTS idx_clients_name ON clients(name)`,
         `CREATE INDEX IF NOT EXISTS idx_promo_code ON promo_codes(code)`,
-        `CREATE INDEX IF NOT EXISTS idx_doc_emp ON employee_documents(employee_id)`
+        `CREATE INDEX IF NOT EXISTS idx_doc_emp ON employee_documents(employee_id)`,
+        `CREATE INDEX IF NOT EXISTS idx_cash_box_date ON cash_box_entries(entry_date)`
     ];
 
     const tablesToRun = isMySQL ? mysqlTables : sqliteTables;
@@ -1173,7 +1203,10 @@ async function exportDatabaseJson() {
         'inspection_photos',
         'workshop_lifts',
         'work_schedule',
-        'promo_codes'
+        'promo_codes',
+        'cash_box_entries',
+        'leave_requests',
+        'employee_documents'
     ];
 
     const backupData = {
