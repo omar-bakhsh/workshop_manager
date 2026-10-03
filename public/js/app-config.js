@@ -392,7 +392,7 @@
                         <span><i class="fa-solid fa-car"></i></span> <span>${jobTitle}</span>
                     </a>
                     <a href="sticker.html" class="nav-bar-link ${activePage === 'sticker.html' ? 'active' : ''}">
-                        <span><i class="fa-solid fa-tag"></i></span> <span>ستيكر الصيانة</span>
+                        <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg></span> <span>ستيكر الصيانة</span>
                     </a>
                 `;
             }

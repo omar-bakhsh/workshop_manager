@@ -1044,7 +1044,7 @@
                     <td>
                         <div class="action-btns" style="justify-content: center;">
                             <button class="btn-action-icon btn-card" onclick="openJobOrderCard(${item.id})" title="كرت التشغيل"><i class="fa-solid fa-clipboard-list"></i> كرت العمل</button>
-                            <button class="btn-action-icon" style="background:#dc2626; color:#fff;" onclick="openSticker(${item.id}, '${(item.card_no || item.id || '').toString().replace(/'/g, "\\'")}', ${item.odometer || item.km || 0})" title="طباعة ستيكر الصيانة"><i class="fa-solid fa-tag"></i> ستيكر</button>
+                            <button class="btn-action-icon" style="background:#dc2626; color:#fff;" onclick="openSticker(${item.id}, '${(item.card_no || item.id || '').toString().replace(/'/g, "\\'")}', ${item.odometer || item.km || 0})" title="طباعة ستيكر الصيانة"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-left:2px;"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg><span>ستيكر</span></button>
                             <button class="btn-action-icon" style="background:#059669; color:#fff;" onclick="openTaxInvoice(${item.id})" title="فاتورة ضريبية"><i class="fa-solid fa-file-invoice-dollar"></i> فاتورة</button>
                             <button class="btn-action-icon btn-whatsapp" onclick='openWhatsAppModalFor(${JSON.stringify(item).replace(/'/g, "&apos;")})' title="واتساب"><i class="fa-solid fa-comment-dots"></i> واتساب</button>
                             ${canEditOrders ? `<button class="btn-action-icon btn-edit" onclick="openInspectionEditor(${item.id})" title="تعديل"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
@@ -1104,7 +1104,12 @@
                             <span>فاتورة</span>
                         </button>
                         <button class="btn-card-touch" style="background:#dc2626; color:#fff;" onclick="openSticker(${item.id}, '${(item.card_no || item.id || '').toString().replace(/'/g, "\\'")}', ${item.odometer || item.km || 0})">
-                            <span><i class="fa-solid fa-tag"></i></span>
+                            <span>
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/>
+                                    <path d="M7 7h.01"/>
+                                </svg>
+                            </span>
                             <span>ستيكر</span>
                         </button>
                         <button class="btn-card-touch btn-whatsapp" onclick='openWhatsAppModalFor(${JSON.stringify(item).replace(/'/g, "&apos;")})'>

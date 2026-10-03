@@ -7,7 +7,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Changa:wght@700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="toast.css">
     <script src="public/js/app-config.js"></script>
@@ -48,6 +47,12 @@
             padding-bottom: 40px;
         }
 
+        .svg-icon {
+            display: inline-block;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
+
         .page-container {
             max-width: 1100px;
             margin: 20px auto;
@@ -78,7 +83,7 @@
             gap: 10px;
         }
 
-        .header-title-box h1 i {
+        .header-title-box h1 .title-icon {
             color: var(--mazda-red);
         }
 
@@ -97,7 +102,7 @@
         .btn-nav-back {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             padding: 8px 16px;
             border-radius: 8px;
             font-size: 14px;
@@ -162,7 +167,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 8px;
         }
 
         .tab.active {
@@ -182,6 +187,15 @@
             gap: 8px;
             align-items: center;
             flex-wrap: wrap;
+        }
+
+        .job-order-import-box-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .job-order-import-box input {
@@ -204,7 +218,7 @@
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
             transition: 0.2s;
         }
 
@@ -311,6 +325,12 @@
             align-items: center;
         }
 
+        .preview-title-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         .preview-container {
             background: #ffffff;
             padding: 12px;
@@ -374,7 +394,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 8px;
             transition: all 0.2s;
         }
 
@@ -386,8 +406,12 @@
             font-size: 12px;
             color: var(--text-muted);
             margin-top: 14px;
-            line-height: 1.5;
+            line-height: 1.6;
             text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
 
         /* Customization collapsible */
@@ -429,12 +453,24 @@
         <!-- Top Header & Breadcrumb -->
         <div class="top-header">
             <div class="header-title-box">
-                <h1><i class="fa-solid fa-tag"></i> ستيكر تغيير الزيت ومواعيد الصيانة</h1>
+                <h1>
+                    <span class="title-icon">
+                        <svg class="svg-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/>
+                            <path d="M7 7h.01"/>
+                        </svg>
+                    </span>
+                    ستيكر تغيير الزيت ومواعيد الصيانة
+                </h1>
                 <p>طباعة الملصقات الحرارية لمواعيد صيانة المحرك والجربكس المعتمدة</p>
             </div>
             <div class="header-actions">
                 <button class="btn-nav-back" onclick="if(window.history.length > 1) { history.back(); } else { window.location.href='admin.html'; }">
-                    <i class="fa-solid fa-arrow-right"></i> رجوع
+                    <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14"/>
+                        <path d="m12 5 7 7-7 7"/>
+                    </svg>
+                    <span>رجوع</span>
                 </button>
             </div>
         </div>
@@ -447,22 +483,43 @@
                 <!-- Mode Tabs -->
                 <div class="tabs">
                     <button type="button" class="tab active" id="tab-oil" onclick="changeMode('oil', this)">
-                        <i class="fa-solid fa-oil-can"></i> زيت محرك
+                        <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
+                        </svg>
+                        <span>زيت محرك</span>
                     </button>
                     <button type="button" class="tab" id="tab-gear" onclick="changeMode('gear', this)">
-                        <i class="fa-solid fa-gear"></i> زيت جربكس
+                        <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                        </svg>
+                        <span>زيت جربكس</span>
                     </button>
                     <button type="button" class="tab" id="tab-both" onclick="changeMode('both', this)">
-                        <i class="fa-solid fa-wrench"></i> نموذج شامل
+                        <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                        </svg>
+                        <span>نموذج شامل</span>
                     </button>
                 </div>
 
                 <!-- Quick Import from Job Order / Inspections -->
                 <div class="job-order-import-box">
-                    <span style="font-size:13px; font-weight:700; color:#334155;"><i class="fa-solid fa-magnifying-glass"></i> استيراد سريع:</span>
+                    <span class="job-order-import-box-label">
+                        <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.35-4.35"/>
+                        </svg>
+                        استيراد سريع:
+                    </span>
                     <input type="text" id="quickSearchInput" placeholder="أدخل رقم أمر العمل أو رقم الكرت..." onkeypress="if(event.key==='Enter') searchAndFillOrder()">
                     <button type="button" class="btn-fetch" onclick="searchAndFillOrder()">
-                        <i class="fa-solid fa-download"></i> جلب
+                        <svg class="svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7 10 12 15 17 10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        <span>جلب</span>
                     </button>
                 </div>
 
@@ -512,7 +569,21 @@
                 <!-- Collapsible Extra Options -->
                 <div>
                     <button type="button" class="extra-options-toggle" onclick="toggleExtraOptions()">
-                        <i class="fa-solid fa-sliders"></i> خيارات وتخصيص إضافي للملصق ▼
+                        <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="4" y1="21" x2="4" y2="14"/>
+                            <line x1="4" y1="10" x2="4" y2="3"/>
+                            <line x1="12" y1="21" x2="12" y2="12"/>
+                            <line x1="12" y1="8" x2="12" y2="3"/>
+                            <line x1="20" y1="21" x2="20" y2="16"/>
+                            <line x1="20" y1="12" x2="20" y2="3"/>
+                            <line x1="1" y1="14" x2="7" y2="14"/>
+                            <line x1="9" y1="8" x2="15" y2="8"/>
+                            <line x1="17" y1="16" x2="23" y2="16"/>
+                        </svg>
+                        <span>خيارات وتخصيص إضافي للملصق</span>
+                        <svg class="svg-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"/>
+                        </svg>
                     </button>
                     <div class="extra-options-panel" id="extraOptionsPanel">
                         <div class="form-group">
@@ -535,7 +606,13 @@
             <!-- Preview & Print Side -->
             <div class="preview-card">
                 <div class="preview-title">
-                    <span><i class="fa-solid fa-eye"></i> معاينة الملصق المباشرة</span>
+                    <div class="preview-title-left">
+                        <svg class="svg-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                        <span>معاينة الملصق المباشرة</span>
+                    </div>
                     <span style="font-size:11px; color:#16a34a; font-weight:700;">جاهز للطباعة</span>
                 </div>
 
@@ -544,15 +621,30 @@
                 </div>
 
                 <button class="btn-print" onclick="printSticker()">
-                    <i class="fa-solid fa-print"></i> طباعة الملصق الآن
+                    <svg class="svg-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 6 2 18 2 18 9"/>
+                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                        <rect width="12" height="8" x="6" y="14"/>
+                    </svg>
+                    <span>طباعة الملصق الآن</span>
                 </button>
 
                 <button class="btn-download" onclick="downloadStickerImage()">
-                    <i class="fa-solid fa-download"></i> حفظ كصورة PNG
+                    <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    <span>حفظ كصورة PNG</span>
                 </button>
 
                 <div class="sticker-tips">
-                    💡 الملصق متوافق مع كافة طابعات الستيكرات الحرارية (مقاس 50mm × 50mm القياسي أو أي طابعة باركود).
+                    <svg class="svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 16v-4"/>
+                        <path d="M12 8h.01"/>
+                    </svg>
+                    <span>الملصق متوافق مع كافة طابعات الستيكرات الحرارية (مقاس 50mm × 50mm القياسي أو أي طابعة باركود).</span>
                 </div>
             </div>
 
