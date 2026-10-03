@@ -848,11 +848,11 @@
                         </div>
                         <div>
                             <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                <span>دليل الذكاء الاصطناعي لربط الـ API وتطبيق الأندرويد (AI Prompt & System Guide)</span>
+                                <span>دليل الذكاء الاصطناعي لربط الـ API وتطبيق React Native Expo (AI Prompt & Guide)</span>
                                 <span style="font-size: 11px; background: #4f46e5; color: #e0e7ff; padding: 2px 8px; border-radius: 12px; font-weight: 700;">جاهز للـ AI</span>
                             </h3>
                             <p style="margin: 4px 0 0; font-size: 12px; color: #c7d2fe; line-height: 1.5;">
-                                دليل شامل ومُهندس بالكامل لتقديمه لأي مساعد ذكاء اصطناعي (ChatGPT, Claude, Gemini, Cursor, Android Studio AI) ليتعرف على كافة الجداول الـ 27، عناوين الاتصال، المفتاح السري، وبناء تطبيق الأندرويد (Kotlin / Retrofit / Room) بكفاءة تامة.
+                                دليل شامل ومُهندس بالكامل لتقديمه لأي مساعد ذكاء اصطناعي (ChatGPT, Claude, Gemini, Cursor) ليتعرف على كافة الجداول الـ 27، عناوين الاتصال، المفتاح السري، وبناء تطبيق الجوال عبر (React Native Expo / TypeScript / Axios / Expo SQLite) بكفاءة تامة.
                             </p>
                         </div>
                     </div>
@@ -1122,58 +1122,69 @@
                     </div>
                 </div>
 
-                <!-- Android Kotlin / Retrofit Sample -->
+                <!-- React Native Expo (TypeScript / Axios) Sample -->
                 <div style="background: #0f172a; color: #f8fafc; border-radius: 12px; padding: 14px;">
                     <div
                         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <span style="font-size: 12px; font-weight: 700; color: #38bdf8;">
-                            <i class="fa-brands fa-android"></i> مثال كود Kotlin / Retrofit لتطبيق الأندرويد:
+                            <i class="fa-brands fa-react"></i> مثال كود React Native Expo (TypeScript / Axios):
                         </span>
                         <button type="button" class="btn-modern btn-secondary-m"
-                            onclick="copyToClipboard('kotlinCodeSnippet', 'تم نسخ كود الأندرويد!')"
+                            onclick="copyToClipboard('reactNativeCodeSnippet', 'تم نسخ كود React Native Expo!')"
                             style="padding: 3px 8px; font-size: 11px; background: #1e293b; color: #cbd5e1; border-color: #334155;">
                             <i class="fa-solid fa-copy"></i> نسخ الكود
                         </button>
                     </div>
-                    <pre id="kotlinCodeSnippet"
+                    <pre id="reactNativeCodeSnippet"
                         style="margin: 0; font-family: monospace; font-size: 11.5px; color: #a5f3fc; direction: ltr; text-align: left; overflow-x: auto; line-height: 1.5;">
-// Atenza Workshop API Service Interface (Kotlin / Retrofit2)
-interface WorkshopApiService {
-    @GET("db/{table}")
-    suspend fun getRecords(
-        @Path("table") table: String,
-        @Header("x-api-key") apiKey: String,
-        @Query("limit") limit: Int = 100,
-        @Query("offset") offset: Int = 0
-    ): Response&lt;JsonObject&gt;
+// Atenza Workshop API Client (React Native Expo - TypeScript & Axios)
+import axios from 'axios';
 
-    @POST("db/{table}")
-    suspend fun createRecord(
-        @Path("table") table: String,
-        @Header("x-api-key") apiKey: String,
-        @Body record: JsonObject
-    ): Response&lt;JsonObject&gt;
+// Configure Base URL: Physical Device via Wi-Fi or Emulator (10.0.2.2)
+const API_BASE_URL = 'http://192.168.8.112:8080/api/v1';
+const API_KEY = 'atenza_apk_...'; // From Settings
 
-    @PUT("db/{table}/{id}")
-    suspend fun updateRecord(
-        @Path("table") table: String,
-        @Path("id") id: String,
-        @Header("x-api-key") apiKey: String,
-        @Body updates: JsonObject
-    ): Response&lt;JsonObject&gt;
+export const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 15000,
+  headers: {
+    'Content-Type': 'application/json',
+    'x-api-key': API_KEY,
+  },
+});
 
-    @DELETE("db/{table}/{id}")
-    suspend fun deleteRecord(
-        @Path("table") table: String,
-        @Path("id") id: String,
-        @Header("x-api-key") apiKey: String
-    ): Response&lt;JsonObject&gt;
+export const AtenzaApi = {
+  // 1. Health Ping
+  ping: () => apiClient.get('/ping'),
 
-    @GET("sync/pull")
-    suspend fun pullFullSync(
-        @Header("x-api-key") apiKey: String
-    ): Response&lt;JsonObject&gt;
-}</pre>
+  // 2. PULL: List records with filters and pagination
+  getRecords: (table: string, params = {}) =>
+    apiClient.get(`/db/${table}`, { params }),
+
+  // 3. PULL ONE: Get single record by ID
+  getRecordById: (table: string, id: string | number) =>
+    apiClient.get(`/db/${table}/${id}`),
+
+  // 4. PUSH: Create new record
+  createRecord: (table: string, data: any) =>
+    apiClient.post(`/db/${table}`, data),
+
+  // 5. EDIT: Update existing record
+  updateRecord: (table: string, id: string | number, data: any) =>
+    apiClient.put(`/db/${table}/${id}`, data),
+
+  // 6. DELETE: Remove record
+  deleteRecord: (table: string, id: string | number) =>
+    apiClient.delete(`/db/${table}/${id}`),
+
+  // 7. SYNC PULL: Pull changes since timestamp for offline storage (Expo SQLite / AsyncStorage)
+  pullFullSync: (since?: string, tables?: string) =>
+    apiClient.get('/sync/pull', { params: { since, tables } }),
+
+  // 8. SYNC PUSH: Batch sync offline changes back to server
+  pushBatchSync: (tablesPayload: Record&lt;string, any[]&gt;) =>
+    apiClient.post('/sync/push', { tables: tablesPayload }),
+};</pre>
                 </div>
             </div>
 

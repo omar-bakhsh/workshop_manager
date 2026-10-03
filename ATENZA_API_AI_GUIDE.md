@@ -1,74 +1,75 @@
 # 🤖 ATENZA WORKSHOP REST API & DATABASE INTEGRATION SPECIFICATION
-> **System Prompt for AI Assistants & Senior Android Developer Integration Guide**
+> **System Prompt for AI Assistants & Senior React Native Expo Developer Guide**
 > **Application:** Atenza App (مركزأتينزا - فرع كيلو14)
+> **Framework:** React Native Expo (SDK 51/52+, TypeScript, Axios, TanStack Query, Expo SQLite)
 > **Engine:** RESTful JSON API v1.0 & Bidirectional Sync Engine v2.0
-> **Architecture:** Offline-First Android (Kotlin + Room + Retrofit 2 + Coroutines + WorkManager)
+> **Platforms:** Cross-Platform (Android & iOS via React Native Expo)
 > **Developer & Programmer:** م. عمر
-> **Generated At:** 2026-10-03T09:44:58.842Z
+> **Generated At:** 2026-10-03T09:57:58.730Z
 
 ---
 
 ## 🧭 ROLE & OBJECTIVE FOR THE AI ASSISTANT (تعليمات النظام للذكاء الاصطناعي)
 
-You are acting as an expert Senior Android Software Architect and Kotlin Engineer. You are provided with the complete, ground-truth schema, RESTful API specifications, and database dictionary for the **Atenza App** workshop management system.
+You are acting as an expert Senior Mobile Architect & React Native Expo (TypeScript) Specialist. You are provided with the complete, ground-truth schema, RESTful API specifications, and database dictionary for the **Atenza App** workshop management system.
 
 ### Guiding Rules When Assisting the Developer:
-1. **Strict Data Accuracy**: When generating Android entities, DTOs, Room DAOs, or queries, adhere strictly to the exact column names, data types, and primary keys provided in the **Database Tables Dictionary** below. Never invent arbitrary columns.
-2. **Offline-First Resilience**: Mobile devices inside automotive workshops frequently lose Wi-Fi. Always prioritize an offline-first architecture where the Android application writes to a local Room Database immediately, and queues network sync requests using Android `WorkManager` or background coroutines.
-3. **API Key Transmission**: Always include the `x-api-key` header in every Retrofit request.
-4. **Batch Synchronization**: For syncing large datasets or offline queues, utilize the batch sync endpoints (`GET /api/v1/sync/pull` and `POST /api/v1/sync/push`) to preserve battery and reduce network round-trips.
-5. **Password Redaction**: Notice that the `users` table in this API automatically redacts password hashes. Never expect or send unencrypted passwords.
+1. **Target Stack**: Develop strictly using **React Native with Expo** (Managed Workflow with TypeScript, Axios for networking, TanStack Query / React Query for state management, and Expo SQLite or AsyncStorage for offline local storage).
+2. **Strict Data Accuracy**: When generating TypeScript interfaces, API service calls, and form components, adhere strictly to the exact column names, data types, and primary keys provided in the **Database Tables Dictionary** below. Never invent arbitrary columns.
+3. **Offline-First Resilience**: Mobile devices inside automotive workshops frequently lose Wi-Fi. Always prioritize an offline-first architecture where the React Native app caches data locally using `expo-sqlite` or `AsyncStorage`, and syncs changes using the batch sync endpoints (`GET /api/v1/sync/pull` and `POST /api/v1/sync/push`).
+4. **API Key Transmission**: Always pass the `x-api-key` header in Axios default headers or interceptors.
+5. **Clean UI & RTL**: Automotive technicians operate with Arabic-first RTL interfaces. Use clean React Native components with responsive styling, status badges, and pull-to-refresh.
 
 ---
 
-## 🌐 1. NETWORK & CONNECTION MATRIX (عناوين وخوادم الاتصال)
+## 🌐 1. NETWORK & CONNECTION MATRIX FOR REACT NATIVE EXPO
 
-The server runs locally on port `8080` and serves the REST API under `/api/v1`. Depending on the Android runtime environment, use the appropriate base URL:
+When running with Expo (`npx expo start`), choose the correct base URL depending on your development environment:
 
-| Target Environment | Base URL | Description & Instructions |
+| Development Target | Base URL | How to Connect |
 |---|---|---|
-| **Android Studio Emulator** | `http://10.0.2.2:8080/api/v1/` | Android emulator loopback IP that resolves to the host machine's `127.0.0.1` |
-| **Physical Android Phone (Wi-Fi)** | `http://192.168.8.112:8080/api/v1/` | Connect phone and host PC to the same Wi-Fi network |
-| **Public Domain / Production VPS** | `https://<your-domain-or-ip>/api/v1/` | Cloud production URL with reverse proxy and SSL certificate |
-| **Host PC (Local Browser/Postman)** | `http://127.0.0.1:8080/api/v1/` | Direct local testing URL on the host machine |
+| **Physical Phone (Expo Go via Wi-Fi)** | `http://192.168.8.112:8080/api/v1/` | Phone & PC on same Wi-Fi. Scan Expo QR code with Expo Go app |
+| **Android Studio Emulator** | `http://10.0.2.2:8080/api/v1/` | Android emulator loopback resolving to host machine's `127.0.0.1` |
+| **iOS Simulator / Expo Web** | `http://localhost:8080/api/v1/` | Runs directly on macOS host loopback |
+| **Production Server / VPS** | `https://<your-domain>/api/v1/` | Production cloud deployment over HTTPS |
 
-> 💡 **Important Android Manifest Configuration (`AndroidManifest.xml`)**:
-> Because local development occurs over HTTP, ensure your `AndroidManifest.xml` allows cleartext traffic for local subnets:
-```xml
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-    <application
-        android:usesCleartextTraffic="true"
-        android:networkSecurityConfig="@xml/network_security_config"
-        ... >
-    </application>
-</manifest>
+> 💡 **Expo Configuration (`app.json` / `app.config.js`):**
+> For Android builds over local HTTP, ensure cleartext traffic is enabled in your `app.json`:
+```json
+{
+  "expo": {
+    "name": "Atenza App",
+    "slug": "atenza-workshop-app",
+    "version": "1.0.0",
+    "android": {
+      "package": "com.atenza.workshop",
+      "usesCleartextTraffic": true
+    }
+  }
+}
 ```
 
 ---
 
 ## 🔐 2. AUTHENTICATION & SECURITY (المصادقة والأمان)
 
-The API secures all CRUD endpoints with an API Key verification middleware. Health checks (`/ping`) and documentation metadata (`/meta/*`) are public.
-
 - **Active Workshop Mobile API Key**: `atenza_apk_35d4210d094cffa26e26835938901b8f`
 - **API Status**: `Enabled (نشط ومفعل)`
 
-### How to Send the API Key in Android Requests:
-1. **HTTP Header (Recommended)**:
-   ```http
-   x-api-key: atenza_apk_35d4210d094cffa26e26835938901b8f
-   ```
-2. **Authorization Bearer Header**:
-   ```http
-   Authorization: Bearer atenza_apk_35d4210d094cffa26e26835938901b8f
-   ```
-3. **Query Parameter (Fallback)**:
-   ```http
-   GET /api/v1/db/inspections?api_key=atenza_apk_35d4210d094cffa26e26835938901b8f
-   ```
+### How to Configure Axios for React Native:
+```typescript
+import axios from 'axios';
+
+export const api = axios.create({
+  baseURL: 'http://192.168.8.112:8080/api/v1',
+  timeout: 15000,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'x-api-key': 'atenza_apk_35d4210d094cffa26e26835938901b8f',
+  },
+});
+```
 
 ---
 
@@ -78,18 +79,6 @@ The API secures all CRUD endpoints with an API Key verification middleware. Heal
 
 #### `GET /api/v1/ping`
 - **Purpose**: Verifies server connection, returns server timestamp, active workshop details, and local network IPs.
-- **Response Example**:
-```json
-{
-  "success": true,
-  "status": "online",
-  "message": "Workshop Manager Android REST API is operational 🚀",
-  "app_name": "Atenza App",
-  "workshop_name": "مركزأتينزا - فرع كيلو14",
-  "version": "2.0.0",
-  "total_tables_available": 27
-}
-```
 
 #### `GET /api/v1/meta/schema`
 - **Purpose**: Returns the real-time SQLite/MySQL schema for all tables, column types, nullability, and primary keys.
@@ -114,151 +103,34 @@ You can perform complete CRUD operations on any of the **27 tables** using the s
   - Column filters: Any valid column name can be passed directly as a query parameter (e.g., `?status=in_progress&client_id=12`).
 - **Example Request**:
   `GET /api/v1/db/inspections?status=completed&limit=10&sort=id&order=DESC`
-- **Response Format**:
-```json
-{
-  "success": true,
-  "table": "inspections",
-  "count": 10,
-  "total": 142,
-  "limit": 10,
-  "offset": 0,
-  "primary_key": "id",
-  "data": [ /* Array of records */ ]
-}
-```
 
 #### B. [PULL ONE] Get Single Record: `GET /api/v1/db/:table/:id`
 - **Purpose**: Fetches a single record by primary key (ID or key).
-- **Example Request**:
-  `GET /api/v1/db/clients/5`
-- **Response Format**:
-```json
-{
-  "success": true,
-  "table": "clients",
-  "primary_key": "id",
-  "id": "5",
-  "data": {
-    "id": 5,
-    "name": "عبدالله محمد السالم",
-    "phone": "0501234567",
-    "national_id": "1098765432",
-    "created_at": "2026-03-01 10:15:00"
-  }
-}
-```
+- **Example Request**: `GET /api/v1/db/clients/5`
 
 #### C. [PUSH] Create New Record: `POST /api/v1/db/:table`
 - **Purpose**: Inserts a new record (or array of records for batch insertion).
-- **Request Body (Single)**:
-```json
-{
-  "plate_number": "أ ب ج 1234",
-  "car_model": "تويوتا كامري 2023",
-  "client_id": 5,
-  "chassis_number": "JTDKN3DU5A0123456",
-  "odometer": 45000,
-  "status": "pending",
-  "total_amount": 350.00
-}
-```
-- **Response Format**:
-```json
-{
-  "success": true,
-  "message": "1 record(s) inserted successfully into 'inspections'",
-  "inserted_id": 143,
-  "data": { "id": 143, /* inserted record */ }
-}
-```
 
 #### D. [EDIT] Update Record: `PUT /api/v1/db/:table/:id`
 - **Purpose**: Updates specific fields of an existing record.
-- **Request Body**:
-```json
-{
-  "status": "completed",
-  "paid_amount": 350.00,
-  "payment_method": "شبكة مدى",
-  "notes": "تم الانتهاء من فحص المحرك وفحص الكمبيوتر وتغيير الزيت"
-}
-```
-- **Response Format**:
-```json
-{
-  "success": true,
-  "message": "Record with id=143 in 'inspections' updated successfully",
-  "updated_fields": ["status", "paid_amount", "payment_method", "notes"]
-}
-```
 
 #### E. [DELETE] Delete Record: `DELETE /api/v1/db/:table/:id`
 - **Purpose**: Permanently removes a record by ID.
-- **Response Format**:
-```json
-{
-  "success": true,
-  "message": "Record with id=143 deleted successfully from 'inspections'"
-}
-```
 
 ### 3.3 Bidirectional Synchronization Endpoints (Offline-First Sync Engine)
 
 #### A. [SYNC PULL] Pull Changes: `GET /api/v1/sync/pull`
-- **Purpose**: Pulls complete or incremental updates across multiple tables simultaneously for offline caching.
+- **Purpose**: Pulls complete or incremental updates across multiple tables simultaneously for offline caching in Expo SQLite or AsyncStorage.
 - **Query Parameters**:
-  - `since` (string, optional): ISO 8601 or SQLite timestamp (e.g. `2026-03-01T00:00:00Z`). When supplied, only records created/updated after this date are returned.
-  - `tables` (string, optional): Comma-separated list of tables to pull (e.g. `inspections,clients,services,cash_box_entries`). If omitted, all 27 tables are pulled.
-  - `limit_per_table` (integer, default: 2000).
-- **Response Format**:
-```json
-{
-  "success": true,
-  "version": "2.0.0",
-  "exported_at": "2026-03-03T09:40:00.000Z",
-  "synced_tables": 4,
-  "tables": {
-    "inspections": [ /* rows */ ],
-    "clients": [ /* rows */ ],
-    "services": [ /* rows */ ],
-    "cash_box_entries": [ /* rows */ ]
-  }
-}
-```
+  - `since` (string, optional): ISO timestamp (e.g. `2026-03-01T00:00:00Z`). When supplied, only records created/updated after this date are returned.
+  - `tables` (string, optional): Comma-separated list of tables to pull (e.g. `inspections,clients,services,cash_box_entries`).
 
 #### B. [SYNC PUSH] Batch Push Changes: `POST /api/v1/sync/push`
-- **Purpose**: Pushes a dictionary of modified or created records from the mobile SQLite/Room cache to the server in a single atomic transaction. Existing records are updated via `REPLACE INTO`.
-- **Request Body**:
-```json
-{
-  "tables": {
-    "inspections": [
-      { "id": 144, "plate_number": "د هـ و 9876", "car_model": "نيسان باترول 2022", "status": "completed" }
-    ],
-    "cash_box_entries": [
-      { "id": 89, "type": "income", "amount": 500.00, "category": "أجور فحص", "date": "2026-03-03" }
-    ]
-  }
-}
-```
-- **Response Format**:
-```json
-{
-  "success": true,
-  "message": "Batch sync push completed successfully",
-  "summary": {
-    "inspections": { "status": "success", "synced_count": 1 },
-    "cash_box_entries": { "status": "success", "synced_count": 1 }
-  }
-}
-```
+- **Purpose**: Pushes an object containing modified or created records from React Native cache to the server in a single atomic transaction.
 
 ---
 
 ## 📊 4. DATABASE TABLES DICTIONARY (قاموس الجداول الـ 27 بالتفصيل)
-
-Below is the complete database dictionary containing all 27 tables, column definitions, data types, and primary keys:
 
 ### 4.1 جدول `inspections` (أوامر العمل وفحص المركبات - Vehicle Inspections & Work Orders)
 - **الوصف**: الجدول الرئيسي لبطاقات الفحص ودخول المركبات، يحتوي على رقم اللوحة، رقم الشاصي (VIN)، الممشى، بيانات السيارة، حالة الأمر (pending, in_progress, completed, cancelled)، إجمالي المبالغ، والخصومات.
@@ -450,7 +322,7 @@ Below is the complete database dictionary containing all 27 tables, column defin
 ### 4.12 جدول `services` (دليل الخدمات والأجور - Services Catalog & Standard Rates)
 - **الوصف**: قائمة الخدمات الافتراضية بالمركز مع الأجور القياسية لسرعة إدراجها في أوامر الفحص.
 - **المفتاح الأساسي (Primary Key)**: `id`
-- **عدد السجلات الحالي**: 70 سجل
+- **عدد السجلات الحالي**: 71 سجل
 
 | اسم الحقل (Column) | النوع (Type) | إلزامي (Not Null) | الافتراضي (Default) | المفتاح (PK) |
 |---|---|---|---|---|
@@ -584,7 +456,7 @@ Below is the complete database dictionary containing all 27 tables, column defin
 
 ### 4.20 جدول `branch_shifts` (ورديات وفترات الدوام - Work Shifts & Schedules)
 - **الوصف**: الفترات الصباحية والمسائية وساعات بدء وانتهاء الدوام.
-- **المفتاح الأساسي (Primary Key)**: `id`
+- **المفتاح الأساسي (Primary Key)**: `day_of_week`
 - **عدد السجلات الحالي**: 7 سجل
 
 | اسم الحقل (Column) | النوع (Type) | إلزامي (Not Null) | الافتراضي (Default) | المفتاح (PK) |
@@ -704,214 +576,218 @@ Below is the complete database dictionary containing all 27 tables, column defin
 
 ---
 
-## 📱 5. PRODUCTION ANDROID KOTLIN CODE SAMPLES (نماذج الأكواد الجاهزة للأندرويد)
+## 📱 5. PRODUCTION REACT NATIVE EXPO CODE SAMPLES (نماذج الأكواد الجاهزة لـ REACT NATIVE EXPO)
 
-### 5.1 Gradle Dependencies (`app/build.gradle.kts`)
-```kotlin
-dependencies {
-    // Retrofit & Network
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+### 5.1 Project Dependencies (`package.json`)
+```bash
+# Initialize an Expo project (if starting new)
+npx create-expo-app@latest atenza-mobile-app --template tabs
+cd atenza-mobile-app
 
-    // Kotlin Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+# Install required networking and offline storage libraries
+npx expo install axios @tanstack/react-query @react-native-async-storage/async-storage expo-sqlite expo-network
+```
 
-    // Room Database (Offline Cache)
-    val roomVersion = "2.6.1"
-    implementation("androidx.room:room-runtime:$roomVersion")
-    implementation("androidx.room:room-ktx:$roomVersion")
-    kapt("androidx.room:room-compiler:$roomVersion")
+### 5.2 TypeScript Interfaces for Database Entities (`src/types/database.ts`)
+```typescript
+// TypeScript Definitions matching Atenza Workshop Database
 
-    // WorkManager (Background Sync)
-    implementation("androidx.work:work-runtime-ktx:2.9.0")
+export interface Inspection {
+  id: number;
+  inspection_number?: string;
+  plate_number: string;
+  car_model?: string;
+  chassis_number?: string;
+  odometer?: number;
+  client_id?: number;
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  total_amount?: number;
+  paid_amount?: number;
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Client {
+  id: number;
+  name: string;
+  phone: string;
+  national_id?: string;
+  email?: string;
+  notes?: string;
+  created_at?: string;
+}
+
+export interface CashBoxEntry {
+  id: number;
+  type: 'income' | 'expense';
+  amount: number;
+  category: string;
+  description?: string;
+  date: string;
+  bank_id?: number;
+  receipt_no?: string;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  table?: string;
+  count?: number;
+  total?: number;
+  data: T;
+  message?: string;
+  error?: string;
 }
 ```
 
-### 5.2 Retrofit API Client with Authentication Interceptor (`ApiClient.kt`)
-```kotlin
-package com.atenza.workshop.network
+### 5.3 Complete API Client Service (`src/api/workshopApi.ts`)
+```typescript
+import axios from 'axios';
+import { ApiResponse, Inspection, Client, CashBoxEntry } from '../types/database';
 
-import okhttp3.Interceptor
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import java.util.concurrent.TimeUnit
+// Configure baseURL (Physical phone Wi-Fi or emulator)
+const BASE_URL = 'http://192.168.8.112:8080/api/v1';
+const API_KEY = 'atenza_apk_35d4210d094cffa26e26835938901b8f';
 
-object ApiClient {
-    // Use 10.0.2.2:8080 for Emulator or host LAN IP (192.168.8.112:8080) for real device
-    private const val BASE_URL = "http://10.0.2.2:8080/api/v1/"
-    private const val API_KEY = "atenza_apk_35d4210d094cffa26e26835938901b8f"
+export const api = axios.create({
+  baseURL: BASE_URL,
+  timeout: 15000,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'x-api-key': API_KEY,
+  },
+});
 
-    private val authInterceptor = Interceptor { chain ->
-        val request = chain.request().newBuilder()
-            .addHeader("x-api-key", API_KEY)
-            .addHeader("Content-Type", "application/json")
-            .addHeader("Accept", "application/json")
-            .build()
-        chain.proceed(request)
+export const WorkshopApi = {
+  // 1. Health Ping
+  ping: () => api.get('/ping'),
+
+  // 2. Generic PULL List
+  getRecords: <T>(table: string, params?: Record<string, any>) =>
+    api.get<ApiResponse<T[]>>(`/db/${table}`, { params }).then(r => r.data),
+
+  // 3. Generic PULL ONE
+  getRecordById: <T>(table: string, id: number | string) =>
+    api.get<ApiResponse<T>>(`/db/${table}/${id}`).then(r => r.data),
+
+  // 4. Generic PUSH Create
+  createRecord: <T>(table: string, payload: Partial<T> | Partial<T>[]) =>
+    api.post<ApiResponse<T>>(`/db/${table}`, payload).then(r => r.data),
+
+  // 5. Generic EDIT Update
+  updateRecord: <T>(table: string, id: number | string, updates: Partial<T>) =>
+    api.put<ApiResponse<T>>(`/db/${table}/${id}`, updates).then(r => r.data),
+
+  // 6. Generic DELETE
+  deleteRecord: (table: string, id: number | string) =>
+    api.delete(`/db/${table}/${id}`).then(r => r.data),
+
+  // 7. Full Offline SYNC PULL
+  syncPull: (since?: string, tables?: string) =>
+    api.get('/sync/pull', { params: { since, tables } }).then(r => r.data),
+
+  // 8. Batch Offline SYNC PUSH
+  syncPush: (tablesData: Record<string, any[]>) =>
+    api.post('/sync/push', { tables: tablesData }).then(r => r.data),
+};
+```
+
+### 5.4 Functional Screen Example (`src/screens/InspectionsScreen.tsx`)
+```tsx
+import React, { useState, useEffect } from 'react';
+import {
+  View, Text, FlatList, StyleSheet, TouchableOpacity,
+  ActivityIndicator, RefreshControl, TextInput
+} from 'react-native';
+import { WorkshopApi } from '../api/workshopApi';
+import { Inspection } from '../types/database';
+
+export default function InspectionsScreen() {
+  const [inspections, setInspections] = useState<Inspection[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [search, setSearch] = useState('');
+
+  const loadData = async (query = '') => {
+    try {
+      const res = await WorkshopApi.getRecords<Inspection>('inspections', {
+        limit: 50,
+        sort: 'id',
+        order: 'DESC',
+        search: query || undefined,
+      });
+      if (res.success && res.data) {
+        setInspections(res.data);
+      }
+    } catch (e: any) {
+      console.error('Error fetching inspections:', e.message);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
+  };
 
-    private val loggingInterceptor = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BODY
-    }
+  useEffect(() => {
+    loadData();
+  }, []);
 
-    private val okHttpClient = OkHttpClient.Builder()
-        .addInterceptor(authInterceptor)
-        .addInterceptor(loggingInterceptor)
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
-        .writeTimeout(30, TimeUnit.SECONDS)
-        .build()
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadData(search);
+  };
 
-    val retrofit: Retrofit = Retrofit.Builder()
-        .baseUrl(BASE_URL)
-        .client(okHttpClient)
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
+  return (
+    <View style={styles.container}>
+      <TextInput
+        style={styles.searchInput}
+        placeholder="بحث برقم اللوحة أو السيارة..."
+        value={search}
+        onChangeText={(text) => {
+          setSearch(text);
+          loadData(text);
+        }}
+      />
 
-    val apiService: WorkshopApiService = retrofit.create(WorkshopApiService::class.java)
+      {loading ? (
+        <ActivityIndicator size="large" color="#4f46e5" style={{ marginTop: 40 }} />
+      ) : (
+        <FlatList
+          data={inspections}
+          keyExtractor={(item) => item.id.toString()}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          renderItem={({ item }) => (
+            <View style={styles.card}>
+              <View style={styles.cardHeader}>
+                <Text style={styles.plate}>{item.plate_number}</Text>
+                <Text style={[styles.badge, item.status === 'completed' ? styles.badgeSuccess : styles.badgePending]}>
+                  {item.status === 'completed' ? 'مكتمل' : 'قيد الفحص'}
+                </Text>
+              </View>
+              <Text style={styles.model}>{item.car_model || 'سيارة غير محددة'}</Text>
+              <Text style={styles.price}>المبلغ: {item.total_amount || 0} ر.س</Text>
+            </View>
+          )}
+        />
+      )}
+    </View>
+  );
 }
-```
 
-### 5.3 Retrofit Service Interface (`WorkshopApiService.kt`)
-```kotlin
-package com.atenza.workshop.network
-
-import com.google.gson.JsonObject
-import retrofit2.Response
-import retrofit2.http.*
-
-interface WorkshopApiService {
-
-    // 1. Health Ping
-    @GET("ping")
-    suspend fun ping(): Response<JsonObject>
-
-    // 2. Dynamic PULL (List records with pagination & filters)
-    @GET("db/{table}")
-    suspend fun getRecords(
-        @Path("table") table: String,
-        @Query("limit") limit: Int = 100,
-        @Query("offset") offset: Int = 0,
-        @Query("sort") sort: String? = null,
-        @Query("order") order: String? = "DESC",
-        @Query("search") search: String? = null,
-        @QueryMap filterMap: Map<String, String> = emptyMap()
-    ): Response<JsonObject>
-
-    // 3. Dynamic PULL ONE
-    @GET("db/{table}/{id}")
-    suspend fun getRecordById(
-        @Path("table") table: String,
-        @Path("id") id: String
-    ): Response<JsonObject>
-
-    // 4. Dynamic PUSH (Create record)
-    @POST("db/{table}")
-    suspend fun createRecord(
-        @Path("table") table: String,
-        @Body body: Any
-    ): Response<JsonObject>
-
-    // 5. Dynamic EDIT (Update record)
-    @PUT("db/{table}/{id}")
-    suspend fun updateRecord(
-        @Path("table") table: String,
-        @Path("id") id: String,
-        @Body updates: JsonObject
-    ): Response<JsonObject>
-
-    // 6. Dynamic DELETE
-    @DELETE("db/{table}/{id}")
-    suspend fun deleteRecord(
-        @Path("table") table: String,
-        @Path("id") id: String
-    ): Response<JsonObject>
-
-    // 7. Full Offline SYNC PULL
-    @GET("sync/pull")
-    suspend fun syncPull(
-        @Query("since") since: String? = null,
-        @Query("tables") tables: String? = null
-    ): Response<JsonObject>
-
-    // 8. Batch Offline SYNC PUSH
-    @POST("sync/push")
-    suspend fun syncPush(
-        @Body payload: JsonObject
-    ): Response<JsonObject>
-}
-```
-
-### 5.4 Data Models (`Models.kt`)
-```kotlin
-package com.atenza.workshop.data
-
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-import com.google.gson.annotations.SerializedName
-
-@Entity(tableName = "inspections")
-data class InspectionEntity(
-    @PrimaryKey val id: Long,
-    @SerializedName("inspection_number") val inspectionNumber: String?,
-    @SerializedName("plate_number") val plateNumber: String?,
-    @SerializedName("car_model") val carModel: String?,
-    @SerializedName("chassis_number") val chassisNumber: String?,
-    @SerializedName("odometer") val odometer: Double?,
-    @SerializedName("client_id") val clientId: Long?,
-    @SerializedName("status") val status: String? = "pending",
-    @SerializedName("total_amount") val totalAmount: Double? = 0.0,
-    @SerializedName("paid_amount") val paidAmount: Double? = 0.0,
-    @SerializedName("created_at") val createdAt: String?,
-    @SerializedName("updated_at") val updatedAt: String?
-)
-
-@Entity(tableName = "cash_box_entries")
-data class CashBoxEntity(
-    @PrimaryKey val id: Long,
-    @SerializedName("type") val type: String, // 'income' or 'expense'
-    @SerializedName("amount") val amount: Double,
-    @SerializedName("category") val category: String?,
-    @SerializedName("description") val description: String?,
-    @SerializedName("date") val date: String?,
-    @SerializedName("receipt_no") val receiptNo: String?
-)
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#f8fafc', padding: 16 },
+  searchInput: { backgroundColor: '#fff', borderRadius: 8, padding: 12, borderWidth: 1, borderColor: '#cbd5e1', marginBottom: 12, textAlign: 'right' },
+  card: { backgroundColor: '#fff', padding: 14, borderRadius: 10, marginBottom: 10, borderWidth: 1, borderColor: '#e2e8f0' },
+  cardHeader: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center' },
+  plate: { fontSize: 16, fontWeight: 'bold', color: '#1e293b' },
+  model: { fontSize: 13, color: '#64748b', marginTop: 4, textAlign: 'right' },
+  price: { fontSize: 13, color: '#4f46e5', fontWeight: 'bold', marginTop: 6, textAlign: 'right' },
+  badge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, fontSize: 11, fontWeight: 'bold' },
+  badgeSuccess: { backgroundColor: '#dcfce7', color: '#15803d' },
+  badgePending: { backgroundColor: '#fef3c7', color: '#b45309' },
+});
 ```
 
 ---
 
-## 🛠️ 6. TYPICAL WORKFLOWS & PRACTICAL RECIPES (سيناريوهات العمل)
-
-### Recipe 1: Vehicle Check-In & Inspection Ticket
-1. Lookup existing client: `GET /api/v1/db/clients?phone=0501234567`
-2. If client does not exist, create: `POST /api/v1/db/clients`
-3. Create inspection record: `POST /api/v1/db/inspections` with `client_id`
-4. Insert checklist items: `POST /api/v1/db/inspection_items` passing array of items
-5. Attach photos: `POST /api/v1/db/inspection_photos` with image base64/url and `inspection_id`
-
-### Recipe 2: Daily Cash Box Transaction
-1. To record income from a repair bill:
-   `POST /api/v1/db/cash_box_entries`
-   ```json
-   {
-     "type": "income",
-     "amount": 250.00,
-     "category": "صيانة دورية",
-     "description": "استلام فاتورة كرت فحص رقم 143",
-     "date": "2026-03-03",
-     "bank_id": 1
-   }
-   ```
-
-### Recipe 3: Bidirectional Offline Sync
-1. **Pull Step**: Call `GET /api/v1/sync/pull?since={last_sync_timestamp}`. Save returned records into local Room database.
-2. **Push Step**: Query local Room database for records marked with `is_dirty = 1` (created or edited offline). Send them to `POST /api/v1/sync/push`.
-3. Mark records as synced locally upon receiving `success: true`.
-
----
-
-**Atenza Workshop Management System** — Built with precision for automotive workshops. (برمجة وتطوير: م. عمر)
+**Atenza Workshop Management System** — Automotive Management Architecture for React Native Expo. (برمجة وتطوير: م. عمر)
