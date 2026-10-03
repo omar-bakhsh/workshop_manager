@@ -1044,7 +1044,7 @@
                     <td>
                         <div class="action-btns" style="justify-content: center;">
                             <button class="btn-action-icon btn-card" onclick="openJobOrderCard(${item.id})" title="كرت التشغيل"><i class="fa-solid fa-clipboard-list"></i> كرت العمل</button>
-                            <button class="btn-action-icon" style="background:#dc2626; color:#fff;" onclick="window.open('sticker.html?fileNo=' + encodeURIComponent(item.card_no || item.id) + '&currentKm=' + (item.odometer || item.km || 0) + '&jobId=' + item.id, '_blank')" title="طباعة ستيكر الصيانة"><i class="fa-solid fa-tag"></i> ستيكر</button>
+                            <button class="btn-action-icon" style="background:#dc2626; color:#fff;" onclick="openSticker(${item.id}, '${(item.card_no || item.id || '').toString().replace(/'/g, "\\'")}', ${item.odometer || item.km || 0})" title="طباعة ستيكر الصيانة"><i class="fa-solid fa-tag"></i> ستيكر</button>
                             <button class="btn-action-icon" style="background:#059669; color:#fff;" onclick="openTaxInvoice(${item.id})" title="فاتورة ضريبية"><i class="fa-solid fa-file-invoice-dollar"></i> فاتورة</button>
                             <button class="btn-action-icon btn-whatsapp" onclick='openWhatsAppModalFor(${JSON.stringify(item).replace(/'/g, "&apos;")})' title="واتساب"><i class="fa-solid fa-comment-dots"></i> واتساب</button>
                             ${canEditOrders ? `<button class="btn-action-icon btn-edit" onclick="openInspectionEditor(${item.id})" title="تعديل"><i class="fa-solid fa-pen-to-square"></i></button>` : ''}
@@ -1103,6 +1103,10 @@
                             <span><i class="fa-solid fa-file-invoice-dollar"></i></span>
                             <span>فاتورة</span>
                         </button>
+                        <button class="btn-card-touch" style="background:#dc2626; color:#fff;" onclick="openSticker(${item.id}, '${(item.card_no || item.id || '').toString().replace(/'/g, "\\'")}', ${item.odometer || item.km || 0})">
+                            <span><i class="fa-solid fa-tag"></i></span>
+                            <span>ستيكر</span>
+                        </button>
                         <button class="btn-card-touch btn-whatsapp" onclick='openWhatsAppModalFor(${JSON.stringify(item).replace(/'/g, "&apos;")})'>
                             <span><i class="fa-solid fa-comment-dots"></i></span>
                             <span>واتساب</span>
@@ -1155,6 +1159,13 @@
 
         function openTaxInvoice(id) {
             window.location.href = `inspector.html?id=${id}&mode=tax_invoice`;
+        }
+
+        function openSticker(id, fileNo, km) {
+            let url = 'sticker.html?jobId=' + encodeURIComponent(id);
+            if (fileNo) url += '&fileNo=' + encodeURIComponent(fileNo);
+            if (km) url += '&currentKm=' + encodeURIComponent(km);
+            window.open(url, '_blank');
         }
 
         function openJobOrderCard(id) {
