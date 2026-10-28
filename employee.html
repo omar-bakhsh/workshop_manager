@@ -227,11 +227,46 @@
 
     .tab-view {
       display: none;
-      animation: fadeIn 0.2s ease-out;
+
     }
 
     .tab-view.active {
       display: block;
+    }
+
+    /* 🎨 Interactive Elevation & Motion Hover Animations */
+    .hero-attendance-card,
+    .quick-action-tile,
+    .vault-target-card,
+    .kpi-card,
+    .form-card,
+    .assigned-job-card {
+      transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease, border-color 0.22s ease;
+      will-change: transform;
+    }
+
+    .quick-action-tile:hover {
+      transform: translateY(-3px) scale(1.015);
+      box-shadow: 0 8px 20px rgba(79, 70, 229, 0.12);
+    }
+
+    .quick-action-tile:active {
+      transform: scale(0.96);
+    }
+
+    .assigned-job-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+      border-color: var(--secondary);
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .form-card:hover {
+      box-shadow: var(--shadow-md);
     }
 
     @keyframes fadeIn {
@@ -1884,6 +1919,71 @@
     let isFirstNotifLoad = true;
     let loadedRequestsList = [];
 
+    
+    /* --- Framer Motion Animations & Micro-Interactions --- */
+    function initEmployeeMotion() {
+      if (typeof window.Motion === 'undefined' || !window.Motion.animate) {
+        return;
+      }
+      const { animate, stagger } = window.Motion;
+
+      try {
+        // 1. Header Profile & Actions
+        const topbar = document.querySelector('.app-topbar');
+        if (topbar) {
+          animate(topbar, { opacity: [0, 1], y: [-15, 0] }, { duration: 0.35, easing: 'ease-out' });
+        }
+
+        // 2. Hero Attendance Card spring entrance
+        const heroCard = document.querySelector('.hero-attendance-card');
+        if (heroCard) {
+          animate(heroCard, { opacity: [0, 1], y: [20, 0], scale: [0.95, 1] }, { duration: 0.45, easing: [0.34, 1.56, 0.64, 1] });
+        }
+
+        // 3. Target Vault Card spring entrance
+        const vaultCard = document.getElementById('vaultTargetSection');
+        if (vaultCard && vaultCard.style.display !== 'none') {
+          animate(vaultCard, { opacity: [0, 1], scale: [0.93, 1], y: [18, 0] }, { duration: 0.48, easing: [0.34, 1.56, 0.64, 1], delay: 0.1 });
+        }
+
+        // 4. Stagger KPI cards on Dashboard
+        const kpiCards = document.querySelectorAll('#dashKpiGrid .kpi-card');
+        if (kpiCards && kpiCards.length > 0) {
+          animate(
+            kpiCards,
+            { opacity: [0, 1], y: [18, 0], scale: [0.94, 1] },
+            { delay: stagger(0.06, { start: 0.12 }), duration: 0.4, easing: [0.34, 1.56, 0.64, 1] }
+          );
+        }
+
+        // 5. Stagger Quick Action Tiles
+        const tiles = document.querySelectorAll('.quick-action-tile');
+        if (tiles && tiles.length > 0) {
+          animate(
+            tiles,
+            { opacity: [0, 1], y: [14, 0], scale: [0.93, 1] },
+            { delay: stagger(0.05, { start: 0.18 }), duration: 0.38, easing: [0.34, 1.56, 0.64, 1] }
+          );
+        }
+
+        // 6. Interactive Button & Quick Chips tap feedback
+        document.querySelectorAll('.chip-btn, .btn-submit-main, .icon-btn, .btn-checkout-mobile, .btn-print-action').forEach(btn => {
+          if (btn.__motionBound) return;
+          btn.__motionBound = true;
+          btn.addEventListener('pointerdown', () => {
+            animate(btn, { scale: 0.94 }, { duration: 0.1 });
+          });
+          const reset = () => animate(btn, { scale: 1 }, { duration: 0.2, easing: 'ease-out' });
+          btn.addEventListener('pointerup', reset);
+          btn.addEventListener('pointercancel', reset);
+          btn.addEventListener('pointerleave', reset);
+        });
+
+      } catch (err) {
+        console.warn('Motion init notice:', err);
+      }
+    }
+
     /* --- Auth & Initialization --- */
     function checkAuth() {
       if (!localStorage.getItem('token') || currentUser.role !== 'employee') {
@@ -1923,6 +2023,7 @@
       loadNotifications();
       loadAttendance();
       checkUnreadMessages();
+      setTimeout(initEmployeeMotion, 80);
       
       setInterval(updateClock, 1000);
       setInterval(loadRequestHistory, 15000);
@@ -1944,7 +2045,7 @@
       }
     }
 
-    /* --- Tab Navigation --- */
+    /* --- Tab Navigation with Framer Motion --- */
     function switchTab(tabId) {
       document.querySelectorAll('.tab-view').forEach(view => view.classList.remove('active'));
       document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -1952,8 +2053,40 @@
       const targetView = document.getElementById(tabId);
       const targetBtn = document.getElementById(`navBtn-${tabId}`);
 
-      if (targetView) targetView.classList.add('active');
-      if (targetBtn) targetBtn.classList.add('active');
+      if (targetView) {
+        targetView.classList.add('active');
+        if (window.Motion && window.Motion.animate) {
+          window.Motion.animate(
+            targetView,
+            { opacity: [0, 1], y: [16, 0], scale: [0.985, 1] },
+            { duration: 0.28, easing: [0.16, 1, 0.3, 1] }
+          );
+
+          // Animate cards inside the target tab with smooth stagger
+          const cards = targetView.querySelectorAll('.form-card, .kpi-card, .assigned-job-card');
+          if (cards && cards.length > 0) {
+            window.Motion.animate(
+              cards,
+              { opacity: [0, 1], y: [14, 0] },
+              { delay: window.Motion.stagger(0.045), duration: 0.32, easing: 'ease-out' }
+            );
+          }
+        }
+      }
+
+      if (targetBtn) {
+        targetBtn.classList.add('active');
+        if (window.Motion && window.Motion.animate) {
+          const icon = targetBtn.querySelector('.nav-tab-icon');
+          if (icon) {
+            window.Motion.animate(
+              icon,
+              { scale: [0.8, 1.25, 1], rotate: [-8, 8, 0] },
+              { duration: 0.35, easing: 'ease-out' }
+            );
+          }
+        }
+      }
 
       if (tabId === 'tabChat') {
         loadMessages();
@@ -2059,6 +2192,10 @@
     }
 
     async function handleFingerprintClick() {
+      const fpBtn = document.getElementById('fingerprintBtn');
+      if (fpBtn && window.Motion && window.Motion.animate) {
+        window.Motion.animate(fpBtn, { scale: [1, 0.86, 1.12, 1] }, { duration: 0.42, easing: 'ease-out' });
+      }
       const btn = document.getElementById('fingerprintBtn');
       const stat = document.getElementById('fingerprintStatus');
       const originalText = stat ? stat.innerHTML : '';
@@ -2344,8 +2481,15 @@
           
           document.getElementById('dashTargetPercent').textContent = achievement + '%';
           document.getElementById('finTargetAchievement').textContent = achievement + '%';
-          document.getElementById('dashProgressFill').style.width = achievement + '%';
-          document.getElementById('finProgressFill').style.width = achievement + '%';
+          if (window.Motion && window.Motion.animate) {
+            const dFill = document.getElementById('dashProgressFill');
+            const fFill = document.getElementById('finProgressFill');
+            if (dFill) window.Motion.animate(dFill, { width: ['0%', achievement + '%'] }, { duration: 0.9, easing: [0.16, 1, 0.3, 1] });
+            if (fFill) window.Motion.animate(fFill, { width: ['0%', achievement + '%'] }, { duration: 0.9, easing: [0.16, 1, 0.3, 1] });
+          } else {
+            document.getElementById('dashProgressFill').style.width = achievement + '%';
+            document.getElementById('finProgressFill').style.width = achievement + '%';
+          }
 
           // Update Vault Target Card
           if (vaultSection) {
@@ -2361,7 +2505,14 @@
               if (pBadge) {
                 pBadge.innerHTML = `<i class="fa-solid fa-coins"></i> <span>${rawAchievement}%</span>`;
               }
-              document.getElementById('vaultMotivationalFill').style.width = Math.min(rawAchievement, 100) + '%';
+              if (window.Motion && window.Motion.animate) {
+                const vFill = document.getElementById('vaultMotivationalFill');
+                if (vFill) window.Motion.animate(vFill, { width: ['0%', Math.min(rawAchievement, 100) + '%'] }, { duration: 1.1, easing: [0.16, 1, 0.3, 1] });
+                const pBdg = document.getElementById('vaultPercentBadge');
+                if (pBdg) window.Motion.animate(pBdg, { scale: [0.8, 1.18, 1] }, { duration: 0.45, easing: 'ease-out' });
+              } else {
+                document.getElementById('vaultMotivationalFill').style.width = Math.min(rawAchievement, 100) + '%';
+              }
               
               const msgEl = document.getElementById('vaultMsgText');
               if (msgEl) {
@@ -2703,11 +2854,21 @@
     function openUploadDocModal() {
       document.getElementById('uploadDocForm').reset();
       document.getElementById('docFilePreviewArea').style.display = 'none';
-      document.getElementById('uploadDocModal').style.display = 'flex';
+      const modal = document.getElementById('uploadDocModal');
+      if (typeof MotionUI !== 'undefined' && MotionUI.animateModalOpen) {
+        MotionUI.animateModalOpen(modal);
+      } else {
+        modal.style.display = 'flex';
+      }
     }
 
     function closeUploadDocModal() {
-      document.getElementById('uploadDocModal').style.display = 'none';
+      const modal = document.getElementById('uploadDocModal');
+      if (typeof MotionUI !== 'undefined' && MotionUI.animateModalClose) {
+        MotionUI.animateModalClose(modal);
+      } else {
+        modal.style.display = 'none';
+      }
     }
 
     function previewSelectedDocFile(input) {
