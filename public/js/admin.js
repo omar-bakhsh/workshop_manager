@@ -91,38 +91,48 @@ async function loadData() {
         employees = await empRes.json();
         sections = await secRes.json();
 
-        renderSectionFilterNav();
-        renderSections();
-        updateSectionSelects();
-        updateBankSelects();
-        updateDashboardKPIs();
+        // 1. Update dashboard KPIs immediately
+        try { updateDashboardKPIs(); } catch (kpiErr) { console.error('KPI Update Error:', kpiErr); }
+
+        // 2. Render filter navigation
+        try { renderSectionFilterNav(); } catch (navErr) { console.error('Filter Nav Error:', navErr); }
+
+        // 3. Render section cards
+        try { renderSections(); } catch (secErr) { console.error('Sections Render Error:', secErr); }
+
+        // 4. Update dropdown selects
+        try { updateSectionSelects(); } catch (e) { }
+        try { updateBankSelects(); } catch (e) { }
     } catch (err) {
         console.error('Data Load Error:', err);
-        if(container) container.innerHTML = '<div class="error"><i class="fa-solid fa-circle-xmark"></i> فشل في تحميل البيانات</div>';
+        if (container) container.innerHTML = '<div class="error"><i class="fa-solid fa-circle-xmark"></i> فشل في تحميل البيانات</div>';
     }
 }
 
 function updateDashboardKPIs() {
+    if (!Array.isArray(employees)) employees = [];
     const totalIncome = employees.reduce((sum, e) => sum + (parseFloat(e.total_income) || 0), 0);
     const totalWithdrawals = employees.reduce((sum, e) => sum + (parseFloat(e.total_withdrawal) || 0), 0);
     const totalTarget = employees.reduce((sum, e) => sum + (parseFloat(e.target) || 0), 0);
     const overallAchievement = totalTarget > 0 ? Math.round((totalIncome / totalTarget) * 100) : 0;
 
+    // Immediate display
+    setText('totalEmployees', employees.length.toLocaleString('ar-SA'));
+    setText('totalIncome', Math.round(totalIncome).toLocaleString('ar-SA') + ' ﷼');
+    setText('totalIncomeWithTax', Math.round(totalIncome * 1.15).toLocaleString('ar-SA') + ' ﷼');
+    setText('totalWithdrawals', Math.round(totalWithdrawals).toLocaleString('ar-SA') + ' ﷼');
+    setText('overallAchievement', overallAchievement + '%');
+
+    // Smooth counter animation
     if (window.MotionUI && typeof window.MotionUI.animateNumber === 'function') {
         window.MotionUI.animateNumber(document.getElementById('totalEmployees'), employees.length);
-        window.MotionUI.animateNumber(document.getElementById('totalIncome'), totalIncome, 1.2, v => Math.round(v).toLocaleString() + ' ﷼');
-        window.MotionUI.animateNumber(document.getElementById('totalIncomeWithTax'), Math.round(totalIncome * 1.15), 1.2, v => Math.round(v).toLocaleString() + ' ﷼');
-        window.MotionUI.animateNumber(document.getElementById('totalWithdrawals'), totalWithdrawals, 1.2, v => Math.round(v).toLocaleString() + ' ﷼');
-        window.MotionUI.animateNumber(document.getElementById('overallAchievement'), overallAchievement, 1, v => Math.round(v) + '%');
-    } else {
-        setText('totalEmployees', employees.length.toLocaleString());
-        setText('totalIncome', totalIncome.toLocaleString() + ' ﷼');
-        setText('totalIncomeWithTax', Math.round(totalIncome * 1.15).toLocaleString() + ' ﷼');
-        setText('totalWithdrawals', totalWithdrawals.toLocaleString() + ' ﷼');
-        setText('overallAchievement', overallAchievement + '%');
+        window.MotionUI.animateNumber(document.getElementById('totalIncome'), totalIncome, 1.0, v => Math.round(v).toLocaleString('ar-SA') + ' ﷼');
+        window.MotionUI.animateNumber(document.getElementById('totalIncomeWithTax'), Math.round(totalIncome * 1.15), 1.0, v => Math.round(v).toLocaleString('ar-SA') + ' ﷼');
+        window.MotionUI.animateNumber(document.getElementById('totalWithdrawals'), totalWithdrawals, 1.0, v => Math.round(v).toLocaleString('ar-SA') + ' ﷼');
+        window.MotionUI.animateNumber(document.getElementById('overallAchievement'), overallAchievement, 0.8, v => Math.round(v) + '%');
     }
     
-    updateCharts();
+    try { updateCharts(); } catch (chartErr) { console.warn('Chart error:', chartErr); }
 }
 
 async function updateGlobalLimit(val) {

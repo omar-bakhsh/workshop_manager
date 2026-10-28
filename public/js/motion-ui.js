@@ -157,25 +157,39 @@
         /**
          * Smooth Number Counter Animation (for KPI numbers on Dashboard)
          */
-        animateNumber: function (element, targetValue, duration = 1.2, formatter = null) {
+        animateNumber: function (element, targetValue, duration = 1.0, formatter = null) {
             if (!element) return;
-            const startVal = parseFloat(element.innerText.replace(/[^0-9.-]/g, '')) || 0;
+            const rawText = (element.innerText || '').replace(/[^0-9.-]/g, '');
+            const startVal = parseFloat(rawText) || 0;
             const endVal = parseFloat(targetValue) || 0;
-            if (startVal === endVal) return;
 
-            if (!isMotionAvailable()) {
-                element.innerText = formatter ? formatter(endVal) : endVal.toLocaleString('ar-SA');
-                return;
+            const format = (v) => {
+                if (typeof formatter === 'function') return formatter(v);
+                return Math.round(v).toLocaleString('ar-SA');
+            };
+
+            // Set final text immediately as fallback in case animation cannot run
+            element.innerText = format(endVal);
+
+            if (startVal === endVal || isNaN(endVal)) return;
+
+            const startTime = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+            const durMs = Math.max(200, duration * 1000);
+            const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+
+            function step(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(1, elapsed / durMs);
+                const current = startVal + (endVal - startVal) * easeOutCubic(progress);
+
+                element.innerText = format(progress >= 1 ? endVal : current);
+
+                if (progress < 1) {
+                    requestAnimationFrame(step);
+                }
             }
 
-            const { animate } = window.Motion;
-            animate((progress) => {
-                const current = startVal + (endVal - startVal) * progress;
-                element.innerText = formatter ? formatter(current) : Math.round(current).toLocaleString('ar-SA');
-            }, {
-                duration: duration,
-                ease: [0.16, 1, 0.3, 1]
-            });
+            requestAnimationFrame(step);
         },
 
         /**
