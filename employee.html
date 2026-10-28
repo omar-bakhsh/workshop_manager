@@ -2587,6 +2587,10 @@
     </div>
 
     <div class="topbar-actions">
+      <!-- Fast Refresh Button -->
+      <button class="icon-btn" id="refreshBtn" onclick="refreshDashboardData()" title="تحديث البيانات">
+        <i id="refreshIcon" class="fa-solid fa-arrows-rotate"></i>
+      </button>
       <!-- Dark Mode Toggle -->
       <button class="icon-btn" onclick="toggleDarkMode()" title="المظهر">
         <i id="darkModeIcon" class="fa-solid fa-moon"></i>
@@ -2739,7 +2743,7 @@
             <span>25%</span>
             <span>50%</span>
             <span>75%</span>
-            <span>100% 🏆</span>
+            <span>100% <i class="fa-solid fa-trophy" style="color:#f59e0b;"></i></span>
           </div>
           <div id="vaultMotivationalMsg" class="vault-motivational-msg" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); color: #065f46;">
             <i class="fa-solid fa-quote-right" style="color: #10b981;"></i>
@@ -2756,10 +2760,13 @@
         <h3><i class="fa-solid fa-chart-line" style="color: #10b981;"></i> الراتب ومؤشرات الأداء</h3>
       </div>
       <div id="dashKpiGrid" class="kpi-stats-grid">
-        <div class="kpi-card highlight span-2">
+        <div class="kpi-card highlight span-2" onclick="switchTab('tabFinance')" style="cursor: pointer;" title="انقر لعرض تفاصيل الراتب في تبويب المالية">
           <div class="kpi-card-header">
             <span class="kpi-label">صافي الراتب المستحق</span>
-            <div class="kpi-icon" style="background: rgba(255,255,255,0.2);"><i class="fa-solid fa-money-bill-wave"></i></div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 11.5px; opacity: 0.92; font-weight: 700; color: #ffffff; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;">المالية <i class="fa-solid fa-chevron-left" style="font-size: 9px;"></i></span>
+              <div class="kpi-icon" style="background: rgba(255,255,255,0.2);"><i class="fa-solid fa-money-bill-wave"></i></div>
+            </div>
           </div>
           <div class="kpi-value" id="dashNetRemaining">0 ﷼</div>
         </div>
@@ -2836,7 +2843,7 @@
 
           <button type="submit" class="btn-submit-main" style="background: var(--primary-gradient);">
             <span>إرسال طلب السحب للإدارة</span>
-            <span>📤</span>
+            <i class="fa-solid fa-paper-plane"></i>
           </button>
         </form>
       </div>
@@ -2855,10 +2862,10 @@
           <div class="input-field-group">
             <label>نوع الإجازة</label>
             <select id="leaveType" class="touch-input">
-              <option value="annual">🏖️ إجازة سنوية</option>
-              <option value="sick">🩺 إجازة مرضية (سكليف)</option>
-              <option value="emergency">🚨 إجازة طارئة</option>
-              <option value="unpaid">⏳ إجازة بدون راتب</option>
+              <option value="annual">إجازة سنوية</option>
+              <option value="sick">إجازة مرضية (سكليف)</option>
+              <option value="emergency">إجازة طارئة</option>
+              <option value="unpaid">إجازة بدون راتب</option>
             </select>
           </div>
 
@@ -2886,7 +2893,7 @@
 
           <button type="submit" class="btn-submit-main" style="background: var(--success-gradient);">
             <span>إرسال طلب الإجازة للإدارة</span>
-            <span>🌴</span>
+            <i class="fa-solid fa-paper-plane"></i>
           </button>
         </form>
       </div>
@@ -2928,7 +2935,7 @@
         <div class="kpi-card highlight span-2">
           <div class="kpi-card-header">
             <span class="kpi-label">الراتب المتبقي المحسوب</span>
-            <div class="kpi-icon" style="background: rgba(255,255,255,0.2);">✨</div>
+            <div class="kpi-icon" style="background: rgba(255,255,255,0.2);"><i class="fa-solid fa-money-bill-wave"></i></div>
           </div>
           <div class="kpi-value" id="finNetRemaining">0 ﷼</div>
           <div id="lastSyncInfo" style="font-size: 12px; color: rgba(255,255,255,0.8); margin-top: 6px;"></div>
@@ -2962,7 +2969,7 @@
         <div class="kpi-card">
           <div class="kpi-card-header">
             <span class="kpi-label">نسبة الإنجاز</span>
-            <div class="kpi-icon" style="background:#fef3c7; color:#92400e;">🎯</div>
+            <div class="kpi-icon" style="background: rgba(245,158,11,0.15); color: #d97706;"><i class="fa-solid fa-bullseye"></i></div>
           </div>
           <div class="kpi-value" id="finTargetAchievement">0%</div>
           <div class="progress-track">
@@ -3053,12 +3060,12 @@
         <div class="input-field-group">
           <label>نوع المستند *</label>
           <select id="docTypeSelect" class="touch-input" required>
-            <option value="sick_leave">🩺 إجازة مرضية / سكليف طبي (صحتي)</option>
-            <option value="national_id">🪪 بطاقة هوية وطنية / إقامة</option>
-            <option value="driving_license">🚗 رخصة قيادة / كرت تشغيل</option>
-            <option value="expense_invoice">🧾 فاتورة / إيصال مصروفات أو قطع</option>
-            <option value="certificate">📜 شهادة مهنية / دورة تدريبية</option>
-            <option value="other">📝 خطاب رسمي / أخرى</option>
+            <option value="sick_leave">إجازة مرضية / سكليف طبي (صحتي)</option>
+            <option value="national_id">بطاقة هوية وطنية / إقامة</option>
+            <option value="driving_license">رخصة قيادة / كرت تشغيل</option>
+            <option value="expense_invoice">فاتورة / إيصال مصروفات أو قطع</option>
+            <option value="certificate">شهادة مهنية / دورة تدريبية</option>
+            <option value="other">خطاب رسمي / أخرى</option>
           </select>
         </div>
 
@@ -3083,7 +3090,7 @@
         <div style="display:flex; gap:10px; margin-top:20px;">
           <button type="button" onclick="closeUploadDocModal()" style="flex:1; padding:12px; border-radius:12px; border:1.5px solid #e2e8f0; background:#f8fafc; font-weight:700; cursor:pointer;">إلغاء</button>
           <button type="submit" id="submitDocBtn" style="flex:2; padding:12px; border-radius:12px; border:none; background:linear-gradient(135deg, #4f46e5, #6366f1); color:white; font-weight:800; cursor:pointer;">
-            <span>رفع وإرسال للإدارة</span> 📤
+            <span>رفع وإرسال للإدارة</span> <i class="fa-solid fa-cloud-arrow-up"></i>
           </button>
         </div>
       </form>
@@ -3975,9 +3982,9 @@
         }
 
         const statusMap = {
-          'pending': { label: 'قيد المراجعة ⏳', class: 'pill-pending' },
-          'approved': { label: 'تم القبول ✅', class: 'pill-approved' },
-          'rejected': { label: 'تم الرفض ❌', class: 'pill-rejected' }
+          'pending': { label: 'قيد المراجعة', class: 'pill-pending' },
+          'approved': { label: 'تم القبول', class: 'pill-approved' },
+          'rejected': { label: 'تم الرفض', class: 'pill-rejected' }
         };
 
         container.innerHTML = loadedRequestsList.map((item, idx) => {
@@ -4066,7 +4073,7 @@
         const result = await res.json();
         if (res.ok) {
           if (typeof showSuccess === 'function') {
-            showSuccess(result.message || 'تم إرسال طلب الإجازة بنجاح 🌴');
+            showSuccess(result.message || 'تم إرسال طلب الإجازة بنجاح');
           } else {
             alert(result.message);
           }
