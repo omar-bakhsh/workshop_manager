@@ -1547,5 +1547,298 @@ tbody tr:hover {
     }
 }
 
+/* ==========================================
+   🔒 Privacy Blur Mode (تغبيش المعلومات الحساسة)
+   ========================================== */
+body.privacy-blur-active .stat-value,
+body.privacy-blur-active .mini-stat-val,
+body.privacy-blur-active .section-stats .mini-stat-val,
+body.privacy-blur-active table td[data-label="الراتب الأساسي"],
+body.privacy-blur-active table td[data-label="التارقت"],
+body.privacy-blur-active table td[data-label="سحوبات اليوم"],
+body.privacy-blur-active table td[data-label="صافي متبقي (Excel)"],
+body.privacy-blur-active table td[data-label="دخل اليوم"],
+body.privacy-blur-active table td[data-label="الإنجاز"],
+body.privacy-blur-active .blur-sensitive {
+    filter: blur(8px) !important;
+    user-select: none !important;
+    transition: filter 0.25s ease-in-out;
+    cursor: pointer;
+}
+
+body.privacy-blur-active .stat-value:hover,
+body.privacy-blur-active .mini-stat-val:hover,
+body.privacy-blur-active table td[data-label="الراتب الأساسي"]:hover,
+body.privacy-blur-active table td[data-label="التارقت"]:hover,
+body.privacy-blur-active table td[data-label="سحوبات اليوم"]:hover,
+body.privacy-blur-active table td[data-label="صافي متبقي (Excel)"]:hover,
+body.privacy-blur-active table td[data-label="دخل اليوم"]:hover,
+body.privacy-blur-active .blur-sensitive:hover {
+    filter: blur(0px) !important;
+}
+
+.privacy-timer-badge {
+    background: #fef3c7;
+    color: #92400e;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 10px;
+    margin-right: 5px;
+    display: inline-block;
+    border: 1px solid #fde68a;
+    font-variant-numeric: tabular-nums;
+}
+
+.privacy-blur-btn.active {
+    background: #eef2ff;
+    color: var(--primary);
+    border-color: #c7d2fe;
+}
+
+/* ==========================================
+   🌙 Dark Mode System for Admin Dashboard
+   ========================================== */
+body.dark-mode {
+    --text-dark: #f8fafc;
+    --text-gray: #94a3b8;
+    --bg-body: #0b0f19;
+    --glass: rgba(17, 24, 39, 0.95);
+    --border-color: #1e293b;
+    --card-shadow: 0 4px 25px rgba(0, 0, 0, 0.4);
+    background-color: #0b0f19;
+    color: #f8fafc;
+}
+
+body.dark-mode .sidebar {
+    background: #111827;
+    border-color: #1e293b;
+}
+
+body.dark-mode .sidebar-header {
+    border-color: #1e293b;
+}
+
+body.dark-mode .sidebar-title {
+    color: #f8fafc;
+}
+
+body.dark-mode .nav-separator {
+    color: #64748b;
+}
+
+body.dark-mode .nav-item {
+    color: #cbd5e1;
+}
+
+body.dark-mode .nav-item:hover {
+    background: #1e293b;
+    color: #f8fafc;
+}
+
+body.dark-mode .nav-item.active {
+    background: var(--primary-gradient);
+    color: #ffffff;
+}
+
+body.dark-mode .top-bar {
+    background: #111827;
+    border-color: #1e293b;
+}
+
+body.dark-mode .admin-title-text {
+    color: #f8fafc;
+}
+
+body.dark-mode .date-subtitle {
+    color: #94a3b8;
+}
+
+body.dark-mode .stat-card {
+    background: #111827;
+    border-color: #1e293b;
+    color: #f8fafc;
+}
+
+body.dark-mode .stat-value {
+    color: #f8fafc;
+}
+
+body.dark-mode .stat-label {
+    color: #94a3b8;
+}
+
+body.dark-mode .section-card {
+    background: #111827;
+    border-color: #1e293b;
+}
+
+body.dark-mode .section-header {
+    background: #111827;
+    border-color: #1e293b;
+}
+
+body.dark-mode .section-header:hover {
+    background: #1e293b;
+}
+
+body.dark-mode .section-title-group h2 {
+    color: #f8fafc;
+}
+
+body.dark-mode .section-stats .mini-stat-val {
+    color: #f8fafc;
+}
+
+body.dark-mode .section-stats .mini-stat-label {
+    color: #94a3b8;
+}
+
+body.dark-mode .table-container {
+    background: #111827;
+}
+
+body.dark-mode table {
+    background: #111827;
+    color: #f8fafc;
+}
+
+body.dark-mode thead th {
+    background: #1e293b;
+    color: #cbd5e1;
+    border-color: #334155;
+}
+
+body.dark-mode tbody td {
+    border-color: #1e293b;
+    color: #e2e8f0;
+}
+
+body.dark-mode tbody tr:hover td {
+    background: #1e293b;
+}
+
+body.dark-mode .modal-content {
+    background: #111827;
+    border-color: #1e293b;
+    color: #f8fafc;
+}
+
+body.dark-mode .modal-header {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
+body.dark-mode .modal-header h2 {
+    color: #f8fafc;
+}
+
+body.dark-mode .modal-footer {
+    background: #111827;
+    border-color: #1e293b;
+}
+
+body.dark-mode .limit-pill-box {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f8fafc;
+}
+
+body.dark-mode .limit-input {
+    background: #0f172a;
+    color: #f8fafc;
+    border-color: #334155;
+}
+
+body.dark-mode .action-icon-btn {
+    background: #1e293b;
+    border-color: #334155;
+    color: #e2e8f0;
+}
+
+body.dark-mode .action-icon-btn:hover {
+    background: #334155;
+    color: #ffffff;
+}
+
+body.dark-mode .section-filter-pill {
+    background: #1e293b;
+    color: #cbd5e1;
+    border-color: #334155;
+}
+
+body.dark-mode .section-filter-pill.active {
+    background: var(--primary);
+    color: #ffffff;
+}
+
+body.dark-mode .admin-notif-popover {
+    background: #111827;
+    border-color: #1e293b;
+    color: #f8fafc;
+}
+
+body.dark-mode .notif-popover-header {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+body.dark-mode .admin-chat-selector-bar {
+    background: #111827;
+    border-color: #1e293b;
+}
+
+body.dark-mode .chat-employee-select {
+    background: #1e293b;
+    color: #f8fafc;
+    border-color: #334155;
+}
+
+body.dark-mode .admin-chat-messages-area {
+    background: #0b0f19;
+}
+
+body.dark-mode .admin-chat-input-bar {
+    background: #111827;
+    border-color: #1e293b;
+}
+
+body.dark-mode .chat-text-input {
+    background: #1e293b;
+    color: #f8fafc;
+    border-color: #334155;
+}
+
+body.dark-mode .form-control,
+body.dark-mode input[type="text"],
+body.dark-mode input[type="number"],
+body.dark-mode input[type="date"],
+body.dark-mode select,
+body.dark-mode textarea {
+    background: #1e293b;
+    color: #f8fafc;
+    border-color: #334155;
+}
+
+body.dark-mode .sidebar-close-btn,
+body.dark-mode .sidebar-toggle-btn {
+    background: #1e293b;
+    color: #f8fafc;
+}
+
+body.dark-mode .privacy-timer-badge {
+    background: #78350f;
+    color: #fef3c7;
+    border-color: #92400e;
+}
+
+body.dark-mode .privacy-blur-btn.active {
+    background: #1e1b4b;
+    color: #a5b4fc;
+    border-color: #4338ca;
+}
+
+
 
 

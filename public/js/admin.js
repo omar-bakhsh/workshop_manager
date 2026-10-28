@@ -18,6 +18,8 @@ let selectedSectionFilter = 'all';
 // ==========================================
 async function init() {
     checkAuth();
+    initAdminTheme();
+    initPrivacyBlur();
     initSidebarCollapseState();
     setupEventListeners();
     updateDateHeader();
@@ -1921,6 +1923,145 @@ window.toggleAdminChat = toggleAdminChat;
 window.sendAdminMessage = sendAdminMessage;
 window.loadAdminChat = loadAdminChat;
 window.showView = showView;
+
+// ==========================================
+// 🔒 Privacy Blur Mode (تغبيش المعلومات الحساسة)
+// ==========================================
+let privacyBlurActive = true;
+let privacyCountdownInterval = null;
+let privacySecondsRemaining = 300; // 5 minutes
+
+function initPrivacyBlur() {
+    const savedState = localStorage.getItem('adminPrivacyBlurPermanent');
+    if (savedState === 'disabled') {
+        privacyBlurActive = false;
+        document.body.classList.remove('privacy-blur-active');
+        updatePrivacyButtonUI(false, false);
+    } else {
+        privacyBlurActive = true;
+        document.body.classList.add('privacy-blur-active');
+        updatePrivacyButtonUI(true, false);
+    }
+}
+
+function updatePrivacyButtonUI(isBlurred, isTimerActive) {
+    const btn = document.getElementById('privacyBlurBtn');
+    const icon = document.getElementById('privacyBlurIcon');
+    const text = document.getElementById('privacyBlurText');
+    const badge = document.getElementById('privacyTimerBadge');
+    if (!btn || !icon || !text) return;
+
+    if (isBlurred) {
+        btn.classList.add('active');
+        icon.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+        text.textContent = 'تغبيش الأرقام';
+        if (badge) badge.style.display = 'none';
+    } else {
+        btn.classList.remove('active');
+        icon.innerHTML = '<i class="fa-solid fa-eye"></i>';
+        text.textContent = isTimerActive ? 'مكشوف (مؤقت)' : 'الأرقام مكشوفة';
+        if (badge && isTimerActive) badge.style.display = 'inline-block';
+    }
+}
+
+function togglePrivacyBlur(forcePermanentToggle = false) {
+    if (forcePermanentToggle) {
+        // تعطيل أو تفعيل نهائي
+        if (privacyBlurActive) {
+            privacyBlurActive = false;
+            document.body.classList.remove('privacy-blur-active');
+            localStorage.setItem('adminPrivacyBlurPermanent', 'disabled');
+            clearInterval(privacyCountdownInterval);
+            updatePrivacyButtonUI(false, false);
+            if (typeof smartAlert === 'function') smartAlert('🔓 تم إلغاء التغبيش بشكل دائم');
+        } else {
+            privacyBlurActive = true;
+            document.body.classList.add('privacy-blur-active');
+            localStorage.removeItem('adminPrivacyBlurPermanent');
+            clearInterval(privacyCountdownInterval);
+            updatePrivacyButtonUI(true, false);
+            if (typeof smartAlert === 'function') smartAlert('🔒 تم تفعيل التغبيش الدائم لحماية الخصوصية');
+        }
+        return;
+    }
+
+    if (privacyBlurActive) {
+        // تعطيل مؤقت لمدة 5 دقائق
+        privacyBlurActive = false;
+        document.body.classList.remove('privacy-blur-active');
+        privacySecondsRemaining = 300;
+        updatePrivacyButtonUI(false, true);
+
+        clearInterval(privacyCountdownInterval);
+        privacyCountdownInterval = setInterval(() => {
+            privacySecondsRemaining--;
+            const mins = String(Math.floor(privacySecondsRemaining / 60)).padStart(2, '0');
+            const secs = String(privacySecondsRemaining % 60).padStart(2, '0');
+            const badge = document.getElementById('privacyTimerBadge');
+            if (badge) badge.textContent = `${mins}:${secs}`;
+
+            if (privacySecondsRemaining <= 0) {
+                // انقضاء الـ 5 دقائق -> إعادة التغبيش التلقائي فوراً
+                clearInterval(privacyCountdownInterval);
+                privacyBlurActive = true;
+                document.body.classList.add('privacy-blur-active');
+                updatePrivacyButtonUI(true, false);
+                if (typeof smartAlert === 'function') {
+                    smartAlert('🔒 تم إعادة تفعيل التغبيش التلقائي لحماية الخصوصية (مرور 5 دقائق)');
+                }
+            }
+        }, 1000);
+
+        if (typeof smartAlert === 'function') {
+            smartAlert('👁️ تم إظهار الأرقام (سيعاد التغبيش تلقائياً بعد 5 دقائق)');
+        }
+    } else {
+        // إعادة التفعيل الفوري
+        clearInterval(privacyCountdownInterval);
+        privacyBlurActive = true;
+        document.body.classList.add('privacy-blur-active');
+        localStorage.removeItem('adminPrivacyBlurPermanent');
+        updatePrivacyButtonUI(true, false);
+        if (typeof smartAlert === 'function') {
+            smartAlert('🔒 تم تفعيل تغبيش المعلومات الحساسة');
+        }
+    }
+}
+
+// ==========================================
+// 🌙 Dark Mode System for Admin Dashboard
+// ==========================================
+function initAdminTheme() {
+    const isDark = localStorage.getItem('adminDarkMode') === 'true' || localStorage.getItem('darkMode') === 'true';
+    if (isDark) {
+        document.body.classList.add('dark-mode');
+    } else {
+        document.body.classList.remove('dark-mode');
+    }
+    updateThemeButtonUI(isDark);
+}
+
+function updateThemeButtonUI(isDark) {
+    const icon = document.getElementById('themeToggleIcon');
+    const text = document.getElementById('themeToggleText');
+    if (icon) icon.innerHTML = isDark ? '<i class="fa-solid fa-sun" style="color:#f59e0b;"></i>' : '<i class="fa-solid fa-moon"></i>';
+    if (text) text.textContent = isDark ? 'الوضع الفاتح' : 'الوضع الليلي';
+}
+
+function toggleAdminDarkMode() {
+    const isDark = document.body.classList.toggle('dark-mode');
+    localStorage.setItem('adminDarkMode', isDark ? 'true' : 'false');
+    localStorage.setItem('darkMode', isDark ? 'true' : 'false');
+    updateThemeButtonUI(isDark);
+
+    if (window.Motion && typeof window.Motion.animate === 'function') {
+        const btn = document.getElementById('themeToggleBtn');
+        if (btn) window.Motion.animate(btn, { scale: [0.85, 1.05, 1], rotate: [0, 15, 0] }, { duration: 0.35 });
+    }
+}
+
+window.togglePrivacyBlur = togglePrivacyBlur;
+window.toggleAdminDarkMode = toggleAdminDarkMode;
 
 // Initialize!
 init();

@@ -1006,19 +1006,19 @@
                         <input type="checkbox" id="includeStampCheckbox" checked onchange="toggleStampInDoc(this.checked)" style="accent-color:#059669; width:16px; height:16px; cursor:pointer;">
                         <span>💮 إضافة الختم</span>
                     </label>
-                    <button type="button" class="btn-action-top" onclick="window.location.href='inspections_list.html'">
+                    <button type="button" class="btn-action-top" onclick="safeNavigate('inspections_list.html')">
                         <span>📋</span>
                         <span>السجل</span>
                     </button>
-                    <button type="button" class="btn-action-top" onclick="window.location.href='job_orders_list.html'" style="background:#e0f2fe; color:#0369a1;">
+                    <button type="button" class="btn-action-top" onclick="safeNavigate('job_orders_list.html')" style="background:#e0f2fe; color:#0369a1;">
                         <span><i class="fa-solid fa-screwdriver-wrench"></i></span>
                         <span>أوامر العمل</span>
                     </button>
-                    <button type="button" class="btn-action-top" onclick="window.location.href='clients_manager.html'" style="background:#f0fdf4; color:#166534; border-color:#bbf7d0;" title="قاعدة بيانات العملاء (استيراد/تصدير)">
+                    <button type="button" class="btn-action-top" onclick="safeNavigate('clients_manager.html')" style="background:#f0fdf4; color:#166534; border-color:#bbf7d0;" title="قاعدة بيانات العملاء (استيراد/تصدير)">
                         <span>👥</span>
                         <span>العملاء</span>
                     </button>
-                    <button type="button" class="btn-action-top" onclick="APP_NAV.goBack()">
+                    <button type="button" class="btn-action-top" onclick="safeNavigate('back')">
                         <span>🔙</span>
                     </button>
                 </div></div>
@@ -1265,6 +1265,35 @@
         </div>
     </div>
 
+    <!-- Unsaved Changes Warning Modal (تنبيه التعديلات غير المحفوظة) -->
+    <div id="unsavedChangesModal" class="no-print" style="display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(15, 23, 42, 0.72); backdrop-filter: blur(6px); align-items: center; justify-content: center; padding: 18px;">
+        <div class="unsaved-modal-card" style="background: #ffffff; border-radius: 20px; max-width: 480px; width: 100%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); border: 1.5px solid #e2e8f0; overflow: hidden; text-align: center; direction: rtl; padding: 26px 22px;">
+            <div style="width: 68px; height: 68px; border-radius: 50%; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 16px; border: 4px solid #fef9c3; box-shadow: 0 4px 12px rgba(217, 119, 6, 0.15);">
+                ⚠️
+            </div>
+            <h3 style="font-size: 19px; font-weight: 800; color: #0f172a; margin-bottom: 8px;">تنبيه: تعديلات غير محفوظة</h3>
+            <p style="font-size: 13.5px; color: #475569; line-height: 1.6; margin-bottom: 22px; font-weight: 600;">
+                لديك تغييرات غير محفوظة في هذا المستند. هل تريد الخروج دون حفظ؟
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button type="button" id="btnSaveAndExitModal" onclick="confirmSaveThenExit()" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 13px 18px; border-radius: 12px; font-weight: 800; font-size: 14.5px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35); transition: transform 0.15s ease;">
+                    <span>💾</span>
+                    <span>احفظ أولاً ثم غادر</span>
+                </button>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <button type="button" onclick="confirmDiscardAndExit()" style="background: #fee2e2; color: #b91c1c; border: 1.5px solid #fca5a5; padding: 11px 14px; border-radius: 12px; font-weight: 800; font-size: 13.5px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.15s ease;">
+                        <span>🚪</span>
+                        <span>خروج دون حفظ</span>
+                    </button>
+                    <button type="button" onclick="closeUnsavedModal()" style="background: #f1f5f9; color: #475569; border: 1.5px solid #cbd5e1; padding: 11px 14px; border-radius: 12px; font-weight: 700; font-size: 13.5px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <span>❌</span>
+                        <span>إلغاء والبقاء</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         let pricingData = {};
         let allServicesList = [];
@@ -1276,6 +1305,117 @@
         let currentInspectionId = null;
         let currentDocType = 'new'; // 'new' (تسعيرة) or 'job_order' (أمر عمل)
         let appliedPromo = null; // Holds applied promo code data
+        let isFormDirty = false;
+        let pendingNavigateTarget = null;
+
+        function safeNavigate(target) {
+            if (!isFormDirty) {
+                performNavigation(target);
+                return;
+            }
+            pendingNavigateTarget = target;
+            openUnsavedModal();
+        }
+
+        function performNavigation(target) {
+            if (target === 'back') {
+                if (window.history.length > 1) {
+                    window.history.back();
+                } else {
+                    window.location.href = 'inspections_list.html';
+                }
+            } else if (target === 'reload') {
+                window.location.reload();
+            } else if (typeof target === 'string') {
+                window.location.href = target;
+            }
+        }
+
+        function openUnsavedModal() {
+            const modal = document.getElementById('unsavedChangesModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                if (window.Motion && modal.querySelector('.unsaved-modal-card')) {
+                    try {
+                        window.Motion.animate(modal.querySelector('.unsaved-modal-card'), 
+                            { scale: [0.92, 1], opacity: [0, 1] }, 
+                            { duration: 0.22, easing: 'ease-out' }
+                        );
+                    } catch (e) {}
+                }
+            }
+        }
+
+        function closeUnsavedModal() {
+            const modal = document.getElementById('unsavedChangesModal');
+            if (modal) modal.style.display = 'none';
+            pendingNavigateTarget = null;
+        }
+
+        function confirmDiscardAndExit() {
+            isFormDirty = false;
+            const target = pendingNavigateTarget;
+            closeUnsavedModal();
+            if (target) {
+                performNavigation(target);
+            }
+        }
+
+        async function confirmSaveThenExit() {
+            const btn = document.getElementById('btnSaveAndExitModal');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span>⏳</span><span>جاري الحفظ ثم المغادرة...</span>';
+            }
+            const saveSuccess = await saveInspection();
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<span>💾</span><span>احفظ أولاً ثم غادر</span>';
+            }
+            if (saveSuccess) {
+                isFormDirty = false;
+                const target = pendingNavigateTarget;
+                closeUnsavedModal();
+                if (target) {
+                    setTimeout(() => {
+                        performNavigation(target);
+                    }, 400);
+                }
+            }
+        }
+
+        function initUnsavedChangesTracker() {
+            const markDirty = (e) => {
+                if (e && e.target && e.target.id === 'searchInput') return;
+                isFormDirty = true;
+            };
+
+            document.addEventListener('input', markDirty);
+            document.addEventListener('change', markDirty);
+
+            // Intercept link clicks when form is dirty
+            document.addEventListener('click', (e) => {
+                const link = e.target.closest('a');
+                if (!link) return;
+                const href = link.getAttribute('href');
+                if (!href || href.startsWith('#') || href.startsWith('javascript:') || link.target === '_blank') return;
+                
+                if (isFormDirty) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    safeNavigate(href);
+                }
+            }, true);
+
+            // Standard browser tab close / refresh alert
+            window.addEventListener('beforeunload', (e) => {
+                if (isFormDirty) {
+                    e.preventDefault();
+                    e.returnValue = 'هل تريد الخروج دون حفظ التعديلات؟';
+                    return e.returnValue;
+                }
+            });
+        }
 
         function isDiscountExemptCategory(category) {
             if (!category) return false;
@@ -1606,6 +1746,9 @@
 
             prepareOfficialQuotationSheet();
             prepareJobOrderSheet();
+
+            initUnsavedChangesTracker();
+            setTimeout(() => { isFormDirty = false; }, 500);
 
             if (urlParams.get('autoprint') === '1') {
                 setTimeout(() => {
@@ -2119,7 +2262,7 @@
             if (items.length === 0) {
                 if (typeof showWarning === 'function') showWarning('الرجاء إضافة خدمة واحدة على الأقل');
                 else alert('الرجاء إضافة خدمة واحدة على الأقل');
-                return;
+                return false;
             }
 
             const carStatusEl = document.getElementById('carStatusSelect');
@@ -2162,6 +2305,7 @@
                 });
                 const result = await res.json();
                 if (res.ok) {
+                    isFormDirty = false;
                     const docName = currentDocType === 'job_order' ? 'أمر العمل' : 'التسعيرة';
                     const message = currentInspectionId ? `تم تحديث ${docName} بنجاح` : `تم حفظ ${docName} بنجاح، الرقم: #${result.id}`;
                     if (typeof showSuccess === 'function') showSuccess(message);
@@ -2178,14 +2322,17 @@
                         trackLink.href = `track.html?id=${currentInspectionId}`;
                         trackLink.style.display = 'inline-flex';
                     }
+                    return true;
                 } else {
                     const errorMsg = 'خطأ في الحفظ: ' + (result.message || 'فشل الاتصال بالسيرفر');
                     if (typeof showError === 'function') showError(errorMsg);
                     else alert(errorMsg);
+                    return false;
                 }
             } catch (e) {
                 console.error(e);
                 if (typeof showError === 'function') showError('حدث خطأ أثناء الحفظ');
+                return false;
             }
         }
 
@@ -2333,6 +2480,7 @@
                     trackLink.href = `track.html?id=${data.id}`;
                     trackLink.style.display = 'inline-flex';
                 }
+                setTimeout(() => { isFormDirty = false; }, 300);
             } catch (e) {
                 console.error(e);
                 if (typeof showError === 'function') showError('تعذر تحميل بيانات المستند: ' + e.message);
@@ -2367,6 +2515,10 @@
         }
 
         function resetForm() {
+            if (isFormDirty) {
+                safeNavigate('reload');
+                return;
+            }
             if (confirm('هل تريد بدء كشف / تسعيرة جديدة؟')) location.reload();
         }
 

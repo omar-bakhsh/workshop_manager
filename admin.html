@@ -144,6 +144,19 @@
                 </div>
                 
                 <div class="top-bar-actions">
+                    <!-- Privacy Blur Mode (تغبيش المعلومات الحساسة) -->
+                    <button id="privacyBlurBtn" class="action-icon-btn privacy-blur-btn active" onclick="togglePrivacyBlur()" title="تغبيش / إظهار المعلومات الحساسة (مفعل تلقائياً)">
+                        <span id="privacyBlurIcon"><i class="fa-solid fa-eye-slash"></i></span>
+                        <span class="btn-desktop-text" id="privacyBlurText">تغبيش الأرقام</span>
+                        <span id="privacyTimerBadge" class="privacy-timer-badge" style="display:none;">05:00</span>
+                    </button>
+
+                    <!-- Dark Mode Toggle Button (الوضع الليلي) -->
+                    <button id="themeToggleBtn" class="action-icon-btn theme-toggle-btn" onclick="toggleAdminDarkMode()" title="تبديل الوضع الليلي / الفاتح">
+                        <span id="themeToggleIcon"><i class="fa-solid fa-moon"></i></span>
+                        <span class="btn-desktop-text" id="themeToggleText">الوضع الليلي</span>
+                    </button>
+
                     <!-- Global Withdrawal Limit Input Pill -->
                     <div class="limit-pill-box" title="الحد الأقصى للسحب اليومي">
                         <span class="limit-pill-label">حد السحب:</span>
