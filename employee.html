@@ -116,14 +116,6 @@
     body {
       font-family: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background-color: var(--bg-body);
-      background-image: 
-        radial-gradient(at 10% 12%, rgba(99, 102, 241, 0.15) 0px, transparent 48%),
-        radial-gradient(at 90% 18%, rgba(14, 165, 233, 0.13) 0px, transparent 45%),
-        radial-gradient(at 85% 75%, rgba(245, 158, 11, 0.11) 0px, transparent 48%),
-        radial-gradient(at 15% 85%, rgba(139, 92, 246, 0.13) 0px, transparent 50%),
-        radial-gradient(at 50% 50%, rgba(16, 185, 129, 0.06) 0px, transparent 50%);
-      background-attachment: fixed;
-      background-size: 100% 100%;
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
@@ -132,53 +124,13 @@
       overflow-x: hidden;
       transition: background-color 0.25s ease, color 0.25s ease;
       -webkit-font-smoothing: antialiased;
-      position: relative;
     }
 
     body.dark-mode {
-      background-color: #0a0f1d;
-      background-image: 
-        radial-gradient(at 10% 12%, rgba(79, 70, 229, 0.26) 0px, transparent 48%),
-        radial-gradient(at 90% 18%, rgba(14, 165, 233, 0.20) 0px, transparent 45%),
-        radial-gradient(at 85% 75%, rgba(245, 158, 11, 0.15) 0px, transparent 48%),
-        radial-gradient(at 15% 85%, rgba(139, 92, 246, 0.22) 0px, transparent 50%),
-        radial-gradient(at 50% 50%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+      background-color: var(--bg-body);
     }
 
-    /* Ambient Glowing Orbs for Optical Glass Refraction */
-    .glass-ambient-orb {
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(85px);
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.45;
-      transition: opacity 0.5s ease;
-    }
-    .orb-1 {
-      width: 320px;
-      height: 320px;
-      top: -60px;
-      right: -60px;
-      background: radial-gradient(circle, #818cf8 0%, #c084fc 100%);
-    }
-    .orb-2 {
-      width: 300px;
-      height: 300px;
-      top: 35%;
-      left: -80px;
-      background: radial-gradient(circle, #38bdf8 0%, #818cf8 100%);
-    }
-    .orb-3 {
-      width: 340px;
-      height: 340px;
-      bottom: 80px;
-      right: -80px;
-      background: radial-gradient(circle, #fcd34d 0%, #fb923c 100%);
-    }
-    body.dark-mode .orb-1 { opacity: 0.26; background: radial-gradient(circle, #4f46e5 0%, #7c3aed 100%); }
-    body.dark-mode .orb-2 { opacity: 0.22; background: radial-gradient(circle, #0284c7 0%, #4f46e5 100%); }
-    body.dark-mode .orb-3 { opacity: 0.20; background: radial-gradient(circle, #d97706 0%, #7c2d12 100%); }
+    
 
     /* Top App Header (Frosted Glass) */
     .app-topbar {
@@ -2038,14 +1990,319 @@
       color: #a7f3d0;
     }
 
+  
+    /* 🕒 Redesigned Glassmorphic Attendance Card */
+    .hero-attendance-card {
+      background: var(--glass-surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 18px 16px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow-sm);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.25s ease;
+    }
+
+    .hero-attendance-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .attendance-date-badge {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .digital-clock-display {
+      font-size: 36px;
+      font-weight: 900;
+      color: var(--text-main);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 1px;
+      margin: 4px 0 8px 0;
+      line-height: 1.1;
+    }
+
+    .attendance-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 800;
+      margin-top: 4px;
+      transition: all 0.25s ease;
+    }
+
+    .badge-present {
+      background: rgba(16, 185, 129, 0.14);
+      color: #059669;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+    body.dark-mode .badge-present {
+      background: rgba(16, 185, 129, 0.25);
+      color: #34d399;
+      border-color: rgba(52, 211, 153, 0.4);
+    }
+
+    .badge-not-recorded {
+      background: rgba(245, 158, 11, 0.14);
+      color: #d97706;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+    body.dark-mode .badge-not-recorded {
+      background: rgba(245, 158, 11, 0.25);
+      color: #fbbf24;
+      border-color: rgba(245, 158, 11, 0.4);
+    }
+
+    .badge-off-duty {
+      background: rgba(37, 99, 235, 0.12);
+      color: #2563eb;
+      border: 1px solid rgba(37, 99, 235, 0.3);
+    }
+    body.dark-mode .badge-off-duty {
+      background: rgba(37, 99, 235, 0.22);
+      color: #60a5fa;
+      border-color: rgba(96, 165, 250, 0.4);
+    }
+
+    .badge-absent {
+      background: rgba(239, 68, 68, 0.14);
+      color: #dc2626;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+    }
+    body.dark-mode .badge-absent {
+      background: rgba(239, 68, 68, 0.25);
+      color: #f87171;
+      border-color: rgba(239, 68, 68, 0.4);
+    }
+
+    /* ⚡ Quick Attendance Actions Pair */
+    .attendance-actions-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .quick-attendance-btn {
+      background: var(--glass-surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      text-align: right;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      border: 1.5px solid var(--glass-border);
+      color: var(--text-main);
+    }
+
+    .quick-attendance-btn:active {
+      transform: scale(0.97);
+    }
+
+    .quick-attendance-btn.btn-checkin {
+      background: rgba(16, 185, 129, 0.08);
+      border-color: rgba(16, 185, 129, 0.35);
+      color: #065f46;
+    }
+    body.dark-mode .quick-attendance-btn.btn-checkin {
+      background: rgba(16, 185, 129, 0.16);
+      border-color: rgba(52, 211, 153, 0.35);
+      color: #a7f3d0;
+    }
+    .quick-attendance-btn.btn-checkin:hover {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: #10b981;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(16, 185, 129, 0.18);
+    }
+
+    .quick-attendance-btn.btn-checkout {
+      background: rgba(239, 68, 68, 0.07);
+      border-color: rgba(239, 68, 68, 0.30);
+      color: #991b1b;
+    }
+    body.dark-mode .quick-attendance-btn.btn-checkout {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(248, 113, 113, 0.35);
+      color: #fca5a5;
+    }
+    .quick-attendance-btn.btn-checkout:hover {
+      background: rgba(239, 68, 68, 0.14);
+      border-color: #ef4444;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(239, 68, 68, 0.18);
+    }
+
+    .quick-att-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      flex-shrink: 0;
+    }
+
+    .btn-checkin .quick-att-icon {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-checkout .quick-att-icon {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+    }
+
+    .quick-att-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .quick-att-title {
+      font-size: 13px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .quick-att-desc {
+      font-size: 10px;
+      font-weight: 600;
+      opacity: 0.8;
+      margin-top: 2px;
+    }
+
+    /* 🎯 Re-designed Target & Incentives Section */
+    .vault-target-card {
+      background: var(--glass-surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1.5px solid rgba(217, 119, 6, 0.35);
+      border-top: 1.5px solid rgba(255, 255, 255, 0.75);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 14px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.25s ease;
+    }
+    body.dark-mode .vault-target-card {
+      border: 1.5px solid rgba(245, 158, 11, 0.3);
+      border-top: 1.5px solid rgba(255, 255, 255, 0.2);
+    }
+    .vault-target-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .vault-kpis-grid-5 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      background: var(--glass-surface-elevated);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid var(--glass-border);
+      padding: 12px 10px;
+      border-radius: 14px;
+      margin-bottom: 12px;
+      text-align: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .vault-kpi-item.span-full {
+      grid-column: span 3;
+    }
+    .vault-kpi-item.span-2 {
+      grid-column: span 2;
+    }
+
+    .vault-kpi-item .kpi-sub {
+      font-size: 10.5px;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .vault-kpi-item .kpi-main {
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: -0.2px;
+    }
+
+    /* Colors requested */
+    .vault-kpi-item .kpi-net { color: #059669; }
+    body.dark-mode .vault-kpi-item .kpi-net { color: #34d399; }
+    .vault-kpi-item .kpi-target { color: #d97706; }
+    body.dark-mode .vault-kpi-item .kpi-target { color: #fbbf24; }
+    .vault-kpi-item .kpi-rem { color: var(--text-muted); }
+    .vault-kpi-item .kpi-percent { color: #2563eb; }
+    body.dark-mode .vault-kpi-item .kpi-percent { color: #60a5fa; }
+    .vault-kpi-item .kpi-incentive { color: #059669; font-size: 15px; }
+    body.dark-mode .vault-kpi-item .kpi-incentive { color: #34d399; }
+
+    .highlight-incentive {
+      background: rgba(16, 185, 129, 0.08);
+      border-radius: 10px;
+      padding: 4px;
+      border: 1px dashed rgba(16, 185, 129, 0.3);
+    }
+    body.dark-mode .highlight-incentive {
+      background: rgba(16, 185, 129, 0.16);
+      border-color: rgba(52, 211, 153, 0.35);
+    }
+
+    /* Fill Header with explicit rate */
+    .fill-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 11.5px;
+      font-weight: 800;
+    }
+    .fill-header-row .fill-label { color: var(--text-muted); }
+    .fill-header-row .fill-rate { color: #059669; font-size: 13px; font-weight: 900; }
+    body.dark-mode .fill-header-row .fill-rate { color: #34d399; }
+
+    /* Orange to Green Progress Fill */
+    .fill-bar-active {
+      height: 100%;
+      background: linear-gradient(90deg, #f97316 0%, #10b981 100%) !important;
+      border-radius: 12px;
+      width: 0%;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 14px rgba(16, 185, 129, 0.4);
+      position: relative;
+    }
+
   </style>
 </head>
 
 <body>
-  <!-- 🔮 Glassmorphic Ambient Aurora Orbs -->
-  <div class="glass-ambient-orb orb-1"></div>
-  <div class="glass-ambient-orb orb-2"></div>
-  <div class="glass-ambient-orb orb-3"></div>
 
   <!-- Top Header Bar -->
   <header class="app-topbar">
@@ -2098,27 +2355,67 @@
          ========================================================= -->
     <section id="tabHome" class="tab-view active">
       
-      <!-- Biometric Attendance Hero -->
+      <!-- 🕒 بطاقة الحضور والساعة الزجاجية المطورة -->
       <div class="hero-attendance-card">
-        <div class="shift-info-pill" id="shiftTimeLabel">
-          <span>⏱️</span>
-          <span>جاري تحميل أوقات الدوام...</span>
+        <!-- التاريخ الحالي والوردية -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-wrap: wrap; gap: 6px;">
+          <div class="attendance-date-badge">
+            <i class="fa-solid fa-calendar-day"></i>
+            <span id="liveDate">اليوم</span>
+          </div>
+          <div class="shift-info-pill" id="shiftTimeLabel" style="margin-bottom: 0;">
+            <i class="fa-solid fa-clock"></i>
+            <span>جاري تحميل أوقات الدوام...</span>
+          </div>
         </div>
 
+        <!-- الساعة الرقمية المباشرة واضحة وكبيرة -->
         <div class="digital-clock-display" id="liveClock">00:00:00</div>
 
-        <div class="biometric-touch-wrap">
-          <div id="fingerprintBtn" class="fingerprint-touch-btn pulse-active" onclick="handleFingerprintClick()" title="اضغط لتسجيل الحضور">
-            🖐️
+        <!-- حالة الموظف والشارة اللونية -->
+        <div>
+          <div id="attendanceStatusBadge" class="attendance-status-badge badge-not-recorded">
+            <i id="attendanceStatusIcon" class="fa-solid fa-clock"></i>
+            <span id="attendanceStatusText">لم يتم تسجيل الحضور</span>
           </div>
-          <button id="checkOutBtn" class="btn-checkout-mobile" onclick="checkOut()">
-            <span>انصراف</span>
-            <span>🏃</span>
-          </button>
         </div>
 
-        <div class="attendance-status-label" id="fingerprintStatus">بصمة حضور 🖐️</div>
+        <!-- تنبيهات التأخير والانصراف المبكر -->
         <div id="delayAlert" class="attendance-alert-box"></div>
+
+        <!-- Hidden legacy hooks for complete API backward-compatibility -->
+        <div id="fingerprintBtn" style="display:none;"></div>
+        <button id="checkOutBtn" style="display:none;"></button>
+        <div id="fingerprintStatus" style="display:none;"></div>
+      </div>
+
+      <!-- ⚡ قسم الإجراءات السريعة (زرين زجاجيين متناسقين) -->
+      <div class="section-headline">
+        <h3><i class="fa-solid fa-bolt" style="color: #0ea5e9;"></i> الإجراءات السريعة</h3>
+      </div>
+      <div class="attendance-actions-pair">
+        <!-- الزر الأول: تسجيل الحضور -->
+        <button id="btnQuickCheckIn" class="quick-attendance-btn btn-checkin" onclick="handleQuickCheckIn()" title="بدء ساعات العمل">
+          <div class="quick-att-icon"><i id="iconQuickCheckIn" class="fa-solid fa-right-to-bracket"></i></div>
+          <div class="quick-att-content">
+            <div class="quick-att-title" id="quickCheckInTitle">تسجيل الحضور</div>
+            <div class="quick-att-desc" id="quickCheckInDesc">بدء ساعات العمل</div>
+          </div>
+        </button>
+
+        <!-- الزر الثاني: تسجيل الانصراف -->
+        <button id="btnQuickCheckOut" class="quick-attendance-btn btn-checkout" onclick="handleQuickCheckOut()" title="إنهاء ساعات العمل">
+          <div class="quick-att-icon"><i id="iconQuickCheckOut" class="fa-solid fa-right-from-bracket"></i></div>
+          <div class="quick-att-content">
+            <div class="quick-att-title" id="quickCheckOutTitle">تسجيل الانصراف</div>
+            <div class="quick-att-desc" id="quickCheckOutDesc">إنهاء ساعات العمل</div>
+          </div>
+        </button>
+      </div>
+
+      <!-- Quick Action Cards (Permissions & Job Nav) -->
+      <div id="quickNavContainer" class="quick-actions-grid">
+        <!-- Dynamically injected based on permissions -->
       </div>
 
       <!-- Quick Action Cards (Workshop Field Operations) -->
@@ -2215,43 +2512,56 @@
         </div>
       </div>
 
-      <!-- 🐷 حصالة وخزنة التارجت الذكية وعمود التعبئة التحفيزي -->
+      <!-- 🎯 الهدف المالي والحوافز -->
       <div id="vaultTargetSection" class="vault-target-card" style="display:none;">
         <div class="vault-header">
           <div class="vault-title-group">
-            <div class="vault-icon-badge" title="حصالة التارجت">
-              <i class="fa-solid fa-piggy-bank"></i>
+            <div class="vault-icon-badge" title="الهدف المالي والحوافز" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+              <i class="fa-solid fa-bullseye"></i>
             </div>
             <div>
               <div class="vault-title">
-                <span>حصالة التارجت والأهداف</span>
-                <span style="font-size: 13px;">✨</span>
+                <span>الهدف المالي والحوافز</span>
               </div>
-              <div class="vault-subtitle">محسوبة بناءً على الدخل الصافي بدون ضريبة</div>
+              <div class="vault-subtitle">مؤشرات الأداء المالي والعمولات المستحقة</div>
             </div>
           </div>
-          <div id="vaultPercentBadge" class="vault-percent-pill">
-            <i class="fa-solid fa-coins"></i>
-            <span>0%</span>
+          <div id="vaultPercentBadge" class="vault-percent-pill" style="background: linear-gradient(135deg, #0ea5e9, #2563eb);">
+            <i class="fa-solid fa-chart-line"></i>
+            <span id="targetPercentDisplay">0%</span>
           </div>
         </div>
 
-        <div class="vault-kpis-row">
+        <!-- العناصر الـ 5 المنظمة -->
+        <div class="vault-kpis-grid-5">
           <div class="vault-kpi-item">
-            <div class="kpi-sub">الدخل الصافي</div>
+            <div class="kpi-sub">المبلغ المحقق</div>
             <div class="kpi-main kpi-net" id="vaultNetIncomeVal">0 ﷼</div>
           </div>
           <div class="vault-kpi-item">
-            <div class="kpi-sub">التارجت المستهدف</div>
+            <div class="kpi-sub">الهدف المطلوب</div>
             <div class="kpi-main kpi-target" id="vaultTargetVal">0 ﷼</div>
           </div>
           <div class="vault-kpi-item">
-            <div class="kpi-sub">المتبقي للقفل</div>
+            <div class="kpi-sub">المبلغ المتبقي</div>
             <div class="kpi-main kpi-rem" id="vaultRemainingVal">0 ﷼</div>
+          </div>
+          <div class="vault-kpi-item span-2">
+            <div class="kpi-sub">نسبة الإنجاز المحققة</div>
+            <div class="kpi-main kpi-percent" id="vaultAchievementRateVal">0%</div>
+          </div>
+          <div class="vault-kpi-item highlight-incentive">
+            <div class="kpi-sub">الحافز المستحق</div>
+            <div class="kpi-main kpi-incentive" id="vaultEarnedIncentiveVal">0 ﷼</div>
           </div>
         </div>
 
-        <div class="motivational-fill-wrapper">
+        <!-- شريط التقدم المتدرج من البرتقالي للأخضر مع نسبة الإنجاز والرسائل -->
+        <div class="motivational-fill-wrapper" style="border: 1px solid rgba(217, 119, 6, 0.25);">
+          <div class="fill-header-row">
+            <span class="fill-label">نسبة التقدم نحو الهدف:</span>
+            <span class="fill-rate" id="fillRateText">0%</span>
+          </div>
           <div class="fill-track-outer">
             <div id="vaultMotivationalFill" class="fill-bar-active"></div>
           </div>
@@ -2262,20 +2572,21 @@
             <span>75%</span>
             <span>100% 🏆</span>
           </div>
-          <div id="vaultMotivationalMsg" class="vault-motivational-msg">
-            <span>💪</span> <span id="vaultMsgText">جاري حساب هدفك اليومي...</span>
+          <div id="vaultMotivationalMsg" class="vault-motivational-msg" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); color: #065f46;">
+            <i class="fa-solid fa-quote-right" style="color: #10b981;"></i>
+            <span id="vaultMsgText">بداية موفقة، واصل التقدم!</span>
           </div>
         </div>
       </div>
 
       <!-- Quick KPI Summary -->
       <div id="dashKpiSection" class="section-headline">
-        <h3><i class="fa-solid fa-chart-pie"></i> ملخص اليوم والراتب</h3>
+        <h3><i class="fa-solid fa-chart-line" style="color: #10b981;"></i> الراتب ومؤشرات الأداء</h3>
       </div>
       <div id="dashKpiGrid" class="kpi-stats-grid">
         <div class="kpi-card highlight span-2">
           <div class="kpi-card-header">
-            <span class="kpi-label">صافي الراتب المستحق</span>
+            <span class="kpi-label">الراتب المستحق</span>
             <div class="kpi-icon" style="background: rgba(255,255,255,0.2);"><i class="fa-solid fa-money-bill"></i></div>
           </div>
           <div class="kpi-value" id="dashNetRemaining">0 ﷼</div>
@@ -2906,6 +3217,42 @@
           }
         );
       });
+    }
+
+    
+    /* Quick Action Buttons Handlers with Loading State */
+    async function handleQuickCheckIn() {
+      const btn = document.getElementById('btnQuickCheckIn');
+      const icon = document.getElementById('iconQuickCheckIn');
+      const desc = document.getElementById('quickCheckInDesc');
+      const originalDesc = desc ? desc.textContent : '';
+
+      try {
+        if (btn) btn.disabled = true;
+        if (icon) icon.className = 'fa-solid fa-spinner fa-spin';
+        if (desc) desc.textContent = 'جاري التحقق من الموقع والبصمة...';
+
+        await handleFingerprintClick();
+      } finally {
+        if (icon) icon.className = 'fa-solid fa-right-to-bracket';
+        await loadAttendance();
+      }
+    }
+
+    async function handleQuickCheckOut() {
+      const btn = document.getElementById('btnQuickCheckOut');
+      const icon = document.getElementById('iconQuickCheckOut');
+      const desc = document.getElementById('quickCheckOutDesc');
+
+      try {
+        if (icon) icon.className = 'fa-solid fa-spinner fa-spin';
+        if (desc) desc.textContent = 'جاري تسجيل الانصراف...';
+
+        await checkOut();
+      } finally {
+        if (icon) icon.className = 'fa-solid fa-right-from-bracket';
+        await loadAttendance();
+      }
     }
 
     async function handleFingerprintClick() {
