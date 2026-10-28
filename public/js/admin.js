@@ -106,11 +106,19 @@ function updateDashboardKPIs() {
     const totalTarget = employees.reduce((sum, e) => sum + (parseFloat(e.target) || 0), 0);
     const overallAchievement = totalTarget > 0 ? Math.round((totalIncome / totalTarget) * 100) : 0;
 
-    setText('totalEmployees', employees.length.toLocaleString());
-    setText('totalIncome', totalIncome.toLocaleString() + ' ﷼');
-    setText('totalIncomeWithTax', Math.round(totalIncome * 1.15).toLocaleString() + ' ﷼');
-    setText('totalWithdrawals', totalWithdrawals.toLocaleString() + ' ﷼');
-    setText('overallAchievement', overallAchievement + '%');
+    if (window.MotionUI && typeof window.MotionUI.animateNumber === 'function') {
+        window.MotionUI.animateNumber(document.getElementById('totalEmployees'), employees.length);
+        window.MotionUI.animateNumber(document.getElementById('totalIncome'), totalIncome, 1.2, v => Math.round(v).toLocaleString() + ' ﷼');
+        window.MotionUI.animateNumber(document.getElementById('totalIncomeWithTax'), Math.round(totalIncome * 1.15), 1.2, v => Math.round(v).toLocaleString() + ' ﷼');
+        window.MotionUI.animateNumber(document.getElementById('totalWithdrawals'), totalWithdrawals, 1.2, v => Math.round(v).toLocaleString() + ' ﷼');
+        window.MotionUI.animateNumber(document.getElementById('overallAchievement'), overallAchievement, 1, v => Math.round(v) + '%');
+    } else {
+        setText('totalEmployees', employees.length.toLocaleString());
+        setText('totalIncome', totalIncome.toLocaleString() + ' ﷼');
+        setText('totalIncomeWithTax', Math.round(totalIncome * 1.15).toLocaleString() + ' ﷼');
+        setText('totalWithdrawals', totalWithdrawals.toLocaleString() + ' ﷼');
+        setText('overallAchievement', overallAchievement + '%');
+    }
     
     updateCharts();
 }
@@ -1340,7 +1348,11 @@ function updateDateHeader() {
 function openModal(id) { 
     const el = document.getElementById(id);
     if (el) {
-        el.style.display = 'flex';
+        if (window.MotionUI && typeof window.MotionUI.animateModalOpen === 'function') {
+            window.MotionUI.animateModalOpen(el);
+        } else {
+            el.style.display = 'flex';
+        }
     } else {
         console.warn(`[Modal] Element with ID "${id}" was not found.`);
     }
@@ -1348,7 +1360,13 @@ function openModal(id) {
 
 function closeModal(id) { 
     const el = document.getElementById(id);
-    if (el) el.style.display = 'none'; 
+    if (el) {
+        if (window.MotionUI && typeof window.MotionUI.animateModalClose === 'function') {
+            window.MotionUI.animateModalClose(el);
+        } else {
+            el.style.display = 'none';
+        }
+    }
 }
 
 function openLeaveModal() { 

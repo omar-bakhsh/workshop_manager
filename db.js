@@ -177,6 +177,26 @@ async function safeAddColumn(tableName, columnName, columnDefinition) {
 }
 
 // ==========================
+// ⚡ دالة مساعدة لإنشاء الفهارس بأمان لتسريع الاستعلامات والبحث
+// ==========================
+async function safeCreateIndex(tableName, indexName, columns) {
+    try {
+        if (isMySQL) {
+            await pool.query(`CREATE INDEX \`${indexName}\` ON \`${tableName}\` (${columns})`);
+        } else {
+            await new Promise((resolve) => {
+                sqliteDb.run(`CREATE INDEX IF NOT EXISTS ${indexName} ON ${tableName} (${columns})`, () => resolve());
+            });
+        }
+    } catch (err) {
+        // تجاهل الخطأ إذا كان الفهرس موجوداً مسبقاً
+        if (err.code === 'ER_DUP_KEYNAME' || err.message?.includes('duplicate key') || err.message?.includes('already exists')) {
+            // Already exists
+        }
+    }
+}
+
+// ==========================
 // 🏗️ تهيئة بنية الجداول (Schema Initialization)
 // ==========================
 async function initDatabase() {
@@ -1169,6 +1189,21 @@ async function seedInitialData() {
                 await dbRun("INSERT IGNORE INTO workshop_lifts (id, name, status) VALUES (?, ?, 'idle')",
                     [lid, `رافعة ${lid}`]);
             }
+        }
+
+        // ⚡ إنشاء فهارس الأداء لضمان سرعة الاستعلامات والبحث
+        try {
+            await safeCreateIndex('inspections', 'idx_inspections_created_at', '`created_at`');
+            await safeCreateIndex('inspections', 'idx_inspections_inspector', '`inspector_id`');
+            await safeCreateIndex('inspections', 'idx_inspections_car_status', '`car_status`');
+            await safeCreateIndex('inspections', 'idx_inspections_plate', '`plate_number`');
+            await safeCreateIndex('attendance', 'idx_attendance_emp_date', '`employee_id`, `date`');
+            await safeCreateIndex('entries', 'idx_entries_emp_created', '`employee_id`, `created_at`');
+            await safeCreateIndex('withdrawals', 'idx_withdrawals_emp_created', '`employee_id`, `created_at`');
+            await safeCreateIndex('inspection_items', 'idx_items_inspection', '`inspection_id`');
+            await safeCreateIndex('messages', 'idx_messages_emp_read', '`employee_id`, `is_read`');
+        } catch (idxErr) {
+            console.warn('⚠️ تنبيه أثناء إنشاء الفهارس:', idxErr.message);
         }
     } catch (seedErr) {
         console.error('❌ خطأ في بذر البيانات الافتراضية:', seedErr.message);

@@ -69,8 +69,31 @@ const upload = multer({ dest: 'uploads/' });
 const xlsx = require('xlsx');
 const { importClients, normalizePhone } = require('./import_clients');
 
+const bcrypt = require('bcryptjs');
+
 const app = express();
 const PORT = process.env.PORT || 8080;
+
+// ==========================
+// 🛡️ طبقة الحماية الأمنية ومنع تسريب الملفات الحساسة وقواعد البيانات
+// ==========================
+app.use((req, res, next) => {
+    const rawPath = (req.path || '').toLowerCase();
+    const blockedExts = ['.sqlite', '.sqlite3', '.db', '.env', '.bak', '.sql', '.json', '.bat', '.ps1', '.md', '.log', '.lock'];
+    const blockedRootFiles = ['/server.js', '/db.js', '/ecosystem.config.js', '/package.json', '/package-lock.json', '/procfile'];
+    
+    // منع الوصول المباشر لملفات الكود وقواعد البيانات
+    if (blockedRootFiles.includes(rawPath) || blockedExts.some(ext => rawPath.endsWith(ext))) {
+        // استثناء ملف manifest.json فقط لتطبيق الـ PWA
+        if (rawPath === '/manifest.json') return next();
+        return res.status(403).json({ error: 'Access Denied - تم حظر الوصول المباشر لهذا الملف لأسباب أمنية' });
+    }
+    // حماية ملفات الإكسل والبيانات المالية في المجلد الجذري
+    if ((rawPath.endsWith('.xlsx') || rawPath.endsWith('.xls')) && !rawPath.startsWith('/uploads/')) {
+        return res.status(403).json({ error: 'Access Denied - الملف محمي' });
+    }
+    next();
+});
 
 // ==========================
 // 🧩 الإعدادات العامة
@@ -125,6 +148,9 @@ app.post(['/api/admin/sync-seed-data', '/api/backup/sync-seed'], async (req, res
 // ==========================
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
+    if (!username || !password) {
+        return res.status(400).json({ message: "اسم المستخدم وكلمة المرور مطلوبان" });
+    }
     try {
         const user = await dbGet(`
             SELECT u.*, e.name AS employee_name, e.id AS employee_id, e.section_id, s.name AS section_name,
@@ -136,16 +162,33 @@ app.post('/api/login', async (req, res) => {
             FROM users u
             LEFT JOIN employees e ON u.employee_id = e.id
             LEFT JOIN sections s ON e.section_id = s.id
-            WHERE u.username = ? AND u.password = ?
-        `, [username, password]);
+            WHERE u.username = ?
+        `, [String(username).trim()]);
 
         if (user) {
-            // حذف كلمة المرور قبل الإرسال
-            delete user.password;
-            return res.json({
-                message: "تم تسجيل الدخول بنجاح",
-                ...user
-            });
+            let passwordMatch = false;
+            // التحقق إما عبر bcrypt أو النص الصريح (للتوافق الرجعي التلقائي الفوري)
+            if (user.password && (user.password.startsWith('$2a$') || user.password.startsWith('$2b$'))) {
+                passwordMatch = bcrypt.compareSync(String(password).trim(), user.password);
+            } else if (user.password === String(password).trim()) {
+                passwordMatch = true;
+                // ترقية كلمة المرور تلقائياً إلى bcrypt بأمان في قاعدة البيانات
+                try {
+                    const hashed = bcrypt.hashSync(String(password).trim(), 10);
+                    await dbRun('UPDATE users SET password = ? WHERE id = ?', [hashed, user.id]);
+                } catch (e) {
+                    console.warn('⚠️ تعذر ترقية كلمة المرور إلى bcrypt:', e.message);
+                }
+            }
+
+            if (passwordMatch) {
+                // حذف كلمة المرور قبل الإرسال للواجهة
+                delete user.password;
+                return res.json({
+                    message: "تم تسجيل الدخول بنجاح",
+                    ...user
+                });
+            }
         }
         res.status(401).json({ message: "اسم المستخدم أو كلمة المرور غير صحيحة" });
     } catch (error) {
@@ -181,6 +224,7 @@ app.post('/api/employees', async (req, res) => {
         }
 
         const cleanPassword = (password && String(password).trim()) ? String(password).trim() : '1234';
+        const hashedPassword = bcrypt.hashSync(cleanPassword, 10);
 
         // 1. إضافة الموظف
         const empResult = await dbRun(
@@ -192,7 +236,7 @@ app.post('/api/employees', async (req, res) => {
         // 2. إنشاء حساب المستخدم
         await dbRun(
             `INSERT INTO users (employee_id, username, password, role) VALUES (?, ?, ?, 'employee')`, 
-            [employee_id, finalUsername, cleanPassword]
+            [employee_id, finalUsername, hashedPassword]
         );
 
         res.status(201).json({ 
@@ -239,8 +283,11 @@ app.put('/api/employees/:id', async (req, res) => {
                 cleanUsername = userCheck.username;
             }
 
-            // كلمة المرور: إذا تم إدخال كلمة مرور جديدة يتم تعيينها، وإلا يتم الحفاظ على السابقة (أو 1234 افتراضياً)
-            const finalPassword = (password && String(password).trim()) ? String(password).trim() : (userCheck.password || '1234');
+            // كلمة المرور: إذا تم إدخال كلمة مرور جديدة يتم تشفيرها، وإلا يتم الحفاظ على السابقة
+            let finalPassword = userCheck.password || bcrypt.hashSync('1234', 10);
+            if (password && String(password).trim()) {
+                finalPassword = bcrypt.hashSync(String(password).trim(), 10);
+            }
 
             await dbRun(`UPDATE users SET username = ?, password = ? WHERE id = ?`, [cleanUsername, finalPassword, userCheck.id]);
         } else {
@@ -257,7 +304,8 @@ app.put('/api/employees/:id', async (req, res) => {
                 counter++;
             }
 
-            const finalPassword = (password && String(password).trim()) ? String(password).trim() : '1234';
+            const rawPassword = (password && String(password).trim()) ? String(password).trim() : '1234';
+            const finalPassword = bcrypt.hashSync(rawPassword, 10);
 
             await dbRun(
                 `INSERT INTO users (employee_id, username, password, role) VALUES (?, ?, ?, 'employee')`, 

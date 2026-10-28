@@ -24,6 +24,11 @@ class ToastNotification {
         const toast = this.createToast(message, type);
         this.container.appendChild(toast);
 
+        // Framer Motion spring entrance
+        if (window.MotionUI && typeof window.MotionUI.animateToast === 'function') {
+            window.MotionUI.animateToast(toast);
+        }
+
         // إضافة شريط التقدم
         const progress = document.createElement('div');
         progress.className = 'toast-progress';
@@ -69,10 +74,15 @@ class ToastNotification {
     }
 
     hide(toast) {
-        toast.classList.add('hiding');
-        setTimeout(() => {
-            toast.remove();
-        }, 300);
+        if (window.Motion && typeof window.Motion.animate === 'function') {
+            window.Motion.animate(toast, { opacity: [1, 0], scale: [1, 0.85], y: [0, -20] }, { duration: 0.22, ease: 'easeIn' })
+                .finished.then(() => toast.remove());
+        } else {
+            toast.classList.add('hiding');
+            setTimeout(() => {
+                toast.remove();
+            }, 300);
+        }
     }
 
     success(message, duration = 3000) {

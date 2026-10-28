@@ -14,6 +14,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
   <title>تسجيل الدخول - Atenza App</title>
+  <script src="public/js/motion.js"></script>
+  <script src="public/js/motion-ui.js"></script>
   <script src="public/js/app-config.js"></script>
   <style>
     * {
@@ -364,6 +366,9 @@
         loginBtn.disabled = false;
         errorDiv.textContent = error.message || 'حدث خطأ في الاتصال بالخادم. تأكد من تشغيل السيرفر.';
         errorDiv.classList.add('show');
+        if (window.Motion && typeof window.Motion.animate === 'function') {
+          window.Motion.animate(errorDiv, { x: [-10, 10, -8, 8, -4, 4, 0] }, { duration: 0.45, ease: 'easeInOut' });
+        }
       }
     });
 
