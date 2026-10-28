@@ -1,5 +1,7 @@
 node_modules/
-uploads/
+uploads/*
+!uploads/branding/
+!uploads/branding/*
 .env
 *.log
 .DS_Store

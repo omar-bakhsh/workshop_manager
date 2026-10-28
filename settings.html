@@ -1635,6 +1635,10 @@ export const AtenzaApi = {
                 if (img) {
                     img.src = cleanUrl + '?v=' + Date.now();
                     img.style.display = 'block';
+                    img.onerror = () => {
+                        img.style.display = 'none';
+                        if (placeholder) placeholder.style.display = 'inline';
+                    };
                 }
                 if (placeholder) placeholder.style.display = 'none';
                 if (delBtn) delBtn.style.display = 'inline-flex';

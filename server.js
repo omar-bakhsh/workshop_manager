@@ -104,6 +104,32 @@ app.use(express.static(path.join(__dirname, '.')));
 app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// 🖼️ معالجة ذكية لملفات الشعار والأختام لمنع أخطاء 404 في حال تغير الخادم أو الحاوية
+app.get('/uploads/branding/:filename', (req, res) => {
+    try {
+        const filename = path.basename(req.params.filename);
+        const filePath = path.join(__dirname, 'uploads', 'branding', filename);
+        if (fs.existsSync(filePath)) {
+            return res.sendFile(filePath);
+        }
+        // إذا كان الملف المحدد مفقوداً، ابحث عن أي ملف صورة بديل داخل مجلد branding
+        const brandingDir = path.join(__dirname, 'uploads', 'branding');
+        if (fs.existsSync(brandingDir)) {
+            const availableFiles = fs.readdirSync(brandingDir).filter(f => /\.(png|jpe?g|webp|svg)$/i.test(f));
+            if (availableFiles.length > 0) {
+                return res.sendFile(path.join(brandingDir, availableFiles[0]));
+            }
+        }
+        // في حال عدم وجود أي صورة، إرسال صورة شفافة بدلاً من خطأ 404
+        const transparentPixel = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64');
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        return res.send(transparentPixel);
+    } catch (err) {
+        res.status(200).send(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=', 'base64'));
+    }
+});
+
 // توجيه الصفحة الرئيسية إلى صفحة تسجيل الدخول
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'login.html'));
