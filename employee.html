@@ -1733,6 +1733,229 @@
       color: var(--text-positive) !important;
     }
 
+    /* 🕒 Redesigned Glassmorphic Attendance Card */
+    .hero-attendance-card {
+      background: var(--glass-surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 18px 16px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow-sm);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.25s ease;
+    }
+
+    .hero-attendance-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .attendance-date-badge {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .digital-clock-display {
+      font-size: 38px;
+      font-weight: 900;
+      color: var(--text-main);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 1.5px;
+      margin: 4px 0 8px 0;
+      line-height: 1.1;
+      font-family: 'IBM Plex Sans Arabic', -apple-system, sans-serif;
+    }
+
+    .attendance-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 16px;
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 800;
+      margin-top: 4px;
+      transition: all 0.25s ease;
+    }
+
+    .badge-present {
+      background: rgba(16, 185, 129, 0.14);
+      color: #059669;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+    body.dark-mode .badge-present {
+      background: rgba(16, 185, 129, 0.25);
+      color: #34d399;
+      border-color: rgba(52, 211, 153, 0.4);
+    }
+
+    .badge-not-recorded {
+      background: rgba(245, 158, 11, 0.14);
+      color: #d97706;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+    body.dark-mode .badge-not-recorded {
+      background: rgba(245, 158, 11, 0.25);
+      color: #fbbf24;
+      border-color: rgba(245, 158, 11, 0.4);
+    }
+
+    .badge-off-duty {
+      background: rgba(37, 99, 235, 0.12);
+      color: #2563eb;
+      border: 1px solid rgba(37, 99, 235, 0.3);
+    }
+    body.dark-mode .badge-off-duty {
+      background: rgba(37, 99, 235, 0.22);
+      color: #60a5fa;
+      border-color: rgba(96, 165, 250, 0.4);
+    }
+
+    .badge-absent {
+      background: rgba(239, 68, 68, 0.14);
+      color: #dc2626;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+    }
+    body.dark-mode .badge-absent {
+      background: rgba(239, 68, 68, 0.25);
+      color: #f87171;
+      border-color: rgba(239, 68, 68, 0.4);
+    }
+
+    .attendance-alert-box {
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 8px 12px;
+      border-radius: 10px;
+      margin-top: 8px;
+      display: none;
+    }
+
+    /* ⚡ Quick Attendance Actions Pair (الإجراءات السريعة: تسجيل الحضور والانصراف) */
+    .attendance-actions-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .quick-attendance-btn {
+      background: var(--glass-surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: var(--radius-md);
+      padding: 13px 15px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      text-align: right;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      border: 1.5px solid var(--glass-border);
+      color: var(--text-main);
+      font-family: inherit;
+      width: 100%;
+    }
+
+    .quick-attendance-btn:active {
+      transform: scale(0.97);
+    }
+
+    .quick-attendance-btn.btn-checkin {
+      background: rgba(16, 185, 129, 0.08);
+      border-color: rgba(16, 185, 129, 0.35);
+      color: #065f46;
+    }
+    body.dark-mode .quick-attendance-btn.btn-checkin {
+      background: rgba(16, 185, 129, 0.16);
+      border-color: rgba(52, 211, 153, 0.35);
+      color: #a7f3d0;
+    }
+    .quick-attendance-btn.btn-checkin:hover {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: #10b981;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(16, 185, 129, 0.18);
+    }
+
+    .quick-attendance-btn.btn-checkout {
+      background: rgba(239, 68, 68, 0.07);
+      border-color: rgba(239, 68, 68, 0.30);
+      color: #991b1b;
+    }
+    body.dark-mode .quick-attendance-btn.btn-checkout {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(248, 113, 113, 0.35);
+      color: #fca5a5;
+    }
+    .quick-attendance-btn.btn-checkout:hover {
+      background: rgba(239, 68, 68, 0.14);
+      border-color: #ef4444;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(239, 68, 68, 0.18);
+    }
+
+    .quick-att-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+      flex-shrink: 0;
+    }
+
+    .btn-checkin .quick-att-icon {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-checkout .quick-att-icon {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+    }
+
+    .quick-att-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .quick-att-title {
+      font-size: 14.5px;
+      font-weight: 800;
+      line-height: 1.2;
+      color: inherit;
+    }
+
+    .quick-att-desc {
+      font-size: 12.5px;
+      font-weight: 600;
+      opacity: 0.85;
+      margin-top: 3px;
+      color: inherit;
+    }
+
+    @media (max-width: 480px) {
+      .attendance-actions-pair {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+    }
+
     /* 🎯 Re-designed Target & Incentives Section */
     .vault-target-card {
       background: var(--glass-surface);
