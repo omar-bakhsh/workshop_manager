@@ -1602,595 +1602,135 @@
       border-color: rgba(245, 158, 11, 0.35);
     }
   
-    /* 🛠️ Mechanic Target & Incentive System (Crystal Glassmorphic - NO YELLOW) */
-    .mechanic-target-card {
-      background: linear-gradient(135deg, rgba(236, 253, 245, 0.78) 0%, rgba(240, 249, 255, 0.72) 45%, rgba(238, 242, 255, 0.68) 100%);
-      backdrop-filter: var(--glass-blur-heavy);
-      -webkit-backdrop-filter: var(--glass-blur-heavy);
-      color: var(--text-main);
-      border: 1.5px solid rgba(52, 211, 153, 0.55);
-      border-top: 2px solid rgba(255, 255, 255, 0.95);
+    /* 🎯 Clean Unified Target & Incentive Section (الهدف المالي والحوافز) */
+    .vault-target-card {
+      background: var(--glass-surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1.5px solid rgba(217, 119, 6, 0.35);
+      border-top: 1.5px solid rgba(255, 255, 255, 0.75);
       border-radius: var(--radius-lg);
-      padding: 16px;
+      padding: 16px 18px;
       margin-bottom: 14px;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 12px 32px -4px rgba(16, 185, 129, 0.16), inset 0 1px 2px rgba(255, 255, 255, 0.9);
-      transition: all 0.3s ease;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.25s ease;
+    }
+    body.dark-mode .vault-target-card {
+      border: 1.5px solid rgba(245, 158, 11, 0.3);
+      border-top: 1.5px solid rgba(255, 255, 255, 0.2);
+    }
+    .vault-target-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
     }
 
-    .mechanic-target-card::before {
-      content: '';
-      position: absolute;
-      top: -40px;
-      left: -40px;
-      width: 150px;
-      height: 150px;
-      background: radial-gradient(circle, rgba(16, 185, 129, 0.20), transparent 70%);
-      pointer-events: none;
-    }
-
-    .mechanic-target-card::after {
-      content: '';
-      position: absolute;
-      bottom: -30px;
-      right: -30px;
-      width: 130px;
-      height: 130px;
-      background: radial-gradient(circle, rgba(14, 165, 233, 0.18), transparent 70%);
-      pointer-events: none;
-    }
-
-    body.dark-mode .mechanic-target-card {
-      background: linear-gradient(135deg, rgba(6, 78, 59, 0.55) 0%, rgba(15, 23, 42, 0.75) 45%, rgba(30, 27, 75, 0.55) 100%);
-      backdrop-filter: var(--glass-blur-heavy);
-      -webkit-backdrop-filter: var(--glass-blur-heavy);
-      color: #f8fafc;
-      border: 1.5px solid rgba(52, 211, 153, 0.4);
-      border-top: 2px solid rgba(255, 255, 255, 0.25);
-      box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.6), 0 0 24px rgba(16, 185, 129, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.15);
-    }
-
-    .mech-header {
+    .vault-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
       position: relative;
       z-index: 2;
     }
 
-    .mech-title-group {
+    .vault-title-group {
       display: flex;
       align-items: center;
       gap: 12px;
     }
 
-    .mech-icon-badge {
+    .vault-icon-badge {
       width: 44px;
       height: 44px;
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
       border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 20px;
       color: #ffffff;
-      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
-      position: relative;
+      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
       flex-shrink: 0;
-      border: 1.5px solid rgba(255, 255, 255, 0.4);
-      animation: gentleFloat 3s ease-in-out infinite alternate;
     }
 
-    .mech-title {
-      font-size: 14px;
-      font-weight: 800;
-      color: #065f46;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    body.dark-mode .mech-title {
-      color: #6ee7b7;
+    .vault-title {
+      font-size: 15px !important;
+      font-weight: 700 !important;
+      color: var(--text-main);
     }
 
-    .mech-verified-badge {
-      font-size: 12px;
-      background: rgba(16, 185, 129, 0.15);
-      color: #059669;
-      padding: 1px 7px;
+    .vault-subtitle {
+      font-size: 12px !important;
+      font-weight: 500 !important;
+      color: var(--text-sub);
+      margin-top: 2px;
+    }
+
+    .vault-percent-pill {
+      font-size: 13px !important;
+      font-weight: 800 !important;
+      padding: 5px 12px;
       border-radius: var(--radius-full);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-    }
-    body.dark-mode .mech-verified-badge {
-      background: rgba(52, 211, 153, 0.2);
-      color: #a7f3d0;
-      border-color: rgba(52, 211, 153, 0.4);
-    }
-
-    .mech-subtitle {
-      font-size: 12px;
-      font-weight: 600;
-      color: #047857;
-      opacity: 0.85;
-      margin-top: 1px;
-    }
-    body.dark-mode .mech-subtitle {
-      color: #94a3b8;
-    }
-
-    .mech-tier-pill {
-      background: linear-gradient(135deg, #0ea5e9, #2563eb);
-      color: #ffffff;
-      font-weight: 800;
-      padding: 4px 11px;
-      border-radius: 20px;
-      font-size: 12px;
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      white-space: nowrap;
-    }
-
-    /* Hero Potential Reward Highlight Card */
-    .mech-reward-hero-card {
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(14, 165, 233, 0.10) 100%);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1.5px solid rgba(16, 185, 129, 0.35);
-      border-radius: 14px;
-      padding: 12px 14px;
-      margin-bottom: 12px;
-      text-align: center;
-      position: relative;
-      z-index: 2;
-      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.08);
-    }
-    body.dark-mode .mech-reward-hero-card {
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.16) 0%, rgba(14, 165, 233, 0.12) 100%);
-      border-color: rgba(52, 211, 153, 0.3);
-      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
-    }
-
-    .mech-reward-label {
-      font-size: 12px;
-      font-weight: 800;
-      color: #047857;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       gap: 6px;
-      margin-bottom: 3px;
-    }
-    body.dark-mode .mech-reward-label {
-      color: #6ee7b7;
+      color: #ffffff !important;
+      box-shadow: 0 3px 10px rgba(14, 165, 233, 0.3);
     }
 
-    .mech-reward-amount {
-      font-size: 26px;
-      font-weight: 900;
-      color: #059669;
-      letter-spacing: -0.5px;
-      line-height: 1.15;
-    }
-    body.dark-mode .mech-reward-amount {
-      color: #34d399;
-      
-    }
-
-    .mech-reward-formula {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-muted);
-      margin-top: 3px;
-    }
-
-    /* KPI Row */
-    .mech-kpis-row {
+    /* Clean 4-Grid Target Metrics */
+    .vault-kpis-grid-4 {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 8px;
-      background: rgba(255, 255, 255, 0.65);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(16, 185, 129, 0.25);
-      padding: 10px 8px;
-      border-radius: 12px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      background: var(--glass-surface-elevated);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid var(--glass-border);
+      padding: 14px 12px;
+      border-radius: 16px;
       margin-bottom: 12px;
-      text-align: center;
       position: relative;
       z-index: 2;
     }
-    body.dark-mode .mech-kpis-row {
-      background: rgba(15, 23, 42, 0.65);
-      border-color: rgba(255, 255, 255, 0.1);
-    }
 
-    .mech-kpi-item {
+    .vault-kpi-item {
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
+      text-align: center;
+      padding: 4px;
     }
 
-    .mech-kpi-sub {
-      font-size: 12px;
-      color: var(--text-muted);
-      font-weight: 700;
-      margin-bottom: 2px;
+    .vault-kpi-item .kpi-sub {
+      font-size: 12.5px !important;
+      font-weight: 600 !important;
+      color: var(--text-muted) !important;
+      margin-bottom: 3px !important;
     }
 
-    .mech-kpi-main {
-      font-size: 14.5px;
-      font-weight: 900;
-      letter-spacing: -0.3px;
+    .vault-kpi-item .kpi-main {
+      font-size: 17px !important;
+      font-weight: 800 !important;
+      letter-spacing: -0.2px;
     }
 
-    .mech-color-blue { color: #2563eb; }
-    body.dark-mode .mech-color-blue { color: #60a5fa; }
-    .mech-color-emerald { color: #059669; }
-    body.dark-mode .mech-color-emerald { color: #34d399; }
-    .mech-color-purple { color: #7c3aed; }
-    body.dark-mode .mech-color-purple { color: #a78bfa; }
-
-    /* 3 Tiers Container */
-    .mech-tiers-container {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 7px;
-      margin-bottom: 12px;
-      position: relative;
-      z-index: 2;
-    }
-
-    .mech-tier-box {
-      background: rgba(255, 255, 255, 0.55);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      border: 1.5px solid rgba(226, 232, 240, 0.85);
+    /* Highlighted Incentive Box */
+    .vault-kpi-item.highlight-incentive {
+      background: rgba(16, 185, 129, 0.10);
       border-radius: 12px;
       padding: 8px 6px;
-      text-align: center;
-      transition: all 0.22s ease;
-      position: relative;
-    }
-    body.dark-mode .mech-tier-box {
-      background: rgba(15, 23, 42, 0.5);
-      border-color: rgba(255, 255, 255, 0.08);
-    }
-
-    .mech-tier-box.active-tier {
-      background: rgba(16, 185, 129, 0.12);
-      border-color: #10b981;
-      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.8);
-      transform: translateY(-2px);
-    }
-    body.dark-mode .mech-tier-box.active-tier {
-      background: rgba(16, 185, 129, 0.22);
-      border-color: #34d399;
-      box-shadow: 0 0 16px rgba(16, 185, 129, 0.3);
-    }
-
-    .tier-box-badge {
-      font-size: 12px;
-      font-weight: 800;
-      color: var(--text-muted);
-      margin-bottom: 2px;
-      white-space: nowrap;
-    }
-    .mech-tier-box.active-tier .tier-box-badge {
-      color: #059669;
-    }
-    body.dark-mode .mech-tier-box.active-tier .tier-box-badge {
-      color: #6ee7b7;
-    }
-
-    .tier-box-reward {
-      font-size: 12px;
-      font-weight: 900;
-      color: var(--text-main);
-      line-height: 1.2;
-    }
-    .mech-tier-box.active-tier .tier-box-reward {
-      color: #059669;
-      font-size: 13px;
-    }
-    body.dark-mode .mech-tier-box.active-tier .tier-box-reward {
-      color: #34d399;
-    }
-
-    .tier-box-desc {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-sub);
-      margin-top: 1px;
-    }
-
-    /* Fill Track (Emerald & Cyan & Blue - ZERO YELLOW) */
-    .mech-fill-wrapper {
-      background: rgba(255, 255, 255, 0.7);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
       border: 1px solid rgba(16, 185, 129, 0.3);
-      padding: 10px 12px;
-      border-radius: 12px;
-      margin-bottom: 10px;
-      position: relative;
-      z-index: 2;
     }
-    body.dark-mode .mech-fill-wrapper {
-      background: rgba(15, 23, 42, 0.65);
-      border-color: rgba(52, 211, 153, 0.3);
-    }
-
-    .mech-fill-track {
-      height: 22px;
-      background: rgba(226, 232, 240, 0.85);
-      border-radius: 11px;
-      position: relative;
-      overflow: hidden;
-      border: 1px solid rgba(203, 213, 225, 0.8);
-      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
-    }
-    body.dark-mode .mech-fill-track {
-      background: #090d16;
-      border-color: rgba(255, 255, 255, 0.12);
-      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.7);
-    }
-
-    .mech-fill-bar-active {
-      height: 100%;
-      background: linear-gradient(90deg, #3b82f6 0%, #06b6d4 50%, #10b981 100%);
-      border-radius: 11px;
-      width: 0%;
-      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 0 14px rgba(16, 185, 129, 0.5);
-      position: relative;
-    }
-
-    .mech-fill-bar-active::after {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent);
-      animation: shineBar 2.2s infinite linear;
-    }
-
-    .mech-fill-markers {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 5px;
-      font-size: 12px;
-      color: var(--text-muted);
-      font-weight: 700;
-      padding: 0 2px;
-    }
-
-    .mech-motivational-box {
-      padding: 8px 12px;
-      border-radius: 10px;
-      font-size: 12px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      background: rgba(236, 253, 245, 0.85);
-      border: 1.5px solid rgba(16, 185, 129, 0.35);
-      color: #065f46;
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-      line-height: 1.35;
-    }
-    body.dark-mode .mech-motivational-box {
-      background: rgba(6, 78, 59, 0.35);
-      border-color: rgba(52, 211, 153, 0.4);
-      color: #a7f3d0;
-    }
-
-  
-    /* 🕒 Redesigned Glassmorphic Attendance Card */
-    .hero-attendance-card {
-      background: var(--glass-surface);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--glass-border);
-      border-radius: var(--radius-lg);
-      padding: 18px 16px;
-      margin-bottom: 14px;
-      box-shadow: var(--shadow-sm);
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-      transition: all 0.25s ease;
-    }
-
-    .hero-attendance-card:hover {
-      box-shadow: var(--shadow-md);
-      transform: translateY(-2px);
-    }
-
-    .attendance-date-badge {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    .digital-clock-display {
-      font-size: 36px;
-      font-weight: 900;
-      color: var(--text-main);
-      font-variant-numeric: tabular-nums;
-      letter-spacing: 1px;
-      margin: 4px 0 8px 0;
-      line-height: 1.1;
-    }
-
-    .attendance-status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 5px 14px;
-      border-radius: var(--radius-full);
-      font-size: 12px;
-      font-weight: 800;
-      margin-top: 4px;
-      transition: all 0.25s ease;
-    }
-
-    .badge-present {
-      background: rgba(16, 185, 129, 0.14);
-      color: #059669;
-      border: 1px solid rgba(16, 185, 129, 0.35);
-    }
-    body.dark-mode .badge-present {
-      background: rgba(16, 185, 129, 0.25);
-      color: #34d399;
-      border-color: rgba(52, 211, 153, 0.4);
-    }
-
-    .badge-not-recorded {
-      background: rgba(245, 158, 11, 0.14);
-      color: #d97706;
-      border: 1px solid rgba(245, 158, 11, 0.35);
-    }
-    body.dark-mode .badge-not-recorded {
-      background: rgba(245, 158, 11, 0.25);
-      color: #fbbf24;
-      border-color: rgba(245, 158, 11, 0.4);
-    }
-
-    .badge-off-duty {
-      background: rgba(37, 99, 235, 0.12);
-      color: #2563eb;
-      border: 1px solid rgba(37, 99, 235, 0.3);
-    }
-    body.dark-mode .badge-off-duty {
-      background: rgba(37, 99, 235, 0.22);
-      color: #60a5fa;
-      border-color: rgba(96, 165, 250, 0.4);
-    }
-
-    .badge-absent {
-      background: rgba(239, 68, 68, 0.14);
-      color: #dc2626;
-      border: 1px solid rgba(239, 68, 68, 0.35);
-    }
-    body.dark-mode .badge-absent {
-      background: rgba(239, 68, 68, 0.25);
-      color: #f87171;
-      border-color: rgba(239, 68, 68, 0.4);
-    }
-
-    /* ⚡ Quick Attendance Actions Pair */
-    .attendance-actions-pair {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-
-    .quick-attendance-btn {
-      background: var(--glass-surface);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border-radius: var(--radius-md);
-      padding: 12px 14px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-      text-align: right;
-      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-      border: 1.5px solid var(--glass-border);
-      color: var(--text-main);
-    }
-
-    .quick-attendance-btn:active {
-      transform: scale(0.97);
-    }
-
-    .quick-attendance-btn.btn-checkin {
-      background: rgba(16, 185, 129, 0.08);
-      border-color: rgba(16, 185, 129, 0.35);
-      color: #065f46;
-    }
-    body.dark-mode .quick-attendance-btn.btn-checkin {
-      background: rgba(16, 185, 129, 0.16);
+    body.dark-mode .vault-kpi-item.highlight-incentive {
+      background: rgba(16, 185, 129, 0.18);
       border-color: rgba(52, 211, 153, 0.35);
-      color: #a7f3d0;
     }
-    .quick-attendance-btn.btn-checkin:hover {
-      background: rgba(16, 185, 129, 0.15);
-      border-color: #10b981;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 18px rgba(16, 185, 129, 0.18);
-    }
-
-    .quick-attendance-btn.btn-checkout {
-      background: rgba(239, 68, 68, 0.07);
-      border-color: rgba(239, 68, 68, 0.30);
-      color: #991b1b;
-    }
-    body.dark-mode .quick-attendance-btn.btn-checkout {
-      background: rgba(239, 68, 68, 0.15);
-      border-color: rgba(248, 113, 113, 0.35);
-      color: #fca5a5;
-    }
-    .quick-attendance-btn.btn-checkout:hover {
-      background: rgba(239, 68, 68, 0.14);
-      border-color: #ef4444;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 18px rgba(239, 68, 68, 0.18);
-    }
-
-    .quick-att-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 17px;
-      flex-shrink: 0;
-    }
-
-    .btn-checkin .quick-att-icon {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      color: #ffffff;
-      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
-    }
-
-    .btn-checkout .quick-att-icon {
-      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-      color: #ffffff;
-      box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
-    }
-
-    .quick-att-content {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .quick-att-title {
-      font-size: 13px;
-      font-weight: 800;
-      line-height: 1.2;
-    }
-
-    .quick-att-desc {
-      font-size: 12px;
-      font-weight: 600;
-      opacity: 0.8;
-      margin-top: 2px;
+    .vault-kpi-item.highlight-incentive .kpi-main {
+      font-size: 19px !important;
+      color: var(--text-positive) !important;
     }
 
     /* 🎯 Re-designed Target & Incentives Section */
@@ -2217,20 +1757,26 @@
       transform: translateY(-2px);
     }
 
+    .vault-kpis-grid-4,
     .vault-kpis-grid-5 {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
       background: var(--glass-surface-elevated);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
       border: 1px solid var(--glass-border);
-      padding: 12px 10px;
+      padding: 14px 12px;
       border-radius: 14px;
       margin-bottom: 12px;
       text-align: center;
       position: relative;
       z-index: 2;
+    }
+    @media (max-width: 640px) {
+      .vault-kpis-grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
 
     .vault-kpi-item.span-full {
@@ -2918,84 +2464,7 @@
         <!-- Dynamically injected based on permissions -->
       </div>
 
-      <!-- Quick Action Cards (Workshop Field Operations) -->
-      <div class="section-headline">
-        <h3>⚡ إجراءات الورشة السريعة</h3>
-      </div>
-      <div id="quickNavContainer" class="quick-actions-grid">
-        <!-- Dynamically injected based on permissions -->
-      </div>
-          </div>
-          <div id="mechanicTierBadge" class="mech-tier-pill">
-            <i class="fa-solid fa-gauge-high"></i>
-            <span id="mechTierName">المستوى 1</span>
-          </div>
-        </div>
-
-        <!-- Big Hero Potential Reward Display -->
-        <div class="mech-reward-hero-card">
-          <div class="mech-reward-label">
-            <i class="fa-solid fa-sack-dollar"></i> مكافأة التارقت المحتملة
-          </div>
-          <div class="mech-reward-amount" id="mechanicPotentialRewardVal">0 ﷼</div>
-          <div class="mech-reward-formula" id="mechanicFormulaText">تحت 10,000 ﷼: المكافأة 0 ﷼</div>
-        </div>
-
-        <!-- KPI Row: Net Income & Potential Reward & Remaining -->
-        <div class="mech-kpis-row">
-          <div class="mech-kpi-item">
-            <div class="mech-kpi-sub">الدخل المحقق</div>
-            <div class="mech-kpi-main mech-color-blue" id="mechNetIncomeVal">0 ﷼</div>
-          </div>
-          <div class="mech-kpi-item">
-            <div class="mech-kpi-sub">المكافأة المحتملة</div>
-            <div class="mech-kpi-main mech-color-emerald" id="mechCurrentRewardKpi">0 ﷼</div>
-          </div>
-          <div class="mech-kpi-item">
-            <div class="mech-kpi-sub" id="mechNextTargetLabel">للمستوى القادم</div>
-            <div class="mech-kpi-main mech-color-purple" id="mechRemainingNextVal">0 ﷼</div>
-          </div>
-        </div>
-
-        <!-- 3-Tier Visual Incentive Stepper (No yellow colors) -->
-        <div class="mech-tiers-container">
-          <div class="mech-tier-box" id="tierBox1">
-            <div class="tier-box-badge" id="tierBadge1">تحت 10,000</div>
-            <div class="tier-box-reward">0 ﷼</div>
-            <div class="tier-box-desc">المستوى التمهيدي</div>
-          </div>
-          <div class="mech-tier-box" id="tierBox2">
-            <div class="tier-box-badge" id="tierBadge2">10,000 واكثر</div>
-            <div class="tier-box-reward">+1,250 ﷼</div>
-            <div class="tier-box-desc">مكافأة ثابتة</div>
-          </div>
-          <div class="mech-tier-box" id="tierBox3">
-            <div class="tier-box-badge" id="tierBadge3">15,000 واكثر</div>
-            <div class="tier-box-reward">10% من الدخل</div>
-            <div class="tier-box-desc">نسبة مفتوحة 👑</div>
-          </div>
-        </div>
-
-        <!-- Motivational Fill Progress Bar (Emerald / Cyan / Blue, NO YELLOW) -->
-        <div class="mech-fill-wrapper">
-          <div class="mech-fill-track">
-            <div id="mechFillBar" class="mech-fill-bar-active"></div>
-          </div>
-          <div class="mech-fill-markers">
-            <span>0 ﷼</span>
-            <span>10,000 ﷼ (+1,250 ﷼)</span>
-            <span>15,000 ﷼ (10% مفتوحة)</span>
-          </div>
-        </div>
-
-        <!-- Dynamic Motivational Message Box -->
-        <div class="mech-motivational-box" id="mechMotivationalBox">
-          <i class="fa-solid fa-bullhorn" style="font-size: 14px;"></i>
-          <span id="mechMotivationalMsgText">جاري تحميل حافز اليوم...</span>
-        </div>
-      </div>
-
-      <!-- 🎯 الهدف المالي والحوافز -->
+      <!-- 🎯 الهدف المالي والحوافز (تصميم زجاجي نظيف وغير مكرر) -->
       <div id="vaultTargetSection" class="vault-target-card" style="display:none;">
         <div class="vault-header">
           <div class="vault-title-group">
@@ -3003,9 +2472,7 @@
               <i class="fa-solid fa-bullseye"></i>
             </div>
             <div>
-              <div class="vault-title">
-                <span>الهدف المالي والحوافز</span>
-              </div>
+              <div class="vault-title">الهدف المالي والحوافز</div>
               <div class="vault-subtitle">مؤشرات الأداء المالي والعمولات المستحقة</div>
             </div>
           </div>
@@ -3015,10 +2482,10 @@
           </div>
         </div>
 
-        <!-- العناصر الـ 5 المنظمة -->
-        <div class="vault-kpis-grid-5">
+        <!-- شبكة المؤشرات الـ 4 المنظمة دون تكرار -->
+        <div class="vault-kpis-grid-4">
           <div class="vault-kpi-item">
-            <div class="kpi-sub">المبلغ المحقق</div>
+            <div class="kpi-sub">الدخل المحقق</div>
             <div class="kpi-main kpi-net" id="vaultNetIncomeVal">0 ﷼</div>
           </div>
           <div class="vault-kpi-item">
@@ -3029,20 +2496,16 @@
             <div class="kpi-sub">المبلغ المتبقي</div>
             <div class="kpi-main kpi-rem" id="vaultRemainingVal">0 ﷼</div>
           </div>
-          <div class="vault-kpi-item span-2">
-            <div class="kpi-sub">نسبة الإنجاز المحققة</div>
-            <div class="kpi-main kpi-percent" id="vaultAchievementRateVal">0%</div>
-          </div>
           <div class="vault-kpi-item highlight-incentive">
-            <div class="kpi-sub">الحافز المستحق</div>
+            <div class="kpi-sub" style="color: #059669 !important;">الحافز المستحق</div>
             <div class="kpi-main kpi-incentive" id="vaultEarnedIncentiveVal">0 ﷼</div>
           </div>
         </div>
 
-        <!-- شريط التقدم المتدرج من البرتقالي للأخضر مع نسبة الإنجاز والرسائل -->
+        <!-- شريط التقدم المتدرج من البرتقالي للأخضر مع الرسائل التحفيزية -->
         <div class="motivational-fill-wrapper" style="border: 1px solid rgba(217, 119, 6, 0.25);">
           <div class="fill-header-row">
-            <span class="fill-label">نسبة التقدم نحو الهدف:</span>
+            <span class="fill-label">نسبة الإنجاز نحو الهدف:</span>
             <span class="fill-rate" id="fillRateText">0%</span>
           </div>
           <div class="fill-track-outer">
@@ -3060,6 +2523,9 @@
             <span id="vaultMsgText">بداية موفقة، واصل التقدم!</span>
           </div>
         </div>
+
+        <!-- Hidden legacy hooks for complete script compatibility -->
+        <div id="vaultAchievementRateVal" style="display:none;">0%</div>
       </div>
 
       <!-- Quick KPI Summary -->
@@ -3069,31 +2535,33 @@
       <div id="dashKpiGrid" class="kpi-stats-grid">
         <div class="kpi-card highlight span-2">
           <div class="kpi-card-header">
-            <span class="kpi-label">الراتب المستحق</span>
-            <div class="kpi-icon" style="background: rgba(255,255,255,0.2);"><i class="fa-solid fa-money-bill"></i></div>
+            <span class="kpi-label">صافي الراتب المستحق</span>
+            <div class="kpi-icon" style="background: rgba(255,255,255,0.2);"><i class="fa-solid fa-money-bill-wave"></i></div>
           </div>
           <div class="kpi-value" id="dashNetRemaining">0 ﷼</div>
         </div>
 
         <div class="kpi-card">
           <div class="kpi-card-header">
-            <span class="kpi-label">الدخل المحقق</span>
-            <div class="kpi-icon" style="background:#dcfce7; color:#166534;"><i class="fa-solid fa-sack-dollar"></i></div>
+            <span class="kpi-label">إجمالي السحوبات</span>
+            <div class="kpi-icon" style="background: rgba(239,68,68,0.12); color: #dc2626;"><i class="fa-solid fa-credit-card"></i></div>
           </div>
-          <div class="kpi-value" id="dashTotalIncome">0</div>
-          <div id="dashIncomeHidden" style="display:none; font-size:12px; color:var(--text-muted); font-weight:700;">🔒 مخفي</div>
+          <div class="kpi-value" id="dashTotalWithdrawals" style="color: #dc2626;">0 ﷼</div>
         </div>
 
         <div class="kpi-card">
           <div class="kpi-card-header">
-            <span class="kpi-label">نسبة الإنجاز</span>
-            <div class="kpi-icon" style="background:#fef3c7; color:#92400e;">🎯</div>
+            <span class="kpi-label">الرصيد المتبقي</span>
+            <div class="kpi-icon" style="background: rgba(14,165,233,0.15); color: #0284c7;"><i class="fa-solid fa-wallet"></i></div>
           </div>
-          <div class="kpi-value" id="dashTargetPercent">0%</div>
-          <div class="progress-track">
-            <div class="progress-bar-fill" id="dashProgressFill"></div>
-          </div>
+          <div class="kpi-value" id="dashRemainingBalance" style="color: #0284c7;">0 ﷼</div>
         </div>
+
+        <!-- Hidden hooks for script compatibility -->
+        <div id="dashTotalIncome" style="display:none;">0</div>
+        <div id="dashIncomeHidden" style="display:none;"></div>
+        <div id="dashTargetPercent" style="display:none;">0%</div>
+        <div id="dashProgressFill" style="display:none;"></div>
       </div>
 
       <!-- Live Assigned Job Orders & Tasks -->
@@ -3991,6 +3459,10 @@
 
         // Dashboard Tab Values
         document.getElementById('dashNetRemaining').innerHTML = formatMoneyDisplay(netRemainingVal);
+        const dashWithEl = document.getElementById('dashTotalWithdrawals');
+        if (dashWithEl) dashWithEl.innerHTML = formatMoneyDisplay(withdrawals);
+        const dashRemEl = document.getElementById('dashRemainingBalance');
+        if (dashRemEl) dashRemEl.innerHTML = formatMoneyDisplay(remaining);
         document.getElementById('finNetRemaining').innerHTML = formatMoneyDisplay(netRemainingVal);
         document.getElementById('finTotalWithdrawals').innerHTML = formatMoneyDisplay(withdrawals);
         document.getElementById('finRemainingBalance').innerHTML = formatMoneyDisplay(remaining);
