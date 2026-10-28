@@ -3406,31 +3406,38 @@ const handleDbRestore = async (req, res) => {
                 'sys_notifications', 'inspection_photos', 'workshop_lifts', 'work_schedule', 'promo_codes'
             ];
 
-            const { pool } = require('./db');
-            if (pool) await pool.query('SET FOREIGN_KEY_CHECKS = 0');
-
-            for (const tableName of tablesToTransfer) {
-                try {
-                    const tableExists = await sqliteGetAll(`SELECT name FROM sqlite_master WHERE type='table' AND name='${tableName}'`);
-                    if (!tableExists || tableExists.length === 0) continue;
-
-                    const rows = await sqliteGetAll(`SELECT * FROM ${tableName}`);
-                    if (!rows || rows.length === 0) continue;
-
-                    for (const row of rows) {
-                        const keys = Object.keys(row);
-                        const quotedKeys = keys.map(k => `\`${k}\``).join(', ');
-                        const placeholders = keys.map(() => '?').join(', ');
-                        const values = keys.map(k => row[k]);
-
-                        await dbRun(`REPLACE INTO \`${tableName}\` (${quotedKeys}) VALUES (${placeholders})`, values);
-                    }
-                } catch (tblErr) {
-                    console.warn(`⚠️ تعذر استيراد جدول ${tableName}:`, tblErr.message);
-                }
+            const { pool, sanitizeForDb } = require('./db');
+            if (pool) {
+                await pool.query('SET FOREIGN_KEY_CHECKS = 0');
+                try { await pool.query("SET sql_mode = ''"); } catch(e) {}
             }
 
-            if (pool) await pool.query('SET FOREIGN_KEY_CHECKS = 1');
+            try {
+                for (const tableName of tablesToTransfer) {
+                    try {
+                        const tableExists = await sqliteGetAll(`SELECT name FROM sqlite_master WHERE type='table' AND name='${tableName}'`);
+                        if (!tableExists || tableExists.length === 0) continue;
+
+                        const rows = await sqliteGetAll(`SELECT * FROM ${tableName}`);
+                        if (!rows || rows.length === 0) continue;
+
+                        for (const row of rows) {
+                            const keys = Object.keys(row);
+                            const quotedKeys = keys.map(k => `\`${k}\``).join(', ');
+                            const placeholders = keys.map(() => '?').join(', ');
+                            const values = keys.map(k => (typeof sanitizeForDb === 'function' ? sanitizeForDb(row[k]) : row[k]));
+
+                            await dbRun(`REPLACE INTO \`${tableName}\` (${quotedKeys}) VALUES (${placeholders})`, values);
+                        }
+                    } catch (tblErr) {
+                        console.warn(`⚠️ تعذر استيراد جدول ${tableName}:`, tblErr.message);
+                    }
+                }
+            } finally {
+                if (pool) {
+                    try { await pool.query('SET FOREIGN_KEY_CHECKS = 1'); } catch(e) {}
+                }
+            }
             srcDb.close();
             if (fs.existsSync(uploadedPath)) fs.unlinkSync(uploadedPath);
 
