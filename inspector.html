@@ -212,52 +212,211 @@
 
         /* --- Shortcuts & Quick Add Drawer --- */
         .shortcuts-card {
-            background: #f0fdf4;
+            background: linear-gradient(180deg, #f0fdf4 0%, #ecfdf5 100%);
             border: 1.5px solid #86efac;
             border-radius: var(--radius-md);
             padding: 12px 14px;
             margin-bottom: 14px;
+            box-shadow: 0 2px 10px rgba(22, 101, 52, 0.05);
+            transition: all 0.25s ease;
+        }
+
+        .shortcuts-card.collapsed .shortcuts-grid-wrap {
+            display: none !important;
+        }
+
+        .shortcuts-card.collapsed {
+            padding: 10px 14px;
+            margin-bottom: 10px;
         }
 
         .shortcuts-title {
-            font-size: 13px;
+            font-size: 13.5px;
             font-weight: 800;
             color: #166534;
-            margin-bottom: 8px;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
-        .shortcuts-scroll-wrap {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            padding: 4px 0 2px 0;
-            -webkit-overflow-scrolling: touch;
+        .shortcuts-badge-icon {
+            font-size: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bundles-count-pill {
+            font-size: 11px;
+            font-weight: 800;
+            background: #dcfce7;
+            color: #15803d;
+            padding: 2px 8px;
+            border-radius: 12px;
+            border: 1px solid #bbf7d0;
+        }
+
+        .btn-toggle-shortcuts {
+            background: white;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.15s ease;
+        }
+
+        .btn-toggle-shortcuts:hover {
+            background: #dcfce7;
+            border-color: #86efac;
+        }
+
+        .link-manage-bundles {
+            font-size: 11.5px;
+            color: #166534;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(22, 101, 52, 0.08);
+            padding: 4px 10px;
+            border-radius: 8px;
+            transition: all 0.15s ease;
+        }
+
+        .link-manage-bundles:hover {
+            background: rgba(22, 101, 52, 0.15);
+            text-decoration: underline;
+        }
+
+        /* Desktop Grid Layout: No horizontal scroll! Natural multi-column grid with vertical scrolling if needed */
+        .shortcuts-grid-wrap {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+            max-height: 280px;
+            overflow-y: auto;
+            padding: 4px 2px;
+            scrollbar-width: thin;
+            scrollbar-color: #86efac #f0fdf4;
+        }
+
+        .shortcuts-grid-wrap::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .shortcuts-grid-wrap::-webkit-scrollbar-thumb {
+            background-color: #86efac;
+            border-radius: 10px;
         }
 
         .bundle-quick-pill {
-            display: inline-flex;
+            display: flex;
             align-items: center;
-            gap: 6px;
-            background: white;
-            padding: 8px 12px;
+            gap: 10px;
+            background: #ffffff;
+            padding: 10px 12px;
             border-radius: var(--radius-sm);
             border: 1.5px solid #bbf7d0;
             color: #166534;
-            font-weight: 800;
-            font-size: 12px;
             cursor: pointer;
-            white-space: nowrap;
-            flex-shrink: 0;
-            transition: all 0.15s;
-            box-shadow: var(--shadow-sm);
+            text-align: right;
+            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .bundle-quick-pill:hover {
+            border-color: #16a34a;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(22, 101, 52, 0.12);
+            background: #fdfefe;
         }
 
         .bundle-quick-pill:active {
-            transform: scale(0.94);
+            transform: scale(0.97);
             background: #dcfce7;
+        }
+
+        .bundle-pill-icon {
+            font-size: 20px;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: #f0fdf4;
+            border: 1px solid #dcfce7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .bundle-pill-body {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .bundle-pill-name {
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .bundle-pill-count {
+            font-size: 11px;
+            font-weight: 700;
+            color: #15803d;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 640px) {
+            .shortcuts-grid-wrap {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                max-height: 220px;
+            }
+            .bundle-quick-pill {
+                padding: 8px 10px;
+                gap: 8px;
+            }
+            .bundle-pill-icon {
+                width: 30px;
+                height: 30px;
+                font-size: 16px;
+            }
+            .bundle-pill-name {
+                font-size: 12px;
+            }
+            .bundle-pill-count {
+                font-size: 10px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .shortcuts-grid-wrap {
+                grid-template-columns: 1fr;
+            }
         }
 
         /* --- Quick Add Manual Service --- */
@@ -1052,14 +1211,27 @@
             </div>
         </div>
 
-        <!-- Bundles Shortcuts Carousel -->
-        <div class="shortcuts-card no-print">
+        <!-- Bundles Shortcuts Section -->
+        <div class="shortcuts-card no-print" id="bundlesShortcutsCard">
             <div class="shortcuts-title">
-                <span>🚀 باقات سريعة (اختصارات بضغطة واحدة):</span>
-                <a href="shortcuts_manager.html" style="font-size: 11px; color: #166534; font-weight: 700; text-decoration: underline;">⚙️ إدارة الباقات</a>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="shortcuts-badge-icon">🚀</span>
+                    <span>باقات الصيانة السريعة (اختصارات بنقرة واحدة):</span>
+                    <span id="bundlesCountBadge" class="bundles-count-pill" style="display:none;">0 باقة</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button type="button" id="toggleBundlesCollapseBtn" class="btn-toggle-shortcuts" onclick="toggleBundlesSection()" title="طي أو توسيع عرض باقات الصيانة">
+                        <span id="toggleBundlesIcon">🔼</span>
+                        <span id="toggleBundlesText">طي الباقات</span>
+                    </button>
+                    <a href="shortcuts_manager.html" class="link-manage-bundles" title="إضافة أو تعديل باقات الصيانة">
+                        <span>⚙️</span>
+                        <span>إدارة الباقات</span>
+                    </a>
+                </div>
             </div>
-            <div class="shortcuts-scroll-wrap" id="bundlesShortcutsContainer">
-                <div style="color: #166534; font-size: 12px; font-weight: 600;">⏳ جاري تحميل الباقات...</div>
+            <div class="shortcuts-grid-wrap" id="bundlesShortcutsContainer">
+                <div style="color: #166534; font-size: 12px; font-weight: 600; padding: 10px;">⏳ جاري تحميل الباقات...</div>
             </div>
         </div>
 
@@ -1823,6 +1995,19 @@
         async function loadBundles() {
             const container = document.getElementById('bundlesShortcutsContainer');
             try {
+                // Check if user previously collapsed bundles section
+                try {
+                    const savedCollapsed = localStorage.getItem('bundles_card_collapsed');
+                    if (savedCollapsed === '1') {
+                        const card = document.getElementById('bundlesShortcutsCard');
+                        const icon = document.getElementById('toggleBundlesIcon');
+                        const text = document.getElementById('toggleBundlesText');
+                        if (card) card.classList.add('collapsed');
+                        if (icon) icon.textContent = '🔽';
+                        if (text) text.textContent = 'عرض الباقات';
+                    }
+                } catch(e) {}
+
                 const res = await fetch('/api/inspection-bundles');
                 if (!res.ok) throw new Error('فشل جلب باقات الكشف');
                 allBundles = await res.json();
@@ -1831,7 +2016,7 @@
             } catch (e) {
                 console.error('Error loading bundles:', e);
                 if (container) {
-                    container.innerHTML = '<div style="color: #166534; font-size: 12px; font-weight: 600;">لا توجد باقات سريعة مضافة حالياً. يمكنك إضافتها من <a href="shortcuts_manager.html" style="color:var(--primary); text-decoration:underline;">إدارة باقات الصيانة</a></div>';
+                    container.innerHTML = '<div style="color: #166534; font-size: 12px; font-weight: 600; padding: 10px;">لا توجد باقات سريعة مضافة حالياً. يمكنك إضافتها من <a href="shortcuts_manager.html" style="color:var(--primary); text-decoration:underline;">إدارة باقات الصيانة</a></div>';
                 }
             }
         }
@@ -1839,20 +2024,51 @@
         function renderBundleShortcuts() {
             const container = document.getElementById('bundlesShortcutsContainer');
             if (!container) return;
+            const countBadge = document.getElementById('bundlesCountBadge');
+
             if (!allBundles || allBundles.length === 0) {
-                container.innerHTML = '<div style="color: #166534; font-size: 12px; font-weight: 600;">لا توجد باقات مضافة حالياً. يمكنك إضافتها من <a href="shortcuts_manager.html" style="color:var(--primary); text-decoration:underline;">إدارة باقات الصيانة</a></div>';
+                if (countBadge) countBadge.style.display = 'none';
+                container.innerHTML = '<div style="color: #166534; font-size: 12px; font-weight: 600; padding: 10px;">لا توجد باقات مضافة حالياً. يمكنك إضافتها من <a href="shortcuts_manager.html" style="color:var(--primary); text-decoration:underline;">إدارة باقات الصيانة</a></div>';
                 return;
             }
+
+            if (countBadge) {
+                countBadge.textContent = `${allBundles.length} باقة`;
+                countBadge.style.display = 'inline-block';
+            }
+
             container.innerHTML = allBundles.map(b => {
                 const count = b.items ? b.items.length : 0;
+                const safeName = escapeHtml(b.name || 'باقة صيانة');
+                const safeIcon = b.icon || '🚀';
                 return `
-                <button type="button" class="bundle-quick-pill" onclick="applyBundle(${b.id})">
-                    <span>${b.icon || '🚀'}</span>
-                    <span>${b.name}</span>
-                    <span style="font-size: 10px; background: #dcfce7; color: #15803d; padding: 2px 6px; border-radius: 4px;">${count} بنود ➕</span>
+                <button type="button" class="bundle-quick-pill" onclick="applyBundle(${b.id})" title="إضافة باقة: ${safeName} (${count} بنود صيانة)">
+                    <div class="bundle-pill-icon">${safeIcon}</div>
+                    <div class="bundle-pill-body">
+                        <span class="bundle-pill-name">${safeName}</span>
+                        <span class="bundle-pill-count">
+                            <span>${count} بنود صيانة</span>
+                            <span style="color:#059669; font-weight:800; margin-right:auto;">➕ إضافة</span>
+                        </span>
+                    </div>
                 </button>
                 `;
             }).join('');
+        }
+
+        function toggleBundlesSection() {
+            const card = document.getElementById('bundlesShortcutsCard');
+            const icon = document.getElementById('toggleBundlesIcon');
+            const text = document.getElementById('toggleBundlesText');
+            if (!card) return;
+
+            const isCollapsed = card.classList.toggle('collapsed');
+            if (icon) icon.textContent = isCollapsed ? '🔽' : '🔼';
+            if (text) text.textContent = isCollapsed ? 'عرض الباقات' : 'طي الباقات';
+
+            try {
+                localStorage.setItem('bundles_card_collapsed', isCollapsed ? '1' : '0');
+            } catch (e) {}
         }
 
         function applyBundle(bundleId) {
