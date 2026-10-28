@@ -146,7 +146,8 @@ const {
     autoMigrateFromSqliteIfEmpty,
     isMySQL,
     exportDatabaseJson,
-    restoreDatabaseFromJson
+    restoreDatabaseFromJson,
+    restoreFromSqliteDatabase
 } = require('./db');
 
 // تهيئة الجداول وترحيل الحقول عند إقلاع التطبيق
@@ -3383,11 +3384,15 @@ const handleDbRestore = async (req, res) => {
 
     const uploadedPath = file.path;
     try {
-        // فحص ما إذا كان الملف المرفوع JSON
+        // 1. فحص ما إذا كان الملف المرفوع JSON
         let isJson = false;
         let jsonData = null;
         try {
-            const fileContentSample = fs.readFileSync(uploadedPath, { encoding: 'utf8', flag: 'r' }).trim();
+            let fileContentSample = fs.readFileSync(uploadedPath, { encoding: 'utf8', flag: 'r' }).trim();
+            // إزالة علامة BOM (Byte Order Mark) إن وجدت في أول الملف
+            if (fileContentSample.charCodeAt(0) === 0xFEFF) {
+                fileContentSample = fileContentSample.slice(1).trim();
+            }
             if (fileContentSample.startsWith('{') && fileContentSample.endsWith('}')) {
                 jsonData = JSON.parse(fileContentSample);
                 isJson = Boolean(jsonData && jsonData.tables);
@@ -3396,15 +3401,23 @@ const handleDbRestore = async (req, res) => {
 
         if (isJson) {
             console.log('🔄 جاري استعادة البيانات من ملف JSON...');
-            await restoreDatabaseFromJson(jsonData);
+            const { totalRestored, tableStats } = await restoreDatabaseFromJson(jsonData);
             if (fs.existsSync(uploadedPath)) fs.unlinkSync(uploadedPath);
+
+            const tableCount = Object.keys(tableStats || {}).length;
+            console.log(`✅ اكتملت استعادة JSON: تم استيراد ${totalRestored} سجل في ${tableCount} جدول.`);
+
             return res.json({
                 success: true,
-                message: "تمت استعادة قاعدة البيانات بنجاح من ملف JSON 🚀"
+                message: totalRestored > 0 
+                    ? `تمت استعادة قاعدة البيانات بنجاح! تم استيراد وتحديث ${totalRestored} سجل في ${tableCount} جدولاً 🚀`
+                    : "تم فحص الملف ولكن لم يتم العثور على سجلات جديدة لتحديثها.",
+                stats: tableStats,
+                total: totalRestored
             });
         }
 
-        // في حال كان ملف SQLite
+        // 2. فحص ما إذا كان الملف المرفوع SQLite (.sqlite أو .db)
         const buffer = Buffer.alloc(16);
         const fd = fs.openSync(uploadedPath, 'r');
         fs.readSync(fd, buffer, 0, 16, 0);
@@ -3413,80 +3426,24 @@ const handleDbRestore = async (req, res) => {
         const headerStr = buffer.toString('utf8');
         if (!headerStr.startsWith('SQLite format 3')) {
             if (fs.existsSync(uploadedPath)) fs.unlinkSync(uploadedPath);
-            return res.status(400).json({ message: "الملف المرفوع ليس ملف قاعدة بيانات صالح (.json أو .sqlite)!" });
+            return res.status(400).json({ message: "الملف المرفوع ليس ملف قاعدة بيانات صالح (.json أو .sqlite أو .db)!" });
         }
 
-        if (isMySQL) {
-            console.log('🔄 جاري تحويل واستيراد ملف SQLite إلى قاعدة MySQL المدارة...');
-            const sqlite3 = require('sqlite3').verbose();
-            const srcDb = new sqlite3.Database(uploadedPath, sqlite3.OPEN_READONLY);
-            const sqliteGetAll = (query) => new Promise((resolve, reject) => {
-                srcDb.all(query, (err, rows) => err ? reject(err) : resolve(rows || []));
-            });
+        console.log('🔄 جاري استعادة وتحديث البيانات من ملف SQLite...');
+        const { totalRestored, tableStats } = await restoreFromSqliteDatabase(uploadedPath);
+        if (fs.existsSync(uploadedPath)) fs.unlinkSync(uploadedPath);
 
-            const tablesToTransfer = [
-                'sections', 'banks', 'employees', 'users', 'settings', 'branch_shifts',
-                'services', 'inspection_terms', 'inspection_bundles', 'inspection_bundle_items',
-                'clients', 'inspections', 'inspection_items', 'inspection_technicians',
-                'entries', 'withdrawals', 'absences', 'attendance', 'messages',
-                'sys_notifications', 'inspection_photos', 'workshop_lifts', 'work_schedule', 'promo_codes'
-            ];
+        const tableCount = Object.keys(tableStats || {}).length;
+        console.log(`✅ اكتملت استعادة SQLite: تم استيراد ${totalRestored} سجل في ${tableCount} جدول.`);
 
-            const { pool, sanitizeForDb } = require('./db');
-            if (pool) {
-                await pool.query('SET FOREIGN_KEY_CHECKS = 0');
-                try { await pool.query("SET sql_mode = ''"); } catch(e) {}
-            }
-
-            try {
-                for (const tableName of tablesToTransfer) {
-                    try {
-                        const tableExists = await sqliteGetAll(`SELECT name FROM sqlite_master WHERE type='table' AND name='${tableName}'`);
-                        if (!tableExists || tableExists.length === 0) continue;
-
-                        const rows = await sqliteGetAll(`SELECT * FROM ${tableName}`);
-                        if (!rows || rows.length === 0) continue;
-
-                        for (const row of rows) {
-                            const keys = Object.keys(row);
-                            const quotedKeys = keys.map(k => `\`${k}\``).join(', ');
-                            const placeholders = keys.map(() => '?').join(', ');
-                            const values = keys.map(k => (typeof sanitizeForDb === 'function' ? sanitizeForDb(row[k]) : row[k]));
-
-                            await dbRun(`REPLACE INTO \`${tableName}\` (${quotedKeys}) VALUES (${placeholders})`, values);
-                        }
-                    } catch (tblErr) {
-                        console.warn(`⚠️ تعذر استيراد جدول ${tableName}:`, tblErr.message);
-                    }
-                }
-            } finally {
-                if (pool) {
-                    try { await pool.query('SET FOREIGN_KEY_CHECKS = 1'); } catch(e) {}
-                }
-            }
-            srcDb.close();
-            if (fs.existsSync(uploadedPath)) fs.unlinkSync(uploadedPath);
-
-            return res.json({
-                success: true,
-                message: "تم استيراد كافة بيانات SQLite إلى قاعدة بيانات MySQL بنجاح 🚀"
-            });
-        } else {
-            // بيئة SQLite المحلية
-            const dbPath = path.join(__dirname, 'db.sqlite');
-            if (fs.existsSync(dbPath)) {
-                const safetyBackup = path.join(__dirname, `backup_auto_safety_${Date.now()}.sqlite`);
-                try { fs.copyFileSync(dbPath, safetyBackup); } catch (be) { }
-            }
-            fs.copyFileSync(uploadedPath, dbPath);
-            if (fs.existsSync(uploadedPath)) fs.unlinkSync(uploadedPath);
-            await initDatabase();
-
-            return res.json({
-                success: true,
-                message: "تمت استعادة قاعدة بيانات SQLite المحلية بنجاح 🚀"
-            });
-        }
+        return res.json({
+            success: true,
+            message: totalRestored > 0 
+                ? `تمت استعادة كافة البيانات بنجاح! تم استيراد وتحديث ${totalRestored} سجل في ${tableCount} جدولاً 🚀`
+                : "تم فحص ملف SQLite ولكن لم يتم العثور على سجلات مطابقة لترحيلها.",
+            stats: tableStats,
+            total: totalRestored
+        });
     } catch (error) {
         console.error("Restore DB Error:", error);
         if (fs.existsSync(uploadedPath)) fs.unlinkSync(uploadedPath);

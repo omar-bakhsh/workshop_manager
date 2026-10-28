@@ -1262,25 +1262,38 @@ async function exportDatabaseJson() {
 }
 
 function sanitizeForDb(val) {
-    if (val === undefined) return null;
+    if (val === undefined || val === null) return null;
     if (typeof val === 'boolean') return val ? 1 : 0;
     if (typeof val === 'string') {
-        // Convert ISO 8601 strings (e.g. 2026-09-20T07:41:43.000Z) to MySQL standard DATETIME format YYYY-MM-DD HH:MM:SS
-        const isoMatch = val.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2})(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?$/);
+        const trimmed = val.trim();
+        if (trimmed === 'null' || trimmed === 'undefined') return null;
+
+        // Convert ISO 8601 strings (e.g. 2026-09-20T07:41:43.000Z or 2026-09-20 07:41:43.000Z) to MySQL standard DATETIME format YYYY-MM-DD HH:MM:SS
+        const isoMatch = trimmed.match(/^(\d{4}-\d{2}-\d{2})[T\s](\d{2}:\d{2}:\d{2})(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?$/);
         if (isoMatch) {
             return `${isoMatch[1]} ${isoMatch[2]}`;
         }
+        return val;
+    }
+    if (val instanceof Date) {
+        if (isNaN(val.getTime())) return null;
+        return val.toISOString().slice(0, 19).replace('T', ' ');
     }
     return val;
 }
 
-async function getTableColumnNames(tableName) {
+async function getTableColumnNames(tableName, targetConn = null) {
     try {
-        const cols = isMySQL 
-            ? await dbAll(`SHOW COLUMNS FROM \`${tableName}\``)
-            : await dbAll(`PRAGMA table_info(\`${tableName}\`)`);
+        let cols;
+        if (isMySQL) {
+            const runner = targetConn || pool;
+            const [rows] = await runner.query(`SHOW COLUMNS FROM \`${tableName}\``);
+            cols = rows;
+        } else {
+            cols = await dbAll(`PRAGMA table_info(\`${tableName}\`)`);
+        }
         const colSet = new Set();
-        cols.forEach(c => {
+        (cols || []).forEach(c => {
             const name = c.Field || c.name;
             if (name) colSet.add(name.toLowerCase());
         });
@@ -1292,51 +1305,195 @@ async function getTableColumnNames(tableName) {
 
 async function restoreDatabaseFromJson(jsonData) {
     if (!jsonData || !jsonData.tables) {
-        throw new Error('بيانات النسخ الاحتياطي غير صالحة');
+        throw new Error('بيانات النسخ الاحتياطي غير صالحة: ملف غير متوافق');
     }
 
+    let totalRestored = 0;
+    const tableStats = {};
+
     if (isMySQL) {
+        const conn = await pool.getConnection();
         try {
-            await pool.query('SET FOREIGN_KEY_CHECKS = 0');
-            await pool.query("SET sql_mode = ''");
-        } catch (e) {
-            console.warn('⚠️ تنبيه عند تعطيل قيود المفاتيح الأجنبية:', e.message);
+            await conn.query('SET FOREIGN_KEY_CHECKS = 0');
+            try { await conn.query("SET SESSION sql_mode = ''"); } catch (e) {}
+
+            for (const tableName of Object.keys(jsonData.tables)) {
+                const rows = jsonData.tables[tableName];
+                if (!Array.isArray(rows) || rows.length === 0) continue;
+
+                const existingCols = await getTableColumnNames(tableName, conn);
+                if (!existingCols || existingCols.size === 0) continue;
+
+                let tableCount = 0;
+                for (const row of rows) {
+                    let keys = Object.keys(row).filter(k => existingCols.has(k.toLowerCase()));
+                    if (keys.length === 0) continue;
+
+                    const quotedKeys = keys.map(k => `\`${k}\``).join(', ');
+                    const placeholders = keys.map(() => '?').join(', ');
+                    const values = keys.map(k => sanitizeForDb(row[k]));
+
+                    try {
+                        await conn.query(
+                            `REPLACE INTO \`${tableName}\` (${quotedKeys}) VALUES (${placeholders})`,
+                            values
+                        );
+                        tableCount++;
+                        totalRestored++;
+                    } catch (rowErr) {
+                        console.warn(`⚠️ خطأ في سطر من جدول ${tableName}:`, rowErr.message);
+                    }
+                }
+                tableStats[tableName] = tableCount;
+            }
+        } finally {
+            try { await conn.query('SET FOREIGN_KEY_CHECKS = 1'); } catch (e) {}
+            conn.release();
+        }
+    } else {
+        await dbRun('PRAGMA foreign_keys = OFF');
+        try {
+            for (const tableName of Object.keys(jsonData.tables)) {
+                const rows = jsonData.tables[tableName];
+                if (!Array.isArray(rows) || rows.length === 0) continue;
+
+                const existingCols = await getTableColumnNames(tableName);
+                let tableCount = 0;
+                for (const row of rows) {
+                    let keys = Object.keys(row);
+                    if (existingCols && existingCols.size > 0) {
+                        keys = keys.filter(k => existingCols.has(k.toLowerCase()));
+                    }
+                    if (keys.length === 0) continue;
+
+                    const quotedKeys = keys.map(k => `\`${k}\``).join(', ');
+                    const placeholders = keys.map(() => '?').join(', ');
+                    const values = keys.map(k => sanitizeForDb(row[k]));
+
+                    try {
+                        await dbRun(
+                            `REPLACE INTO \`${tableName}\` (${quotedKeys}) VALUES (${placeholders})`,
+                            values
+                        );
+                        tableCount++;
+                        totalRestored++;
+                    } catch (rowErr) {
+                        console.warn(`⚠️ خطأ في سطر من جدول ${tableName}:`, rowErr.message);
+                    }
+                }
+                tableStats[tableName] = tableCount;
+            }
+        } finally {
+            await dbRun('PRAGMA foreign_keys = ON');
         }
     }
 
+    return { totalRestored, tableStats };
+}
+
+async function restoreFromSqliteDatabase(sqliteFilePath) {
+    const sqlite3 = require('sqlite3').verbose();
+    const srcDb = new sqlite3.Database(sqliteFilePath, sqlite3.OPEN_READONLY);
+    const sqliteGetAll = (query) => new Promise((resolve, reject) => {
+        srcDb.all(query, (err, rows) => err ? reject(err) : resolve(rows || []));
+    });
+
+    let totalRestored = 0;
+    const tableStats = {};
+
     try {
-        for (const tableName of Object.keys(jsonData.tables)) {
-            const rows = jsonData.tables[tableName];
-            if (!Array.isArray(rows) || rows.length === 0) continue;
+        const allTablesRaw = await sqliteGetAll("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+        const sourceTables = allTablesRaw.map(t => t.name);
 
-            const existingCols = await getTableColumnNames(tableName);
+        if (isMySQL) {
+            const conn = await pool.getConnection();
+            try {
+                await conn.query('SET FOREIGN_KEY_CHECKS = 0');
+                try { await conn.query("SET SESSION sql_mode = ''"); } catch (e) {}
 
-            for (const row of rows) {
-                let keys = Object.keys(row);
-                if (existingCols && existingCols.size > 0) {
-                    keys = keys.filter(k => existingCols.has(k.toLowerCase()));
+                for (const tableName of sourceTables) {
+                    try {
+                        const existingCols = await getTableColumnNames(tableName, conn);
+                        if (!existingCols || existingCols.size === 0) continue;
+
+                        const rows = await sqliteGetAll(`SELECT * FROM \`${tableName}\``);
+                        if (!rows || rows.length === 0) continue;
+
+                        let tableCount = 0;
+                        for (const row of rows) {
+                            let keys = Object.keys(row).filter(k => existingCols.has(k.toLowerCase()));
+                            if (keys.length === 0) continue;
+
+                            const quotedKeys = keys.map(k => `\`${k}\``).join(', ');
+                            const placeholders = keys.map(() => '?').join(', ');
+                            const values = keys.map(k => sanitizeForDb(row[k]));
+
+                            try {
+                                await conn.query(
+                                    `REPLACE INTO \`${tableName}\` (${quotedKeys}) VALUES (${placeholders})`,
+                                    values
+                                );
+                                tableCount++;
+                                totalRestored++;
+                            } catch (rowErr) {
+                                console.warn(`⚠️ خطأ في إدراج سطر بجدول ${tableName}:`, rowErr.message);
+                            }
+                        }
+                        tableStats[tableName] = tableCount;
+                    } catch (tblErr) {
+                        console.warn(`⚠️ تعذر استيراد جدول ${tableName}:`, tblErr.message);
+                    }
                 }
-                if (keys.length === 0) continue;
+            } finally {
+                try { await conn.query('SET FOREIGN_KEY_CHECKS = 1'); } catch (e) {}
+                conn.release();
+            }
+        } else {
+            await dbRun('PRAGMA foreign_keys = OFF');
+            try {
+                for (const tableName of sourceTables) {
+                    try {
+                        const existingCols = await getTableColumnNames(tableName);
+                        const rows = await sqliteGetAll(`SELECT * FROM \`${tableName}\``);
+                        if (!rows || rows.length === 0) continue;
 
-                const quotedKeys = keys.map(k => `\`${k}\``).join(', ');
-                const placeholders = keys.map(() => '?').join(', ');
-                const values = keys.map(k => sanitizeForDb(row[k]));
+                        let tableCount = 0;
+                        for (const row of rows) {
+                            let keys = Object.keys(row);
+                            if (existingCols && existingCols.size > 0) {
+                                keys = keys.filter(k => existingCols.has(k.toLowerCase()));
+                            }
+                            if (keys.length === 0) continue;
 
-                await dbRun(
-                    `REPLACE INTO \`${tableName}\` (${quotedKeys}) VALUES (${placeholders})`,
-                    values
-                );
+                            const quotedKeys = keys.map(k => `\`${k}\``).join(', ');
+                            const placeholders = keys.map(() => '?').join(', ');
+                            const values = keys.map(k => sanitizeForDb(row[k]));
+
+                            try {
+                                await dbRun(
+                                    `REPLACE INTO \`${tableName}\` (${quotedKeys}) VALUES (${placeholders})`,
+                                    values
+                                );
+                                tableCount++;
+                                totalRestored++;
+                            } catch (rowErr) {
+                                console.warn(`⚠️ خطأ في سطر من جدول ${tableName}:`, rowErr.message);
+                            }
+                        }
+                        tableStats[tableName] = tableCount;
+                    } catch (tblErr) {
+                        console.warn(`⚠️ تعذر استيراد جدول ${tableName}:`, tblErr.message);
+                    }
+                }
+            } finally {
+                await dbRun('PRAGMA foreign_keys = ON');
             }
         }
     } finally {
-        if (isMySQL) {
-            try {
-                await pool.query('SET FOREIGN_KEY_CHECKS = 1');
-            } catch (e) {}
-        }
+        srcDb.close();
     }
 
-    return true;
+    return { totalRestored, tableStats };
 }
 
 module.exports = {
@@ -1350,6 +1507,7 @@ module.exports = {
     autoMigrateFromSqliteIfEmpty,
     exportDatabaseJson,
     restoreDatabaseFromJson,
+    restoreFromSqliteDatabase,
     sanitizeForDb
 };
 
