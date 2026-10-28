@@ -1561,11 +1561,28 @@ async function cleanDuplicateEmployees() {
                     try { await dbRun('UPDATE leave_requests SET employee_id = ? WHERE employee_id = ?', [primaryId, dupId]); } catch (e) {}
                     try { await dbRun('UPDATE inspection_technicians SET technician_id = ? WHERE technician_id = ?', [primaryId, dupId]); } catch (e) {}
                     try { await dbRun('UPDATE inspections SET assigned_technician_id = ? WHERE assigned_technician_id = ?', [primaryId, dupId]); } catch (e) {}
-                    try { await dbRun('UPDATE inspections SET inspector_id = ? WHERE inspector_id = ?', [primaryId, dupId]); } catch (e) {}
-                    try { await dbRun('UPDATE users SET employee_id = ? WHERE employee_id = ?', [primaryId, dupId]); } catch (e) {}
+                    try {
+                        const existingPrimaryUser = await dbGet('SELECT id FROM users WHERE employee_id = ?', [primaryId]);
+                        if (existingPrimaryUser) {
+                            await dbRun('DELETE FROM users WHERE employee_id = ?', [dupId]);
+                        } else {
+                            await dbRun('UPDATE users SET employee_id = ? WHERE employee_id = ?', [primaryId, dupId]);
+                        }
+                    } catch (e) {}
                     try { await dbRun('UPDATE messages SET employee_id = ? WHERE employee_id = ?', [primaryId, dupId]); } catch (e) {}
                     try { await dbRun('DELETE FROM employees WHERE id = ?', [dupId]); } catch (e) {}
                 }
+            }
+        }
+
+        // تنظيف أي حسابات مستخدمين زائدة مرتبطة بنفس الموظف
+        const duplicateUsers = await dbAll('SELECT id, employee_id, username FROM users WHERE employee_id IS NOT NULL ORDER BY id ASC');
+        const seenEmpUsers = new Set();
+        for (const u of duplicateUsers) {
+            if (seenEmpUsers.has(u.employee_id)) {
+                try { await dbRun('DELETE FROM users WHERE id = ?', [u.id]); } catch (e) {}
+            } else {
+                seenEmpUsers.add(u.employee_id);
             }
         }
     } catch (e) {

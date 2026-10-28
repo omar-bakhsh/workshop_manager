@@ -593,7 +593,12 @@ app.get('/api/employees', async (req, res) => {
                 (SELECT COALESCE(SUM(amount), 0) FROM withdrawals WHERE employee_id = e.id AND status = 'approved') AS total_withdrawal
             FROM employees e
             LEFT JOIN sections s ON e.section_id = s.id
-            LEFT JOIN users u ON e.id = u.employee_id
+            LEFT JOIN (
+                SELECT employee_id, username, password 
+                FROM users 
+                WHERE employee_id IS NOT NULL 
+                GROUP BY employee_id
+            ) u ON e.id = u.employee_id
             WHERE e.is_active = 1
             ORDER BY e.id
         `);
