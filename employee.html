@@ -3743,12 +3743,23 @@
           }
         }
 
-        const base = Number(employeeData.base_salary) || 0;
-        const bonus = Number(employeeData.target_amount) || 0;
-        const withdrawals = Number(employeeData.total_withdrawal) || Number(employeeData.total_withdrawals) || 0;
-        const deposit = Number(employeeData.deposit_amount) || 0;
-        const remaining = (base + bonus) - (withdrawals + deposit);
-        const netRemainingVal = Number(employeeData.net_remaining) || remaining || 0;
+        // -------------------------------------------------------------
+        // 🎯 احتساب وتحديث مؤشرات الراتب والمالية والتارقت للموظف
+        // -------------------------------------------------------------
+        const base = Number(employeeData.base_salary) || (employeeData.info && Number(employeeData.info.base_salary)) || 0;
+        const netRemainingFromExcel = Number(employeeData.net_remaining) || 0;
+        const recordedWithdrawals = Number(employeeData.total_withdrawal) || Number(employeeData.total_withdrawals) || 0;
+
+        // 2. إجمالي السحوبات: خصم الراتب الأساسي ومبلغ الراتب الصافي من تقرير إكسل
+        let withdrawals = 0;
+        if (base > 0 && netRemainingFromExcel > 0 && base >= netRemainingFromExcel) {
+          withdrawals = base - netRemainingFromExcel;
+        } else if (recordedWithdrawals > 0) {
+          withdrawals = recordedWithdrawals;
+        }
+
+        // الراتب المتبقي من البند رقم 2 (الأساسي بعد خصم السحبيات / الصافي من إكسل)
+        const basicSalaryRemaining = (netRemainingFromExcel > 0) ? netRemainingFromExcel : Math.max(0, base - withdrawals);
 
         const formatMoneyDisplay = (val) => {
           const num = Number(val) || 0;
@@ -3757,15 +3768,89 @@
           return `<span dir="ltr" style="unicode-bidi:isolate; font-family:inherit;">${isNeg ? '-' : ''}${absStr}</span> ﷼`;
         };
 
-        // Dashboard Tab Values
-        document.getElementById('dashNetRemaining').innerHTML = formatMoneyDisplay(netRemainingVal);
-        const dashWithEl = document.getElementById('dashTotalWithdrawals');
-        if (dashWithEl) dashWithEl.innerHTML = formatMoneyDisplay(withdrawals);
+        // 1. الراتب الأساسي (المسجل من الإعدادات)
+        const dBaseEl = document.getElementById('dashBaseSalary');
+        if (dBaseEl) dBaseEl.innerHTML = formatMoneyDisplay(base);
+        const fBaseEl = document.getElementById('finBaseSalary');
+        if (fBaseEl) fBaseEl.innerHTML = formatMoneyDisplay(base);
+
+        // 2. إجمالي السحوبات (خصم الراتب الأساسي ومبلغ الراتب الصافي من تقرير إكسل)
+        const dWithEl = document.getElementById('dashTotalWithdrawals');
+        if (dWithEl) dWithEl.innerHTML = formatMoneyDisplay(withdrawals);
+        const fWithEl = document.getElementById('finTotalWithdrawals');
+        if (fWithEl) fWithEl.innerHTML = formatMoneyDisplay(withdrawals);
+
+        // تحديث صافي الراتب المتبقي
+        const dNetEl = document.getElementById('dashNetRemaining');
+        if (dNetEl) dNetEl.innerHTML = formatMoneyDisplay(basicSalaryRemaining);
+        const fNetEl = document.getElementById('finNetRemaining');
+        if (fNetEl) fNetEl.innerHTML = formatMoneyDisplay(basicSalaryRemaining);
+
         const dashRemEl = document.getElementById('dashRemainingBalance');
-        if (dashRemEl) dashRemEl.innerHTML = formatMoneyDisplay(remaining);
-        document.getElementById('finNetRemaining').innerHTML = formatMoneyDisplay(netRemainingVal);
-        document.getElementById('finTotalWithdrawals').innerHTML = formatMoneyDisplay(withdrawals);
-        document.getElementById('finRemainingBalance').innerHTML = formatMoneyDisplay(remaining);
+        if (dashRemEl) dashRemEl.innerHTML = formatMoneyDisplay(basicSalaryRemaining);
+        const finRemEl = document.getElementById('finRemainingBalance');
+        if (finRemEl) finRemEl.innerHTML = formatMoneyDisplay(basicSalaryRemaining);
+
+        // 🎯 حساب الهدف المالي والحوافز لجميع الأقسام وقسم الميكانيكا
+        const secName = (employeeData.info && employeeData.info.section_name) ? String(employeeData.info.section_name) : (employeeData.section_name ? String(employeeData.section_name) : '');
+        const secId = (employeeData.info && employeeData.info.section_id) ? Number(employeeData.info.section_id) : (Number(employeeData.section_id) || 0);
+        const isMechanics = (secId === 1 || secName.includes('مكانيك') || secName.includes('ميكانيك'));
+        const netIncome = (canViewIncome ? (Number(employeeData.total_income) || 0) : 0);
+
+        // 3. التارقت المستحق (الحافز المستحق)
+        let earnedIncentive = 0;
+        if (isMechanics) {
+          // قواعد قسم الميكانيكا المعتمدة:
+          // تحت 10,000 -> 0
+          // من 10,000 إلى 14,999 -> 1,250 ﷼
+          // 15,000 واكثر -> 10% من إجمالي الدخل
+          if (netIncome < 10000) {
+            earnedIncentive = 0;
+          } else if (netIncome >= 10000 && netIncome < 15000) {
+            earnedIncentive = 1250;
+          } else {
+            earnedIncentive = Math.round(netIncome * 0.10);
+          }
+        } else {
+          // الأقسام الأخرى
+          let targetOther = Number(employeeData.info && employeeData.info.target) || 0;
+          if (targetOther <= 0) {
+            if (employeeData.section_target_type === 'amount' && Number(employeeData.section_default_target) > 0) {
+              targetOther = Number(employeeData.section_default_target);
+            } else if (Number(employeeData.section_target_percent) > 0) {
+              targetOther = Math.round((netIncome * (Number(employeeData.section_target_percent) / 100)) + 1000);
+            }
+          }
+          if (targetOther <= 0) targetOther = 3000;
+
+          if (employeeData.target_amount && Number(employeeData.target_amount) > 0) {
+            earnedIncentive = Number(employeeData.target_amount);
+          } else if (employeeData.section_target_percent && Number(employeeData.section_target_percent) > 0) {
+            earnedIncentive = Math.round(netIncome * (Number(employeeData.section_target_percent) / 100));
+          } else if (netIncome >= targetOther) {
+            earnedIncentive = Math.round(targetOther * 0.10);
+          } else {
+            earnedIncentive = 0;
+          }
+        }
+
+        // 4. الراتب + التارقت (اجمع الحافز المستحق + راتب المتبقي من بند رقم 2)
+        const totalSalaryPlusTarget = basicSalaryRemaining + earnedIncentive;
+
+        // تحديث كروت الحافز ومجموع الراتب+التارقت
+        const dTargetEl = document.getElementById('dashEarnedTarget');
+        if (dTargetEl) dTargetEl.innerHTML = formatMoneyDisplay(earnedIncentive);
+        const dTargetSubEl = document.getElementById('dashEarnedTargetSub');
+        if (dTargetSubEl) dTargetSubEl.innerHTML = formatMoneyDisplay(earnedIncentive);
+        const fTargetEl = document.getElementById('finEarnedTarget');
+        if (fTargetEl) fTargetEl.innerHTML = formatMoneyDisplay(earnedIncentive);
+        const vIncentiveEl = document.getElementById('vaultEarnedIncentiveVal');
+        if (vIncentiveEl) vIncentiveEl.textContent = earnedIncentive.toLocaleString() + ' ﷼';
+
+        const dSalaryPlusEl = document.getElementById('dashSalaryPlusTarget');
+        if (dSalaryPlusEl) dSalaryPlusEl.innerHTML = formatMoneyDisplay(totalSalaryPlusTarget);
+        const fSalaryPlusEl = document.getElementById('finSalaryPlusTarget');
+        if (fSalaryPlusEl) fSalaryPlusEl.innerHTML = formatMoneyDisplay(totalSalaryPlusTarget);
 
         const vaultSection = document.getElementById('vaultTargetSection');
         const isTargetEnabled = (employeeData.section_target_enabled !== 0);
@@ -3778,15 +3863,9 @@
           document.getElementById('incomeSection').style.display = 'none';
           if (vaultSection) vaultSection.style.display = 'none';
         } else {
-          const netIncome = (employeeData.total_income || 0);
           const totalIncStr = netIncome.toLocaleString();
           document.getElementById('dashTotalIncome').textContent = totalIncStr;
           document.getElementById('finTotalIncome').textContent = totalIncStr;
-          
-          // 🎯 حساب الهدف المالي والحوافز لجميع الأقسام وقسم الميكانيكا
-          const secName = (employeeData.info && employeeData.info.section_name) ? String(employeeData.info.section_name) : '';
-          const secId = (employeeData.info && employeeData.info.section_id) ? Number(employeeData.info.section_id) : 0;
-          const isMechanics = (secId === 1 || secName.includes('مكانيك') || secName.includes('ميكانيك'));
 
           let target = Number(employeeData.info && employeeData.info.target) || 0;
           if (target <= 0) {
@@ -3854,48 +3933,6 @@
               if (pBadge) {
                 pBadge.innerHTML = `<i class="fa-solid fa-chart-line"></i> <span>${rawAchievement}%</span>`;
               }
-
-              // 5. الحافز المستحق المحسوب بدقة
-              let earnedIncentive = 0;
-              if (isMechanics) {
-                // قواعد قسم الميكانيكا المعتمدة:
-                // تحت 10,000 -> 0
-                // من 10,000 إلى 14,999 -> 1,250 ﷼
-                // 15,000 واكثر -> 10% من إجمالي الدخل
-                if (netIncome < 10000) {
-                  earnedIncentive = 0;
-                } else if (netIncome >= 10000 && netIncome < 15000) {
-                  earnedIncentive = 1250;
-                } else {
-                  earnedIncentive = Math.round(netIncome * 0.10);
-                }
-              } else {
-                // الأقسام الأخرى
-                if (employeeData.target_amount && Number(employeeData.target_amount) > 0) {
-                  earnedIncentive = Number(employeeData.target_amount);
-                } else if (employeeData.section_target_percent && Number(employeeData.section_target_percent) > 0) {
-                  earnedIncentive = Math.round(netIncome * (Number(employeeData.section_target_percent) / 100));
-                } else if (netIncome >= target) {
-                  earnedIncentive = Math.round(target * 0.10);
-                } else {
-                  earnedIncentive = 0;
-                }
-              }
-
-              const earnedIncentiveEl = document.getElementById('vaultEarnedIncentiveVal');
-              if (earnedIncentiveEl) {
-                earnedIncentiveEl.textContent = earnedIncentive.toLocaleString() + ' ﷼';
-              }
-              const dTargetEl = document.getElementById('dashEarnedTarget');
-              if (dTargetEl) dTargetEl.innerHTML = formatMoneyDisplay(earnedIncentive);
-              const dTargetSubEl = document.getElementById('dashEarnedTargetSub');
-              if (dTargetSubEl) dTargetSubEl.innerHTML = formatMoneyDisplay(earnedIncentive);
-              const fTargetEl = document.getElementById('finEarnedTarget');
-              if (fTargetEl) fTargetEl.innerHTML = formatMoneyDisplay(earnedIncentive);
-              const dSalaryPlusEl = document.getElementById('dashSalaryPlusTarget');
-              if (dSalaryPlusEl) dSalaryPlusEl.innerHTML = formatMoneyDisplay(basicSalaryRemaining + earnedIncentive);
-              const fSalaryPlusEl = document.getElementById('finSalaryPlusTarget');
-              if (fSalaryPlusEl) fSalaryPlusEl.innerHTML = formatMoneyDisplay(basicSalaryRemaining + earnedIncentive);
 
               const finRewardCard = document.getElementById('finMechanicRewardCard');
               if (finRewardCard) {
