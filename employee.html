@@ -2925,23 +2925,6 @@
       <div id="quickNavContainer" class="quick-actions-grid">
         <!-- Dynamically injected based on permissions -->
       </div>
-
-      
-      <!-- 🛠️ بطاقة التارجت والمكافأة المحتملة لمهندسي قسم الميكانيكا (Crystal Glassmorphic - بدون أصفر) -->
-      <div id="mechanicTargetSection" class="mechanic-target-card" style="display: none;">
-        <!-- Header -->
-        <div class="mech-header">
-          <div class="mech-title-group">
-            <div class="mech-icon-badge" title="تارقت مهندسي الميكانيكا">
-              <i class="fa-solid fa-wrench"></i>
-            </div>
-            <div>
-              <div class="mech-title">
-                <span>تارقت ومكافأة قسم الميكانيكا</span>
-                <span class="mech-verified-badge"><i class="fa-solid fa-check"></i> معتمد</span>
-              </div>
-              <div class="mech-subtitle">نظام الحوافز المباشر بناءً على صافي الدخل المحقق</div>
-            </div>
           </div>
           <div id="mechanicTierBadge" class="mech-tier-pill">
             <i class="fa-solid fa-gauge-high"></i>
@@ -4028,66 +4011,143 @@
           document.getElementById('dashTotalIncome').textContent = totalIncStr;
           document.getElementById('finTotalIncome').textContent = totalIncStr;
           
-          // Calculate Target: Check employee specific target or section default / percentage
-          let target = employeeData.info.target || 0;
+          // 🎯 حساب الهدف المالي والحوافز لجميع الأقسام وقسم الميكانيكا
+          const secName = (employeeData.info && employeeData.info.section_name) ? String(employeeData.info.section_name) : '';
+          const secId = (employeeData.info && employeeData.info.section_id) ? Number(employeeData.info.section_id) : 0;
+          const isMechanics = (secId === 1 || secName.includes('مكانيك') || secName.includes('ميكانيك'));
+
+          let target = Number(employeeData.info && employeeData.info.target) || 0;
           if (target <= 0) {
-            if (employeeData.section_target_type === 'amount' && employeeData.section_default_target > 0) {
-              target = employeeData.section_default_target;
-            } else if (employeeData.section_target_percent > 0) {
-              // Expected target based on technician net income percentage baseline or target percentage
-              target = Math.round((netIncome * (employeeData.section_target_percent / 100)) + 1000);
+            if (employeeData.section_target_type === 'amount' && Number(employeeData.section_default_target) > 0) {
+              target = Number(employeeData.section_default_target);
+            } else if (Number(employeeData.section_target_percent) > 0) {
+              target = Math.round((netIncome * (Number(employeeData.section_target_percent) / 100)) + 1000);
             }
           }
-          if (target <= 0) target = 3000; // Sensible workshop default
+          if (target <= 0) {
+            target = isMechanics ? (netIncome < 10000 ? 10000 : 15000) : 3000;
+          }
 
-          const achievement = Math.min(((netIncome / target) * 100), 100).toFixed(1);
-          const rawAchievement = ((netIncome / target) * 100).toFixed(1);
-          
-          document.getElementById('dashTargetPercent').textContent = achievement + '%';
-          document.getElementById('finTargetAchievement').textContent = achievement + '%';
+          const rawAchievementNum = (target > 0) ? ((netIncome / target) * 100) : 0;
+          const achievement = Math.min(rawAchievementNum, 100).toFixed(1);
+          const rawAchievement = rawAchievementNum.toFixed(1);
+
+          // Update Dashboard & Financials General KPIs
+          const dashTargetEl = document.getElementById('dashTargetPercent');
+          if (dashTargetEl) dashTargetEl.textContent = achievement + '%';
+          const finTargetEl = document.getElementById('finTargetAchievement');
+          if (finTargetEl) finTargetEl.textContent = achievement + '%';
+
           if (window.Motion && window.Motion.animate) {
             const dFill = document.getElementById('dashProgressFill');
             const fFill = document.getElementById('finProgressFill');
             if (dFill) window.Motion.animate(dFill, { width: ['0%', achievement + '%'] }, { duration: 0.9, easing: [0.16, 1, 0.3, 1] });
             if (fFill) window.Motion.animate(fFill, { width: ['0%', achievement + '%'] }, { duration: 0.9, easing: [0.16, 1, 0.3, 1] });
           } else {
-            document.getElementById('dashProgressFill').style.width = achievement + '%';
-            document.getElementById('finProgressFill').style.width = achievement + '%';
+            const dFill = document.getElementById('dashProgressFill');
+            if (dFill) dFill.style.width = achievement + '%';
+            const fFill = document.getElementById('finProgressFill');
+            if (fFill) fFill.style.width = achievement + '%';
           }
 
-          // Update Vault Target Card
+          // 🎯 Update Unified Vault Target Card (الهدف المالي والحوافز)
           if (vaultSection) {
             if (isTargetEnabled) {
               vaultSection.style.display = 'block';
-              document.getElementById('vaultNetIncomeVal').textContent = netIncome.toLocaleString() + ' ﷼';
-              document.getElementById('vaultTargetVal').textContent = target.toLocaleString() + ' ﷼';
+
+              // 1. المبلغ المحقق
+              const netIncomeValEl = document.getElementById('vaultNetIncomeVal');
+              if (netIncomeValEl) netIncomeValEl.textContent = netIncome.toLocaleString() + ' ﷼';
+
+              // 2. الهدف المطلوب
+              const targetValEl = document.getElementById('vaultTargetVal');
+              if (targetValEl) targetValEl.textContent = target.toLocaleString() + ' ﷼';
               
+              // 3. المبلغ المتبقي
               const remainingToTarget = Math.max(0, target - netIncome);
-              document.getElementById('vaultRemainingVal').textContent = remainingToTarget.toLocaleString() + ' ﷼';
+              const remainingValEl = document.getElementById('vaultRemainingVal');
+              if (remainingValEl) remainingValEl.textContent = remainingToTarget.toLocaleString() + ' ﷼';
               
+              // 4. نسبة الإنجاز المحققة
+              const achieveRateEl = document.getElementById('vaultAchievementRateVal');
+              if (achieveRateEl) achieveRateEl.textContent = rawAchievement + '%';
+
+              const pDisplay = document.getElementById('targetPercentDisplay');
+              if (pDisplay) pDisplay.textContent = rawAchievement + '%';
+
+              const fillRateEl = document.getElementById('fillRateText');
+              if (fillRateEl) fillRateEl.textContent = rawAchievement + '%';
+
               const pBadge = document.getElementById('vaultPercentBadge');
               if (pBadge) {
-                pBadge.innerHTML = `<i class="fa-solid fa-coins"></i> <span>${rawAchievement}%</span>`;
+                pBadge.innerHTML = `<i class="fa-solid fa-chart-line"></i> <span>${rawAchievement}%</span>`;
               }
-              if (window.Motion && window.Motion.animate) {
-                const vFill = document.getElementById('vaultMotivationalFill');
-                if (vFill) window.Motion.animate(vFill, { width: ['0%', Math.min(rawAchievement, 100) + '%'] }, { duration: 1.1, easing: [0.16, 1, 0.3, 1] });
-                const pBdg = document.getElementById('vaultPercentBadge');
-                if (pBdg) window.Motion.animate(pBdg, { scale: [0.8, 1.18, 1] }, { duration: 0.45, easing: 'ease-out' });
+
+              // 5. الحافز المستحق المحسوب بدقة
+              let earnedIncentive = 0;
+              if (isMechanics) {
+                // قواعد قسم الميكانيكا المعتمدة:
+                // تحت 10,000 -> 0
+                // من 10,000 إلى 14,999 -> 1,250 ﷼
+                // 15,000 واكثر -> 10% من إجمالي الدخل
+                if (netIncome < 10000) {
+                  earnedIncentive = 0;
+                } else if (netIncome >= 10000 && netIncome < 15000) {
+                  earnedIncentive = 1250;
+                } else {
+                  earnedIncentive = Math.round(netIncome * 0.10);
+                }
               } else {
-                document.getElementById('vaultMotivationalFill').style.width = Math.min(rawAchievement, 100) + '%';
+                // الأقسام الأخرى
+                if (employeeData.target_amount && Number(employeeData.target_amount) > 0) {
+                  earnedIncentive = Number(employeeData.target_amount);
+                } else if (employeeData.section_target_percent && Number(employeeData.section_target_percent) > 0) {
+                  earnedIncentive = Math.round(netIncome * (Number(employeeData.section_target_percent) / 100));
+                } else if (netIncome >= target) {
+                  earnedIncentive = Math.round(target * 0.10);
+                } else {
+                  earnedIncentive = 0;
+                }
               }
-              
+
+              const earnedIncentiveEl = document.getElementById('vaultEarnedIncentiveVal');
+              if (earnedIncentiveEl) {
+                earnedIncentiveEl.textContent = earnedIncentive.toLocaleString() + ' ﷼';
+              }
+
+              const finRewardCard = document.getElementById('finMechanicRewardCard');
+              if (finRewardCard) {
+                finRewardCard.style.display = earnedIncentive > 0 ? 'flex' : 'none';
+                const finRewardVal = document.getElementById('finMechanicRewardVal');
+                if (finRewardVal) finRewardVal.textContent = earnedIncentive.toLocaleString() + ' ﷼';
+              }
+
+              // شريط التعبئة التفاعلي (متدرج من البرتقالي للأخضر)
+              const vFill = document.getElementById('vaultMotivationalFill');
+              if (vFill) {
+                const fillWidth = Math.min(rawAchievementNum, 100) + '%';
+                if (window.Motion && window.Motion.animate) {
+                  window.Motion.animate(vFill, { width: ['0%', fillWidth] }, { duration: 1.1, easing: [0.16, 1, 0.3, 1] });
+                } else {
+                  vFill.style.width = fillWidth;
+                }
+              }
+
+              // رسائل التحفيز المعتمدة حسب نسبة الإنجاز
               const msgEl = document.getElementById('vaultMsgText');
               if (msgEl) {
-                if (netIncome >= target) {
-                  msgEl.innerHTML = '🎉 رائع جداً! تم ملء الحصالة بالكامل وتحقيق التارجت المستهدف بنجاح! 🏆🔥';
-                } else if (rawAchievement >= 75) {
-                  msgEl.innerHTML = `🔥 خطوة واحدة تفصلك! باقي ${remainingToTarget.toLocaleString()} ﷼ فقط لملء الحصالة وتحقيق التارجت!`;
-                } else if (rawAchievement >= 50) {
-                  msgEl.innerHTML = `⚡ أداء ممتاز! تجاوزت نصف التعبئة، باقي ${remainingToTarget.toLocaleString()} ﷼ للهدف!`;
+                if (rawAchievementNum < 25) {
+                  msgEl.textContent = 'بداية موفقة، واصل التقدم!';
+                } else if (rawAchievementNum < 50) {
+                  msgEl.textContent = 'أداء جيد، استمر!';
+                } else if (rawAchievementNum < 75) {
+                  msgEl.textContent = 'أنت تقترب من تحقيق الهدف!';
+                } else if (rawAchievementNum < 100) {
+                  msgEl.textContent = 'باقي القليل على تحقيق هدفك!';
+                } else if (rawAchievementNum === 100) {
+                  msgEl.textContent = 'مبروك! لقد حققت هدفك!';
                 } else {
-                  msgEl.innerHTML = `💪 انطلق بقوة! باقي ${remainingToTarget.toLocaleString()} ﷼ لإكمال تعبئة الحصالة وتحقيق التارجت!`;
+                  msgEl.textContent = 'إنجاز استثنائي! تجاوزت الهدف!';
                 }
               }
             } else {
