@@ -2447,7 +2447,6 @@
 
     /* 6. الأرقام المالية الرئيسية: 20–24px وزن 700–800 */
     .kpi-value,
-    #dashNetRemaining,
     #finNetRemaining,
     #dashTotalIncome,
     #finTotalIncome,
@@ -2537,6 +2536,116 @@
       color: #FFFFFF !important;
       
       opacity: 1 !important;
+    }
+
+    /* شريط معادلة وتفصيل الراتب + التارقت المنظم */
+    .highlight-badge {
+      font-size: 10.5px !important;
+      font-weight: 700 !important;
+      color: #ffffff !important;
+      background: rgba(16, 185, 129, 0.35) !important;
+      border: 1px solid rgba(16, 185, 129, 0.6) !important;
+      padding: 2px 7px !important;
+      border-radius: 6px !important;
+      letter-spacing: 0 !important;
+    }
+
+    .highlight-nav-btn {
+      font-size: 11px !important;
+      opacity: 0.95 !important;
+      font-weight: 700 !important;
+      color: #ffffff !important;
+      background: rgba(255, 255, 255, 0.2) !important;
+      padding: 3px 9px !important;
+      border-radius: 8px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 4px !important;
+    }
+
+    .highlight-icon {
+      background: rgba(255, 255, 255, 0.22) !important;
+      color: #ffffff !important;
+    }
+
+    .salary-calc-box {
+      margin-top: 10px;
+      padding: 9px 12px;
+      background: rgba(0, 0, 0, 0.24);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .salary-calc-part {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12.5px !important;
+      font-weight: 700 !important;
+      color: rgba(255, 255, 255, 0.95) !important;
+    }
+
+    .salary-calc-part .calc-lbl {
+      color: rgba(255, 255, 255, 0.82) !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+    }
+
+    .salary-calc-part .calc-num,
+    #dashNetRemaining,
+    #dashEarnedTargetSub,
+    #finNetRemainingSub,
+    #finEarnedTargetSub {
+      color: #ffffff !important;
+      font-size: 13.5px !important;
+      font-weight: 800 !important;
+      background: rgba(255, 255, 255, 0.18) !important;
+      border: 1px solid rgba(255, 255, 255, 0.25) !important;
+      padding: 2px 8px !important;
+      border-radius: 6px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      letter-spacing: 0 !important;
+      line-height: 1.2 !important;
+    }
+
+    .salary-calc-op {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.28);
+      color: #ffffff !important;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900 !important;
+      font-size: 13px !important;
+      line-height: 1 !important;
+      flex-shrink: 0;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .salary-calc-note {
+      font-size: 11px !important;
+      color: rgba(255, 255, 255, 0.82) !important;
+      margin-top: 6px;
+      font-weight: 600 !important;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .kpi-card.highlight .kpi-value {
+      font-size: 28px !important;
+      font-weight: 900 !important;
+      line-height: 1.15 !important;
+      margin: 4px 0 2px 0;
+      color: #ffffff !important;
     }
 
     /* بطاقات الهدف المالي والحوافز */
@@ -2783,15 +2892,30 @@
         <!-- 4. الراتب + التارقت (المحصلة النهائية الكبرى - مميزة) -->
         <div class="kpi-card highlight span-2" onclick="switchTab('tabFinance')" style="cursor: pointer;" title="انقر لعرض تفاصيل الراتب في تبويب المالية">
           <div class="kpi-card-header">
-            <span class="kpi-label">الراتب + التارقت (المستحق الصافي)</span>
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 11.5px; opacity: 0.92; font-weight: 700; color: #ffffff; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;">المالية <i class="fa-solid fa-chevron-left" style="font-size: 9px;"></i></span>
-              <div class="kpi-icon" style="background: rgba(255,255,255,0.2);"><i class="fa-solid fa-wallet"></i></div>
+              <span class="kpi-label">إجمالي المستحق (الراتب + التارقت)</span>
+              <span class="highlight-badge">المحصلة النهائية</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="highlight-nav-btn">المالية <i class="fa-solid fa-chevron-left" style="font-size: 8px;"></i></span>
+              <div class="kpi-icon highlight-icon"><i class="fa-solid fa-wallet"></i></div>
             </div>
           </div>
           <div class="kpi-value" id="dashSalaryPlusTarget">0 ﷼</div>
-          <div style="font-size: 12px; color: rgba(255,255,255,0.92); margin-top: 5px; font-weight: 600;">
-            صافي الراتب المتبقي: <span id="dashNetRemaining">0 ﷼</span> + التارقت المستحق: <span id="dashEarnedTargetSub">0 ﷼</span>
+          <div class="salary-calc-box">
+            <div class="salary-calc-part">
+              <span class="calc-lbl">الراتب الأساسي المتبقي:</span>
+              <span class="calc-num" id="dashNetRemaining">0 ﷼</span>
+            </div>
+            <div class="salary-calc-op">+</div>
+            <div class="salary-calc-part">
+              <span class="calc-lbl">التارقت المستحق:</span>
+              <span class="calc-num" id="dashEarnedTargetSub">0 ﷼</span>
+            </div>
+          </div>
+          <div class="salary-calc-note">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>إجمالي الراتب المستحق بعد خصم السحوبات وإضافة حافز التارقت المحقق</span>
           </div>
         </div>
 
@@ -2975,11 +3099,25 @@
         <!-- 4. الراتب + التارقت (المحصلة المستحقة الكبرى) -->
         <div class="kpi-card highlight span-2">
           <div class="kpi-card-header">
-            <span class="kpi-label">الراتب + التارقت (المستحق الصافي)</span>
-            <div class="kpi-icon" style="background: rgba(255,255,255,0.2);"><i class="fa-solid fa-wallet"></i></div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="kpi-label">إجمالي المستحق (الراتب + التارقت)</span>
+              <span class="highlight-badge">المحصلة النهائية</span>
+            </div>
+            <div class="kpi-icon highlight-icon"><i class="fa-solid fa-wallet"></i></div>
           </div>
           <div class="kpi-value" id="finSalaryPlusTarget">0 ﷼</div>
-          <div id="lastSyncInfo" style="font-size: 12px; color: rgba(255,255,255,0.85); margin-top: 5px;"></div>
+          <div class="salary-calc-box">
+            <div class="salary-calc-part">
+              <span class="calc-lbl">الراتب الأساسي المتبقي:</span>
+              <span class="calc-num" id="finNetRemainingSub">0 ﷼</span>
+            </div>
+            <div class="salary-calc-op">+</div>
+            <div class="salary-calc-part">
+              <span class="calc-lbl">التارقت المستحق:</span>
+              <span class="calc-num" id="finEarnedTargetSub">0 ﷼</span>
+            </div>
+          </div>
+          <div id="lastSyncInfo" style="font-size: 11px; opacity: 0.9; margin-top: 6px; font-weight: 600;"></div>
         </div>
 
         <!-- 1. الراتب الأساسي -->
@@ -3012,14 +3150,14 @@
           <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">الحافز المعتمد</div>
         </div>
 
-        <!-- صافي الراتب المستحق (المتبقي من بند رقم 2) -->
+        <!-- الراتب الأساسي المتبقي بعد السحب -->
         <div class="kpi-card">
           <div class="kpi-card-header">
-            <span class="kpi-label">صافي الراتب المستحق</span>
+            <span class="kpi-label">الراتب المتبقي بعد السحب</span>
             <div class="kpi-icon" style="background:#e0f2fe; color:#0369a1;"><i class="fa-solid fa-money-bill"></i></div>
           </div>
           <div class="kpi-value" id="finNetRemaining">0 ﷼</div>
-          <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">الراتب بعد السحب</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">الأساسي - السحوبات</div>
         </div>
 
         <!-- إجمالي الدخل ونسبة الإنجاز -->
@@ -3785,6 +3923,8 @@
         if (dNetEl) dNetEl.innerHTML = formatMoneyDisplay(basicSalaryRemaining);
         const fNetEl = document.getElementById('finNetRemaining');
         if (fNetEl) fNetEl.innerHTML = formatMoneyDisplay(basicSalaryRemaining);
+        const fNetSubEl = document.getElementById('finNetRemainingSub');
+        if (fNetSubEl) fNetSubEl.innerHTML = formatMoneyDisplay(basicSalaryRemaining);
 
         const dashRemEl = document.getElementById('dashRemainingBalance');
         if (dashRemEl) dashRemEl.innerHTML = formatMoneyDisplay(basicSalaryRemaining);
@@ -3844,6 +3984,8 @@
         if (dTargetSubEl) dTargetSubEl.innerHTML = formatMoneyDisplay(earnedIncentive);
         const fTargetEl = document.getElementById('finEarnedTarget');
         if (fTargetEl) fTargetEl.innerHTML = formatMoneyDisplay(earnedIncentive);
+        const fTargetSubEl = document.getElementById('finEarnedTargetSub');
+        if (fTargetSubEl) fTargetSubEl.innerHTML = formatMoneyDisplay(earnedIncentive);
         const vIncentiveEl = document.getElementById('vaultEarnedIncentiveVal');
         if (vIncentiveEl) vIncentiveEl.textContent = earnedIncentive.toLocaleString() + ' ﷼';
 
