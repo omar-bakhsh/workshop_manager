@@ -1529,6 +1529,54 @@ async function restoreFromSqliteDatabase(sqliteFilePath) {
 }
 
 // ==========================
+// 🔍 توحيد ومطابقة أسماء الموظفين بين العربية والإنجليزية
+// ==========================
+function getNormalizedEmployeeKey(str) {
+    if (!str) return '';
+    let s = String(str)
+        .trim()
+        .toLowerCase()
+        .replace(/[أإآ]/g, 'ا')
+        .replace(/ة/g, 'ه')
+        .replace(/ى/g, 'ي')
+        .replace(/[\-_]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    const aliasMap = {
+        'ahmed': 'ahmed', 'ahmad': 'ahmed', 'احمد': 'ahmed',
+        'nadir': 'nadir', 'nader': 'nadir', 'نادر': 'nadir',
+        'omar': 'omar', 'omer': 'omar', 'عمر': 'omar',
+        'khalid': 'khalid', 'khaled': 'khalid', 'خالد': 'khalid',
+        'rashid': 'rashid', 'rashed': 'rashid', 'راشد': 'rashid',
+        'samer i': 'samer_i', 'samer': 'samer_i', 'سامر': 'samer_i', 'سامر اسماعيل': 'samer_i', 'سامر اسمعيل': 'samer_i', 'سامر ا': 'samer_i',
+        'samer wahid': 'samer_wahid', 'samerwahid': 'samer_wahid', 'سامر وحيد': 'samer_wahid', 'سامروحيد': 'samer_wahid', 'abamera': 'samer_wahid', 'ابواميرة': 'samer_wahid', 'ابو اميرة': 'samer_wahid',
+        'sarfras': 'sarfras', 'sarfaraz': 'sarfras', 'sarfraz': 'sarfras', 'سرفراس': 'sarfras', 'سرفراز': 'sarfras', 'سرفرس': 'sarfras',
+        'rayan': 'rayan', 'ryan': 'rayan', 'ريان': 'rayan', 'الريان': 'rayan',
+        'mohammed i': 'mohammed_i', 'mohammed': 'mohammed_i', 'mohamed i': 'mohammed_i', 'محمد': 'mohammed_i', 'محمد اسماعيل': 'mohammed_i', 'محمد اسمعيل': 'mohammed_i', 'محمد ا': 'mohammed_i',
+        'wesam': 'wesam', 'wissam': 'wesam', 'وسام': 'wesam',
+        'talal': 'talal', 'طلال': 'talal',
+        'faris': 'faris', 'fares': 'faris', 'فارس': 'faris', 'ابوفارس': 'faris', 'ابو فارس': 'faris',
+        'amir': 'amir', 'amer': 'amir', 'عامر': 'amir', 'امير': 'amir',
+        'abdulelah': 'abdulelah', 'abdelilah': 'abdulelah', 'abdulilah': 'abdulelah', 'عبدالاله': 'abdulelah', 'عبد الاله': 'abdulelah',
+        'ameen': 'ameen', 'amin': 'ameen', 'امين': 'ameen',
+        'turky': 'turky', 'turki': 'turky', 'تركي': 'turky', 'eid alzain': 'turky', 'عيدالزين': 'turky', 'عيد الزين': 'turky',
+        'moneer': 'moneer', 'munir': 'moneer', 'منير': 'moneer', 'ali': 'moneer', 'علي': 'moneer',
+        'yaqoob': 'yaqoob', 'yaqoub': 'yaqoob', 'yakub': 'yaqoob', 'يعقوب': 'yaqoob',
+        'fahad': 'fahad', 'fahd': 'fahad', 'فهد': 'fahad',
+        'ali jameel': 'ali_jameel', 'علي جميل': 'ali_jameel'
+    };
+
+    if (aliasMap[s]) return aliasMap[s];
+    for (const [key, normalized] of Object.entries(aliasMap)) {
+        if (s === key || s.startsWith(key + ' ') || s.endsWith(' ' + key)) {
+            return normalized;
+        }
+    }
+    return s;
+}
+
+// ==========================
 // 🧹 معالجة وتوحيد سجلات الموظفين المكررة تلقائياً
 // ==========================
 async function cleanDuplicateEmployees() {
@@ -1541,17 +1589,18 @@ async function cleanDuplicateEmployees() {
 
         const nameMap = new Map();
         for (const emp of employees) {
-            const cleanName = (emp.name || '').trim().toLowerCase();
-            if (!cleanName) continue;
-            if (!nameMap.has(cleanName)) nameMap.set(cleanName, []);
-            nameMap.get(cleanName).push(emp.id);
+            const cleanKey = getNormalizedEmployeeKey(emp.name);
+            if (!cleanKey) continue;
+            if (!nameMap.has(cleanKey)) nameMap.set(cleanKey, []);
+            nameMap.get(cleanKey).push(emp);
         }
 
-        for (const [cleanName, ids] of nameMap.entries()) {
-            if (ids.length > 1) {
-                // الحفاظ على المعرف الأساسي المرتبط بالمستخدم أو المعرف الأحدث
-                const primaryId = ids.find(id => userEmpIds.has(id)) || Math.max(...ids);
-                const duplicateIds = ids.filter(id => id !== primaryId);
+        for (const [cleanKey, empList] of nameMap.entries()) {
+            if (empList.length > 1) {
+                // الحفاظ على المعرف الأساسي المرتبط بالمستخدم، مع تفضيل الاسم بالإنجليزية
+                const primaryEmp = empList.find(e => userEmpIds.has(e.id)) || empList[0];
+                const primaryId = primaryEmp.id;
+                const duplicateIds = empList.map(e => e.id).filter(id => id !== primaryId);
 
                 for (const dupId of duplicateIds) {
                     try { await dbRun('UPDATE entries SET employee_id = ? WHERE employee_id = ?', [primaryId, dupId]); } catch (e) {}
@@ -1603,6 +1652,7 @@ module.exports = {
     restoreDatabaseFromJson,
     restoreFromSqliteDatabase,
     cleanDuplicateEmployees,
+    getNormalizedEmployeeKey,
     sanitizeForDb
 };
 

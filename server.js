@@ -147,7 +147,9 @@ const {
     isMySQL,
     exportDatabaseJson,
     restoreDatabaseFromJson,
-    restoreFromSqliteDatabase
+    restoreFromSqliteDatabase,
+    cleanDuplicateEmployees,
+    getNormalizedEmployeeKey
 } = require('./db');
 
 // تهيئة الجداول وترحيل الحقول عند إقلاع التطبيق
@@ -649,11 +651,13 @@ async function handleSmartEmployeeImport(filePath) {
         }
     }
 
-    // سجلات الموظفين الحالية
-    const allEmployees = await dbAll("SELECT id, name, section_id FROM employees WHERE is_active = 1");
+    // سجلات الموظفين الحالية (نشطين وغير نشطين لمنع أي تكرار)
+    const allEmployees = await dbAll("SELECT id, name, section_id, is_active FROM employees");
     const existingNamesMap = new Map();
     allEmployees.forEach(e => {
         existingNamesMap.set(cleanArabicText(e.name), e);
+        const normKey = getNormalizedEmployeeKey(e.name);
+        if (normKey) existingNamesMap.set(normKey, e);
     });
 
     const existingUsers = await dbAll("SELECT username FROM users");
@@ -716,6 +720,7 @@ async function handleSmartEmployeeImport(filePath) {
             if (!name || name.length < 2) continue;
 
             const cleanName = cleanArabicText(name);
+            const normKey = getNormalizedEmployeeKey(name);
             const sectionRaw = headers.section !== undefined ? String(row[headers.section] || '').trim() : '';
             const section_id = await getOrCreateSectionId(sectionRaw);
             const base_salary = headers.salary !== undefined ? parseFloat(row[headers.salary]) || 0 : 0;
@@ -725,14 +730,15 @@ async function handleSmartEmployeeImport(filePath) {
             let username = headers.username !== undefined ? String(row[headers.username] || '').trim() : '';
             let password = headers.password !== undefined ? String(row[headers.password] || '').trim() : '';
 
-            if (existingNamesMap.has(cleanName)) {
-                const existingEmp = existingNamesMap.get(cleanName);
+            const existingEmp = existingNamesMap.get(normKey) || existingNamesMap.get(cleanName);
+            if (existingEmp) {
                 await dbRun(
                     `UPDATE employees SET
                         section_id = COALESCE(NULLIF(?, 0), section_id),
                         base_salary = CASE WHEN ? > 0 THEN ? ELSE base_salary END,
                         target = CASE WHEN ? > 0 THEN ? ELSE target END,
                         bank_name = COALESCE(NULLIF(?, ''), bank_name),
+                        is_active = 1,
                         last_sync_at = CURRENT_TIMESTAMP
                      WHERE id = ?`,
                     [section_id, base_salary, base_salary, target, target, bank_name, existingEmp.id]
@@ -766,11 +772,15 @@ async function handleSmartEmployeeImport(filePath) {
                         `INSERT INTO users (employee_id, username, password, role) VALUES (?, ?, ?, 'employee')`,
                         [empId, username, password]
                     );
-                    existingNamesMap.set(cleanName, { id: empId, name });
+                    const newEmp = { id: empId, name };
+                    existingNamesMap.set(cleanName, newEmp);
+                    if (normKey) existingNamesMap.set(normKey, newEmp);
                     addedCount++;
                 }
             }
         }
+
+        try { await cleanDuplicateEmployees(); } catch (e) {}
 
         return {
             success: true,
@@ -782,7 +792,7 @@ async function handleSmartEmployeeImport(filePath) {
             createdSectionsCount
         };
     } else if (matrixSheet) {
-        // --- النمط 2: مصفوفة كشف الرواتب (مثل Salaries-9.xlsx) ---
+        // --- النمط 2: مصفوفة كشف الرواتب (مثل Salaries-9.xlsx أو Salaries.xlsx) ---
         const data = matrixSheet.data;
         let nameRowIdx = 0;
         let nameCount = 0;
@@ -824,11 +834,12 @@ async function handleSmartEmployeeImport(filePath) {
             const net_remaining = getNum(ind.nr) || getNum(ind.r);
 
             const cleanName = cleanArabicText(rawName);
-            let matchedEmp = existingNamesMap.get(cleanName);
+            const normKey = getNormalizedEmployeeKey(rawName);
+            let matchedEmp = existingNamesMap.get(normKey) || existingNamesMap.get(cleanName);
 
             if (!matchedEmp) {
                 for (const [eName, eObj] of existingNamesMap.entries()) {
-                    if (eName.includes(cleanName) || cleanName.includes(eName)) {
+                    if (eName === normKey || (normKey && (eName.includes(normKey) || normKey.includes(eName))) || eName.includes(cleanName) || cleanName.includes(eName)) {
                         matchedEmp = eObj;
                         break;
                     }
@@ -843,6 +854,7 @@ async function handleSmartEmployeeImport(filePath) {
                         deposit_amount = ?,
                         total_withdrawals = ?,
                         net_remaining = ?,
+                        is_active = 1,
                         last_sync_at = CURRENT_TIMESTAMP
                      WHERE id = ?`,
                     [base_salary, base_salary, target_amount, deposit_amount, total_withdrawals, net_remaining, matchedEmp.id]
@@ -871,11 +883,15 @@ async function handleSmartEmployeeImport(filePath) {
                         `INSERT INTO users (employee_id, username, password, role) VALUES (?, ?, '1234', 'employee')`,
                         [empId, username]
                     );
-                    existingNamesMap.set(cleanName, { id: empId, name: rawName });
+                    const newEmp = { id: empId, name: rawName };
+                    existingNamesMap.set(cleanName, newEmp);
+                    if (normKey) existingNamesMap.set(normKey, newEmp);
                     addedCount++;
                 }
             }
         }
+
+        try { await cleanDuplicateEmployees(); } catch (e) {}
 
         return {
             success: true,
