@@ -2780,37 +2780,54 @@
         <h3><i class="fa-solid fa-chart-line" style="color: #10b981;"></i> الراتب ومؤشرات الأداء</h3>
       </div>
       <div id="dashKpiGrid" class="kpi-stats-grid">
+        <!-- 4. الراتب + التارقت (المحصلة النهائية الكبرى - مميزة) -->
         <div class="kpi-card highlight span-2" onclick="switchTab('tabFinance')" style="cursor: pointer;" title="انقر لعرض تفاصيل الراتب في تبويب المالية">
           <div class="kpi-card-header">
-            <span class="kpi-label">صافي الراتب المستحق</span>
+            <span class="kpi-label">الراتب + التارقت (المستحق الصافي)</span>
             <div style="display: flex; align-items: center; gap: 8px;">
               <span style="font-size: 11.5px; opacity: 0.92; font-weight: 700; color: #ffffff; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px;">المالية <i class="fa-solid fa-chevron-left" style="font-size: 9px;"></i></span>
-              <div class="kpi-icon" style="background: rgba(255,255,255,0.2);"><i class="fa-solid fa-money-bill-wave"></i></div>
+              <div class="kpi-icon" style="background: rgba(255,255,255,0.2);"><i class="fa-solid fa-wallet"></i></div>
             </div>
           </div>
-          <div class="kpi-value" id="dashNetRemaining">0 ﷼</div>
+          <div class="kpi-value" id="dashSalaryPlusTarget">0 ﷼</div>
+          <div style="font-size: 12px; color: rgba(255,255,255,0.92); margin-top: 5px; font-weight: 600;">
+            صافي الراتب المتبقي: <span id="dashNetRemaining">0 ﷼</span> + التارقت المستحق: <span id="dashEarnedTargetSub">0 ﷼</span>
+          </div>
         </div>
 
+        <!-- 1. الراتب الأساسي (المسجل من الإعدادات) -->
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span class="kpi-label">الراتب الأساسي</span>
+            <div class="kpi-icon" style="background: rgba(59,130,246,0.12); color: #2563eb;"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+          </div>
+          <div class="kpi-value" id="dashBaseSalary" style="color: #2563eb;">0 ﷼</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">من الإعدادات</div>
+        </div>
+
+        <!-- 2. إجمالي السحوبات (خصم الراتب الأساسي ومبلغ الراتب الصافي من تقرير إكسل) -->
         <div class="kpi-card">
           <div class="kpi-card-header">
             <span class="kpi-label">إجمالي السحوبات</span>
             <div class="kpi-icon" style="background: rgba(239,68,68,0.12); color: #dc2626;"><i class="fa-solid fa-credit-card"></i></div>
           </div>
           <div class="kpi-value" id="dashTotalWithdrawals" style="color: #dc2626;">0 ﷼</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">مخصومة من الأساسي</div>
         </div>
 
-        <div class="kpi-card">
+        <!-- 3. التارقت المستحق (الحافز المستحق) -->
+        <div class="kpi-card span-2" style="background: var(--glass-surface-elevated); border: 1.5px solid rgba(16, 185, 129, 0.35);">
           <div class="kpi-card-header">
-            <span class="kpi-label">الرصيد المتبقي</span>
-            <div class="kpi-icon" style="background: rgba(14,165,233,0.15); color: #0284c7;"><i class="fa-solid fa-wallet"></i></div>
+            <span class="kpi-label" style="color: #059669 !important;">التارقت المستحق (الحافز)</span>
+            <div class="kpi-icon" style="background: rgba(16, 185, 129, 0.15); color: #059669;"><i class="fa-solid fa-bullseye"></i></div>
           </div>
-          <div class="kpi-value" id="dashRemainingBalance" style="color: #0284c7;">0 ﷼</div>
-          <div id="dashRemainingWithBonusWrap" class="kpi-sub-badge" title="راتب + التارقت المتبقي">
-            <i class="fa-solid fa-coins"></i> مع التارقت: <span id="dashRemainingWithBonus">0 ﷼</span>
-          </div>
+          <div class="kpi-value" id="dashEarnedTarget" style="color: #059669;">0 ﷼</div>
+          <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 3px;">بناءً على الدخل المحقق في الورشة</div>
         </div>
 
         <!-- Hidden hooks for script compatibility -->
+        <div id="dashRemainingBalance" style="display:none;">0 ﷼</div>
+        <div id="dashRemainingWithBonus" style="display:none;">0 ﷼</div>
         <div id="dashTotalIncome" style="display:none;">0</div>
         <div id="dashIncomeHidden" style="display:none;"></div>
         <div id="dashTargetPercent" style="display:none;">0%</div>
@@ -2955,15 +2972,57 @@
     <section id="tabFinance" class="tab-view">
 
       <div class="kpi-stats-grid">
+        <!-- 4. الراتب + التارقت (المحصلة المستحقة الكبرى) -->
         <div class="kpi-card highlight span-2">
           <div class="kpi-card-header">
-            <span class="kpi-label">صافي الراتب المستحق</span>
-            <div class="kpi-icon" style="background: rgba(255,255,255,0.2);"><i class="fa-solid fa-money-bill-wave"></i></div>
+            <span class="kpi-label">الراتب + التارقت (المستحق الصافي)</span>
+            <div class="kpi-icon" style="background: rgba(255,255,255,0.2);"><i class="fa-solid fa-wallet"></i></div>
           </div>
-          <div class="kpi-value" id="finNetRemaining">0 ﷼</div>
-          <div id="lastSyncInfo" style="font-size: 12px; color: rgba(255,255,255,0.8); margin-top: 6px;"></div>
+          <div class="kpi-value" id="finSalaryPlusTarget">0 ﷼</div>
+          <div id="lastSyncInfo" style="font-size: 12px; color: rgba(255,255,255,0.85); margin-top: 5px;"></div>
         </div>
 
+        <!-- 1. الراتب الأساسي -->
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span class="kpi-label">الراتب الأساسي</span>
+            <div class="kpi-icon" style="background: rgba(59,130,246,0.12); color: #2563eb;"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+          </div>
+          <div class="kpi-value" id="finBaseSalary" style="color: #2563eb;">0 ﷼</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">من الإعدادات</div>
+        </div>
+
+        <!-- 2. إجمالي السحوبات -->
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span class="kpi-label">إجمالي السحوبات</span>
+            <div class="kpi-icon" style="background: rgba(239,68,68,0.12); color: #dc2626;"><i class="fa-solid fa-credit-card"></i></div>
+          </div>
+          <div class="kpi-value" id="finTotalWithdrawals" style="color: #dc2626;">0 ﷼</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">مخصومة من الأساسي</div>
+        </div>
+
+        <!-- 3. التارقت المستحق -->
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span class="kpi-label" style="color: #059669 !important;">التارقت المستحق</span>
+            <div class="kpi-icon" style="background: rgba(16, 185, 129, 0.15); color: #059669;"><i class="fa-solid fa-bullseye"></i></div>
+          </div>
+          <div class="kpi-value" id="finEarnedTarget" style="color: #059669;">0 ﷼</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">الحافز المعتمد</div>
+        </div>
+
+        <!-- صافي الراتب المستحق (المتبقي من بند رقم 2) -->
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span class="kpi-label">صافي الراتب المستحق</span>
+            <div class="kpi-icon" style="background:#e0f2fe; color:#0369a1;"><i class="fa-solid fa-money-bill"></i></div>
+          </div>
+          <div class="kpi-value" id="finNetRemaining">0 ﷼</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">الراتب بعد السحب</div>
+        </div>
+
+        <!-- إجمالي الدخل ونسبة الإنجاز -->
         <div class="kpi-card">
           <div class="kpi-card-header">
             <span class="kpi-label">إجمالي الدخل</span>
@@ -2971,25 +3030,6 @@
           </div>
           <div class="kpi-value" id="finTotalIncome">0</div>
           <div id="finIncomeHidden" style="display:none; font-size:12px; color:var(--text-muted); font-weight:700;">🔒 مخفي</div>
-        </div>
-
-        <div class="kpi-card">
-          <div class="kpi-card-header">
-            <span class="kpi-label">إجمالي السحوبات</span>
-            <div class="kpi-icon" style="background:#fee2e2; color:#991b1b;"><i class="fa-solid fa-credit-card"></i></div>
-          </div>
-          <div class="kpi-value" id="finTotalWithdrawals">0</div>
-        </div>
-
-        <div class="kpi-card">
-          <div class="kpi-card-header">
-            <span class="kpi-label">الرصيد المتبقي</span>
-            <div class="kpi-icon" style="background:#e0f2fe; color:#0369a1;"><i class="fa-solid fa-money-bill"></i></div>
-          </div>
-          <div class="kpi-value" id="finRemainingBalance">0 ﷼</div>
-          <div id="finRemainingWithBonusWrap" class="kpi-sub-badge" title="راتب + التارقت المتبقي">
-            <i class="fa-solid fa-coins"></i> مع التارقت: <span id="finRemainingWithBonus">0 ﷼</span>
-          </div>
         </div>
 
         <div class="kpi-card">
@@ -3002,6 +3042,10 @@
             <div class="progress-bar-fill" id="finProgressFill"></div>
           </div>
         </div>
+
+        <!-- Hidden compatibility hooks -->
+        <div id="finRemainingBalance" style="display:none;">0 ﷼</div>
+        <div id="finRemainingWithBonus" style="display:none;">0 ﷼</div>
       </div>
 
       <!-- Income Operations Record -->
@@ -3842,10 +3886,16 @@
               if (earnedIncentiveEl) {
                 earnedIncentiveEl.textContent = earnedIncentive.toLocaleString() + ' ﷼';
               }
-              const dBonus = document.getElementById('dashRemainingWithBonus');
-              if (dBonus) dBonus.innerHTML = formatMoneyDisplay(basicSalaryRemaining + earnedIncentive);
-              const fBonus = document.getElementById('finRemainingWithBonus');
-              if (fBonus) fBonus.innerHTML = formatMoneyDisplay(basicSalaryRemaining + earnedIncentive);
+              const dTargetEl = document.getElementById('dashEarnedTarget');
+              if (dTargetEl) dTargetEl.innerHTML = formatMoneyDisplay(earnedIncentive);
+              const dTargetSubEl = document.getElementById('dashEarnedTargetSub');
+              if (dTargetSubEl) dTargetSubEl.innerHTML = formatMoneyDisplay(earnedIncentive);
+              const fTargetEl = document.getElementById('finEarnedTarget');
+              if (fTargetEl) fTargetEl.innerHTML = formatMoneyDisplay(earnedIncentive);
+              const dSalaryPlusEl = document.getElementById('dashSalaryPlusTarget');
+              if (dSalaryPlusEl) dSalaryPlusEl.innerHTML = formatMoneyDisplay(basicSalaryRemaining + earnedIncentive);
+              const fSalaryPlusEl = document.getElementById('finSalaryPlusTarget');
+              if (fSalaryPlusEl) fSalaryPlusEl.innerHTML = formatMoneyDisplay(basicSalaryRemaining + earnedIncentive);
 
               const finRewardCard = document.getElementById('finMechanicRewardCard');
               if (finRewardCard) {
