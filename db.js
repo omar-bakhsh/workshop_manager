@@ -1205,6 +1205,13 @@ async function seedInitialData() {
         } catch (idxErr) {
             console.warn('⚠️ تنبيه أثناء إنشاء الفهارس:', idxErr.message);
         }
+
+        // 🧹 تنظيف ودمج أي تكرار غير مقصود في سجلات الموظفين
+        try {
+            await cleanDuplicateEmployees();
+        } catch (dupErr) {
+            console.warn('⚠️ تنبيه أثناء تنظيف تكرار الموظفين:', dupErr.message);
+        }
     } catch (seedErr) {
         console.error('❌ خطأ في بذر البيانات الافتراضية:', seedErr.message);
     }
@@ -1324,6 +1331,13 @@ async function restoreDatabaseFromJson(jsonData) {
                 const existingCols = await getTableColumnNames(tableName, conn);
                 if (!existingCols || existingCols.size === 0) continue;
 
+                // تفريغ الجدول قبل الاستيراد لمنع تكرار الموظفين أو تداخل السجلات السابقة
+                try {
+                    await conn.query(`DELETE FROM \`${tableName}\``);
+                } catch (delErr) {
+                    console.warn(`⚠️ تعذر تفريغ جدول ${tableName} قبل الاستيراد:`, delErr.message);
+                }
+
                 let tableCount = 0;
                 for (const row of rows) {
                     let keys = Object.keys(row).filter(k => existingCols.has(k.toLowerCase()));
@@ -1358,6 +1372,14 @@ async function restoreDatabaseFromJson(jsonData) {
                 if (!Array.isArray(rows) || rows.length === 0) continue;
 
                 const existingCols = await getTableColumnNames(tableName);
+
+                // تفريغ الجدول قبل الاستيراد لمنع تكرار الموظفين أو تداخل السجلات السابقة
+                try {
+                    await dbRun(`DELETE FROM \`${tableName}\``);
+                } catch (delErr) {
+                    console.warn(`⚠️ تعذر تفريغ جدول ${tableName} قبل الاستيراد:`, delErr.message);
+                }
+
                 let tableCount = 0;
                 for (const row of rows) {
                     let keys = Object.keys(row);
@@ -1387,6 +1409,8 @@ async function restoreDatabaseFromJson(jsonData) {
             await dbRun('PRAGMA foreign_keys = ON');
         }
     }
+
+    try { await cleanDuplicateEmployees(); } catch (e) {}
 
     return { totalRestored, tableStats };
 }
@@ -1418,6 +1442,9 @@ async function restoreFromSqliteDatabase(sqliteFilePath) {
 
                         const rows = await sqliteGetAll(`SELECT * FROM \`${tableName}\``);
                         if (!rows || rows.length === 0) continue;
+
+                        // تفريغ الجدول قبل النقل لمنع التكرار
+                        try { await conn.query(`DELETE FROM \`${tableName}\``); } catch (e) {}
 
                         let tableCount = 0;
                         for (const row of rows) {
@@ -1457,6 +1484,9 @@ async function restoreFromSqliteDatabase(sqliteFilePath) {
                         const rows = await sqliteGetAll(`SELECT * FROM \`${tableName}\``);
                         if (!rows || rows.length === 0) continue;
 
+                        // تفريغ الجدول قبل النقل لمنع التكرار
+                        try { await dbRun(`DELETE FROM \`${tableName}\``); } catch (e) {}
+
                         let tableCount = 0;
                         for (const row of rows) {
                             let keys = Object.keys(row);
@@ -1493,7 +1523,54 @@ async function restoreFromSqliteDatabase(sqliteFilePath) {
         srcDb.close();
     }
 
+    try { await cleanDuplicateEmployees(); } catch (e) {}
+
     return { totalRestored, tableStats };
+}
+
+// ==========================
+// 🧹 معالجة وتوحيد سجلات الموظفين المكررة تلقائياً
+// ==========================
+async function cleanDuplicateEmployees() {
+    try {
+        const employees = await dbAll('SELECT id, name FROM employees ORDER BY id');
+        if (!employees || employees.length === 0) return;
+
+        const users = await dbAll('SELECT employee_id FROM users WHERE employee_id IS NOT NULL');
+        const userEmpIds = new Set(users.map(u => u.employee_id));
+
+        const nameMap = new Map();
+        for (const emp of employees) {
+            const cleanName = (emp.name || '').trim().toLowerCase();
+            if (!cleanName) continue;
+            if (!nameMap.has(cleanName)) nameMap.set(cleanName, []);
+            nameMap.get(cleanName).push(emp.id);
+        }
+
+        for (const [cleanName, ids] of nameMap.entries()) {
+            if (ids.length > 1) {
+                // الحفاظ على المعرف الأساسي المرتبط بالمستخدم أو المعرف الأحدث
+                const primaryId = ids.find(id => userEmpIds.has(id)) || Math.max(...ids);
+                const duplicateIds = ids.filter(id => id !== primaryId);
+
+                for (const dupId of duplicateIds) {
+                    try { await dbRun('UPDATE entries SET employee_id = ? WHERE employee_id = ?', [primaryId, dupId]); } catch (e) {}
+                    try { await dbRun('UPDATE withdrawals SET employee_id = ? WHERE employee_id = ?', [primaryId, dupId]); } catch (e) {}
+                    try { await dbRun('UPDATE attendance SET employee_id = ? WHERE employee_id = ?', [primaryId, dupId]); } catch (e) {}
+                    try { await dbRun('UPDATE absences SET employee_id = ? WHERE employee_id = ?', [primaryId, dupId]); } catch (e) {}
+                    try { await dbRun('UPDATE leave_requests SET employee_id = ? WHERE employee_id = ?', [primaryId, dupId]); } catch (e) {}
+                    try { await dbRun('UPDATE inspection_technicians SET technician_id = ? WHERE technician_id = ?', [primaryId, dupId]); } catch (e) {}
+                    try { await dbRun('UPDATE inspections SET assigned_technician_id = ? WHERE assigned_technician_id = ?', [primaryId, dupId]); } catch (e) {}
+                    try { await dbRun('UPDATE inspections SET inspector_id = ? WHERE inspector_id = ?', [primaryId, dupId]); } catch (e) {}
+                    try { await dbRun('UPDATE users SET employee_id = ? WHERE employee_id = ?', [primaryId, dupId]); } catch (e) {}
+                    try { await dbRun('UPDATE messages SET employee_id = ? WHERE employee_id = ?', [primaryId, dupId]); } catch (e) {}
+                    try { await dbRun('DELETE FROM employees WHERE id = ?', [dupId]); } catch (e) {}
+                }
+            }
+        }
+    } catch (e) {
+        console.warn('⚠️ تنبيه أثناء فحص تكرار الموظفين:', e.message);
+    }
 }
 
 module.exports = {
@@ -1508,6 +1585,7 @@ module.exports = {
     exportDatabaseJson,
     restoreDatabaseFromJson,
     restoreFromSqliteDatabase,
+    cleanDuplicateEmployees,
     sanitizeForDb
 };
 

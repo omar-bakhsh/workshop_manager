@@ -619,20 +619,20 @@
                         <td class="rank-col">${rankDisplay}</td>
                         <td style="font-weight: 800; color: #1e293b;">${emp.name}</td>
                         <td>${getSectionBadge(emp.section_name)}</td>
-                        <td class="target-col" style="color: #64748b;">${tgt > 0 ? tgt.toLocaleString() + ' ﷼' : '-'}</td>
+                        <td class="target-col" style="color: #64748b;">${tgt > 0 ? tgt.toLocaleString('en-US') + ' ﷼' : '-'}</td>
                         <td class="target-col" style="font-weight:800; color: ${tgt > 0 ? (percent >= 100 ? '#059669' : percent >= 75 ? '#d97706' : '#dc2626') : '#475569'};">
                             ${tgt > 0 ? percent + '%' : '-'}
                         </td>
-                        <td class="amount-col" style="font-weight:800; color:#059669; font-size:14.5px;">${inc.toLocaleString()} ﷼</td>
+                        <td class="amount-col" style="font-weight:800; color:#059669; font-size:14.5px;">${inc.toLocaleString('en-US')} ﷼</td>
                     `;
                     tbody.appendChild(tr);
                 });
             }
 
-            document.getElementById('summaryTotalIncome').textContent = totalIncome.toLocaleString() + ' ﷼';
-            document.getElementById('summaryTotalIncomeWithTax').textContent = Math.round(totalIncome * 1.15).toLocaleString() + ' ﷼';
+            document.getElementById('summaryTotalIncome').textContent = totalIncome.toLocaleString('en-US') + ' ﷼';
+            document.getElementById('summaryTotalIncomeWithTax').textContent = Math.round(totalIncome * 1.15).toLocaleString('en-US') + ' ﷼';
             document.getElementById('summaryAvgAchievement').textContent = (targetCount > 0 ? Math.round(totalPercent / targetCount) : '0') + '%';
-            document.getElementById('summaryTopIncome').textContent = topIncome.toLocaleString() + ' ﷼';
+            document.getElementById('summaryTopIncome').textContent = topIncome.toLocaleString('en-US') + ' ﷼';
         }
 
         function exportToImage() {

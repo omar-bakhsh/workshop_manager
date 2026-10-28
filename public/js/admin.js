@@ -117,18 +117,18 @@ function updateDashboardKPIs() {
     const overallAchievement = totalTarget > 0 ? Math.round((totalIncome / totalTarget) * 100) : 0;
 
     // Immediate display
-    setText('totalEmployees', employees.length.toLocaleString('ar-SA'));
-    setText('totalIncome', Math.round(totalIncome).toLocaleString('ar-SA') + ' ﷼');
-    setText('totalIncomeWithTax', Math.round(totalIncome * 1.15).toLocaleString('ar-SA') + ' ﷼');
-    setText('totalWithdrawals', Math.round(totalWithdrawals).toLocaleString('ar-SA') + ' ﷼');
+    setText('totalEmployees', employees.length.toLocaleString('en-US'));
+    setText('totalIncome', Math.round(totalIncome).toLocaleString('en-US') + ' ﷼');
+    setText('totalIncomeWithTax', Math.round(totalIncome * 1.15).toLocaleString('en-US') + ' ﷼');
+    setText('totalWithdrawals', Math.round(totalWithdrawals).toLocaleString('en-US') + ' ﷼');
     setText('overallAchievement', overallAchievement + '%');
 
     // Smooth counter animation
     if (window.MotionUI && typeof window.MotionUI.animateNumber === 'function') {
         window.MotionUI.animateNumber(document.getElementById('totalEmployees'), employees.length);
-        window.MotionUI.animateNumber(document.getElementById('totalIncome'), totalIncome, 1.0, v => Math.round(v).toLocaleString('ar-SA') + ' ﷼');
-        window.MotionUI.animateNumber(document.getElementById('totalIncomeWithTax'), Math.round(totalIncome * 1.15), 1.0, v => Math.round(v).toLocaleString('ar-SA') + ' ﷼');
-        window.MotionUI.animateNumber(document.getElementById('totalWithdrawals'), totalWithdrawals, 1.0, v => Math.round(v).toLocaleString('ar-SA') + ' ﷼');
+        window.MotionUI.animateNumber(document.getElementById('totalIncome'), totalIncome, 1.0, v => Math.round(v).toLocaleString('en-US') + ' ﷼');
+        window.MotionUI.animateNumber(document.getElementById('totalIncomeWithTax'), Math.round(totalIncome * 1.15), 1.0, v => Math.round(v).toLocaleString('en-US') + ' ﷼');
+        window.MotionUI.animateNumber(document.getElementById('totalWithdrawals'), totalWithdrawals, 1.0, v => Math.round(v).toLocaleString('en-US') + ' ﷼');
         window.MotionUI.animateNumber(document.getElementById('overallAchievement'), overallAchievement, 0.8, v => Math.round(v) + '%');
     }
     
@@ -231,7 +231,7 @@ function renderSections() {
                     <span class="mini-stat-label">موظف</span>
                 </div>
                 <div class="mini-stat">
-                    <span class="mini-stat-val">${sectionIncome.toLocaleString()} ﷼</span>
+                    <span class="mini-stat-val">${sectionIncome.toLocaleString('en-US')} ﷼</span>
                     <span class="mini-stat-label">دخل اليوم</span>
                 </div>
                 <button class="section-gear-btn" onclick="openSectionPermissionsModal(${section.id}, event)" title="صلاحيات وإعدادات القسم">
@@ -269,12 +269,12 @@ function renderSections() {
                                     <div style="font-weight:800; font-size:14px; color:var(--text-dark);">${emp.name}</div>
                                     <div style="font-size:11px; color:var(--text-gray); font-weight:600;">${emp.username ? '@' + emp.username : 'بدون حساب'}</div>
                                 </td>
-                                <td data-label="الراتب الأساسي">${(parseFloat(emp.base_salary) || 0).toLocaleString()} ﷼</td>
-                                <td data-label="التارقت">${(parseFloat(emp.target || emp.target_amount) || 0).toLocaleString()} ﷼</td>
+                                <td data-label="الراتب الأساسي">${(parseFloat(emp.base_salary) || 0).toLocaleString('en-US')} ﷼</td>
+                                <td data-label="التارقت">${(parseFloat(emp.target || emp.target_amount) || 0).toLocaleString('en-US')} ﷼</td>
                                 <td data-label="البنك">${emp.bank_name || 'كاش'}</td>
-                                <td data-label="سحوبات اليوم" style="color:var(--danger); font-weight:800;">${(parseFloat(emp.total_withdrawal || emp.total_withdrawals) || 0).toLocaleString()} ﷼</td>
-                                <td data-label="صافي متبقي (Excel)" class="td-net-remaining">${(parseFloat(emp.net_remaining) || 0).toLocaleString()} ﷼</td>
-                                <td data-label="دخل اليوم" style="font-weight:800; color:var(--primary);">${income.toLocaleString()} ﷼</td>
+                                <td data-label="سحوبات اليوم" style="color:var(--danger); font-weight:800;">${(parseFloat(emp.total_withdrawal || emp.total_withdrawals) || 0).toLocaleString('en-US')} ﷼</td>
+                                <td data-label="صافي متبقي (Excel)" class="td-net-remaining">${(parseFloat(emp.net_remaining) || 0).toLocaleString('en-US')} ﷼</td>
+                                <td data-label="دخل اليوم" style="font-weight:800; color:var(--primary);">${income.toLocaleString('en-US')} ﷼</td>
                                 <td data-label="الإنجاز">
                                     <span style="font-weight:800; color:${getPercentColor(percent)};">${percent}%</span>
                                 </td>
@@ -1210,10 +1210,10 @@ async function printWithdrawalList() {
             html += `<tr class="bank-header"><td colspan="4">${bank}</td></tr>`;
             grouped[bank].forEach(e => {
                 tNet += (e.net_remaining || 0);
-                html += `<tr><td>${c++}</td><td style="text-align:right;">${e.name}</td><td></td><td>${(e.net_remaining || 0).toLocaleString()}</td></tr>`;
+                html += `<tr><td>${c++}</td><td style="text-align:right;">${e.name}</td><td></td><td>${(e.net_remaining || 0).toLocaleString('en-US')}</td></tr>`;
             });
         }
-        html += `<tr style="background:#f9f9f9; font-weight:bold;"><td colspan="2">الإجمالي</td><td></td><td>${tNet.toLocaleString()}</td></tr></tbody></table>
+        html += `<tr style="background:#f9f9f9; font-weight:bold;"><td colspan="2">الإجمالي</td><td></td><td>${tNet.toLocaleString('en-US')}</td></tr></tbody></table>
                 <div class="footer"><span>ملاحظات: ____________________</span><span>* الحد الأعلى للسحب: ${maxLimit} ﷼</span></div>
                 <div style="margin-top: 12px; font-size: 9.5px; color: #64748b; text-align: center;">نظام إدارة الورش • برمجة وتطوير: م. عمر</div></div>`;
 

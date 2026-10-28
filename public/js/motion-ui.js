@@ -165,7 +165,7 @@
 
             const format = (v) => {
                 if (typeof formatter === 'function') return formatter(v);
-                return Math.round(v).toLocaleString('ar-SA');
+                return Math.round(v).toLocaleString('en-US');
             };
 
             // Set final text immediately as fallback in case animation cannot run

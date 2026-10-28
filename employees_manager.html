@@ -1452,7 +1452,7 @@
             document.getElementById('kpiActiveEmployees').textContent = activeCount;
 
             const totalSalary = allEmployees.reduce((sum, e) => sum + (Number(e.base_salary) || 0), 0);
-            document.getElementById('kpiTotalSalaries').textContent = totalSalary.toLocaleString() + ' ﷼';
+            document.getElementById('kpiTotalSalaries').textContent = totalSalary.toLocaleString('en-US') + ' ﷼';
         }
 
         /* --- Render Table & Filtering --- */
@@ -1508,11 +1508,11 @@
                             </td>
                             <td data-label="الراتب" class="cell-salary" style="font-weight:800;">
                                 <span class="mobile-td-label">الراتب:</span>
-                                <span>${(Number(emp.base_salary) || 0).toLocaleString()} ﷼</span>
+                                <span>${(Number(emp.base_salary) || 0).toLocaleString('en-US')} ﷼</span>
                             </td>
                             <td data-label="التارجت" class="cell-target" style="font-weight:800; color:var(--primary);">
                                 <span class="mobile-td-label">التارجت:</span>
-                                <span>${(Number(emp.target) || 0).toLocaleString()} ﷼</span>
+                                <span>${(Number(emp.target) || 0).toLocaleString('en-US')} ﷼</span>
                             </td>
                             <td data-label="طريقة الصرف" class="cell-bank">
                                 <span class="mobile-td-label">البنك:</span>
