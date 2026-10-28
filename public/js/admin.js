@@ -240,7 +240,7 @@ function renderSections() {
                             <th>التارقت</th>
                             <th>البنك / الصرف</th>
                             <th>سحوبات اليوم</th>
-                            <th style="background:#f0fdf4; color:#166534;">صافي متبقي (Excel)</th>
+                            <th class="th-net-remaining">صافي متبقي (Excel)</th>
                             <th>دخل اليوم</th>
                             <th>الإنجاز</th>
                             <th>إجراءات</th>
@@ -263,7 +263,7 @@ function renderSections() {
                                 <td data-label="التارقت">${(parseFloat(emp.target || emp.target_amount) || 0).toLocaleString()} ﷼</td>
                                 <td data-label="البنك">${emp.bank_name || 'كاش'}</td>
                                 <td data-label="سحوبات اليوم" style="color:var(--danger); font-weight:800;">${(parseFloat(emp.total_withdrawal || emp.total_withdrawals) || 0).toLocaleString()} ﷼</td>
-                                <td data-label="صافي متبقي (Excel)" style="background:#f7fff9; font-weight:900; color:#15803d;">${(parseFloat(emp.net_remaining) || 0).toLocaleString()} ﷼</td>
+                                <td data-label="صافي متبقي (Excel)" class="td-net-remaining">${(parseFloat(emp.net_remaining) || 0).toLocaleString()} ﷼</td>
                                 <td data-label="دخل اليوم" style="font-weight:800; color:var(--primary);">${income.toLocaleString()} ﷼</td>
                                 <td data-label="الإنجاز">
                                     <span style="font-weight:800; color:${getPercentColor(percent)};">${percent}%</span>

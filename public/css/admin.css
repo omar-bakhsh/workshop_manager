@@ -800,6 +800,18 @@ tbody tr:hover {
     background: #fcfdfe;
 }
 
+.th-net-remaining {
+    background: #f0fdf4;
+    color: #166534;
+    font-weight: 800;
+}
+
+.td-net-remaining {
+    background: #f7fff9;
+    font-weight: 900;
+    color: #15803d;
+}
+
 .action-btn-pill {
     width: 34px;
     height: 34px;
@@ -1716,6 +1728,46 @@ body.dark-mode tbody td {
 
 body.dark-mode tbody tr:hover td {
     background: #1e293b;
+}
+
+/* 🌙 صافي متبقي (Excel) في الوضع الداكن - تصميم متناسق ومريح للعين */
+body.dark-mode .th-net-remaining,
+body.dark-mode table th[data-col="net-remaining"] {
+    background: rgba(16, 185, 129, 0.12) !important;
+    color: #34d399 !important;
+    border-color: #334155 !important;
+}
+
+body.dark-mode .td-net-remaining,
+body.dark-mode table td[data-label="صافي متبقي (Excel)"] {
+    background: rgba(16, 185, 129, 0.08) !important;
+    color: #4ade80 !important;
+    font-weight: 800 !important;
+    border-color: #1e293b !important;
+}
+
+body.dark-mode tbody tr:hover td.td-net-remaining,
+body.dark-mode tbody tr:hover td[data-label="صافي متبقي (Excel)"] {
+    background: rgba(16, 185, 129, 0.16) !important;
+    color: #86efac !important;
+}
+
+/* أزرار الإجراءات في الوضع الداكن */
+body.dark-mode .action-btn-pill[style*="#f0fdf4"] {
+    background: rgba(16, 185, 129, 0.15) !important;
+    color: #34d399 !important;
+}
+body.dark-mode .action-btn-pill[style*="#fffbeb"] {
+    background: rgba(245, 158, 11, 0.15) !important;
+    color: #fbbf24 !important;
+}
+body.dark-mode .action-btn-pill[style*="#f0f9ff"] {
+    background: rgba(59, 130, 246, 0.15) !important;
+    color: #60a5fa !important;
+}
+body.dark-mode .action-btn-pill[style*="#fef2f2"] {
+    background: rgba(239, 68, 68, 0.15) !important;
+    color: #f87171 !important;
 }
 
 body.dark-mode .modal-content {
