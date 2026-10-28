@@ -556,6 +556,26 @@
     }
 
     /* KPI Stats Grid (Glassmorphic Frosted Glass) */
+    .kpi-sub-badge {
+      font-size: 11.5px !important;
+      font-weight: 700 !important;
+      color: #059669;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      padding: 3px 8px;
+      border-radius: 7px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 6px;
+      line-height: 1.2;
+    }
+    body.dark-mode .kpi-sub-badge {
+      background: rgba(16, 185, 129, 0.18) !important;
+      border-color: rgba(52, 211, 153, 0.35) !important;
+      color: #34d399 !important;
+    }
+
     .kpi-stats-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -2785,6 +2805,9 @@
             <div class="kpi-icon" style="background: rgba(14,165,233,0.15); color: #0284c7;"><i class="fa-solid fa-wallet"></i></div>
           </div>
           <div class="kpi-value" id="dashRemainingBalance" style="color: #0284c7;">0 ﷼</div>
+          <div id="dashRemainingWithBonusWrap" class="kpi-sub-badge" title="راتب + التارقت المتبقي">
+            <i class="fa-solid fa-coins"></i> مع التارقت: <span id="dashRemainingWithBonus">0 ﷼</span>
+          </div>
         </div>
 
         <!-- Hidden hooks for script compatibility -->
@@ -2934,7 +2957,7 @@
       <div class="kpi-stats-grid">
         <div class="kpi-card highlight span-2">
           <div class="kpi-card-header">
-            <span class="kpi-label">الراتب المتبقي المحسوب</span>
+            <span class="kpi-label">صافي الراتب المستحق</span>
             <div class="kpi-icon" style="background: rgba(255,255,255,0.2);"><i class="fa-solid fa-money-bill-wave"></i></div>
           </div>
           <div class="kpi-value" id="finNetRemaining">0 ﷼</div>
@@ -2963,7 +2986,10 @@
             <span class="kpi-label">الرصيد المتبقي</span>
             <div class="kpi-icon" style="background:#e0f2fe; color:#0369a1;"><i class="fa-solid fa-money-bill"></i></div>
           </div>
-          <div class="kpi-value" id="finRemainingBalance">0</div>
+          <div class="kpi-value" id="finRemainingBalance">0 ﷼</div>
+          <div id="finRemainingWithBonusWrap" class="kpi-sub-badge" title="راتب + التارقت المتبقي">
+            <i class="fa-solid fa-coins"></i> مع التارقت: <span id="finRemainingWithBonus">0 ﷼</span>
+          </div>
         </div>
 
         <div class="kpi-card">
@@ -3816,6 +3842,10 @@
               if (earnedIncentiveEl) {
                 earnedIncentiveEl.textContent = earnedIncentive.toLocaleString() + ' ﷼';
               }
+              const dBonus = document.getElementById('dashRemainingWithBonus');
+              if (dBonus) dBonus.innerHTML = formatMoneyDisplay(basicSalaryRemaining + earnedIncentive);
+              const fBonus = document.getElementById('finRemainingWithBonus');
+              if (fBonus) fBonus.innerHTML = formatMoneyDisplay(basicSalaryRemaining + earnedIncentive);
 
               const finRewardCard = document.getElementById('finMechanicRewardCard');
               if (finRewardCard) {
