@@ -2299,6 +2299,255 @@
       position: relative;
     }
 
+  
+    /* 📑 Glassmorphism Styles for Requests, Financials & Chat Tabs */
+    .form-card {
+      background: var(--glass-surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .form-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .form-card-withdrawal {
+      background: linear-gradient(180deg, rgba(238, 242, 255, 0.75) 0%, var(--glass-surface) 100%);
+      border: 1.5px solid rgba(129, 140, 248, 0.35);
+      border-top: 1.5px solid rgba(255, 255, 255, 0.85);
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.08);
+    }
+    body.dark-mode .form-card-withdrawal {
+      background: linear-gradient(180deg, rgba(30, 27, 75, 0.45) 0%, var(--glass-surface) 100%);
+      border-color: rgba(99, 102, 241, 0.3);
+      border-top-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .form-card-leave {
+      background: linear-gradient(180deg, rgba(240, 253, 244, 0.75) 0%, var(--glass-surface) 100%);
+      border: 1.5px solid rgba(52, 211, 153, 0.35);
+      border-top: 1.5px solid rgba(255, 255, 255, 0.85);
+      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.08);
+    }
+    body.dark-mode .form-card-leave {
+      background: linear-gradient(180deg, rgba(6, 78, 59, 0.4) 0%, var(--glass-surface) 100%);
+      border-color: rgba(16, 185, 129, 0.3);
+      border-top-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .form-card-docs {
+      background: linear-gradient(180deg, rgba(254, 243, 199, 0.65) 0%, var(--glass-surface) 100%);
+      border: 1.5px solid rgba(245, 158, 11, 0.35);
+      border-top: 1.5px solid rgba(255, 255, 255, 0.85);
+      box-shadow: 0 4px 20px rgba(245, 158, 11, 0.08);
+    }
+    body.dark-mode .form-card-docs {
+      background: linear-gradient(180deg, rgba(69, 26, 3, 0.4) 0%, var(--glass-surface) 100%);
+      border-color: rgba(245, 158, 11, 0.3);
+      border-top-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .form-tag-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .tag-withdrawal { background: rgba(99, 102, 241, 0.12); color: #4338ca; border: 1px solid rgba(99, 102, 241, 0.3); }
+    body.dark-mode .tag-withdrawal { background: rgba(99, 102, 241, 0.25); color: #c7d2fe; border-color: rgba(99, 102, 241, 0.4); }
+
+    .tag-leave { background: rgba(16, 185, 129, 0.12); color: #065f46; border: 1px solid rgba(16, 185, 129, 0.3); }
+    body.dark-mode .tag-leave { background: rgba(16, 185, 129, 0.25); color: #6ee7b7; border-color: rgba(16, 185, 129, 0.4); }
+
+    .tag-docs { background: rgba(245, 158, 11, 0.12); color: #92400e; border: 1px solid rgba(245, 158, 11, 0.3); }
+    body.dark-mode .tag-docs { background: rgba(245, 158, 11, 0.25); color: #fde68a; border-color: rgba(245, 158, 11, 0.4); }
+
+    .touch-input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1.5px solid var(--glass-border);
+      background: var(--glass-surface);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 13.5px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+    body.dark-mode .touch-input {
+      background: rgba(18, 26, 45, 0.7);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+    .touch-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: var(--surface-solid);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    }
+
+    .chip-btn {
+      padding: 6px 13px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--glass-border);
+      background: var(--glass-surface);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: var(--text-main);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+    }
+    .chip-btn:hover {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+    .chip-btn:active {
+      transform: scale(0.96);
+    }
+
+    .btn-submit-main {
+      width: 100%;
+      padding: 13px;
+      border-radius: 14px;
+      border: none;
+      font-weight: 800;
+      font-size: 14px;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+    .btn-submit-main:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+    }
+    .btn-submit-main:active {
+      transform: scale(0.98);
+    }
+
+    .btn-print-action {
+      background: var(--glass-surface);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: var(--text-main);
+      border: 1px solid var(--glass-border);
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-size: 11.5px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+    .btn-print-action:hover {
+      background: var(--glass-surface-elevated);
+      border-color: var(--primary);
+      color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    /* History Cards */
+    .history-card-item {
+      background: var(--glass-surface);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.25s ease;
+    }
+    .history-card-item:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      background: var(--glass-surface-elevated);
+    }
+
+    .status-badge-pill {
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .pill-pending { background: rgba(245, 158, 11, 0.15); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.3); }
+    body.dark-mode .pill-pending { background: rgba(245, 158, 11, 0.25); color: #fbbf24; border-color: rgba(245, 158, 11, 0.4); }
+    .pill-approved { background: rgba(16, 185, 129, 0.15); color: #059669; border: 1px solid rgba(16, 185, 129, 0.3); }
+    body.dark-mode .pill-approved { background: rgba(16, 185, 129, 0.25); color: #34d399; border-color: rgba(16, 185, 129, 0.4); }
+    .pill-rejected { background: rgba(239, 68, 68, 0.15); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.3); }
+    body.dark-mode .pill-rejected { background: rgba(239, 68, 68, 0.25); color: #f87171; border-color: rgba(239, 68, 68, 0.4); }
+
+    /* Modal Glass Card */
+    .modal-glass-card {
+      background: var(--surface-solid);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 22px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+    }
+    body.dark-mode .modal-glass-card {
+      background: #121a2d;
+      border-color: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+    }
+
+    /* Operation Record Row in Financials */
+    .entry-operation-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 11px 12px;
+      border-radius: 12px;
+      margin-bottom: 6px;
+      background: var(--glass-surface);
+      border: 1px solid var(--border-color);
+      font-size: 13px;
+      transition: all 0.2s ease;
+    }
+    .entry-operation-row:hover {
+      background: var(--glass-surface-elevated);
+      transform: translateX(-2px);
+    }
+
   </style>
 </head>
 
@@ -2800,7 +3049,7 @@
       <!-- Income Operations Record -->
       <div id="incomeSection" class="form-card" style="display: none;">
         <div class="form-card-title">
-          <span><i class="fa-solid fa-chart-line"></i> سجل العمليات اليومية</span>
+          <span><i class="fa-solid fa-receipt" style="color: #0ea5e9;"></i> سجل العمليات والإنتاجية اليومية</span>
         </div>
         <div id="entriesContainer"></div>
       </div>
@@ -2867,7 +3116,7 @@
 
   <!-- Upload Document Modal -->
   <div id="uploadDocModal" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.7); backdrop-filter:blur(5px); z-index:9999; align-items:center; justify-content:center; padding:15px;">
-    <div style="background:#ffffff; border-radius:22px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; padding:22px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.35);">
+    <div class="modal-glass-card">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
         <h3 style="margin:0; font-size:16px; font-weight:800; color:var(--text-main); display:flex; align-items:center; gap:8px;">
           <i class="fa-solid fa-cloud-arrow-up" style="color:var(--primary);"></i> رفع مستند أو سكليف للإدارة
@@ -3727,7 +3976,7 @@
 
         container.innerHTML = loadedRequestsList.map((item, idx) => {
           const isWithdrawal = item.type === 'withdrawal';
-          const typeLabel = isWithdrawal ? `<i class="fa-solid fa-credit-card" style="color:var(--primary);"></i> سحب مالي (${item.amount} ﷼)` : `🏖️ إجازة (${item.amount || item.leave_type || 'رسمية'})`;
+          const typeLabel = isWithdrawal ? `<i class="fa-solid fa-credit-card" style="color:var(--primary);"></i> سحب مالي (${item.amount} ﷼)` : `<i class="fa-solid fa-umbrella-beach" style="color:#059669;"></i> طلب إجازة (${item.amount || item.leave_type || 'رسمية'})`;
           const status = statusMap[item.status] || { label: item.status, class: 'pill-pending' };
           const date = new Date(item.created_at || Date.now()).toLocaleDateString('en-GB');
           
