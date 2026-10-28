@@ -1459,6 +1459,101 @@ export const AtenzaApi = {
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- 🔄 Database Restore Progress & Result Modal -->
+    <!-- ========================================== -->
+    <style>
+        @keyframes restoreModalPopIn {
+            0% { opacity: 0; transform: scale(0.92) translateY(16px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes restorePulseGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+            50% { box-shadow: 0 0 0 14px rgba(99, 102, 241, 0); }
+        }
+    </style>
+    <div id="dbRestoreModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 999999; align-items: center; justify-content: center; padding: 20px; transition: all 0.3s ease;">
+        <div style="background: white; border-radius: 20px; max-width: 540px; width: 100%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.2); overflow: hidden; animation: restoreModalPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+            
+            <!-- Modal Header Accent Bar -->
+            <div id="restoreModalHeaderBar" style="height: 6px; background: linear-gradient(90deg, #3b82f6, #6366f1, #8b5cf6); transition: all 0.3s ease;"></div>
+            
+            <div style="padding: 28px 24px;">
+                <!-- Icon Container -->
+                <div id="restoreModalIcon" style="width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 18px; display: flex; align-items: center; justify-content: center; font-size: 32px; background: #eff6ff; color: #2563eb; transition: all 0.3s ease;">
+                    <i class="fa-solid fa-cloud-arrow-up fa-bounce"></i>
+                </div>
+
+                <!-- Title & Subtitle -->
+                <h3 id="restoreModalTitle" style="font-size: 19px; font-weight: 800; color: #0f172a; text-align: center; margin: 0 0 8px 0; line-height: 1.4;">
+                    جاري رفع ومعالجة النسخة الاحتياطية...
+                </h3>
+                <p id="restoreModalSubtitle" style="font-size: 13.5px; color: #64748b; text-align: center; margin: 0 0 20px 0; line-height: 1.6;">
+                    يرجى الانتظار، جاري نقل البيانات وفحص الجداول...
+                </p>
+
+                <!-- Progress Section (During Upload / Processing) -->
+                <div id="restoreProgressSection" style="margin-bottom: 20px;">
+                    <!-- File info badge -->
+                    <div id="restoreFileInfoBadge" style="display: flex; align-items: center; justify-content: space-between; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 14px; margin-bottom: 12px; font-size: 12.5px;">
+                        <span id="restoreFileName" style="font-weight: 700; color: #334155; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-regular fa-file-code" style="color: #6366f1;"></i> <span class="file-name-text">backup.json</span>
+                        </span>
+                        <span id="restoreFileSize" style="color: #64748b; font-weight: 600;">--</span>
+                    </div>
+
+                    <!-- Progress Bar Track -->
+                    <div style="height: 10px; background: #e2e8f0; border-radius: 999px; overflow: hidden; position: relative;">
+                        <div id="restoreProgressBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #3b82f6, #6366f1); border-radius: 999px; transition: width 0.25s ease;"></div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 12px; color: #64748b;">
+                        <span id="restoreProgressStatusText" style="font-weight: 600; color: #2563eb;">
+                            <i class="fa-solid fa-spinner fa-spin"></i> جاري رفع الملف...
+                        </span>
+                        <span id="restoreProgressPercent" style="font-weight: 700; color: #0f172a;">0%</span>
+                    </div>
+
+                    <!-- Time & Safety Note -->
+                    <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 10px 12px; margin-top: 14px; display: flex; align-items: flex-start; gap: 10px;">
+                        <i class="fa-solid fa-triangle-exclamation" style="color: #d97706; font-size: 14px; margin-top: 2px;"></i>
+                        <span style="font-size: 11.5px; color: #92400e; line-height: 1.5;">
+                            تنبيه: لا تقم بإغلاق أو تحديث هذه الصفحة أثناء عملية الاستيراد لضمان اكتمال تحديث السجلات بنجاح.
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Stats Breakdown (Shown on Success) -->
+                <div id="restoreStatsSection" style="display: none; margin-bottom: 20px;">
+                    <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 12px; padding: 14px; margin-bottom: 14px;">
+                        <div style="font-weight: 800; font-size: 14px; color: #166534; display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                            <i class="fa-solid fa-circle-check" style="color: #16a34a; font-size: 18px;"></i>
+                            <span id="restoreSuccessSummary">تم تحديث قاعدة البيانات بنجاح</span>
+                        </div>
+                        <p id="restoreSuccessDetail" style="font-size: 12.5px; color: #15803d; margin: 0; line-height: 1.5; font-weight: 600;"></p>
+                    </div>
+
+                    <!-- Dynamic Tables Updated Tags Container -->
+                    <div style="font-size: 11.5px; font-weight: 800; color: #475569; margin-bottom: 8px;">
+                        تفاصيل الجداول والسجلات المحدثة:
+                    </div>
+                    <div id="restoreTablesGrid" style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 140px; overflow-y: auto; padding: 4px;">
+                    </div>
+                </div>
+
+                <!-- Action Buttons Container -->
+                <div id="restoreActionButtons" style="display: flex; gap: 10px; justify-content: center; margin-top: 6px;">
+                    <button type="button" id="restoreReloadBtn" class="btn-modern btn-success-m" style="display: none; flex: 1; justify-content: center; padding: 11px 18px; font-size: 13.5px;" onclick="window.location.reload()">
+                        <i class="fa-solid fa-rotate-right"></i> تحديث الصفحة الآن (<span id="restoreCountdown">5</span>)
+                    </button>
+                    <button type="button" id="restoreCloseBtn" class="btn-modern btn-secondary-m" style="display: none; padding: 11px 22px; font-size: 13.5px;" onclick="closeDbRestoreModal()">
+                        إغلاق
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Sticky Floating Bottom Save Bar -->
     <div class="sticky-save-bar">
         <div class="sticky-save-inner">
@@ -2019,35 +2114,232 @@ export const AtenzaApi = {
             }
         }
 
+        const DB_TABLE_LABELS = {
+            employees: 'الموظفين',
+            users: 'المستخدمين والصلاحيات',
+            sections: 'الأقسام',
+            banks: 'البنوك',
+            settings: 'الإعدادات العامة',
+            entries: 'الإيرادات اليومية',
+            withdrawals: 'السحبيات والمصروفات',
+            inspections: 'الفحوصات وأوامر العمل',
+            inspection_items: 'بنود الفحص',
+            inspection_technicians: 'فنيي الفحص',
+            inspection_photos: 'صور الفحص',
+            inspection_terms: 'شروط وبنود الفحص',
+            inspection_bundles: 'باقات الفحص',
+            inspection_bundle_items: 'بنود الباقات',
+            services: 'دليل الخدمات والأسعار',
+            clients: 'العملاء',
+            attendance: 'الحضور والانصراف',
+            absences: 'الغيابات والخصومات',
+            leave_requests: 'طلبات الإجازات',
+            branch_shifts: 'ورديات الفروع',
+            work_schedule: 'مواعيد العمل',
+            workshop_lifts: 'رافعات الورشة',
+            promo_codes: 'أكواد الخصم',
+            messages: 'الرسائل الداخلية',
+            sys_notifications: 'إشعارات النظام',
+            cash_box_entries: 'الصندوق النقدي',
+            employee_documents: 'وثائق الموظفين'
+        };
+
+        let restoreTimerInterval = null;
+        let restoreCountdownInterval = null;
+
+        function closeDbRestoreModal() {
+            if (restoreTimerInterval) clearInterval(restoreTimerInterval);
+            if (restoreCountdownInterval) clearInterval(restoreCountdownInterval);
+            const modal = document.getElementById('dbRestoreModal');
+            if (modal) modal.style.display = 'none';
+        }
+
         async function uploadAndRestoreDatabase(input) {
             const file = input.files[0];
             if (!file) return;
 
-            if (!confirm(`تحذير هام جداً:\nأنت على وشك استعادة قاعدة البيانات من الملف (${file.name}).\nقد يؤدي هذا إلى استبدال أو دمج السجلات الحالية. هل تود المتابعة؟`)) {
+            const isJson = file.name.toLowerCase().endsWith('.json');
+            const fileTypeLabel = isJson ? 'ملف JSON' : 'ملف قاعدة بيانات SQLite';
+
+            if (!confirm(`⚠️ تأكيد هام لاستعادة البيانات:\n\nأنت على وشك استعادة وتحديث قاعدة البيانات من:\n"${file.name}" (${fileTypeLabel})\n\nسيتم دمج وتحديث السجلات في قاعدة البيانات. هل تود المتابعة؟`)) {
                 input.value = '';
                 return;
             }
 
+            // Setup UI Elements
+            const modal = document.getElementById('dbRestoreModal');
+            const headerBar = document.getElementById('restoreModalHeaderBar');
+            const iconContainer = document.getElementById('restoreModalIcon');
+            const titleEl = document.getElementById('restoreModalTitle');
+            const subtitleEl = document.getElementById('restoreModalSubtitle');
+            const progressSection = document.getElementById('restoreProgressSection');
+            const statsSection = document.getElementById('restoreStatsSection');
+            const fileNameEl = document.getElementById('restoreFileName');
+            const fileSizeEl = document.getElementById('restoreFileSize');
+            const progressBar = document.getElementById('restoreProgressBar');
+            const progressPercent = document.getElementById('restoreProgressPercent');
+            const progressStatusText = document.getElementById('restoreProgressStatusText');
+            const tablesGrid = document.getElementById('restoreTablesGrid');
+            const reloadBtn = document.getElementById('restoreReloadBtn');
+            const closeBtn = document.getElementById('restoreCloseBtn');
+            const countdownEl = document.getElementById('restoreCountdown');
+
+            // Format size
+            const sizeInMb = (file.size / (1024 * 1024)).toFixed(2);
+            const formattedSize = file.size > 1024 * 1024 ? `${sizeInMb} MB` : `${Math.round(file.size / 1024)} KB`;
+
+            // Reset Initial Modal State (Phase 1: Uploading)
+            modal.style.display = 'flex';
+            headerBar.style.background = 'linear-gradient(90deg, #3b82f6, #6366f1)';
+            iconContainer.style.background = '#eff6ff';
+            iconContainer.style.color = '#2563eb';
+            iconContainer.innerHTML = '<i class="fa-solid fa-cloud-arrow-up fa-bounce"></i>';
+            titleEl.textContent = 'جاري رفع ملف النسخة الاحتياطية...';
+            subtitleEl.textContent = 'يرجى الانتظار بينما يتم نقل الملف إلى الخادم.';
+            progressSection.style.display = 'block';
+            statsSection.style.display = 'none';
+            reloadBtn.style.display = 'none';
+            closeBtn.style.display = 'none';
+            progressBar.style.width = '0%';
+            progressBar.style.background = 'linear-gradient(90deg, #3b82f6, #6366f1)';
+            progressPercent.textContent = '0%';
+            progressStatusText.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري رفع الملف...';
+            if (fileNameEl) fileNameEl.innerHTML = `<i class="fa-solid ${isJson ? 'fa-file-lines' : 'fa-database'}" style="color: #6366f1; margin-left:6px;"></i> ${file.name}`;
+            if (fileSizeEl) fileSizeEl.textContent = formattedSize;
+
             const formData = new FormData();
             formData.append('backupFile', file);
 
-            try {
-                const res = await fetch('/api/backup/restore-file', {
-                    method: 'POST',
-                    body: formData
-                });
-                const result = await res.json();
-                if (res.ok) {
-                    showToast(result.message || 'تمت استعادة قاعدة البيانات بنجاح!', 'success');
-                    setTimeout(() => window.location.reload(), 1200);
-                } else {
-                    showToast('خطأ في الاستعادة: ' + (result.message || 'فشلت العملية'), 'error');
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/backup/restore-file', true);
+
+            let secondsElapsed = 0;
+
+            // 1. Upload progress tracking
+            xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable) {
+                    const percent = Math.min(100, Math.round((e.loaded / e.total) * 100));
+                    progressBar.style.width = percent + '%';
+                    progressPercent.textContent = percent + '%';
+
+                    if (percent >= 100) {
+                        // 2. Upload completed, now Phase 2: Processing Database
+                        headerBar.style.background = 'linear-gradient(90deg, #7c3aed, #ec4899)';
+                        iconContainer.style.background = '#f5f3ff';
+                        iconContainer.style.color = '#7c3aed';
+                        iconContainer.innerHTML = '<i class="fa-solid fa-database fa-spin"></i>';
+                        titleEl.innerHTML = 'تم رفع الملف بنجاح! 🚀';
+                        subtitleEl.innerHTML = 'جاري الآن قراءة الجداول واستيراد وتحديث السجلات في قاعدة البيانات...<br><strong style="color: #4f46e5;">يرجى عدم إغلاق الصفحة</strong>';
+                        progressBar.style.background = 'linear-gradient(90deg, #7c3aed, #a855f7, #ec4899)';
+                        progressBar.style.width = '100%';
+                        progressPercent.textContent = '100%';
+                        progressStatusText.innerHTML = '<i class="fa-solid fa-gear fa-spin" style="color: #7c3aed;"></i> جاري معالجة وتحديث البيانات... (00:00)';
+
+                        if (restoreTimerInterval) clearInterval(restoreTimerInterval);
+                        secondsElapsed = 0;
+                        restoreTimerInterval = setInterval(() => {
+                            secondsElapsed++;
+                            const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+                            const secs = String(secondsElapsed % 60).padStart(2, '0');
+                            progressStatusText.innerHTML = `<i class="fa-solid fa-gear fa-spin" style="color: #7c3aed;"></i> جاري معالجة وتحديث البيانات... (${mins}:${secs})`;
+                        }, 1000);
+                    }
                 }
-            } catch (error) {
-                showToast('تعذر رفع الملف أو استعادة البيانات: ' + error.message, 'error');
-            } finally {
+            };
+
+            // 3. Response received
+            xhr.onload = () => {
+                if (restoreTimerInterval) clearInterval(restoreTimerInterval);
                 input.value = '';
-            }
+
+                let result = null;
+                try {
+                    result = JSON.parse(xhr.responseText);
+                } catch (pe) {
+                    result = { success: false, message: 'استجابة غير متوقعة من السيرفر: ' + xhr.responseText.slice(0, 150) };
+                }
+
+                if (xhr.status >= 200 && xhr.status < 300 && result && result.success) {
+                    // Phase 3: Success State
+                    headerBar.style.background = 'linear-gradient(90deg, #10b981, #059669)';
+                    iconContainer.style.background = '#dcfce7';
+                    iconContainer.style.color = '#16a34a';
+                    iconContainer.innerHTML = '<i class="fa-solid fa-circle-check" style="font-size: 38px;"></i>';
+                    titleEl.innerHTML = 'تمت استعادة وتحديث البيانات بنجاح! 🎉';
+                    subtitleEl.textContent = 'تم نقل ومعالجة كافة سجلات النسخة الاحتياطية وتحديث قاعدة البيانات بنجاح.';
+
+                    progressSection.style.display = 'none';
+                    statsSection.style.display = 'block';
+
+                    document.getElementById('restoreSuccessSummary').textContent = result.message || 'تم تحديث قاعدة البيانات بنجاح';
+                    document.getElementById('restoreSuccessDetail').textContent = `إجمالي السجلات المحدثة: ${result.total || 0} سجل.`;
+
+                    // Render table tags breakdown if available
+                    tablesGrid.innerHTML = '';
+                    if (result.stats && typeof result.stats === 'object') {
+                        const entries = Object.entries(result.stats);
+                        if (entries.length > 0) {
+                            entries.forEach(([tbl, count]) => {
+                                const pill = document.createElement('span');
+                                pill.style.cssText = 'background: white; border: 1px solid #cbd5e1; border-radius: 8px; padding: 4px 10px; font-size: 11.5px; font-weight: 700; color: #1e293b; display: inline-flex; align-items: center; gap: 6px;';
+                                const label = DB_TABLE_LABELS[tbl] || tbl;
+                                pill.innerHTML = `<i class="fa-solid fa-table" style="color: #6366f1; font-size: 11px;"></i> ${label}: <span style="color: #059669; font-weight: 800;">${count}</span>`;
+                                tablesGrid.appendChild(pill);
+                            });
+                        }
+                    }
+
+                    reloadBtn.style.display = 'inline-flex';
+                    closeBtn.style.display = 'inline-flex';
+
+                    // 5-second countdown to auto-reload
+                    let countdown = 5;
+                    countdownEl.textContent = countdown;
+                    if (restoreCountdownInterval) clearInterval(restoreCountdownInterval);
+                    restoreCountdownInterval = setInterval(() => {
+                        countdown--;
+                        if (countdownEl) countdownEl.textContent = countdown;
+                        if (countdown <= 0) {
+                            clearInterval(restoreCountdownInterval);
+                            window.location.reload();
+                        }
+                    }, 1000);
+                } else {
+                    // Phase 4: Error State
+                    headerBar.style.background = 'linear-gradient(90deg, #ef4444, #b91c1c)';
+                    iconContainer.style.background = '#fee2e2';
+                    iconContainer.style.color = '#dc2626';
+                    iconContainer.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="font-size: 36px;"></i>';
+                    titleEl.innerHTML = 'حدث خطأ أثناء استعادة البيانات';
+                    subtitleEl.innerHTML = `<span style="color: #b91c1c; font-weight: 600;">${(result && result.message) || 'تعذر استعادة البيانات من الملف'}</span>`;
+
+                    progressBar.style.background = '#ef4444';
+                    progressStatusText.innerHTML = '<span style="color: #dc2626;"><i class="fa-solid fa-circle-xmark"></i> فشلت العملية</span>';
+
+                    reloadBtn.style.display = 'none';
+                    closeBtn.style.display = 'inline-flex';
+                    closeBtn.textContent = 'إغلاق ومراجعة الملف';
+                }
+            };
+
+            // 4. Network or connection error
+            xhr.onerror = () => {
+                if (restoreTimerInterval) clearInterval(restoreTimerInterval);
+                input.value = '';
+
+                headerBar.style.background = '#ef4444';
+                iconContainer.style.background = '#fee2e2';
+                iconContainer.style.color = '#dc2626';
+                iconContainer.innerHTML = '<i class="fa-solid fa-circle-exmark" style="font-size: 36px;"></i>';
+                titleEl.textContent = 'تعذر الاتصال بالسيرفر';
+                subtitleEl.textContent = 'حدث انقطاع في الاتصال أثناء رفع أو معالجة ملف النسخة الاحتياطية. يرجى التحقق من اتصال الشبكة وإعادة المحاولة.';
+
+                reloadBtn.style.display = 'none';
+                closeBtn.style.display = 'inline-flex';
+                closeBtn.textContent = 'إغلاق';
+            };
+
+            xhr.send(formData);
         }
 
         async function syncDefaultSeedData() {
