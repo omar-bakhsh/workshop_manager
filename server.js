@@ -2040,16 +2040,71 @@ app.get('/api/attendance/status/:employee_id', async (req, res) => {
 // 🧩 إعدادات النظام
 // ==========================
 
-// Terms & Conditions API
-app.get('/api/terms', (req, res) => {
-    res.json([
-        { id: 1, term: "يتم دفع كامل المبلغ قبل استلام السيارة." },
-        { id: 2, term: "في حالة احتياج لقطع الغيار يبلغ صاحبها بما يحتاج ويعطى مهلة خمسة أيام لتأمين القطع، وفي حالة تأخره عن تأمين القطع أو في حالة تم تجهيز السيارة ولم يستلمها العميل لأكثر من 3 أيام فإن المركز غير مسؤول عن أي مخالفات تصدر عليها." },
-        { id: 3, term: "المركز لا يتحمل مسؤولية غير زيت الجيربوكس أو تزويد ((لا يوجد ضمان))." },
-        { id: 4, term: "المركز غير مسؤول عن قطع التي تم تغييرها وتركها في المركز عن مدة تزيد عن 3 أيام." },
-        { id: 5, term: "المركز غير مسؤول عن الأعطال التي تظهر والتي لم يتم الاتفاق على إصلاحها." },
-        { id: 6, term: "المركز غير مسؤول عن كشف السيارة بعد 7 أيام من تاريخ الكشف." }
-    ]);
+// Terms & Conditions API (الشروط والأحكام والبنود الرسمية)
+const DEFAULT_WORKSHOP_TERMS = [
+    { id: 1, term: "يتم دفع كامل المبلغ قبل استلام السيارة." },
+    { id: 2, term: "في حالة احتياج لقطع الغيار يبلغ صاحبها بما يحتاج ويعطى مهلة خمسة أيام لتأمين القطع، وفي حالة تأخره عن تأمين القطع أو في حالة تم تجهيز السيارة ولم يستلمها العميل لأكثر من 3 أيام فإن المركز غير مسؤول عن أي مخالفات تصدر عليها." },
+    { id: 3, term: "المركز لا يتحمل مسؤولية غير زيت الجيربوكس أو تزويد ((لا يوجد ضمان))." },
+    { id: 4, term: "المركز غير مسؤول عن قطع التي تم تغييرها وتركها في المركز عن مدة تزيد عن 3 أيام." },
+    { id: 5, term: "المركز غير مسؤول عن الأعطال التي تظهر والتي لم يتم الاتفاق على إصلاحها." },
+    { id: 6, term: "المركز غير مسؤول عن كشف السيارة بعد 7 أيام من تاريخ الكشف." }
+];
+
+app.get('/api/terms', async (req, res) => {
+    try {
+        const row = await dbGet(`SELECT value FROM settings WHERE key = 'workshop_terms'`);
+        if (row && row.value) {
+            try {
+                const parsed = JSON.parse(row.value);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    const formatted = parsed.map((item, index) => {
+                        if (typeof item === 'object' && item !== null) {
+                            return { id: item.id || (index + 1), term: item.term || '' };
+                        }
+                        return { id: index + 1, term: String(item || '') };
+                    }).filter(t => t.term.trim().length > 0);
+
+                    return res.json(formatted);
+                }
+            } catch (parseErr) {
+                console.warn('⚠️ تعذر تحليل workshop_terms من الإعدادات:', parseErr.message);
+            }
+        }
+        res.json(DEFAULT_WORKSHOP_TERMS);
+    } catch (error) {
+        console.error('Error fetching terms:', error);
+        res.json(DEFAULT_WORKSHOP_TERMS);
+    }
+});
+
+app.post('/api/terms', async (req, res) => {
+    try {
+        const rawList = (req.body && req.body.terms) ? req.body.terms : req.body;
+        if (!Array.isArray(rawList)) {
+            return res.status(400).json({ success: false, message: 'بيانات الشروط غير صالحة، يجب إرسال مصفوفة' });
+        }
+
+        const formatted = rawList
+            .map((item, index) => {
+                const termText = (typeof item === 'object' && item !== null) ? (item.term || '') : String(item || '');
+                return { id: index + 1, term: termText.trim() };
+            })
+            .filter(t => t.term.length > 0);
+
+        await dbRun(
+            `INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`,
+            ['workshop_terms', JSON.stringify(formatted)]
+        );
+
+        res.json({
+            success: true,
+            message: 'تم حفظ وتحديث الشروط والأحكام بنجاح 🚀',
+            terms: formatted
+        });
+    } catch (error) {
+        console.error('Error saving terms:', error);
+        res.status(500).json({ success: false, message: 'حدث خطأ أثناء حفظ الشروط والأحكام' });
+    }
 });
 
 app.get('/api/settings', async (req, res) => {

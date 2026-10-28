@@ -1967,26 +1967,26 @@ export const AtenzaApi = {
                 });
 
                 // Save Terms
-                await fetch('/api/terms', {
+                const resTerms = await fetch('/api/terms', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ terms: currentTerms })
                 });
 
                 // Save Schedule
-                await fetch('/api/work-schedule', {
+                const resSched = await fetch('/api/work-schedule', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ schedule: currentSchedule })
                 });
 
-                if (res.ok) {
+                if (res.ok && resTerms.ok && resSched.ok) {
                     showToast('تم حفظ كافة الإعدادات والشروط ومواعيد العمل بنجاح!', 'success');
                     if (window.APP_CONFIG && APP_CONFIG.initBranding) {
                         APP_CONFIG.initBranding();
                     }
                 } else {
-                    showToast('حدث خطأ أثناء حفظ الإعدادات', 'error');
+                    showToast('حدث خطأ أثناء حفظ بعض الإعدادات أو الشروط', 'error');
                 }
             } catch (e) {
                 console.error(e);
