@@ -1137,36 +1137,36 @@
         <div class="inspector-top-card no-print">
             <div class="top-main-row">
                 <div class="doc-title-group">
-                    <h1 id="documentTitleDisplay">📋 كشف فني (تسعيرة أجور)</h1>
+                    <h1 id="documentTitleDisplay"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="12" y2="16"/></svg> كشف فني (تسعيرة أجور)</h1>
                     <span class="doc-id-pill" id="inspectionIdBadge">جديد #</span>
                 </div>
                 <div class="top-nav-actions">
                     <button type="button" class="btn-action-top" style="background: #0284c7; color: white; font-weight: 800; border: none; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);" onclick="doPrint()" title="طباعة">
-                        <span>🖨️</span>
+                        <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg></span>
                         <span>طباعة</span>
                     </button>
                     <button type="button" class="btn-action-top" style="background: #16a34a; color: white; font-weight: 800; border: none; box-shadow: 0 2px 8px rgba(22, 163, 74, 0.35);" onclick="printTaxInvoice()" title="طباعة فاتورة ضريبية">
-                        <span>🧾</span>
+                        <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
                         <span>فاتورة ضريبية</span>
                     </button>
                     <button type="button" class="btn-action-top btn-bottom-save" style="background: linear-gradient(135deg, #10b981, #059669); color: white; font-weight: 800; border: none; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);" onclick="saveInspection()" title="حفظ">
-                        <span>💾</span>
+                        <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></span>
                         <span>حفظ</span>
                     </button>
                     <button type="button" class="btn-action-top btn-whatsapp-top" onclick="sendWhatsAppFromInspector()" title="إرسال واتساب">
-                        <span>💬</span>
+                        <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
                         <span>واتساب</span>
                     </button>
                     <a id="inspectorTrackLink" target="_blank" class="btn-action-top" style="display:none; background:#e0f2fe; color:#0369a1; border-color:#bae6fd;">
-                        <span>🔗</span>
+                        <span><i class="fa-solid fa-link"></i></span>
                         <span>رابط العميل</span>
                     </a>
                     <label class="btn-action-top" style="background:#ecfdf5; color:#065f46; border:1.5px solid #a7f3d0; cursor:pointer; display:inline-flex; align-items:center; gap:6px; font-weight:800;" title="إظهار / إخفاء الختم الرسمي في ورقة التسعيرة وأمر العمل المطبوع">
                         <input type="checkbox" id="includeStampCheckbox" checked onchange="toggleStampInDoc(this.checked)" style="accent-color:#059669; width:16px; height:16px; cursor:pointer;">
-                        <span>💮 إضافة الختم</span>
+                        <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M5 22h14"/><path d="M19.27 13.73A2.5 2.5 0 0 0 17.5 13h-11A2.5 2.5 0 0 0 4 15.5V17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1.5c0-.66-.26-1.3-.73-1.77z"/><path d="M14 13V8.5C14 7.12 12.88 6 11.5 6S9 7.12 9 8.5V13"/></svg> إضافة الختم</span>
                     </label>
                     <button type="button" class="btn-action-top" onclick="safeNavigate('inspections_list.html')">
-                        <span>📋</span>
+                        <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="12" y2="16"/></svg></span>
                         <span>السجل</span>
                     </button>
                     <button type="button" class="btn-action-top" onclick="safeNavigate('job_orders_list.html')" style="background:#e0f2fe; color:#0369a1;">
@@ -1174,11 +1174,11 @@
                         <span>أوامر العمل</span>
                     </button>
                     <button type="button" class="btn-action-top" onclick="safeNavigate('clients_manager.html')" style="background:#f0fdf4; color:#166534; border-color:#bbf7d0;" title="قاعدة بيانات العملاء (استيراد/تصدير)">
-                        <span>👥</span>
+                        <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
                         <span>العملاء</span>
                     </button>
                     <button type="button" class="btn-action-top" onclick="safeNavigate('back')">
-                        <span>🔙</span>
+                        <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 19 12 12 5"/></svg></span>
                     </button>
                 </div></div>
             </div>
@@ -1215,17 +1215,17 @@
         <div class="shortcuts-card no-print" id="bundlesShortcutsCard">
             <div class="shortcuts-title">
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <span class="shortcuts-badge-icon">🚀</span>
+                    <span class="shortcuts-badge-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></span>
                     <span>باقات الصيانة السريعة (اختصارات بنقرة واحدة):</span>
                     <span id="bundlesCountBadge" class="bundles-count-pill" style="display:none;">0 باقة</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <button type="button" id="toggleBundlesCollapseBtn" class="btn-toggle-shortcuts" onclick="toggleBundlesSection()" title="طي أو توسيع عرض باقات الصيانة">
-                        <span id="toggleBundlesIcon">🔼</span>
+                        <span id="toggleBundlesIcon"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><polyline points="18 15 12 9 6 15"/></svg></span>
                         <span id="toggleBundlesText">طي الباقات</span>
                     </button>
                     <a href="shortcuts_manager.html" class="link-manage-bundles" title="إضافة أو تعديل باقات الصيانة">
-                        <span>⚙️</span>
+                        <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
                         <span>إدارة الباقات</span>
                     </a>
                 </div>
@@ -1449,16 +1449,16 @@
             </p>
             <div style="display: flex; flex-direction: column; gap: 10px;">
                 <button type="button" id="btnSaveAndExitModal" onclick="confirmSaveThenExit()" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 13px 18px; border-radius: 12px; font-weight: 800; font-size: 14.5px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35); transition: transform 0.15s ease;">
-                    <span>💾</span>
+                    <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></span>
                     <span>احفظ أولاً ثم غادر</span>
                 </button>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <button type="button" onclick="confirmDiscardAndExit()" style="background: #fee2e2; color: #b91c1c; border: 1.5px solid #fca5a5; padding: 11px 14px; border-radius: 12px; font-weight: 800; font-size: 13.5px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: background 0.15s ease;">
-                        <span>🚪</span>
+                        <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>
                         <span>خروج دون حفظ</span>
                     </button>
                     <button type="button" onclick="closeUnsavedModal()" style="background: #f1f5f9; color: #475569; border: 1.5px solid #cbd5e1; padding: 11px 14px; border-radius: 12px; font-weight: 700; font-size: 13.5px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                        <span>❌</span>
+                        <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
                         <span>إلغاء والبقاء</span>
                     </button>
                 </div>
@@ -2043,12 +2043,12 @@
                 const safeIcon = b.icon || '🚀';
                 return `
                 <button type="button" class="bundle-quick-pill" onclick="applyBundle(${b.id})" title="إضافة باقة: ${safeName} (${count} بنود صيانة)">
-                    <div class="bundle-pill-icon">${safeIcon}</div>
+                    <div class="bundle-pill-icon">${safeIcon && !/[\uD800-\uDFFF]/.test(safeIcon) ? safeIcon : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#166534" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>'}</div>
                     <div class="bundle-pill-body">
                         <span class="bundle-pill-name">${safeName}</span>
                         <span class="bundle-pill-count">
                             <span>${count} بنود صيانة</span>
-                            <span style="color:#059669; font-weight:800; margin-right:auto;">➕ إضافة</span>
+                            <span style="color:#059669; font-weight:800; margin-right:auto; display:inline-flex; align-items:center; gap:3px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> إضافة</span>
                         </span>
                     </div>
                 </button>
@@ -2063,7 +2063,7 @@
             if (!card) return;
 
             const isCollapsed = card.classList.toggle('collapsed');
-            if (icon) icon.textContent = isCollapsed ? '🔽' : '🔼';
+            if (icon) icon.innerHTML = isCollapsed ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><polyline points="6 9 12 15 18 9"/></svg>' : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><polyline points="18 15 12 9 6 15"/></svg>';
             if (text) text.textContent = isCollapsed ? 'عرض الباقات' : 'طي الباقات';
 
             try {
