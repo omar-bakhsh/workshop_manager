@@ -1450,8 +1450,9 @@ export const AtenzaApi = {
                     <i class="fa-solid fa-upload"></i> رفع واستعادة قاعدة البيانات
                 </button>
                 <button type="button" class="btn-modern" onclick="syncDefaultSeedData()"
-                    style="flex: 1; min-width: 170px; justify-content: center; background: #0284c7; color: white; height: 42px;">
-                    <i class="fa-solid fa-arrows-rotate"></i> مزامنة واستيراد البيانات الافتراضية
+                    title="مخصص فقط في حال كانت قاعدة البيانات فارغة تماماً لملئها ببيانات تجريبية أولية"
+                    style="flex: 1; min-width: 170px; justify-content: center; background: #64748b; color: white; height: 42px;">
+                    <i class="fa-solid fa-seedling"></i> استيراد بيانات أولية (للقاعدة الفارغة فقط)
                 </button>
                 <input type="file" id="dbRestoreFileInput" style="display: none;" accept=".sqlite,.db,.json"
                     onchange="uploadAndRestoreDatabase(this)">
@@ -2343,7 +2344,7 @@ export const AtenzaApi = {
         }
 
         async function syncDefaultSeedData() {
-            if (!confirm('هل تريد مزامنة واستيراد الموظفين والبيانات الأساسية الافتراضية الآن؟')) return;
+            if (!confirm('⚠️ تنبيه هام:\nهذا الخيار مخصص فقط في حال كانت قاعدة البيانات فارغة تماماً لملئها ببيانات أولية تجريبية.\nإذا قمت برفع واستعادة نسختك الاحتياطية بالفعل، فأنت لست بحاجة للضغط هنا.\n\nهل تريد المتابعة واستيراد البيانات الأولية؟')) return;
             try {
                 const res = await fetch('/api/backup/sync-seed', { method: 'POST' });
                 const result = await res.json();

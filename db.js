@@ -204,6 +204,9 @@ async function initDatabase() {
 
     if (isMySQL) {
         await pool.query('SET FOREIGN_KEY_CHECKS = 0');
+        try {
+            await pool.query("SET SESSION sql_mode = 'NO_ENGINE_SUBSTITUTION'");
+        } catch (e) {}
     }
 
     const mysqlTables = [
@@ -1367,6 +1370,7 @@ async function restoreDatabaseFromJson(jsonData) {
     } else {
         await dbRun('PRAGMA foreign_keys = OFF');
         try {
+            await dbRun('BEGIN TRANSACTION');
             for (const tableName of Object.keys(jsonData.tables)) {
                 const rows = jsonData.tables[tableName];
                 if (!Array.isArray(rows) || rows.length === 0) continue;
@@ -1405,6 +1409,11 @@ async function restoreDatabaseFromJson(jsonData) {
                 }
                 tableStats[tableName] = tableCount;
             }
+            await dbRun('COMMIT');
+            try { await dbRun('PRAGMA wal_checkpoint(FULL)'); } catch (e) {}
+        } catch (trxErr) {
+            try { await dbRun('ROLLBACK'); } catch (rbErr) {}
+            throw trxErr;
         } finally {
             await dbRun('PRAGMA foreign_keys = ON');
         }
@@ -1478,6 +1487,7 @@ async function restoreFromSqliteDatabase(sqliteFilePath) {
         } else {
             await dbRun('PRAGMA foreign_keys = OFF');
             try {
+                await dbRun('BEGIN TRANSACTION');
                 for (const tableName of sourceTables) {
                     try {
                         const existingCols = await getTableColumnNames(tableName);
@@ -1515,6 +1525,11 @@ async function restoreFromSqliteDatabase(sqliteFilePath) {
                         console.warn(`⚠️ تعذر استيراد جدول ${tableName}:`, tblErr.message);
                     }
                 }
+                await dbRun('COMMIT');
+                try { await dbRun('PRAGMA wal_checkpoint(FULL)'); } catch (e) {}
+            } catch (trxErr) {
+                try { await dbRun('ROLLBACK'); } catch (rbErr) {}
+                throw trxErr;
             } finally {
                 await dbRun('PRAGMA foreign_keys = ON');
             }

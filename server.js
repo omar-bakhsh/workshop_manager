@@ -596,7 +596,7 @@ app.get('/api/employees', async (req, res) => {
             FROM employees e
             LEFT JOIN sections s ON e.section_id = s.id
             LEFT JOIN (
-                SELECT employee_id, username, password 
+                SELECT employee_id, MIN(username) AS username, MIN(password) AS password 
                 FROM users 
                 WHERE employee_id IS NOT NULL 
                 GROUP BY employee_id
@@ -945,7 +945,7 @@ app.get('/api/sections-summary', async (req, res) => {
             FROM sections s
             LEFT JOIN employees e ON s.id = e.section_id AND e.is_active = 1
             LEFT JOIN entries ent ON e.id = ent.employee_id
-            GROUP BY s.id
+            GROUP BY s.id, s.name
             ORDER BY s.id
         `);
         res.json(summary);
@@ -3232,7 +3232,7 @@ app.get('/api/admin/inspection-stats', async (req, res) => {
             FROM employees e
             LEFT JOIN inspections i ON e.id = i.inspector_id
             WHERE e.section_id = (SELECT id FROM sections WHERE name = 'كشف')
-            GROUP BY e.id
+            GROUP BY e.id, e.name
         `);
         res.json(stats);
     } catch (error) {
