@@ -110,7 +110,7 @@ if (Test-Path $serverPartsDir) {
     }
 }
 
-# 4. Add uploads directory structure with placeholders
+# 4. Add uploads directory structure with placeholders and branding assets
 $uploadDirs = @("uploads/inspection_photos/", "uploads/documents/", "uploads/branding/")
 foreach ($ud in $uploadDirs) {
     $nullEntry = $archive.CreateEntry($ud, [System.IO.Compression.CompressionLevel]::Optimal)
@@ -118,46 +118,36 @@ foreach ($ud in $uploadDirs) {
     $nullStream.Close()
 }
 
-# 5. Add db.sqlite and default_seed.sqlite
-$dbFile = Join-Path $PSScriptRoot "db.sqlite"
-if (Test-Path $dbFile) {
-    try {
-        $entry = $archive.CreateEntry("db.sqlite", [System.IO.Compression.CompressionLevel]::Optimal)
+$brandingDir = Join-Path $PSScriptRoot "uploads\branding"
+if (Test-Path $brandingDir) {
+    $brandFiles = Get-ChildItem -Path $brandingDir -File
+    foreach ($bf in $brandFiles) {
+        $entryName = "uploads/branding/" + $bf.Name
+        $entry = $archive.CreateEntry($entryName, [System.IO.Compression.CompressionLevel]::Optimal)
         $entryStream = $entry.Open()
-        $fileStream = [System.IO.File]::Open($dbFile, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
+        $fileStream = [System.IO.File]::Open($bf.FullName, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
         $fileStream.CopyTo($entryStream)
         $fileStream.Close()
         $entryStream.Close()
         $totalFiles++
-    } catch {
-        Write-Host "db.sqlite warning: $($_.Exception.Message)"
     }
 }
 
-$seedFile = Join-Path $PSScriptRoot "default_seed.sqlite"
-if (Test-Path $seedFile) {
-    try {
-        $entrySeed = $archive.CreateEntry("default_seed.sqlite", [System.IO.Compression.CompressionLevel]::Optimal)
-        $entrySeedStream = $entrySeed.Open()
-        $fileSeedStream = [System.IO.File]::Open($seedFile, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
-        $fileSeedStream.CopyTo($entrySeedStream)
-        $fileSeedStream.Close()
-        $entrySeedStream.Close()
-        $totalFiles++
-    } catch {
-        Write-Host "default_seed.sqlite warning: $($_.Exception.Message)"
-    }
-} elseif (Test-Path $dbFile) {
-    try {
-        $entrySeed = $archive.CreateEntry("default_seed.sqlite", [System.IO.Compression.CompressionLevel]::Optimal)
-        $entrySeedStream = $entrySeed.Open()
-        $fileSeedStream = [System.IO.File]::Open($dbFile, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
-        $fileSeedStream.CopyTo($entrySeedStream)
-        $fileSeedStream.Close()
-        $entrySeedStream.Close()
-        $totalFiles++
-    } catch {
-        Write-Host "fallback default_seed warning: $($_.Exception.Message)"
+# 5. Add db.sqlite and default_seed.sqlite (using latest db.sqlite)
+$dbFile = Join-Path $PSScriptRoot "db.sqlite"
+if (Test-Path $dbFile) {
+    foreach ($dbEntryName in @("db.sqlite", "default_seed.sqlite")) {
+        try {
+            $entry = $archive.CreateEntry($dbEntryName, [System.IO.Compression.CompressionLevel]::Optimal)
+            $entryStream = $entry.Open()
+            $fileStream = [System.IO.File]::Open($dbFile, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
+            $fileStream.CopyTo($entryStream)
+            $fileStream.Close()
+            $entryStream.Close()
+            $totalFiles++
+        } catch {
+            Write-Host "$dbEntryName warning: $($_.Exception.Message)"
+        }
     }
 }
 

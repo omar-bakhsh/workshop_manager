@@ -490,7 +490,9 @@
                 alert('يرجى التأكد من إدخال رقم جوال العميل أولاً');
                 return;
             }
-            const encodedText = encodeURIComponent(message);
+            // تنظيف أي وسوم HTML لضمان ظهور الرسالة بشكل سليم في الواتساب
+            const sanitizedMessage = (message || '').replace(/<[^>]*>?/gm, '').trim();
+            const encodedText = encodeURIComponent(sanitizedMessage);
             const url = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedText}`;
             window.open(url, '_blank');
         },
@@ -502,7 +504,7 @@
             const plate = cust.plate_number ? `(لوحة: ${cust.plate_number})` : '';
             const total = cust.final_amount || cust.total_amount || 0;
 
-            const msg = `مرحباً بك أستاذ ${cust.customer_name || 'العميل العزيز'} 🌹\n\nنرفق لك كشف التسعيرة الفني لـ ${car} ${plate} من *${appName}*.\n\n<i class="fa-solid fa-sack-dollar"></i> *إجمالي التسعيرة:* ${total} ريال\n\n<i class="fa-solid fa-clipboard-list"></i> *لمعاينة بنود التسعيرة وتفاصيل الكشف أونلاين:*\n${trackUrl}\n\nنسعد بخدمتكم وتأكيد البدء بالعمل!`;
+            const msg = `مرحباً بك أستاذ ${cust.customer_name || 'العميل العزيز'} 🌹\n\nنرفق لك كشف التسعيرة الفني لـ ${car} ${plate} من *${appName}*.\n\n💰 *إجمالي التسعيرة:* ${total} ريال\n\n📋 *لمعاينة بنود التسعيرة وتفاصيل الكشف أونلاين:*\n${trackUrl}\n\nنسعد بخدمتكم وتأكيد البدء بالعمل!`;
             this.sendWhatsApp(cust.customer_phone, msg);
         },
 
@@ -512,7 +514,7 @@
             const car = `${cust.car_type || ''} ${cust.car_model || ''}`.trim() || 'السيارة';
             const plate = cust.plate_number ? `(لوحة: ${cust.plate_number})` : '';
 
-            const msg = `مرحباً أستاذ ${cust.customer_name || 'العميل العزيز'} <i class="fa-solid fa-gear"></i>\n\nنفيدكم ببدء أعمال الصيانة على ${car} ${plate} لدى *${appName}*.\n\n<i class="fa-solid fa-car"></i> *يمكنكم متابعة مرحلة صيانة سيارتكم والصور لحظة بلحظة عبر الرابط التالي:*\n${trackUrl}\n\nشكراً لثقتكم بنا!`;
+            const msg = `مرحباً أستاذ ${cust.customer_name || 'العميل العزيز'} ⚙️\n\nنفيدكم ببدء أعمال الصيانة على ${car} ${plate} لدى *${appName}*.\n\n🚗 *يمكنكم متابعة مرحلة صيانة سيارتكم والصور لحظة بلحظة عبر الرابط التالي:*\n${trackUrl}\n\nشكراً لثقتكم بنا!`;
             this.sendWhatsApp(cust.customer_phone, msg);
         },
 
@@ -523,7 +525,7 @@
             const plate = cust.plate_number ? `(لوحة: ${cust.plate_number})` : '';
             const remaining = cust.remaining_amount !== undefined ? cust.remaining_amount : (cust.final_amount || 0);
 
-            const msg = `يسعدنا إبلاغك أستاذ ${cust.customer_name || 'العميل العزيز'} بأن سيارتك ${car} ${plate} أصبحت *جاهزة للتسليم* <i class="fa-solid fa-circle-check"></i> في *${appName}*.\n\n<i class="fa-solid fa-money-bill"></i> *المبلغ المتبقي:* ${remaining} ريال\n\n<i class="fa-solid fa-file-lines"></i> *تقرير الفحص والصور النهائية:*\n${trackUrl}\n\nنسعد بزيارتكم لاستلام السيارة! <i class="fa-solid fa-car"></i><i class="fa-solid fa-wind"></i>`;
+            const msg = `يسعدنا إبلاغك أستاذ ${cust.customer_name || 'العميل العزيز'} بأن سيارتك ${car} ${plate} أصبحت *جاهزة للتسليم* ✅ في *${appName}*.\n\n💵 *المبلغ المتبقي:* ${remaining} ريال\n\n📄 *تقرير الفحص والصور النهائية:*\n${trackUrl}\n\nنسعد بزيارتكم لاستلام السيارة! 🚗💨`;
             this.sendWhatsApp(cust.customer_phone, msg);
         },
 

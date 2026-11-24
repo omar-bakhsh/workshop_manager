@@ -490,7 +490,9 @@
                 alert('يرجى التأكد من إدخال رقم جوال العميل أولاً');
                 return;
             }
-            const encodedText = encodeURIComponent(message);
+            // تنظيف أي وسوم HTML لضمان ظهور الرسالة بشكل سليم في الواتساب
+            const sanitizedMessage = (message || '').replace(/<[^>]*>?/gm, '').trim();
+            const encodedText = encodeURIComponent(sanitizedMessage);
             const url = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedText}`;
             window.open(url, '_blank');
         },

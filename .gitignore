@@ -13,3 +13,5 @@ refactor_icons.js
 scratch_found*.txt
 employees_manager_*.html
 ~$*
+scratch_*.js
+audit_report.json

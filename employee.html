@@ -2699,6 +2699,47 @@
       opacity: 1 !important;
     }
 
+
+    /* ===== صفحة الموظف: بطاقات المعلومات والمؤشرات ===== */
+    .emp-card { background: var(--glass-surface); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); border: 1px solid var(--glass-border); border-radius: 20px; padding: 16px; margin-bottom: 14px; box-shadow: var(--glass-shadow-sm); }
+    .emp-card-head { display: flex; align-items: center; gap: 11px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px dashed var(--glass-border); }
+    .emp-card-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 17px; flex-shrink: 0; }
+    .emp-card-title { font-size: 15.5px; font-weight: 900; color: var(--text-main); }
+    .emp-card-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; font-weight: 600; }
+    .emp-info-grid, .emp-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .emp-span-2 { grid-column: span 2; }
+    .emp-info-tile, .emp-stat { border-radius: 14px; padding: 12px; border: 1px solid transparent; display: flex; flex-direction: column; gap: 4px; }
+    .tile-blue  { background: rgba(59,130,246,0.10);  border-color: rgba(59,130,246,0.25);  --tc: #2563eb; }
+    .tile-amber { background: rgba(245,158,11,0.11);  border-color: rgba(245,158,11,0.30);  --tc: #d97706; }
+    .tile-red   { background: rgba(239,68,68,0.09);   border-color: rgba(239,68,68,0.25);   --tc: #dc2626; }
+    .tile-sky   { background: rgba(14,165,233,0.10);  border-color: rgba(14,165,233,0.25);  --tc: #0369a1; }
+    .tile-green { background: rgba(16,185,129,0.11);  border-color: rgba(16,185,129,0.30);  --tc: #059669; }
+    body.dark-mode .tile-blue { --tc: #60a5fa; } body.dark-mode .tile-amber { --tc: #fbbf24; }
+    body.dark-mode .tile-red { --tc: #f87171; } body.dark-mode .tile-sky { --tc: #38bdf8; } body.dark-mode .tile-green { --tc: #34d399; }
+    .emp-tile-label { font-size: 12px; font-weight: 800; color: var(--tc); display: flex; align-items: center; gap: 6px; }
+    .emp-tile-value { font-size: 20px; font-weight: 900; color: var(--tc); line-height: 1.25; }
+    .emp-tile-hint { font-size: 11px; color: var(--text-muted); font-weight: 600; line-height: 1.5; }
+    .emp-total { background: linear-gradient(135deg, #4338ca 0%, #4f46e5 55%, #6366f1 100%); color: #fff; border-radius: 18px; padding: 15px 16px; margin-bottom: 12px; box-shadow: 0 10px 26px rgba(79,70,229,0.30); }
+    .emp-total-top { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; font-weight: 800; }
+    .emp-total-label { display: flex; align-items: center; gap: 6px; }
+    .emp-total-link { font-size: 11px; background: rgba(255,255,255,0.18); padding: 3px 9px; border-radius: 99px; }
+    .emp-total-value { font-size: 30px; font-weight: 900; margin: 8px 0 10px; color: #fff; }
+    .emp-equation { display: flex; align-items: stretch; gap: 8px; }
+    .emp-eq-part { flex: 1; background: rgba(255,255,255,0.15); border-radius: 12px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; }
+    .emp-eq-lbl { font-size: 11px; font-weight: 700; opacity: .9; }
+    .emp-eq-num { font-size: 15px; font-weight: 900; }
+    .emp-eq-op { align-self: center; font-size: 20px; font-weight: 900; }
+    .emp-total-note { margin-top: 9px; font-size: 11px; opacity: .88; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+    .emp-progress-block { margin-top: 14px; padding: 14px; border-radius: 16px; background: rgba(148,163,184,0.10); border: 1px solid var(--glass-border); }
+    .emp-progress-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .emp-progress-title { font-size: 13.5px; font-weight: 900; color: var(--text-main); display: flex; align-items: center; gap: 7px; }
+    .emp-percent-pill { background: linear-gradient(135deg,#0ea5e9,#2563eb); color: #fff; font-size: 12px; font-weight: 900; padding: 4px 11px; border-radius: 99px; display: inline-flex; gap: 5px; align-items: center; }
+    .emp-mini { background: var(--glass-surface); border: 1px solid var(--glass-border); border-radius: 12px; padding: 9px 11px; display: flex; flex-direction: column; gap: 3px; }
+    .emp-mini-lbl { font-size: 11px; color: var(--text-muted); font-weight: 700; }
+    .emp-mini-val { font-size: 16px; font-weight: 900; }
+    .emp-motive { margin-top: 12px; padding: 9px 12px; border-radius: 12px; font-size: 12.5px; font-weight: 800; display: flex; align-items: center; gap: 8px; background: rgba(16,185,129,0.10); border: 1px solid rgba(16,185,129,0.28); color: #047857; }
+    body.dark-mode .emp-motive { color: #6ee7b7; }
+    @media (max-width: 360px) { .emp-info-grid, .emp-grid-2 { grid-template-columns: 1fr; } .emp-span-2 { grid-column: auto; } }
   </style>
 </head>
 
@@ -2822,143 +2863,126 @@
         <!-- Dynamically injected based on permissions -->
       </div>
 
-      <!-- 🎯 الهدف المالي والحوافز (تصميم زجاجي نظيف وغير مكرر) -->
-      <div id="vaultTargetSection" class="vault-target-card" style="display:none;">
-        <div class="vault-header">
-          <div class="vault-title-group">
-            <div class="vault-icon-badge" title="الهدف المالي والحوافز" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
-              <i class="fa-solid fa-bullseye"></i>
-            </div>
-            <div>
-              <div class="vault-title">الهدف المالي والحوافز</div>
-              <div class="vault-subtitle">مؤشرات الأداء المالي والعمولات المستحقة</div>
-            </div>
+      <!-- ============ البطاقة 1: معلومات الراتب والهدف ============ -->
+      <div id="dashInfoCard" class="emp-card">
+        <div class="emp-card-head">
+          <div class="emp-card-icon" style="background:linear-gradient(135deg,#3b82f6,#2563eb);"><i class="fa-solid fa-id-card"></i></div>
+          <div>
+            <div class="emp-card-title">معلوماتي</div>
+            <div class="emp-card-sub">راتبي وهدفي المسجّل من الإدارة</div>
           </div>
-          <div id="vaultPercentBadge" class="vault-percent-pill" style="background: linear-gradient(135deg, #0ea5e9, #2563eb);">
-            <i class="fa-solid fa-chart-line"></i>
-            <span id="targetPercentDisplay">0%</span>
+        </div>
+        <div class="emp-info-grid">
+          <div class="emp-info-tile tile-blue">
+            <div class="emp-tile-label"><i class="fa-solid fa-file-invoice-dollar"></i> راتبي الأساسي</div>
+            <div class="emp-tile-value" id="dashBaseSalary">0 ﷼</div>
+            <div class="emp-tile-hint">راتبي الشهري قبل أي خصم</div>
+          </div>
+          <div class="emp-info-tile tile-amber" id="infoTargetItem" style="display:none;">
+            <div class="emp-tile-label"><i class="fa-solid fa-bullseye"></i> كم الدخل المطلوب مني</div>
+            <div class="emp-tile-value" id="vaultTargetVal">0 ﷼</div>
+            <div class="emp-tile-hint">لو وصلته أستحق التارقت</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ البطاقة 2: أدائي وحسابي ============ -->
+      <div id="dashKpiSection" class="emp-card">
+        <div class="emp-card-head">
+          <div class="emp-card-icon" style="background:linear-gradient(135deg,#10b981,#059669);"><i class="fa-solid fa-chart-line"></i></div>
+          <div>
+            <div class="emp-card-title">أدائي وحسابي</div>
+            <div class="emp-card-sub">وش سويت وكم باقي لي هالشهر</div>
           </div>
         </div>
 
-        <!-- شبكة المؤشرات الـ 4 المنظمة دون تكرار -->
-        <div class="vault-kpis-grid-4">
-          <div class="vault-kpi-item">
-            <div class="kpi-sub">الدخل المحقق</div>
-            <div class="kpi-main kpi-net" id="vaultNetIncomeVal">0 ﷼</div>
+        <!-- الخلاصة: إجمالي المستحق -->
+        <div class="emp-total" onclick="switchTab('tabFinance')" style="cursor:pointer;" title="انقر لعرض التفاصيل في تبويب المالية">
+          <div class="emp-total-top">
+            <span class="emp-total-label"><i class="fa-solid fa-wallet"></i> اللي أستلمه إجمالاً</span>
+            <span class="emp-total-link">التفاصيل <i class="fa-solid fa-chevron-left"></i></span>
           </div>
-          <div class="vault-kpi-item">
-            <div class="kpi-sub">الهدف المطلوب</div>
-            <div class="kpi-main kpi-target" id="vaultTargetVal">0 ﷼</div>
+          <div class="emp-total-value" id="dashSalaryPlusTarget">0 ﷼</div>
+          <div class="emp-equation">
+            <div class="emp-eq-part">
+              <span class="emp-eq-lbl">راتبي الباقي</span>
+              <span class="emp-eq-num" id="dashNetRemaining">0 ﷼</span>
+            </div>
+            <div class="emp-eq-op">+</div>
+            <div class="emp-eq-part">
+              <span class="emp-eq-lbl">تارقت اللي حققته</span>
+              <span class="emp-eq-num" id="dashEarnedTargetSub">0 ﷼</span>
+            </div>
           </div>
-          <div class="vault-kpi-item">
-            <div class="kpi-sub">المبلغ المتبقي</div>
-            <div class="kpi-main kpi-rem" id="vaultRemainingVal">0 ﷼</div>
+          <div class="emp-total-note"><i class="fa-solid fa-circle-info"></i> = راتبي الأساسي − سحبياتي + تارقتي</div>
+        </div>
+
+        <!-- تفصيل الراتب والحافز -->
+        <div class="emp-grid-2">
+          <div class="emp-stat tile-red">
+            <div class="emp-tile-label"><i class="fa-solid fa-arrow-trend-down"></i> سحبياتي من الراتب</div>
+            <div class="emp-tile-value" id="dashTotalWithdrawals">0 ﷼</div>
+            <div class="emp-tile-hint">انخصمت من راتبي الأساسي</div>
           </div>
-          <div class="vault-kpi-item highlight-incentive">
-            <div class="kpi-sub" style="color: #059669 !important;">الحافز المستحق</div>
-            <div class="kpi-main kpi-incentive" id="vaultEarnedIncentiveVal">0 ﷼</div>
+          <div class="emp-stat tile-sky">
+            <div class="emp-tile-label"><i class="fa-solid fa-money-bill-wave"></i> راتبي الباقي</div>
+            <div class="emp-tile-value" id="dashNetRemainingStat">0 ﷼</div>
+            <div class="emp-tile-hint">الباقي لي بعد سحبياتي</div>
+          </div>
+          <div class="emp-stat tile-green emp-span-2">
+            <div class="emp-tile-label"><i class="fa-solid fa-gift"></i> تارقت اللي حققته</div>
+            <div class="emp-tile-value" id="dashEarnedTarget">0 ﷼</div>
+            <div class="emp-tile-hint">يُحسب من الدخل اللي جبته للورشة</div>
           </div>
         </div>
 
-        <!-- شريط التقدم المتدرج من البرتقالي للأخضر مع الرسائل التحفيزية -->
-        <div class="motivational-fill-wrapper" style="border: 1px solid rgba(217, 119, 6, 0.25);">
-          <div class="fill-header-row">
-            <span class="fill-label">نسبة الإنجاز نحو الهدف:</span>
+        <!-- وين وصلت في هدفي (يظهر فقط عند تفعيل الهدف وصلاحية عرض الدخل) -->
+        <div id="vaultTargetSection" class="emp-progress-block" style="display:none;">
+          <div class="emp-progress-head">
+            <span class="emp-progress-title"><i class="fa-solid fa-flag-checkered"></i> وين وصلت في هدفي</span>
+            <span id="vaultPercentBadge" class="emp-percent-pill"><i class="fa-solid fa-chart-line"></i> <span id="targetPercentDisplay">0%</span></span>
+          </div>
+          <div class="emp-grid-2">
+            <div class="emp-mini">
+              <span class="emp-mini-lbl">الدخل اللي حققته</span>
+              <span class="emp-mini-val" id="vaultNetIncomeVal" style="color:#059669;">0 ﷼</span>
+            </div>
+            <div class="emp-mini">
+              <span class="emp-mini-lbl">باقي لي أوصل الهدف</span>
+              <span class="emp-mini-val" id="vaultRemainingVal" style="color:#2563eb;">0 ﷼</span>
+            </div>
+          </div>
+          <div class="fill-header-row" style="margin-top:12px;">
+            <span class="fill-label">نسبة إنجازي</span>
             <span class="fill-rate" id="fillRateText">0%</span>
           </div>
           <div class="fill-track-outer">
             <div id="vaultMotivationalFill" class="fill-bar-active"></div>
           </div>
           <div class="fill-markers">
-            <span>0%</span>
-            <span>25%</span>
-            <span>50%</span>
-            <span>75%</span>
+            <span>0%</span><span>25%</span><span>50%</span><span>75%</span>
             <span>100% <i class="fa-solid fa-trophy" style="color:#f59e0b;"></i></span>
           </div>
-          <div id="vaultMotivationalMsg" class="vault-motivational-msg" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); color: #065f46;">
-            <i class="fa-solid fa-quote-right" style="color: #10b981;"></i>
-            <span id="vaultMsgText">بداية موفقة، واصل التقدم!</span>
+          <div id="vaultMotivationalMsg" class="emp-motive">
+            <i class="fa-solid fa-quote-right"></i>
+            <span id="vaultMsgText">بداية طيبة، كمّل يا بطل!</span>
           </div>
-        </div>
-
-        <!-- Hidden legacy hooks for complete script compatibility -->
-        <div id="vaultAchievementRateVal" style="display:none;">0%</div>
-      </div>
-
-      <!-- Quick KPI Summary -->
-      <div id="dashKpiSection" class="section-headline">
-        <h3><i class="fa-solid fa-chart-line" style="color: #10b981;"></i> الراتب ومؤشرات الأداء</h3>
-      </div>
-      <div id="dashKpiGrid" class="kpi-stats-grid">
-        <!-- 4. الراتب + التارقت (المحصلة النهائية الكبرى - مميزة) -->
-        <div class="kpi-card highlight span-2" onclick="switchTab('tabFinance')" style="cursor: pointer;" title="انقر لعرض تفاصيل الراتب في تبويب المالية">
-          <div class="kpi-card-header">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span class="kpi-label">إجمالي المستحق (الراتب + التارقت)</span>
-              <span class="highlight-badge">المحصلة النهائية</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span class="highlight-nav-btn">المالية <i class="fa-solid fa-chevron-left" style="font-size: 8px;"></i></span>
-              <div class="kpi-icon highlight-icon"><i class="fa-solid fa-wallet"></i></div>
-            </div>
-          </div>
-          <div class="kpi-value" id="dashSalaryPlusTarget">0 ﷼</div>
-          <div class="salary-calc-box">
-            <div class="salary-calc-part">
-              <span class="calc-lbl">الراتب الأساسي المتبقي:</span>
-              <span class="calc-num" id="dashNetRemaining">0 ﷼</span>
-            </div>
-            <div class="salary-calc-op">+</div>
-            <div class="salary-calc-part">
-              <span class="calc-lbl">التارقت المستحق:</span>
-              <span class="calc-num" id="dashEarnedTargetSub">0 ﷼</span>
-            </div>
-          </div>
-          <div class="salary-calc-note">
-            <i class="fa-solid fa-circle-info"></i>
-            <span>إجمالي الراتب المستحق بعد خصم السحوبات وإضافة حافز التارقت المحقق</span>
-          </div>
-        </div>
-
-        <!-- 1. الراتب الأساسي (المسجل من الإعدادات) -->
-        <div class="kpi-card">
-          <div class="kpi-card-header">
-            <span class="kpi-label">الراتب الأساسي</span>
-            <div class="kpi-icon" style="background: rgba(59,130,246,0.12); color: #2563eb;"><i class="fa-solid fa-file-invoice-dollar"></i></div>
-          </div>
-          <div class="kpi-value" id="dashBaseSalary" style="color: #2563eb;">0 ﷼</div>
-          <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">من الإعدادات</div>
-        </div>
-
-        <!-- 2. إجمالي السحوبات (خصم الراتب الأساسي ومبلغ الراتب الصافي من تقرير إكسل) -->
-        <div class="kpi-card">
-          <div class="kpi-card-header">
-            <span class="kpi-label">إجمالي السحوبات</span>
-            <div class="kpi-icon" style="background: rgba(239,68,68,0.12); color: #dc2626;"><i class="fa-solid fa-credit-card"></i></div>
-          </div>
-          <div class="kpi-value" id="dashTotalWithdrawals" style="color: #dc2626;">0 ﷼</div>
-          <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px;">مخصومة من الأساسي</div>
-        </div>
-
-        <!-- 3. التارقت المستحق (الحافز المستحق) -->
-        <div class="kpi-card span-2" style="background: var(--glass-surface-elevated); border: 1.5px solid rgba(16, 185, 129, 0.35);">
-          <div class="kpi-card-header">
-            <span class="kpi-label" style="color: #059669 !important;">التارقت المستحق (الحافز)</span>
-            <div class="kpi-icon" style="background: rgba(16, 185, 129, 0.15); color: #059669;"><i class="fa-solid fa-bullseye"></i></div>
-          </div>
-          <div class="kpi-value" id="dashEarnedTarget" style="color: #059669;">0 ﷼</div>
-          <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 3px;">بناءً على الدخل المحقق في الورشة</div>
+          <!-- Hidden legacy hooks -->
+          <div id="vaultAchievementRateVal" style="display:none;">0%</div>
+          <div id="vaultEarnedIncentiveVal" style="display:none;">0 ﷼</div>
         </div>
 
         <!-- Hidden hooks for script compatibility -->
-        <div id="dashRemainingBalance" style="display:none;">0 ﷼</div>
-        <div id="dashRemainingWithBonus" style="display:none;">0 ﷼</div>
-        <div id="dashTotalIncome" style="display:none;">0</div>
-        <div id="dashIncomeHidden" style="display:none;"></div>
-        <div id="dashTargetPercent" style="display:none;">0%</div>
-        <div id="dashProgressFill" style="display:none;"></div>
+        <div id="dashKpiGrid" style="display:none;">
+          <div id="dashRemainingBalance">0 ﷼</div>
+          <div id="dashRemainingWithBonus">0 ﷼</div>
+          <div id="dashTotalIncome">0</div>
+          <div id="dashIncomeHidden"></div>
+          <div id="dashTargetPercent">0%</div>
+          <div id="dashProgressFill"></div>
+        </div>
       </div>
+
 
       <!-- Live Assigned Job Orders & Tasks -->
       <div class="section-headline" style="margin-top: 10px;">
@@ -3923,6 +3947,8 @@
         // تحديث صافي الراتب المتبقي
         const dNetEl = document.getElementById('dashNetRemaining');
         if (dNetEl) dNetEl.innerHTML = formatMoneyDisplay(basicSalaryRemaining);
+        const dNetStatEl = document.getElementById('dashNetRemainingStat');
+        if (dNetStatEl) dNetStatEl.innerHTML = formatMoneyDisplay(basicSalaryRemaining);
         const fNetEl = document.getElementById('finNetRemaining');
         if (fNetEl) fNetEl.innerHTML = formatMoneyDisplay(basicSalaryRemaining);
         const fNetSubEl = document.getElementById('finNetRemainingSub');
@@ -3941,20 +3967,15 @@
 
         // 3. التارقت المستحق (الحافز المستحق)
         let earnedIncentive = 0;
-        if (isMechanics) {
-          // قواعد قسم الميكانيكا المعتمدة:
-          // تحت 10,000 -> 0
-          // من 10,000 إلى 14,999 -> 1,250 ﷼
-          // 15,000 واكثر -> 10% من إجمالي الدخل
-          if (netIncome < 10000) {
-            earnedIncentive = 0;
-          } else if (netIncome >= 10000 && netIncome < 15000) {
-            earnedIncentive = 1250;
-          } else {
-            earnedIncentive = Math.round(netIncome * 0.10);
-          }
+        const isInspection = (secName.includes('كشف') || secName.includes('فحص'));
+        if (isInspection) {
+          // قسم الكشف: لا يُحتسب التارقت من الدخل المحقق
+          earnedIncentive = 0;
+        } else if (isMechanics) {
+          // قسم الميكانيكا: الحافز = 10% من الدخل المحقق
+          earnedIncentive = Math.round(netIncome * 0.10);
         } else {
-          // الأقسام الأخرى
+          // الأقسام الأخرى (بدون تغيير)
           let targetOther = Number(employeeData.info && employeeData.info.target) || 0;
           if (targetOther <= 0) {
             if (employeeData.section_target_type === 'amount' && Number(employeeData.section_default_target) > 0) {
@@ -3975,7 +3996,6 @@
             earnedIncentive = 0;
           }
         }
-
         // 4. الراتب + التارقت (اجمع الحافز المستحق + راتب المتبقي من بند رقم 2)
         const totalSalaryPlusTarget = basicSalaryRemaining + earnedIncentive;
 
@@ -4006,6 +4026,7 @@
           document.getElementById('finIncomeHidden').style.display = 'block';
           document.getElementById('incomeSection').style.display = 'none';
           if (vaultSection) vaultSection.style.display = 'none';
+          const tgtItem0 = document.getElementById('infoTargetItem'); if (tgtItem0) tgtItem0.style.display = 'none';
         } else {
           const totalIncStr = netIncome.toLocaleString('en-US');
           document.getElementById('dashTotalIncome').textContent = totalIncStr;
@@ -4048,7 +4069,7 @@
           // 🎯 Update Unified Vault Target Card (الهدف المالي والحوافز)
           if (vaultSection) {
             if (isTargetEnabled) {
-              vaultSection.style.display = 'block';
+              vaultSection.style.display = 'block'; const tgtItem1 = document.getElementById('infoTargetItem'); if (tgtItem1) tgtItem1.style.display = 'flex';
 
               // 1. المبلغ المحقق
               const netIncomeValEl = document.getElementById('vaultNetIncomeVal');
@@ -4100,21 +4121,21 @@
               const msgEl = document.getElementById('vaultMsgText');
               if (msgEl) {
                 if (rawAchievementNum < 25) {
-                  msgEl.textContent = 'بداية موفقة، واصل التقدم!';
+                  msgEl.textContent = 'بداية طيبة، كمّل يا بطل!';
                 } else if (rawAchievementNum < 50) {
-                  msgEl.textContent = 'أداء جيد، استمر!';
+                  msgEl.textContent = 'أداؤك زين، كمّل!';
                 } else if (rawAchievementNum < 75) {
-                  msgEl.textContent = 'أنت تقترب من تحقيق الهدف!';
+                  msgEl.textContent = 'قربت من هدفك، شدّ حيلك!';
                 } else if (rawAchievementNum < 100) {
-                  msgEl.textContent = 'باقي القليل على تحقيق هدفك!';
+                  msgEl.textContent = 'باقي لك شوي وتوصل هدفك!';
                 } else if (rawAchievementNum === 100) {
-                  msgEl.textContent = 'مبروك! لقد حققت هدفك!';
+                  msgEl.textContent = 'مبروك! حققت هدفك!';
                 } else {
-                  msgEl.textContent = 'إنجاز استثنائي! تجاوزت الهدف!';
+                  msgEl.textContent = 'الله يعطيك العافية! تجاوزت هدفك!';
                 }
               }
             } else {
-              vaultSection.style.display = 'none';
+              vaultSection.style.display = 'none'; const tgtItem2 = document.getElementById('infoTargetItem'); if (tgtItem2) tgtItem2.style.display = 'none';
             }
           }
           
