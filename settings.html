@@ -513,6 +513,9 @@
             <button type="button" class="nav-pill" onclick="filterSettingsSection('backup', this)">
                 <i class="fa-solid fa-database"></i> النسخ الاحتياطي
             </button>
+            <button type="button" class="nav-pill" onclick="filterSettingsSection('security', this)">
+                <i class="fa-solid fa-user-shield"></i> رمز المدير
+            </button>
         </div>
 
         <!-- 1. App Identity & Branding Settings -->
@@ -1425,6 +1428,57 @@ export const AtenzaApi = {
             </div>
         </div>
 
+        <!-- Admin Credentials (Security) -->
+        <div id="secAdminSecurity" class="section-box settings-sec-item" data-category="security"
+            style="border: 2px solid #dc2626; background: #fffafa;">
+            <div class="section-title" style="color: #b91c1c;">
+                <div class="section-title-start">
+                    <i class="fa-solid fa-user-shield" style="font-size: 20px;"></i>
+                    <span>بيانات دخول المدير (Admin Username &amp; Password)</span>
+                </div>
+                <span class="section-title-badge" style="background: #fee2e2; color: #991b1b;">الأمان</span>
+            </div>
+            <p style="font-size: 12.5px; color: #475569; margin-bottom: 12px; line-height: 1.6;">
+                لتغيير اسم مستخدم أو رمز دخول المدير، أدخل كلمة المرور الحالية للتأكيد ثم البيانات الجديدة. اترك حقل
+                كلمة المرور الجديدة فارغاً إذا كنت تريد تغيير اسم المستخدم فقط.
+            </p>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label><i class="fa-solid fa-user"></i> اسم المستخدم الحالي</label>
+                    <input type="text" id="adminCurrentUsername" readonly style="background:#f1f5f9;">
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-lock"></i> كلمة المرور الحالية *</label>
+                    <input type="password" id="adminCurrentPassword" autocomplete="current-password" placeholder="••••••">
+                </div>
+            </div>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label><i class="fa-solid fa-user-pen"></i> اسم المستخدم الجديد (اختياري)</label>
+                    <input type="text" id="adminNewUsername" autocomplete="off" placeholder="اتركه كما هو لعدم التغيير">
+                </div>
+                <div class="form-group">
+                    <label><i class="fa-solid fa-key"></i> كلمة المرور الجديدة</label>
+                    <input type="password" id="adminNewPassword" autocomplete="new-password" placeholder="4 أحرف على الأقل">
+                </div>
+            </div>
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label><i class="fa-solid fa-key"></i> تأكيد كلمة المرور الجديدة</label>
+                    <input type="password" id="adminConfirmPassword" autocomplete="new-password" placeholder="أعد كتابة كلمة المرور">
+                </div>
+                <div class="form-group" style="display:flex; align-items:flex-end; gap:10px;">
+                    <label style="display:flex; align-items:center; gap:6px; cursor:pointer; margin:0 0 10px 0;">
+                        <input type="checkbox" onchange="toggleAdminPassVisibility(this.checked)" style="width:auto;"> إظهار كلمات المرور
+                    </label>
+                </div>
+            </div>
+            <button type="button" id="saveAdminCredBtn" class="btn-modern btn-primary-m" onclick="saveAdminCredentials()"
+                style="background:#dc2626;">
+                <i class="fa-solid fa-floppy-disk"></i> تحديث بيانات دخول المدير
+            </button>
+        </div>
+
         <!-- 10. Database Backup and Restore -->
         <div id="secBackup" class="section-box settings-sec-item" data-category="backup"
             style="border: 2px solid var(--primary-color); background: #f8fafc;">
@@ -1605,6 +1659,78 @@ export const AtenzaApi = {
                 setTimeout(() => toast.remove(), 400);
             }, 4500);
         }
+
+        // ==========================================
+        // Admin Credentials (username / password)
+        // ==========================================
+        function getAdminSessionUser() {
+            try { return JSON.parse(localStorage.getItem('user') || 'null'); } catch (e) { return null; }
+        }
+
+        function initAdminCredentialsSection() {
+            const u = getAdminSessionUser();
+            const el = document.getElementById('adminCurrentUsername');
+            if (el) el.value = (u && u.username) ? u.username : '';
+            const sec = document.getElementById('secAdminSecurity');
+            if (sec && (!u || u.role !== 'admin')) sec.style.display = 'none';
+        }
+
+        function toggleAdminPassVisibility(show) {
+            ['adminCurrentPassword', 'adminNewPassword', 'adminConfirmPassword'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.type = show ? 'text' : 'password';
+            });
+        }
+
+        async function saveAdminCredentials() {
+            const u = getAdminSessionUser();
+            if (!u || u.role !== 'admin') {
+                showToast('هذه الخاصية متاحة للمدير فقط', 'error');
+                return;
+            }
+            const currentPassword = document.getElementById('adminCurrentPassword').value.trim();
+            const newUsername = document.getElementById('adminNewUsername').value.trim();
+            const newPassword = document.getElementById('adminNewPassword').value.trim();
+            const confirmPassword = document.getElementById('adminConfirmPassword').value.trim();
+
+            if (!currentPassword) return showToast('يرجى إدخال كلمة المرور الحالية', 'warning');
+            if (!newUsername && !newPassword) return showToast('أدخل اسم مستخدم جديد أو كلمة مرور جديدة', 'warning');
+            if (newPassword && newPassword.length < 4) return showToast('كلمة المرور الجديدة يجب ألا تقل عن 4 أحرف', 'warning');
+            if (newPassword !== confirmPassword) return showToast('كلمة المرور الجديدة وتأكيدها غير متطابقين', 'warning');
+
+            const btn = document.getElementById('saveAdminCredBtn');
+            btn.disabled = true;
+            try {
+                const res = await fetch('/api/admin/change-credentials', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: u.id,
+                        current_username: u.username,
+                        current_password: currentPassword,
+                        new_username: newUsername,
+                        new_password: newPassword
+                    })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (res.ok && data.success) {
+                    u.username = data.username;
+                    localStorage.setItem('user', JSON.stringify(u));
+                    ['adminCurrentPassword', 'adminNewUsername', 'adminNewPassword', 'adminConfirmPassword']
+                        .forEach(id => document.getElementById(id).value = '');
+                    document.getElementById('adminCurrentUsername').value = data.username;
+                    showToast(data.message || 'تم التحديث بنجاح', 'success');
+                } else {
+                    showToast(data.message || 'تعذر تحديث البيانات', 'error');
+                }
+            } catch (e) {
+                showToast('تعذر الاتصال بالسيرفر', 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initAdminCredentialsSection);
 
         // ==========================================
         // Section Filter Pills Handling

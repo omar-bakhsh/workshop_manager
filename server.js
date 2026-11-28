@@ -227,6 +227,56 @@ app.post('/api/login', async (req, res) => {
 });
 
 // ==========================
+// 🔑 تغيير بيانات دخول المدير (اسم المستخدم / كلمة المرور)
+// ==========================
+app.post('/api/admin/change-credentials', async (req, res) => {
+    const { user_id, current_username, current_password, new_username, new_password } = req.body || {};
+    if (!current_password || (!user_id && !current_username)) {
+        return res.status(400).json({ success: false, message: "يرجى إدخال كلمة المرور الحالية" });
+    }
+    try {
+        const admin = user_id
+            ? await dbGet(`SELECT * FROM users WHERE id = ? AND role = 'admin'`, [user_id])
+            : await dbGet(`SELECT * FROM users WHERE username = ? AND role = 'admin'`, [String(current_username).trim()]);
+        if (!admin) {
+            return res.status(404).json({ success: false, message: "حساب المدير غير موجود" });
+        }
+
+        const cur = String(current_password).trim();
+        const stored = admin.password || '';
+        const match = (stored.startsWith('$2a$') || stored.startsWith('$2b$'))
+            ? bcrypt.compareSync(cur, stored)
+            : stored === cur;
+        if (!match) {
+            return res.status(401).json({ success: false, message: "كلمة المرور الحالية غير صحيحة" });
+        }
+
+        const cleanUsername = (new_username && String(new_username).trim()) ? String(new_username).trim() : admin.username;
+        const cleanNewPass = (new_password && String(new_password).trim()) ? String(new_password).trim() : '';
+
+        if (cleanNewPass && cleanNewPass.length < 4) {
+            return res.status(400).json({ success: false, message: "كلمة المرور الجديدة يجب ألا تقل عن 4 أحرف" });
+        }
+        if (cleanUsername === admin.username && !cleanNewPass) {
+            return res.status(400).json({ success: false, message: "لم يتم إدخال أي تغيير" });
+        }
+        if (cleanUsername !== admin.username) {
+            const exists = await dbGet(`SELECT id FROM users WHERE username = ? AND id <> ?`, [cleanUsername, admin.id]);
+            if (exists) {
+                return res.status(409).json({ success: false, message: "اسم المستخدم مستخدم بالفعل" });
+            }
+        }
+
+        const finalPassword = cleanNewPass ? bcrypt.hashSync(cleanNewPass, 10) : stored;
+        await dbRun(`UPDATE users SET username = ?, password = ? WHERE id = ?`, [cleanUsername, finalPassword, admin.id]);
+        res.json({ success: true, message: "تم تحديث بيانات دخول المدير بنجاح", username: cleanUsername, id: admin.id });
+    } catch (error) {
+        console.error("Change Admin Credentials Error:", error);
+        res.status(500).json({ success: false, message: "خطأ في الخادم" });
+    }
+});
+
+// ==========================
 // 👥 إدارة الموظفين (Admin)
 // ==========================
 
