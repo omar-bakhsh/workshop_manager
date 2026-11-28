@@ -656,6 +656,27 @@
             background: #f0fdf4;
         }
 
+        /* إزالة أسهم الزيادة/النقصان من حقول الأرقام */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+
+        input.money-input {
+            text-align: center;
+            direction: ltr;
+            font-variant-numeric: tabular-nums;
+        }
+        input.money-input.input-flash {
+            background: #fee2e2 !important;
+            transition: background 0.2s;
+        }
+
         .service-container {
             position: relative;
         }
@@ -1382,7 +1403,7 @@
                 </div>
                 <div class="total-box no-print">
                     <span class="total-label">المدفوع (عربون)</span>
-                    <input type="number" id="paidAmount" class="table-input" style="text-align:center; border-bottom:1.5px solid #000; font-weight:800; font-size:14px;" value="0" oninput="calculateTotals()">
+                    <input type="text" inputmode="decimal" autocomplete="off" id="paidAmount" class="table-input money-input" style="text-align:center; border-bottom:1.5px solid #000; font-weight:800; font-size:14px;" value="0" oninput="calculateTotals()">
                 </div>
                 <div class="total-box">
                     <span class="total-label">المتبقي</span>
@@ -2212,8 +2233,8 @@
                     <input type="text" class="table-input service-input" placeholder="اكتب للبحث..." oninput="handleServiceInput(this)">
                     <div class="autocomplete-items" style="display:none"></div>
                 </td>
-                <td><input type="number" class="table-input qty-input" value="1" oninput="calculateRow(this)"></td>
-                <td><input type="number" class="table-input price-input" value="0" oninput="calculateRow(this)"></td>
+                <td><input type="text" inputmode="numeric" autocomplete="off" class="table-input qty-input money-input" data-int="1" value="1" oninput="calculateRow(this)"></td>
+                <td><input type="text" inputmode="decimal" autocomplete="off" class="table-input price-input money-input" value="0" placeholder="0.00" oninput="calculateRow(this)"></td>
                 <td class="col-total row-total">0.00</td>
             `;
             tbody.appendChild(tr);
@@ -2235,7 +2256,16 @@
             const container = input.nextElementSibling;
             container.innerHTML = '';
 
-            if (!val) { container.style.display = 'none'; return; }
+            if (!val) {
+                container.style.display = 'none';
+                // عند حذف نص البند: تصفير السعر والكمية تلقائياً
+                const priceEl = tr.querySelector('.price-input');
+                const qtyEl = tr.querySelector('.qty-input');
+                if (priceEl) priceEl.value = '0';
+                if (qtyEl) qtyEl.value = '1';
+                calculateRow(input);
+                return;
+            }
 
             const currentCatMatches = (pricingData[currentCat] || [])
                 .filter(s => s.service.toLowerCase().includes(val))
@@ -2737,6 +2767,72 @@
             }
             if (confirm('هل تريد بدء كشف / تسعيرة جديدة؟')) location.reload();
         }
+
+        // ==========================================
+        // تحسين إدخال المبالغ (السعر / الكمية / المدفوع)
+        // - يقبل الأرقام العربية والإنجليزية
+        // - يمنع السالب والحروف
+        // - فاصلة عشرية واحدة وبحد أقصى خانتين
+        // ==========================================
+        function sanitizeMoneyValue(raw, intOnly) {
+            let v = String(raw || '')
+                .replace(/[٠-٩]/g, d => String(d.charCodeAt(0) - 0x0660))
+                .replace(/[۰-۹]/g, d => String(d.charCodeAt(0) - 0x06F0))
+                .replace(/[٫,،]/g, '.');
+            if (intOnly) return v.replace(/\D/g, '');
+            v = v.replace(/[^\d.]/g, '');
+            const firstDot = v.indexOf('.');
+            if (firstDot !== -1) {
+                v = v.slice(0, firstDot + 1) + v.slice(firstDot + 1).replace(/\./g, '').slice(0, 2);
+            }
+            return v;
+        }
+
+        function setupMoneyInputs() {
+            const isMoney = el => el && el.classList && el.classList.contains('money-input');
+
+            // capture: ينفذ قبل oninput حتى تعتمد الحسابات على القيمة النظيفة
+            document.addEventListener('input', (e) => {
+                const el = e.target;
+                if (!isMoney(el)) return;
+                const before = el.value;
+                const clean = sanitizeMoneyValue(before, el.dataset.int === '1');
+                if (clean !== before) {
+                    const pos = Math.max(0, (el.selectionStart || clean.length) - (before.length - clean.length));
+                    el.value = clean;
+                    try { el.setSelectionRange(pos, pos); } catch (_) {}
+                    el.classList.add('input-flash');
+                    setTimeout(() => el.classList.remove('input-flash'), 250);
+                }
+            }, true);
+
+            document.addEventListener('keydown', (e) => {
+                if (isMoney(e.target) && (e.key === '-' || e.key === '+' || e.key === 'e' || e.key === 'E')) {
+                    e.preventDefault();
+                }
+            }, true);
+
+            // تحديد القيمة كاملة عند التركيز ليُستبدل الصفر مباشرة بالكتابة
+            document.addEventListener('focusin', (e) => {
+                if (isMoney(e.target)) setTimeout(() => { try { e.target.select(); } catch (_) {} }, 0);
+            });
+
+            // تنسيق القيمة عند الخروج من الحقل
+            document.addEventListener('focusout', (e) => {
+                const el = e.target;
+                if (!isMoney(el)) return;
+                const isInt = el.dataset.int === '1';
+                let n = parseFloat(sanitizeMoneyValue(el.value, isInt));
+                if (!isFinite(n) || n < 0) n = 0;
+                if (isInt && n < 1 && el.classList.contains('qty-input')) n = 1;
+                const formatted = isInt ? String(Math.round(n)) : String(Math.round(n * 100) / 100);
+                if (formatted !== el.value) {
+                    el.value = formatted;
+                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            });
+        }
+        setupMoneyInputs();
 
         function setupEnterNavigation() {
             document.addEventListener('keydown', (e) => {
